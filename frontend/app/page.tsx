@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { api } from '../../lib/api';
+import { api } from '../lib/api';
 
 const AMOUNTS = [500, 1000, 2000, 5000, 10000];
 
