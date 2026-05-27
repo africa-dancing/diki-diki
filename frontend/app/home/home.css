@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0a0a0a;
+  color: #f0f0f0;
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.pill {
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 50px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.pill:hover { transform: scale(1.04); }
+
+.search-input {
+  background: #1a1a1a;
+  border: 1.5px solid #2a2a2a;
+  border-radius: 50px;
+  padding: 9px 18px 9px 42px;
+  color: #f0f0f0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+  width: 100%;
+  max-width: 340px;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: #FFAA00; }
+.search-input::placeholder { color: #444; }
+
+.nav-link {
+  color: #000;
+  text-decoration: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #FFAA00, #FF6B00);
+  transition: opacity 0.2s, transform 0.2s;
+  white-space: nowrap;
+  display: inline-block;
+}
+.nav-link:hover {
+  opacity: 0.9;
+  transform: scale(1.03);
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+@media (min-width: 640px)  { .video-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } }
+@media (min-width: 1024px) { .video-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); } }
+@media (min-width: 1280px) { .video-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } }
+
+.btn-primary {
+  background: linear-gradient(135deg, #FFAA00, #FF6B00);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 9px 20px;
+  border-radius: 50px;
+  transition: all 0.2s;
+}
+.btn-primary:hover { opacity: 0.9; transform: scale(1.03); }
