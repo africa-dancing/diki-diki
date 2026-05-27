@@ -14,6 +14,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  manifest: '/manifest.json',
   title: 'Diki-Diki Vision',
   description: 'Diki-Diki Vision est le premier réseau social numérique panafricain créé pour valoriser et promouvoir les cultures africaines partout où elles existent.',
   keywords: ['talents africains', 'musique africaine', 'danse africaine', 'concours', 'Bénin', 'Afrique'],
