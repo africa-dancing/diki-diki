@@ -151,11 +151,8 @@ export default function HomePage() {
 
       {/* ── Hero ── */}
       <div style={{ padding:'20px 24px 12px', background:'radial-gradient(ellipse 80% 60% at 50% -10%,rgb(247, 6, 6) 0%,transparent 70%)', textAlign:'center' }}>
-        <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,170,0,0.1)', border:'1px solid rgba(255,170,0,0.3)', borderRadius:50, padding:'5px 14px', marginBottom:10 }}>
-          <span style={{ width:7, height:7, borderRadius:'50%', background:'#FFAA00', animation:'pulse-dot 1.5s ease-in-out infinite', display:'inline-block' }}/>
-          <span style={{ fontSize:'0.72rem', color:'#FFAA00', fontWeight:700, letterSpacing:'0.06em' }}>COMPÉTITIONS EN COURS</span>
-        </div>
-        <h1 style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'clamp(1.8rem,4vw,3rem)', lineHeight:1.1, marginBottom:6, whiteSpace:'normal', background:'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+        
+        <h1 style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'clamp(1.2rem,5vw,3rem)', lineHeight:1.1, marginBottom:6, whiteSpace:'normal', background:'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
           Votez pour vos candidats{' '}
           <span style={{ background:'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>préférés</span>
         </h1>
@@ -366,6 +363,7 @@ export default function HomePage() {
     </>
   );
 }
+
 
 
 
