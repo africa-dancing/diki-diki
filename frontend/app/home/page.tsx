@@ -159,29 +159,6 @@ export default function HomePage() {
         <p style={{ color:'#FFAA00', fontSize:'0.95rem', fontWeight:600, maxWidth:460, margin:'0 auto' }}>
         </p>
       </div>
-
-      {/* ── Éducation & Savoirs ── */}
-      <div style={{ margin:'8px 24px 4px', borderRadius:20, background:'linear-gradient(135deg,rgba(9, 0, 0, 0),rgba(11, 0, 11, 0))', border:'1px solid rgba(11, 0, 0, 0.19)', padding:'14px 18px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-          <div style={{ width:46, height:46, borderRadius:14, background:'rgba(255,170,0,0.1)', border:'1px solid rgb(6, 4, 0)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.3rem', flexShrink:0 }}>📚</div>
-          <div>
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3 }}>
-              <span style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'0.95rem', color:'#fb0404' }}>Éducation & Savoirs</span>
-              <span style={{ background:'rgb(251, 248, 248)', border:'1px solid rgba(6, 4, 0, 0.47)', color:'#ff0000', fontSize:'0.5rem', fontWeight:700, padding:'2px 7px', borderRadius:20, letterSpacing:'0.06em' }}>GRATUIT</span>
-            </div>
-            <div style={{ fontSize:'0.85rem', color:'rgb(12, 12, 12)', lineHeight:1.4, marginBottom:6 }}>
-              Explorez les 21 matières sans inscription sur la plateforme accessibles au public et 100% gratuites...  
-            </div>
-            <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
-            </div>
-          </div>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
-          {!token && (
-            <span style={{ fontSize:'0.62rem', color:'rgba(255,170,0,0.6)', fontWeight:600, textAlign:'right', lineHeight:1.4 }}>
-              Inscris-toi pour<br/>publier du contenu
-            </span>
-          )}
           <Link href="/education" style={{ background:'linear-gradient(135deg,#FF0000,#FF0000)', border:'none', borderRadius:50, padding:'8px 18px', fontSize:'0.82rem', fontWeight:700, color:'#f6f4f4', textDecoration:'none', display:'inline-block', whiteSpace:'nowrap' }}>
             Explorer →
           </Link>
