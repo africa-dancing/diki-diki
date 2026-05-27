@@ -78,7 +78,7 @@ function VideoCard({ video, index }: { video: Video; index: number }) {
         )}
       </div>
       <div style={{ padding:'12px 14px 14px' }}>
-        <p style={{ margin:0, fontWeight:700, fontSize:'0.88rem', color:'#f0f0f0', lineHeight:1.3, whiteSpace:'normal', overflow:'hidden', textOverflow:'ellipsis' }}>
+        <p style={{ margin:0, fontWeight:700, fontSize:'0.88rem', color:'#f0f0f0', lineHeight:1.3, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
           {video.title || video.track_title || 'Sans titre'}
         </p>
         {video.track_artist && <p style={{ margin:'3px 0 0', fontSize:'0.75rem', color:'#888' }}>{video.track_artist}</p>}
@@ -152,7 +152,7 @@ export default function HomePage() {
       {/* ── Hero ── */}
       <div style={{ padding:'20px 24px 12px', background:'radial-gradient(ellipse 80% 60% at 50% -10%,rgb(247, 6, 6) 0%,transparent 70%)', textAlign:'center' }}>
         
-        <h1 style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'clamp(1.2rem,5vw,3rem)', lineHeight:1.1, marginBottom:6, whiteSpace:'normal', background:'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+        <h1 style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'clamp(0.95rem,4.5vw,3rem)', lineHeight:1.1, marginBottom:6, whiteSpace:'nowrap', background:'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
           Votez pour vos candidats{' '}
           <span style={{ background:'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>préférés</span>
         </h1>
@@ -363,6 +363,7 @@ export default function HomePage() {
     </>
   );
 }
+
 
 
 
