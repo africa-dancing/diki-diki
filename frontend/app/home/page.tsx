@@ -153,7 +153,7 @@ export default function HomePage() {
       <div style={{ padding:'20px 24px 12px', background:'radial-gradient(ellipse 80% 60% at 50% -10%,rgb(247, 6, 6) 0%,transparent 70%)', textAlign:'center' }}>
         
         <h1 style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'clamp(0.95rem,4.5vw,3rem)', lineHeight:1.1, marginBottom:6, whiteSpace:'nowrap', background:'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
-          Votez pour vos candidats{' '}
+          Votez pour vos
           <span style={{ background:'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>préférés</span>
         </h1>
         <p style={{ color:'#FFAA00', fontSize:'0.95rem', fontWeight:600, maxWidth:460, margin:'0 auto' }}>
@@ -363,6 +363,7 @@ export default function HomePage() {
     </>
   );
 }
+
 
 
 
