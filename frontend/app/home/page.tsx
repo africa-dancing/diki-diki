@@ -125,7 +125,7 @@ export default function HomePage() {
       {/* Hero */}
       <div style={{ padding: '16px 24px 10px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,rgba(247,6,6,0.4) 0%,transparent 70%)', textAlign: 'center' }}>
         <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.95rem,4.5vw,3rem)', lineHeight: 1.1, marginBottom: 8, whiteSpace: 'nowrap', background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Votez pour vos candidats{' '}
+          Votez pour vos
           <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>préférés</span>
         </h1>
         <Link href="/challenges" style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 50, padding: '5px 14px', fontSize: '0.78rem', fontWeight: 700, color: '#000', textDecoration: 'none', display: 'inline-block' }}>
@@ -162,3 +162,4 @@ export default function HomePage() {
     </>
   );
 }
+
