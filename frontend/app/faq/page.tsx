@@ -1,5 +1,6 @@
-ï»¿'use client';
+'use client';
 import LogoDikiDiki from '../components/LogoDikiDiki';
+import Navbar from '../components/Navbar';
 import { useState } from 'react';
 import Link from 'next/link';
 
@@ -15,7 +16,7 @@ const s: Record<string, React.CSSProperties> = {
   hero:    { padding: '48px 24px 32px', maxWidth: 760, margin: '0 auto' },
   badge:   { display: 'inline-block', background: `linear-gradient(90deg,${OR},${OR2})`, color: '#0a0a0f', fontSize: 11, fontWeight: 700, letterSpacing: 2, padding: '4px 12px', borderRadius: 4, marginBottom: 16, textTransform: 'uppercase' as const },
   h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 32, color: '#fa0404', margin: '0 0 8px', lineHeight: 1.2 },
-  // âœ… Couleur neutre â€” Ã©tait rgb(251, 218, 3)
+  // ? Couleur neutre — était rgb(251, 218, 3)
   sub:     { color: 'rgba(255,255,255,0.5)', fontSize: 15, marginBottom: 0 },
   divider: { height: 1, background: 'rgba(10, 7, 0, 0.15)', margin: '32px 0' },
   body:    { maxWidth: 760, margin: '0 auto', padding: '0 24px' },
@@ -28,70 +29,70 @@ const s: Record<string, React.CSSProperties> = {
 };
 
 const faqs = [
-  // âœ… NOUVEAU â€” La plateforme
+  // ? NOUVEAU — La plateforme
   {
-    cat: 'ğŸŒ Diki-Diki Vision â€” La plateforme',
+    cat: '?? Diki-Diki Vision — La plateforme',
     items: [
       {
         q: "C'est quoi Diki-Diki Vision ?",
-        a: `Diki-Diki Vision est une plateforme panafricaine d'Ã©ducation, du savoir, de loisir et de divertissement.\n\nElle offre un Ã©cosystÃ¨me riche en dÃ©couverte du savoir et permet Ã  la fois Ã  ses utilisateurs de s'affronter dans des jeux de compÃ©titions en ligne et de gagner de l'argent grÃ¢ce aux votes du public â€” danse, chant, musique, comÃ©die, poÃ©sie, conte, etc.\n\nğŸŒ Ouverte Ã  toute l'Afrique, Ã  toute la diaspora internationale et au reste du monde.`,
+        a: `Diki-Diki Vision est une plateforme panafricaine d'éducation, du savoir, de loisir et de divertissement.\n\nElle offre un écosystème riche en découverte du savoir et permet à la fois à ses utilisateurs de s'affronter dans des jeux de compétitions en ligne et de gagner de l'argent grâce aux votes du public — danse, chant, musique, comédie, poésie, conte, etc.\n\n?? Ouverte à toute l'Afrique, à toute la diaspora internationale et au reste du monde.`,
       },
       {
-        q: "Quels sont les avantages d'Ãªtre sur Diki-Diki Vision ?",
-        a: `Pour les artistes :\nÂ· VisibilitÃ© auprÃ¨s d'une audience africaine et internationale\nÂ· CompÃ©tition Ã©quitable â€” c'est le public qui vote\nÂ· Gains rÃ©els â€” le champion remporte 50 % de la cagnotte\nÂ· RÃ©munÃ©ration sur le contenu Ã©ducatif publiÃ©\nÂ· Appartenir Ã  une communautÃ© de talents africains en pleine croissance\n\nPour le public :\nÂ· DÃ©couverte de talents que vous n'auriez jamais rencontrÃ©s ailleurs\nÂ· Soutien direct â€” vos votes vont dans la cagnotte de votre artiste favori\nÂ· AccÃ¨s gratuit â€” regarder, commenter et partager est entiÃ¨rement gratuit, sans inscription`,
+        q: "Quels sont les avantages d'être sur Diki-Diki Vision ?",
+        a: `Pour les artistes :\n· Visibilité auprès d'une audience africaine et internationale\n· Compétition équitable — c'est le public qui vote\n· Gains réels — le champion remporte 50 % de la cagnotte\n· Rémunération sur le contenu éducatif publié\n· Appartenir à une communauté de talents africains en pleine croissance\n\nPour le public :\n· Découverte de talents que vous n'auriez jamais rencontrés ailleurs\n· Soutien direct — vos votes vont dans la cagnotte de votre artiste favori\n· Accès gratuit — regarder, commenter et partager est entièrement gratuit, sans inscription`,
       },
     ],
   },
 
-  // âœ… NOUVEAU â€” Comprendre le Bracket
+  // ? NOUVEAU — Comprendre le Bracket
   {
-    cat: 'ğŸ“– Comprendre le Bracket',
+    cat: '?? Comprendre le Bracket',
     items: [
       {
-        q: "C'est quoi un Â« bracket Â» ?",
-        a: `Un bracket est un tableau de compÃ©tition par Ã©limination directe, inspirÃ© des tournois sportifs. Les candidats s'affrontent en duels : le gagnant passe au tour suivant, le perdant est Ã©liminÃ©. Sur Diki-Diki Vision, c'est le public qui vote pour dÃ©signer le gagnant de chaque duel.\n\nStructure d'un bracket :\nÂ· HuitiÃ¨me de finale â€” 16 candidats, 8 duels Â· 10 jours\nÂ· Quart de finale â€” 8 candidats, 4 duels Â· 10 jours\nÂ· Demi-finale â€” 4 candidats, 2 duels Â· 10 jours\nÂ· Finale â€” 2 candidats, 1 duel Â· 10 jours\nÂ· Champion â€” remporte 50 % de la cagnotte totale accumulÃ©e`,
+        q: "C'est quoi un « bracket » ?",
+        a: `Un bracket est un tableau de compétition par élimination directe, inspiré des tournois sportifs. Les candidats s'affrontent en duels : le gagnant passe au tour suivant, le perdant est éliminé. Sur Diki-Diki Vision, c'est le public qui vote pour désigner le gagnant de chaque duel.\n\nStructure d'un bracket :\n· Huitième de finale — 16 candidats, 8 duels · 10 jours\n· Quart de finale — 8 candidats, 4 duels · 10 jours\n· Demi-finale — 4 candidats, 2 duels · 10 jours\n· Finale — 2 candidats, 1 duel · 10 jours\n· Champion — remporte 50 % de la cagnotte totale accumulée`,
       },
       {
-        q: "Bracket Â« Libre / Duel Â» vs Â« RÃ©pertoire / Groupe Â» â€” quelle diffÃ©rence ?",
-        a: `Libre â€” chaque candidat choisit librement son adversaire et lui envoie une invitation Ã  compÃ©tir sur le Podium ArÃ©na Challenge sur un morceau ou une sÃ©quence d'un morceau. L'autre candidat accepte ou dÃ©cline l'invitation. Ils se fixes un dÃ©lai en commun accord pour dÃ©poser leur enregistrement et aprÃ¨s validation la compÃ©tition est lancÃ©e.\n\nRÃ©pertoire Groupeâ€” tous les candidats font leur choix respectifs et tombent chacun dans un pool; une fois les pools formÃ©s la compÃ©tition dÃ©marre par les Ã©liminations appelÃ©es HuitiÃ¨me de finale puis le Quart de finale, la Demi-finaleet enfin la Finale. Les disciplines sont les suivantes: Le chant par l'nterprÃ¨tation; la danse; la corhÃ©graphie sur le mÃªme morceau imposÃ© pour tous. Cela permet une comparaison Ã©quitable sur la mÃªme base artistique et met en valeur l'interprÃ©tation personnelle de chaque artiste.`,
+        q: "Bracket « Libre / Duel » vs « Répertoire / Groupe » — quelle différence ?",
+        a: `Libre — chaque candidat choisit librement son adversaire et lui envoie une invitation à compétir sur le Podium Aréna Challenge sur un morceau ou une séquence d'un morceau. L'autre candidat accepte ou décline l'invitation. Ils se fixes un délai en commun accord pour déposer leur enregistrement et après validation la compétition est lancée.\n\nRépertoire Groupe— tous les candidats font leur choix respectifs et tombent chacun dans un pool; une fois les pools formés la compétition démarre par les éliminations appelées Huitième de finale puis le Quart de finale, la Demi-finaleet enfin la Finale. Les disciplines sont les suivantes: Le chant par l'nterprètation; la danse; la corhégraphie sur le même morceau imposé pour tous. Cela permet une comparaison équitable sur la même base artistique et met en valeur l'interprétation personnelle de chaque artiste.`,
       },
     ],
   },
 
-  // Sections existantes inchangÃ©es
+  // Sections existantes inchangées
   {
-    cat: 'ğŸ¯ Participation',
+    cat: '?? Participation',
     items: [
-      { q: 'Comment participer Ã  un concours ?', a: "CrÃ©ez un compte, choisissez le morceau (track) auquel vous souhaitez participer; soumettez une vidÃ©o de votre prestation sur le morceau ou la sÃ©quence depuis la page Challenges. Une fois 16 candidats inscrits, le bracket ou encore la compÃ©titiondÃ©marre automatiquement." },
-      { q: 'Quel type de vidÃ©o puis-je soumettre ?', a: "Toute performance artistique : danse, chant, musique, slam, comÃ©die... La vidÃ©o doit Ãªtre originale, vous appartenir, et respecter les rÃ¨gles de la communautÃ© (pas de contenu violent ou offensant)." },
-      { q: "Combien coÃ»te l'inscription Ã  une compÃ©tition (un bracket) ?", a: "L'inscription est 100% gratuite pour tout candidat. Seul le public paie pour voter (1 vote = 10 F CFA)." },
-      { q: 'Puis-je participer Ã  plusieurs concours en mÃªme temps ?', a: "Oui, vous pouvez vous inscrire Ã  plusieurs brackets simultanÃ©ment, Ã  condition de respecter les rÃ¨gles de chaque concours." },
+      { q: 'Comment participer à un concours ?', a: "Créez un compte, choisissez le morceau (track) auquel vous souhaitez participer; soumettez une vidéo de votre prestation sur le morceau ou la séquence depuis la page Challenges. Une fois 16 candidats inscrits, le bracket ou encore la compétitiondémarre automatiquement." },
+      { q: 'Quel type de vidéo puis-je soumettre ?', a: "Toute performance artistique : danse, chant, musique, slam, comédie... La vidéo doit être originale, vous appartenir, et respecter les règles de la communauté (pas de contenu violent ou offensant)." },
+      { q: "Combien coûte l'inscription à une compétition (un bracket) ?", a: "L'inscription est 100% gratuite pour tout candidat. Seul le public paie pour voter (1 vote = 10 F CFA)." },
+      { q: 'Puis-je participer à plusieurs concours en même temps ?', a: "Oui, vous pouvez vous inscrire à plusieurs brackets simultanément, à condition de respecter les règles de chaque concours." },
     ],
   },
   {
-    cat: 'ğŸ—³ï¸ Votes & Cagnotte',
+    cat: '??? Votes & Cagnotte',
     items: [
-      { q: 'Comment fonctionne le vote ?', a: "1 vote = 1 unitÃ© = 10 F CFA. Vous choisissez le candidat que vous souhaitez soutenir dans un duel actif, et le montant est dÃ©bitÃ© de votre portefeuille ou payÃ© directement." },
-      { q: "La cagnotte, c'est quoi exactement ?", a: "La cagnotte est l'ensemble des votes accumulÃ©s sur tous les tours d'un bracket. Le champion final remporte 50 % de la cagnotte totale, aprÃ¨s dÃ©duction de la commission Diki-Diki Vision." },
-      { q: "Que se passe-t-il en cas d'Ã©galitÃ© ?", a: "En cas d'Ã©galitÃ© Ã  la fin d'un duel, une prolongation automatique de 5 jours est accordÃ©e. Si l'Ã©galitÃ© persiste, le jury Diki-Diki tranche." },
-      { q: 'Puis-je voter plusieurs fois pour le mÃªme candidat ?', a: "Oui, vous pouvez voter autant de fois que vous le souhaitez pour un candidat, tant que le duel est actif." },
+      { q: 'Comment fonctionne le vote ?', a: "1 vote = 1 unité = 10 F CFA. Vous choisissez le candidat que vous souhaitez soutenir dans un duel actif, et le montant est débité de votre portefeuille ou payé directement." },
+      { q: "La cagnotte, c'est quoi exactement ?", a: "La cagnotte est l'ensemble des votes accumulés sur tous les tours d'un bracket. Le champion final remporte 50 % de la cagnotte totale, après déduction de la commission Diki-Diki Vision." },
+      { q: "Que se passe-t-il en cas d'égalité ?", a: "En cas d'égalité à la fin d'un duel, une prolongation automatique de 5 jours est accordée. Si l'égalité persiste, le jury Diki-Diki tranche." },
+      { q: 'Puis-je voter plusieurs fois pour le même candidat ?', a: "Oui, vous pouvez voter autant de fois que vous le souhaitez pour un candidat, tant que le duel est actif." },
     ],
   },
   {
-    cat: 'ğŸ’° Paiement & Retrait',
+    cat: '?? Paiement & Retrait',
     items: [
-      { q: 'Comment retirer mes gains ?', a: "Allez dans Portefeuille â†’ Retrait, saisissez le montant souhaitÃ© et votre numÃ©ro Mobile Money. Le virement est traitÃ© sous 72 heures ouvrables." },
-      { q: 'Quels moyens de paiement sont acceptÃ©s ?', a: "Diki-Diki Vision accepte les paiements via Mobile Money (MTN, Moov, Wave) et carte bancaire, traitÃ©s par notre partenaire FedaPay." },
-      { q: 'Mon paiement a Ã©chouÃ©, que faire ?', a: "VÃ©rifiez votre solde Mobile Money ou les informations de votre carte. Si le problÃ¨me persiste, contactez-nous Ã  support@dikidiki.com avec votre numÃ©ro de transaction." },
-      { q: 'Y a-t-il des frais sur les retraits ?', a: "Des frais opÃ©rateurs peuvent s'appliquer selon votre opÃ©rateur Mobile Money. Diki-Diki Vision n'applique pas de frais supplÃ©mentaires sur les retraits." },
+      { q: 'Comment retirer mes gains ?', a: "Allez dans Portefeuille ? Retrait, saisissez le montant souhaité et votre numéro Mobile Money. Le virement est traité sous 72 heures ouvrables." },
+      { q: 'Quels moyens de paiement sont acceptés ?', a: "Diki-Diki Vision accepte les paiements via Mobile Money (MTN, Moov, Wave) et carte bancaire, traités par notre partenaire FedaPay." },
+      { q: 'Mon paiement a échoué, que faire ?', a: "Vérifiez votre solde Mobile Money ou les informations de votre carte. Si le problème persiste, contactez-nous à support@dikidiki.com avec votre numéro de transaction." },
+      { q: 'Y a-t-il des frais sur les retraits ?', a: "Des frais opérateurs peuvent s'appliquer selon votre opérateur Mobile Money. Diki-Diki Vision n'applique pas de frais supplémentaires sur les retraits." },
     ],
   },
   {
-    cat: 'ğŸ” Compte & SÃ©curitÃ©',
+    cat: '?? Compte & Sécurité',
     items: [
-      { q: 'Comment rÃ©initialiser mon mot de passe ?', a: "Sur la page de connexion, cliquez sur 'Mot de passe oubliÃ©'. Un lien de rÃ©initialisation vous sera envoyÃ© par email." },
-      { q: 'Comment supprimer mon compte ?', a: "Allez dans ParamÃ¨tres â†’ Mon compte â†’ Supprimer mon compte. Cette action est irrÃ©versible et entraÃ®ne la suppression de toutes vos donnÃ©es dans un dÃ©lai de 30 jours." },
-      { q: 'Mon compte a Ã©tÃ© suspendu, que faire ?', a: "Contactez notre Ã©quipe Ã  support@dikidiki.com en prÃ©cisant votre nom d'utilisateur et la raison supposÃ©e de la suspension. Nous Ã©tudions chaque cas sous 48h." },
+      { q: 'Comment réinitialiser mon mot de passe ?', a: "Sur la page de connexion, cliquez sur 'Mot de passe oublié'. Un lien de réinitialisation vous sera envoyé par email." },
+      { q: 'Comment supprimer mon compte ?', a: "Allez dans Paramètres ? Mon compte ? Supprimer mon compte. Cette action est irréversible et entraîne la suppression de toutes vos données dans un délai de 30 jours." },
+      { q: 'Mon compte a été suspendu, que faire ?', a: "Contactez notre équipe à support@dikidiki.com en précisant votre nom d'utilisateur et la raison supposée de la suspension. Nous étudions chaque cas sous 48h." },
     ],
   },
 ];
@@ -120,12 +121,12 @@ export default function FAQPage() {
     <div style={s.page}>
       <header style={s.header}>
         <Link href="/home" style={s.logo}><LogoDikiDiki width={200} /></Link>
-        <Link href="/home" style={s.back}>â† Retour</Link>
+        <Link href="/home" style={s.back}>? Retour</Link>
       </header>
 
       <div style={s.hero}>
         <div style={s.badge}>Aide</div>
-        <h1 style={s.h1}>Questions FrÃ©quentes</h1>
+        <h1 style={s.h1}>Questions Fréquentes</h1>
         <p style={s.sub}>Tout ce que vous devez savoir sur Diki-Diki.</p>
       </div>
 
@@ -140,9 +141,9 @@ export default function FAQPage() {
         ))}
 
         <div style={s.contact}>
-          <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18, color: '#fff', margin: '0 0 8px' }}>Vous n'avez pas trouvÃ© votre rÃ©ponse ?</p>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 4px' }}>Notre Ã©quipe vous rÃ©pond sous 24h</p>
-          <a href="mailto:support@dikidiki.com" style={s.ctaBtn}>ğŸ“© Contacter le support</a>
+          <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18, color: '#fff', margin: '0 0 8px' }}>Vous n'avez pas trouvé votre réponse ?</p>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 4px' }}>Notre équipe vous répond sous 24h</p>
+          <a href="mailto:support@dikidiki.com" style={s.ctaBtn}>?? Contacter le support</a>
         </div>
       </div>
     </div>

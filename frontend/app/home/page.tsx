@@ -8,6 +8,7 @@ import TickerBand from '../components/TickerBand';
 import TranslateWidget from '../components/TranslateWidget';
 import './home.css';
 import LogoDikiDiki from '../components/LogoDikiDiki';
+import Navbar from '../components/Navbar';
 
 // ✅ Étoile rouge — identique au logo
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
@@ -396,4 +397,5 @@ export default function HomePage() {
     </>
   );
 }
+
 
