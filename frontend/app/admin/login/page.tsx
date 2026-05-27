@@ -1,7 +1,7 @@
 'use client';
 import { useState }     from 'react';
 import { useRouter }    from 'next/navigation';
-import { useAdminAuth } from '../components/admin/AdminAuthContext';
+import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 
 type Step = 'credentials' | 'otp';
 

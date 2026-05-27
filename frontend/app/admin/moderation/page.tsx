@@ -1,7 +1,7 @@
 'use client';
-import { AdminGuard }   from '../components/admin/AdminGuard';
-import { AdminSidebar } from '../components/admin/AdminSidebar';
-import { useAdminAuth } from '../components/admin/AdminAuthContext';
+import { AdminGuard }   from '../../components/admin/AdminGuard';
+import { AdminSidebar } from '../../components/admin/AdminSidebar';
+import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 import { useEffect, useState } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
