@@ -147,38 +147,7 @@ export default function HomePage() {
   return (
     <>
       {/* ── Navigation ── */}
-      <nav style={{ position:'sticky', top:0, zIndex:100, background:'rgb(6,0,0)', backdropFilter:'blur(16px)', borderBottom:'1px solid #fcfafa', padding:'0 16px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <Link href="/home" style={{ textDecoration:'none', flexShrink:0 }}>
-          <LogoDikiDiki width={200} />
-        </Link>
-        <div style={{ position:'absolute', left:'50%', transform:'translateX(-50%)', display:'flex', alignItems:'center', gap:4 }}>
-          {NAV_LINKS.map(l => (
-            <Link key={l.href} href={l.href} style={{ background:'linear-gradient(135deg,#FFAA00,#FF6B00)', border:'none', borderRadius:50, padding:'7px 16px', fontSize:'0.82rem', fontWeight:700, color:'#000', textDecoration:'none', cursor:'pointer' }}>
-              {l.label}
-            </Link>
-          ))}
-          <button onClick={() => setShowRegles(true)} style={{ background:'linear-gradient(135deg,#FFAA00,#FF6B00)', border:'none', cursor:'pointer', fontFamily:'DM Sans,sans-serif', fontSize:'0.82rem', fontWeight:700, color:'#000', padding:'7px 16px', borderRadius:50 }}>
-            ❓ Comment ça marche
-          </button>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
-          <TranslateWidget />
-          {isAdmin && (
-            <Link href="/admin/moderation" style={{ background:'linear-gradient(135deg,#FFAA00,#FF6B00)', border:'none', borderRadius:50, padding:'7px 16px', fontSize:'0.82rem', fontWeight:700, color:'#000', textDecoration:'none', cursor:'pointer' }}>
-              ⚙️ Admin
-            </Link>
-          )}
-          {token ? (
-            <Link href="/compte">
-              <div style={{ width:34, height:34, borderRadius:'50%', background:'linear-gradient(135deg,#FF6B00,#FFD700)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.85rem', cursor:'pointer' }}>👤</div>
-            </Link>
-          ) : (
-            <button onClick={() => router.push('/auth/login')} style={{ background:'linear-gradient(135deg,#FFAA00,#FF6B00)', border:'none', borderRadius:50, padding:'7px 16px', fontSize:'0.82rem', fontWeight:700, color:'#000', cursor:'pointer', fontFamily:'DM Sans,sans-serif' }}>
-              Connexion
-            </button>
-          )}
-        </div>
-      </nav>
+      <Navbar />
 
       {/* ── Hero ── */}
       <div style={{ padding:'20px 24px 12px', background:'radial-gradient(ellipse 80% 60% at 50% -10%,rgb(247, 6, 6) 0%,transparent 70%)', textAlign:'center' }}>
@@ -397,5 +366,7 @@ export default function HomePage() {
     </>
   );
 }
+
+
 
 
