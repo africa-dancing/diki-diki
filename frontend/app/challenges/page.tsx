@@ -318,7 +318,7 @@ export default function BracketPage() {
             {[
               { label:'Votes totaux', val: totalVotes.toLocaleString('fr-FR'), icon:<StarRed /> },
               { label:'Duels joués', val: bracket.rounds.flatMap(r=>r.duels).filter(d=>d.status==='done').length+' / '+bracket.rounds.flatMap(r=>r.duels).length, icon:'⚔️' },
-              { label:'Candidats', val: String(bracket.rounds[0]?.duels.length * 2 ?? 0), icon:'👥' },
+              { label:'Candidats', val: String((bracket.rounds[0]?.duels.length ?? 0) * 2), icon:'👥' },
             ].map(s=>(
               <div key={s.label} style={{ background:'rgb(8, 8, 8)', borderRadius:10, padding:'10px', textAlign:'center' as const }}>
                 <div style={{ fontSize:16, marginBottom:3 }}>{s.icon}</div>

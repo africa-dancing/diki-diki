@@ -215,17 +215,7 @@ export default function RechargePage() {
           })}
         </div>
 
-        {/* ── Montant personnalisé ── */}
-        <div style={{ position: 'relative', marginBottom: 28 }}>
-          <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: 'rgba(255,255,255,0.3)', fontWeight: 600, pointerEvents: 'none' }}>F</span>
-          <input
-            type="number"
-            placeholder="Ou saisir un montant personnalisé…"
-            value={customAmount}
-            onChange={e => { setCustomAmount(e.target.value); setSelectedAmount(0); }}
-            style={{ ...phoneInput, paddingLeft: 32 }}
-          />
-        </div>
+        
 
         {/* ── Mode de paiement ── */}
         <div style={sectionTitle}>Mode de paiement</div>

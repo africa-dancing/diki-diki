@@ -1,9 +1,13 @@
 'use client';
+import LogoDikiDiki from '../../components/LogoDikiDiki';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import TickerBand from '../components/TickerBand';
-import From '../components/TranslateWidget' from '../../components/From '../components/TranslateWidget'';
+import TickerBand from '../../components/TickerBand';
+import TranslateWidget from '../../components/TranslateWidget';
+
+// ✅ Étoile rouge — identique au logo
+const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR  = '#FFAA00';
@@ -11,7 +15,6 @@ const OR2 = '#FF6B00';
 
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
 
-// ── Types ──────────────────────────────────────────────────────────
 interface Candidate {
   id: string; name: string; stage_name?: string;
   photo_url?: string; track?: string; votes: number;
@@ -31,14 +34,12 @@ interface Bracket {
   commission_pct: number; starts_at: string;
 }
 
-// ── Constantes ─────────────────────────────────────────────────────
 const ROUND_LABELS: Record<number, string> = {
   1:'Huitième de finale', 2:'Quart de finale',
   3:'Demi-finale', 4:'Finale'
 };
 const ROUND_DAYS: Record<number, number> = { 1:7, 2:7, 3:14, 4:7 };
 
-// ── Démo bracket ──────────────────────────────────────────────────
 const DEMO_BRACKET: Bracket = {
   id:'demo', title:'Battle Danse Afrobeats', discipline:'danse',
   type:'repertoire', status:'active', current_round:1,
@@ -91,7 +92,6 @@ const DEMO_BRACKET: Bracket = {
   ]
 };
 
-// ── Composants ─────────────────────────────────────────────────────
 function Avatar({ c, size=40, winner, loser }: { c: Candidate; size?: number; winner?: boolean; loser?: boolean }) {
   const initials = (c.stage_name ?? c.name).split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   const border = winner ? '2px solid #4ade80' : loser ? '2px solid #f87171' : `2px solid ${OR}`;
@@ -126,7 +126,6 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
   return (
     <div style={{ background: isPending ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)', border:`1px solid ${isActive||isOT?'rgba(255,170,0,0.25)':'rgba(255,255,255,0.08)'}`, borderRadius:16, overflow:'hidden', marginBottom:12 }}>
 
-      {/* Header duel */}
       <div style={{ padding:'10px 16px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'space-between', background: isActive ? 'rgba(255,170,0,0.03)' : undefined }}>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           {duel.candidateA.track && <span style={{ fontSize:11, color:'rgba(255,255,255,0.3)' }}>🎵 {duel.candidateA.track}</span>}
@@ -138,7 +137,6 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
         </div>
       </div>
 
-      {/* Corps duel */}
       <div style={{ padding:'16px' }}>
         {isPending ? (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:20, padding:'12px 0' }}>
@@ -176,7 +174,7 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
                 )}
               </div>
 
-              {/* VS + barre */}
+              {/* VS */}
               <div style={{ display:'flex', flexDirection:'column' as const, alignItems:'center', gap:6 }}>
                 <div style={{ width:36, height:36, borderRadius:'50%', background:'rgba(255,170,0,0.1)', border:'1px solid rgba(255,170,0,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:OR }}>VS</div>
                 {totalVotes > 0 && (
@@ -219,21 +217,20 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
               </div>
             )}
 
-            {/* Boutons voter */}
+            {/* ✅ Boutons voter — ⭐ → <StarRed /> */}
             {(isActive || isOT) && (
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                 <button onClick={()=>onVote(duel.id, duel.candidateA.id)} disabled={!!myVote}
-                  style={{ padding:'9px', borderRadius:10, border:'none', background: myVote===duel.candidateA.id?'rgba(74,222,128,0.15)':myVote?'rgba(255,255,255,0.04)':'linear-gradient(135deg,#FFAA00,#FF6B00)', color: myVote===duel.candidateA.id?'#4ade80':myVote?'rgba(255,255,255,0.3)':'#000', fontSize:12, fontWeight:700, cursor:myVote?'not-allowed':'pointer', fontFamily:'DM Sans,sans-serif' }}>
-                  {myVote===duel.candidateA.id ? '✓ Voté' : `⭐ Voter ${duel.candidateA.stage_name?.split(' ')[0]??'A'}`}
+                  style={{ padding:'9px', borderRadius:10, border:'none', background: myVote===duel.candidateA.id?'rgba(74,222,128,0.15)':myVote?'rgba(255,255,255,0.04)':'linear-gradient(135deg,#FFAA00,#FF6B00)', color: myVote===duel.candidateA.id?'#4ade80':myVote?'rgba(255,255,255,0.3)':'#000', fontSize:12, fontWeight:700, cursor:myVote?'not-allowed':'pointer', fontFamily:'DM Sans,sans-serif', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+                  {myVote===duel.candidateA.id ? '✓ Voté' : <><StarRed /> Voter {duel.candidateA.stage_name?.split(' ')[0]??'A'}</>}
                 </button>
                 <button onClick={()=>onVote(duel.id, duel.candidateB.id)} disabled={!!myVote}
-                  style={{ padding:'9px', borderRadius:10, border:'none', background: myVote===duel.candidateB.id?'rgba(74,222,128,0.15)':myVote?'rgba(255,255,255,0.04)':'linear-gradient(135deg,#FFAA00,#FF6B00)', color: myVote===duel.candidateB.id?'#4ade80':myVote?'rgba(255,255,255,0.3)':'#000', fontSize:12, fontWeight:700, cursor:myVote?'not-allowed':'pointer', fontFamily:'DM Sans,sans-serif' }}>
-                  {myVote===duel.candidateB.id ? '✓ Voté' : `⭐ Voter ${duel.candidateB.stage_name?.split(' ')[0]??'B'}`}
+                  style={{ padding:'9px', borderRadius:10, border:'none', background: myVote===duel.candidateB.id?'rgba(74,222,128,0.15)':myVote?'rgba(255,255,255,0.04)':'linear-gradient(135deg,#FFAA00,#FF6B00)', color: myVote===duel.candidateB.id?'#4ade80':myVote?'rgba(255,255,255,0.3)':'#000', fontSize:12, fontWeight:700, cursor:myVote?'not-allowed':'pointer', fontFamily:'DM Sans,sans-serif', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+                  {myVote===duel.candidateB.id ? '✓ Voté' : <><StarRed /> Voter {duel.candidateB.stage_name?.split(' ')[0]??'B'}</>}
                 </button>
               </div>
             )}
 
-            {/* Égalité → info prolongation */}
             {isEqual && (
               <div style={{ marginTop:10, background:'rgba(255,170,0,0.06)', border:'1px solid rgba(255,170,0,0.2)', borderRadius:8, padding:'8px 12px', fontSize:11, color:'rgba(255,170,0,0.8)', textAlign:'center' as const }}>
                 ⚖️ Égalité ! Si le score reste identique à la fin, une prolongation de <strong>5 jours</strong> sera déclenchée automatiquement.
@@ -246,7 +243,6 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
   );
 }
 
-// ── Page principale ────────────────────────────────────────────────
 export default function BracketPage() {
   const router = useRouter();
   const params = useParams();
@@ -288,17 +284,12 @@ export default function BracketPage() {
     <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f0', fontFamily:'DM Sans,sans-serif', paddingBottom:80 }}>
 
       {/* Topbar */}
-      <div style={{ position:'sticky', top:0, zIndex:100, background:'rgba(8,8,15,0.95)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(255,170,0,0.1)', padding:'0 20px', height:54, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <Link href="/challenges" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:7 }}>
-          <span style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'1.3rem' }}>
-            <span style={{color:OR, textShadow:`0 0 20px rgba(255,170,0,0.4)`}}>Diki</span>
-            <span style={{color:'#fff', margin:'0 3px', fontWeight:900}}>-</span>
-            <span style={{color:OR, textShadow:`0 0 20px rgba(255,170,0,0.4)`}}>Diki</span>
-          </span>
-          <span style={{ fontSize:'.42rem', fontWeight:700, color:'#fff', border:'1px solid rgba(255,255,255,.6)', borderRadius:3, padding:'1px 4px', letterSpacing:'.08em' }}>VISION</span>
+      <div style={{ position:'sticky', top:0, zIndex:100, background:'rgba(8,8,15,0.95)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgb(251,251,250)', padding:'0 20px', height:54, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <Link href="/challenges" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:6 }}>
+          <LogoDikiDiki width={200} />
         </Link>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <From '../components/TranslateWidget' />
+          <TranslateWidget />
           <Link href="/compte" style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#FF6B00,#FFD700)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, textDecoration:'none' }}>👤</Link>
         </div>
       </div>
@@ -306,41 +297,41 @@ export default function BracketPage() {
       <div style={{ maxWidth:700, margin:'0 auto', padding:'24px 16px' }}>
 
         {/* Header bracket */}
-        <div style={{ background:'linear-gradient(135deg,rgba(255,170,0,0.08),rgba(255,107,0,0.04))', border:'1px solid rgba(255,170,0,0.2)', borderRadius:16, padding:'20px', marginBottom:20 }}>
+        <div style={{ background:'linear-gradient(135deg,rgb(11,0,0),rgba(237,7,15))', border:'1px solid rgb(248,4,4)', borderRadius:16, padding:'20px', marginBottom:20 }}>
           <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:12 }}>
             <div>
               <div style={{ fontSize:11, color:OR, fontWeight:700, letterSpacing:'.08em', marginBottom:4 }}>
                 ⚡ CHALLENGE BRACKET · {bracket.type==='repertoire'?'🎵 RÉPERTOIRE':'🆓 LIBRE'}
               </div>
-              <h1 style={{ fontFamily:'Syne,sans-serif', fontSize:20, fontWeight:800, color:'#fff', marginBottom:4 }}>{bracket.title}</h1>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>Tour en cours : <strong style={{color:OR}}>{ROUND_LABELS[bracket.current_round]}</strong></div>
+              <h1 style={{ fontFamily:'Syne,sans-serif', fontSize:20, fontWeight:800, color:'#0b0b0b', marginBottom:4 }}>{bracket.title}</h1>
+              <div style={{ fontSize:12, color:'rgb(255,255,255)' }}>Tour en cours : <strong style={{color:OR}}>{ROUND_LABELS[bracket.current_round]}</strong></div>
             </div>
             <div style={{ textAlign:'right' as const }}>
-              <div style={{ fontSize:10, color:'rgba(255,255,255,0.4)', marginBottom:2 }}>🏆 Cagnotte nette</div>
-              <div style={{ fontSize:22, fontWeight:800, color:'#4ade80', fontFamily:'Syne,sans-serif' }}>{netCagnotte.toLocaleString('fr-FR')} F</div>
-              <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)' }}>après commission Diki-Diki</div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,0.99)', marginBottom:2 }}>🏆 Cagnotte nette</div>
+              <div style={{ fontSize:22, fontWeight:800, color:'#0dc41f', fontFamily:'Syne,sans-serif' }}>{netCagnotte.toLocaleString('fr-FR')} F</div>
+              <div style={{ fontSize:9, color:'rgb(255,255,255)' }}>après commission Diki-Diki</div>
             </div>
           </div>
 
-          {/* Stats globales */}
+          {/* ✅ Stats — ⭐ → <StarRed /> */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
             {[
-              { label:'Votes totaux', val: totalVotes.toLocaleString('fr-FR'), icon:'⭐' },
+              { label:'Votes totaux', val: totalVotes.toLocaleString('fr-FR'), icon:<StarRed /> },
               { label:'Duels joués', val: bracket.rounds.flatMap(r=>r.duels).filter(d=>d.status==='done').length+' / '+bracket.rounds.flatMap(r=>r.duels).length, icon:'⚔️' },
-              { label:'Candidats', val: String(bracket.rounds[0]?.duels.length * 2 ?? 0), icon:'👥' },
+              { label:'Candidats', val: String((bracket.rounds[0]?.duels.length ?? 0) * 2), icon:'👥' },
             ].map(s=>(
-              <div key={s.label} style={{ background:'rgba(255,255,255,0.04)', borderRadius:10, padding:'10px', textAlign:'center' as const }}>
+              <div key={s.label} style={{ background:'rgba(8,8,8,0)', borderRadius:10, padding:'10px', textAlign:'center' as const }}>
                 <div style={{ fontSize:16, marginBottom:3 }}>{s.icon}</div>
                 <div style={{ fontSize:15, fontWeight:700, color:OR, fontFamily:'Syne,sans-serif' }}>{s.val}</div>
-                <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)' }}>{s.label}</div>
+                <div style={{ fontSize:9, color:'rgb(246,243,243)' }}>{s.label}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Règles */}
-        <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'12px 16px', marginBottom:20, fontSize:11, color:'rgba(255,255,255,0.4)', lineHeight:1.8 }}>
-          📋 <strong style={{color:'rgba(255,255,255,0.6)'}}>Règles :</strong> Le plus voté ⭐ passe au tour suivant · Égalité = prolongation <strong style={{color:OR}}>5 jours</strong> · La cagnotte s'accumule sur tous les tours · Le champion remporte la cagnotte totale après déduction des commissions <strong style={{color:OR, fontWeight:800}}>Diki-Diki</strong>
+        {/* ✅ Règles — ⭐ → <StarRed /> */}
+        <div style={{ background:'rgba(7,6,6,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'12px 16px', marginBottom:20, fontSize:11, color:'rgba(255,255,255,0.4)', lineHeight:1.8 }}>
+          📋 <strong style={{color:'rgba(255,255,255,0.6)'}}>Règles :</strong> Le plus voté <StarRed /> passe au tour suivant · Égalité = prolongation <strong style={{color:OR}}>5 jours</strong> · La cagnotte s'accumule sur tous les tours · Le champion remporte la cagnotte totale après déduction des commissions Diki-Diki
         </div>
 
         {/* Navigation des tours */}
@@ -377,3 +368,4 @@ export default function BracketPage() {
     </div>
   );
 }
+
