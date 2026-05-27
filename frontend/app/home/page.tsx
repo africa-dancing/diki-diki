@@ -77,7 +77,7 @@ function VideoCard({ video, index }: { video: Video; index: number }) {
         )}
       </div>
       <div style={{ padding:'12px 14px 14px' }}>
-        <p style={{ margin:0, fontWeight:700, fontSize:'0.88rem', color:'#f0f0f0', lineHeight:1.3, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+        <p style={{ margin:0, fontWeight:700, fontSize:'0.88rem', color:'#f0f0f0', lineHeight:1.3, whiteSpace:'normal', overflow:'hidden', textOverflow:'ellipsis' }}>
           {video.title || video.track_title || 'Sans titre'}
         </p>
         {video.track_artist && <p style={{ margin:'3px 0 0', fontSize:'0.75rem', color:'#888' }}>{video.track_artist}</p>}
@@ -146,7 +146,7 @@ export default function HomePage() {
   return (
     <>
       {/* ── Navigation ── */}
-      <nav style={{ position:'sticky', top:0, zIndex:100, background:'rgb(6,0,0)', backdropFilter:'blur(16px)', borderBottom:'1px solid #fcfafa', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+      <nav style={{ position:'sticky', top:0, zIndex:100, background:'rgb(6,0,0)', backdropFilter:'blur(16px)', borderBottom:'1px solid #fcfafa', padding:'0 16px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <Link href="/home" style={{ textDecoration:'none', flexShrink:0 }}>
           <LogoDikiDiki width={200} />
         </Link>
@@ -185,7 +185,7 @@ export default function HomePage() {
           <span style={{ width:7, height:7, borderRadius:'50%', background:'#FFAA00', animation:'pulse-dot 1.5s ease-in-out infinite', display:'inline-block' }}/>
           <span style={{ fontSize:'0.72rem', color:'#FFAA00', fontWeight:700, letterSpacing:'0.06em' }}>COMPÉTITIONS EN COURS</span>
         </div>
-        <h1 style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'clamp(1.8rem,4vw,3rem)', lineHeight:1.1, marginBottom:6, whiteSpace:'nowrap', background:'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+        <h1 style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'clamp(1.8rem,4vw,3rem)', lineHeight:1.1, marginBottom:6, whiteSpace:'normal', background:'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
           Votez pour vos candidats{' '}
           <span style={{ background:'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>préférés</span>
         </h1>
@@ -396,3 +396,4 @@ export default function HomePage() {
     </>
   );
 }
+
