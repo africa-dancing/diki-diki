@@ -66,7 +66,7 @@ export default function Navbar() {
           {/* Loupe */}
           <button
             onClick={() => { setSearchOpen(o => !o); setMenuOpen(false); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: searchOpen ? '#FFAA00' : 'rgba(255,255,255,0.6)', fontSize: 20 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: searchOpen ? '#00CC00' : '#00CC00', fontSize: 20 }}
           >
             🔍
           </button>
@@ -74,7 +74,7 @@ export default function Navbar() {
           {/* Compte */}
           <button
             onClick={() => router.push(token ? '/compte' : '/auth/login')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#FF6B00', fontSize: 22 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#FFAA00', fontSize: 22 }}
           >
             👤
           </button>
