@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import LogoDikiDiki from '../../components/LogoDikiDiki';
@@ -11,7 +12,7 @@ const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 interface Matiere { id: string; nom: string; emoji: string; }
 
-export default function CreerPage() {
+function CreerPageInner() {
   const params    = useSearchParams();
   const router    = useRouter();
   const matiereId = params.get('matiere') || '';
@@ -246,4 +247,7 @@ export default function CreerPage() {
       </div>
     </div>
   );
+}
+export default function CreerPage() {
+  return <Suspense fallback={<div>Chargement...</div>}><CreerPageInner /></Suspense>;
 }
