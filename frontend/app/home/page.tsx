@@ -208,7 +208,7 @@ export default function HomePage() {
       </div>
 
       {/* ── Contenu ── */}
-      <div style={{ padding:'0 24px 60px' }}>
+      <div style={{ padding:'0 16px 60px', overflowY:'auto', msOverflowStyle:'none', scrollbarWidth:'none' }}>
         {!loading && !error && (
           <p style={{ color:'#444', fontSize:'0.78rem', marginBottom:16 }}>
             {filtered.length} vidéo{filtered.length!==1?'s':''}
@@ -363,6 +363,7 @@ export default function HomePage() {
     </>
   );
 }
+
 
 
 
