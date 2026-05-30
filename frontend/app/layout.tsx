@@ -1,3 +1,4 @@
+import './mobile.css';
 import type { Metadata } from 'next';
 import { Syne, DM_Sans } from 'next/font/google';
 
