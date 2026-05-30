@@ -1,3 +1,6 @@
+// Polyfill WebSocket Node.js 18
+if (typeof (global as any).WebSocket === 'undefined') { (global as any).WebSocket = require('ws'); }
+
 import { createClient } from '@supabase/supabase-js';
 
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
