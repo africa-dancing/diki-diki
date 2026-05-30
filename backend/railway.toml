@@ -2,5 +2,5 @@
 builder = "nixpacks"
 buildCommand = "npm install"
 [deploy]
-startCommand = "npx ts-node src/index.ts"
+startCommand = "npx ts-node --transpile-only src/index.ts"
 restartPolicyType = "on_failure"
