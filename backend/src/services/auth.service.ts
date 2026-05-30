@@ -6,14 +6,21 @@ import { supabase }    from '../../config/supabase';
 import jwt             from 'jsonwebtoken';
 import bcrypt          from 'bcryptjs';
 import axios           from 'axios';
-import { Redis }       from '@upstash/redis';
 import admin           from 'firebase-admin';
 
-// ─── Redis (OTP storage) ──────────────────────────────────────
-const redis = new Redis({
-  url:   process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+// ─── OTP stocké en mémoire (remplace Redis) ──────────────────
+const otpStore = new Map<string, { otp: string; expiresAt: number }>();
+const redis = {
+  setex: async (key: string, ttl: number, value: string) => {
+    otpStore.set(key, { otp: value, expiresAt: Date.now() + ttl * 1000 });
+  },
+  get: async <T>(key: string): Promise<T | null> => {
+    const entry = otpStore.get(key);
+    if (!entry || Date.now() > entry.expiresAt) { otpStore.delete(key); return null; }
+    return entry.otp as T;
+  },
+  del: async (key: string) => { otpStore.delete(key); },
+};
 
 const JWT_SECRET     = process.env.JWT_SECRET || 'pac-secret-change-me';
 const JWT_EXPIRES_IN = '7d';
@@ -46,8 +53,8 @@ async function sendSMSOTP(phone: string, otp: string): Promise<void> {
         'Content-Type': 'application/x-www-form-urlencoded',
         Accept: 'application/json',
       },
-      },
-      );
+    },
+  );
 }
 
 // ─── REGISTER ────────────────────────────────────────────────
@@ -60,21 +67,16 @@ export async function registerUser(data: {
 }) {
   const { name, email, phone, password, country } = data;
 
-  // Vérifier unicité email
   const { data: byEmail } = await supabase
     .from('users').select('id').eq('email', email).maybeSingle();
   if (byEmail) throw new Error('EMAIL_ALREADY_EXISTS');
 
-  // Vérifier unicité téléphone
   const { data: byPhone } = await supabase
     .from('users').select('id').eq('phone', phone).maybeSingle();
   if (byPhone) throw new Error('PHONE_ALREADY_EXISTS');
 
-  // Hash mot de passe
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  // Créer utilisateur (non vérifié)
-  ('Tentative création utilisateur:', { name, email, phone, country });
   const { data: user, error } = await supabase
     .from('users')
     .insert({
@@ -90,21 +92,19 @@ export async function registerUser(data: {
     })
     .select('id, email, phone, name')
     .single();
-('Résultat Supabase:', { user, error });
+
   if (error) throw new Error('USER_CREATION_FAILED');
 
-  // Générer + stocker OTP dans Redis
   const otp = generateOTP();
   await redis.setex(`otp:${phone}`, OTP_TTL, otp);
 
-  // Envoyer OTP par SMS
-(`[DEV] OTP pour ${phone}: ${otp}`);
-try {
-  await sendSMSOTP(phone, otp);
-  (`[AT] SMS envoyé avec succès à ${phone}`);
-} catch (err) {
-  console.error(`[AT] Erreur envoi SMS:`, err);
-}
+  console.log(`[DEV] OTP pour ${phone}: ${otp}`);
+  try {
+    await sendSMSOTP(phone, otp);
+    console.log(`[AT] SMS envoyé avec succès à ${phone}`);
+  } catch (err) {
+    console.error(`[AT] Erreur envoi SMS:`, err);
+  }
 
   return { userId: user.id, message: 'OTP_SENT' };
 }
@@ -112,8 +112,8 @@ try {
 // ─── VERIFY OTP ───────────────────────────────────────────────
 export async function verifyOTP(phone: string, otp: string) {
   const stored = await redis.get<string>(`otp:${phone}`);
-  if (!stored)        throw new Error('OTP_EXPIRED');
-if (String(stored) !== String(otp)) throw new Error('OTP_INVALID');
+  if (!stored) throw new Error('OTP_EXPIRED');
+  if (String(stored) !== String(otp)) throw new Error('OTP_INVALID');
 
   const { data: user, error } = await supabase
     .from('users')
@@ -187,7 +187,6 @@ export async function socialAuth(
     avatarUrl = data.picture?.data?.url || '';
   }
 
-  // Chercher ou créer utilisateur
   let { data: user } = await supabase
     .from('users')
     .select('id, email, phone, name, role, avatar_url, country, wallet, is_verified')
