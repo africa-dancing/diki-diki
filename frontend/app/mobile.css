@@ -155,3 +155,12 @@ html, body {
     opacity: 0.7;
   }
 }
+
+
+/* Fix bande blanche autour de la page */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #0a0a0f !important;
+  width: 100% !important;
+}
