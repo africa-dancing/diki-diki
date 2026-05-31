@@ -59,7 +59,7 @@ export default function LoginPage() {
         .login-bg::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(255,184,0,.03) 40px,rgba(255,184,0,.03) 41px),repeating-linear-gradient(-45deg,transparent,transparent 40px,rgba(255,184,0,.03) 40px,rgba(255,184,0,.03) 41px);pointer-events:none}
         .glow-tr{position:fixed;top:-150px;right:-100px;width:450px;height:450px;background:radial-gradient(circle,rgba(255,107,0,.1) 0%,transparent 70%);pointer-events:none}
         .glow-bl{position:fixed;bottom:-150px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(255,184,0,.08) 0%,transparent 70%);pointer-events:none}
-        .login-card{position:relative;width:100%;max-width:440px;background:linear-gradient(135deg,#DC1414,#8B0000);border:1px solid rgba(255,0,0,.3);border-radius:24px;padding:44px 40px;backdrop-filter:blur(20px)}
+        .login-card{position:relative;width:100%;max-width:440px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:44px 40px;backdrop-filter:blur(20px)}
         .logo-area{display:flex;align-items:center;justify-content:center;margin-bottom:32px}
         .field{margin-bottom:16px}
         .field label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
