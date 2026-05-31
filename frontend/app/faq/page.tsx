@@ -23,7 +23,7 @@ const s: Record<string, React.CSSProperties> = {
   item:    { borderBottom: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' },
   q:       { width: '100%', background: 'none', border: 'none', color: '#fff', fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, textAlign: 'left' as const, padding: '16px 0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   a:       { fontSize: 14, lineHeight: 1.8, color: 'rgba(232,224,208,0.8)', padding: '0 0 16px' },
-  contact: { background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.15)', borderRadius: 12, padding: '24px', marginTop: 48, textAlign: 'center' as const },
+  contact: { background: 'linear-gradient(135deg, #DC1414, #8B0000)', border: '1px solid rgba(255,0,0,0.3)', borderRadius: 12, padding: '24px', marginTop: 48, textAlign: 'center' as const },
   ctaBtn:  { display: 'inline-block', marginTop: 12, background: `linear-gradient(90deg,${OR},${OR2})`, color: '#0a0a0f', fontWeight: 700, fontSize: 14, padding: '10px 24px', borderRadius: 8, textDecoration: 'none' },
 };
 
@@ -135,8 +135,8 @@ export default function FAQPage() {
         ))}
 
         <div style={s.contact}>
-          <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18, color: '#fff', margin: '0 0 8px' }}>Vous n'avez pas trouvé votre réponse ?</p>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 4px' }}>Notre équipe vous répond sous 24 h</p>
+          <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18, color: '#ffffff', margin: '0 0 8px' }}>Vous n'avez pas trouvé votre réponse ?</p>
+          <p style={{ color: 'rgb(255, 255, 255)', fontSize: 14, margin: '0 0 4px' }}>Notre équipe vous répond sous 24 h</p>
           <a href="mailto:support@dikidiki.com" style={s.ctaBtn}>📧 Contacter le support</a>
         </div>
       </div>
