@@ -5,9 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import TickerBand from '../components/TickerBand';
-import TranslateWidget from '../components/TranslateWidget';
 
-// ✅ Étoile rouge — identique au logo
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
@@ -127,11 +125,11 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
   return (
     <div style={{ background: isPending ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)', border:`1px solid ${isActive||isOT?'rgba(255,170,0,0.25)':'rgba(255,255,255,0.08)'}`, borderRadius:16, overflow:'hidden', marginBottom:12 }}>
 
-      <div style={{ padding:'10px 16px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'space-between', background: isActive ? 'rgba(255,170,0,0.03)' : undefined }}>
+      <div style={{ padding:'10px 16px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'space-between', background: isActive ? 'rgba(255,170,0,0.03)' : undefined, flexWrap:'wrap', gap:6 }}>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           {duel.candidateA.track && <span style={{ fontSize:11, color:'rgba(255,255,255,0.3)' }}>🎵 {duel.candidateA.track}</span>}
         </div>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
           {isEqual && <span style={{ fontSize:10, color:OR, fontWeight:700, background:'rgba(255,170,0,0.1)', borderRadius:20, padding:'2px 8px' }}>⚖️ Égalité !</span>}
           <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:20, background:statusCfg.bg, color:statusCfg.color }}>{statusCfg.label}</span>
           {(isActive||isOT) && <span style={{ fontSize:10, color:'rgba(255,255,255,0.35)' }}>⏳ {daysLeft}j restants</span>}
@@ -154,7 +152,6 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
         ) : (
           <>
             <div style={{ display:'grid', gridTemplateColumns:'1fr auto 1fr', gap:12, alignItems:'center', marginBottom:14 }}>
-              {/* Candidat A */}
               <div style={{ display:'flex', flexDirection:'column' as const, alignItems:'center', gap:8 }}>
                 <div style={{ position:'relative' as const }}>
                   <Avatar c={duel.candidateA} size={52} winner={winnerA} loser={isDone&&!winnerA}/>
@@ -175,7 +172,6 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
                 )}
               </div>
 
-              {/* VS */}
               <div style={{ display:'flex', flexDirection:'column' as const, alignItems:'center', gap:6 }}>
                 <div style={{ width:36, height:36, borderRadius:'50%', background:'rgba(255,170,0,0.1)', border:'1px solid rgba(255,170,0,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:OR }}>VS</div>
                 {totalVotes > 0 && (
@@ -183,7 +179,6 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
                 )}
               </div>
 
-              {/* Candidat B */}
               <div style={{ display:'flex', flexDirection:'column' as const, alignItems:'center', gap:8 }}>
                 <div style={{ position:'relative' as const }}>
                   <Avatar c={duel.candidateB} size={52} winner={winnerB} loser={isDone&&!winnerB}/>
@@ -205,7 +200,6 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
               </div>
             </div>
 
-            {/* Barre de progression */}
             {totalVotes > 0 && (
               <div style={{ marginBottom:14 }}>
                 <div style={{ height:6, borderRadius:3, overflow:'hidden', display:'flex' }}>
@@ -218,7 +212,6 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
               </div>
             )}
 
-            {/* ✅ Boutons voter — ⭐ → <StarRed /> */}
             {(isActive || isOT) && (
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                 <button onClick={()=>onVote(duel.id, duel.candidateA.id)} disabled={!!myVote}
@@ -284,23 +277,15 @@ export default function BracketPage() {
   return (
     <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f0', fontFamily:'DM Sans,sans-serif', paddingBottom:80 }}>
 
-      {/* Topbar */}
-      <div style={{ position:'sticky', top:0, zIndex:100, background:'rgba(8,8,15,0.95)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgb(251,251,250)', padding:'0 20px', height:54, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <Link href="/challenges" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:6 }}>
-          <LogoDikiDiki width={200} />
-        </Link>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <TranslateWidget />
-          <Link href="/compte" style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#FF6B00,#FFD700)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, textDecoration:'none' }}>👤</Link>
-        </div>
-      </div>
+      {/* Navbar globale */}
+      <Navbar />
 
       <div style={{ maxWidth:700, margin:'0 auto', padding:'24px 16px' }}>
 
         {/* Header bracket */}
         <div style={{ background:'linear-gradient(135deg,rgba(126, 3, 128, 0.52),rgba(237,7,15))', border:'1px solid rgb(10, 0, 0)', borderRadius:16, padding:'20px', marginBottom:20 }}>
-          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:12 }}>
-            <div>
+          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:12, gap:12, flexWrap:'wrap' }}>
+            <div style={{ minWidth:0, flex:'1 1 200px' }}>
               <div style={{ fontSize:11, color:OR, fontWeight:700, letterSpacing:'.08em', marginBottom:4 }}>
                 ⚡ CHALLENGE BRACKET · {bracket.type==='repertoire'?'🎵 RÉPERTOIRE':'🆓 LIBRE'}
               </div>
@@ -314,7 +299,6 @@ export default function BracketPage() {
             </div>
           </div>
 
-          {/* ✅ Stats — ⭐ → <StarRed /> */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
             {[
               { label:'Votes totaux', val: totalVotes.toLocaleString('fr-FR'), icon:<StarRed /> },
@@ -330,29 +314,37 @@ export default function BracketPage() {
           </div>
         </div>
 
-        {/* ✅ Règles — ⭐ → <StarRed /> */}
         <div style={{ background:'rgba(7,6,6,0.03)', border:'1px solid rgba(255, 255, 255, 0.69)', borderRadius:12, padding:'12px 16px', marginBottom:20, fontSize:11, color:'rgba(255,255,255,0.4)', lineHeight:1.8 }}>
           📋 <strong style={{color:'rgb(249, 4, 4)'}}>Règles :</strong> Le plus voté <StarRed /> passe au tour suivant · Égalité = prolongation <strong style={{color:OR}}>5 jours</strong> · La cagnotte s'accumule sur tous les tours · Le champion remporte la cagnotte totale après déduction de 50% de commission Diki-Diki.
         </div>
 
-        {/* Navigation des tours */}
-        <div style={{ display:'flex', gap:6, marginBottom:20, overflowX:'auto', scrollbarWidth:'none' }}>
+        {/* Navigation des tours — VERTICAL */}
+        <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:20 }}>
           {bracket.rounds.map(r => {
             const isDone  = r.round < bracket.current_round;
             const isCurr  = r.round === bracket.current_round;
+            const isActiveTab = activeRound === r.round;
             return (
               <button key={r.round} onClick={()=>setActiveRound(r.round)}
-                style={{ padding:'7px 16px', borderRadius:50, fontSize:11, fontWeight:700, cursor:'pointer', flexShrink:0, border:`1px solid ${activeRound===r.round?OR:'rgba(255,255,255,0.1)'}`, background: activeRound===r.round?`linear-gradient(135deg,${OR},${OR2})`:isDone?'rgba(74,222,128,0.08)':isCurr?'rgba(255,170,0,0.08)':'rgba(255,255,255,0.04)', color: activeRound===r.round?'#000':isDone?'#4ade80':isCurr?OR:'rgba(255,255,255,0.4)' }}>
-                {isDone&&activeRound!==r.round?'✓ ':''}{r.label} · {r.days}j
+                style={{
+                  padding:'12px 18px', borderRadius:12, fontSize:13, fontWeight:700,
+                  cursor:'pointer', width:'100%', textAlign:'left',
+                  display:'flex', alignItems:'center', justifyContent:'space-between',
+                  border:`1px solid ${isActiveTab?OR:'rgba(255,255,255,0.1)'}`,
+                  background: isActiveTab?`linear-gradient(135deg,${OR},${OR2})`:isDone?'rgba(74,222,128,0.08)':isCurr?'rgba(255,170,0,0.08)':'rgba(255,255,255,0.04)',
+                  color: isActiveTab?'#000':isDone?'#4ade80':isCurr?OR:'rgba(255,255,255,0.4)',
+                  fontFamily:'DM Sans,sans-serif'
+                }}>
+                <span>{isDone&&!isActiveTab?'✓ ':''}{r.label}</span>
+                <span style={{ fontSize:11, opacity:0.7 }}>{r.days}j · {r.duels.length} duel{r.duels.length>1?'s':''}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Duels du tour actif */}
         {currentRoundData && (
           <div>
-            <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif', marginBottom:14, display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif', marginBottom:14, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
               ⚔️ {currentRoundData.label}
               <span style={{ fontSize:11, color:'rgba(255,255,255,0.35)', fontWeight:400 }}>{currentRoundData.duels.length} duel{currentRoundData.duels.length>1?'s':''}</span>
             </div>
@@ -369,5 +361,3 @@ export default function BracketPage() {
     </div>
   );
 }
-
-
