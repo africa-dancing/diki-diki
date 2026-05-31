@@ -135,8 +135,8 @@ export default function FAQPage() {
         ))}
 
         <div style={s.contact}>
-          <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18, color: '#ffffff', margin: '0 0 8px' }}>Vous n'avez pas trouvé votre réponse ?</p>
-          <p style={{ color: 'rgb(255, 255, 255)', fontSize: 14, margin: '0 0 4px' }}>Notre équipe vous répond sous 24 h</p>
+          <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18, color: '#ffffff', margin: '0 0 8px', textAlign: 'center' as const, width: '100%' }}>Vous n'avez pas trouvé votre réponse ?</p>
+          <p style={{ color: 'rgb(255, 255, 255)', fontSize: 14, margin: '0 0 4px', textAlign: 'center' as const, width: '100%' }}>Notre équipe vous répond sous 24 h</p>
           <a href="mailto:support@dikidiki.com" style={s.ctaBtn}>📧 Contacter le support</a>
         </div>
       </div>
