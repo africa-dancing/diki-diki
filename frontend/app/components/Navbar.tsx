@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import LogoDikiDiki from './LogoDikiDiki';
+import TranslateWidget from './TranslateWidget';
 
 const DISCIPLINES = [
   { label: 'Danse',      emoji: '💃', value: 'danse' },
@@ -62,11 +63,14 @@ export default function Navbar() {
         </Link>
 
         {/* Icônes droite */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {/* Sélecteur de langue */}
+          <TranslateWidget />
+
           {/* Loupe */}
           <button
             onClick={() => { setSearchOpen(o => !o); setMenuOpen(false); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: searchOpen ? '#00CC00' : '#00CC00', fontSize: 20 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#00CC00', fontSize: 18 }}
           >
             🔍
           </button>
@@ -74,7 +78,7 @@ export default function Navbar() {
           {/* Compte */}
           <button
             onClick={() => router.push(token ? '/compte' : '/auth/login')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#FFAA00', fontSize: 22 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#FFAA00', fontSize: 20 }}
           >
             👤
           </button>
@@ -114,7 +118,6 @@ export default function Navbar() {
       {menuOpen && (
         <div style={{ background: '#0f0f0f', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '8px 16px 12px', position: 'sticky', top: 56, zIndex: 99 }}>
 
-          {/* Navigation principale */}
           {[
             { href: '/home',            label: 'Accueil' },
             { href: '/challenges',      label: 'Challenges' },
@@ -131,7 +134,6 @@ export default function Navbar() {
             </Link>
           ))}
 
-          {/* Disciplines */}
           <div style={{ padding: '8px 0 4px', fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '.1em', fontWeight: 700 }}>DISCIPLINES</div>
           {DISCIPLINES.map(d => (
             <Link
@@ -144,7 +146,6 @@ export default function Navbar() {
             </Link>
           ))}
 
-          {/* Admin + Connexion/Déconnexion */}
           {isAdmin && (
             <Link href="/admin" onClick={() => setMenuOpen(false)} style={{ color: '#FFAA00', fontSize: 13, fontWeight: 700, textDecoration: 'none', padding: '9px 0', borderBottom: '1px solid #1a1a1a', display: 'block' }}>
               ⚙️ Admin

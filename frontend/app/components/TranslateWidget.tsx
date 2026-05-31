@@ -2,19 +2,19 @@
 
 import { useState, useEffect } from 'react';
 
-interface Language { code: string; label: string; flag: string; iso: string; }
+interface Language { code: string; label: string; iso: string; }
 
 const LANGUAGES: Language[] = [
-  { code: 'fr', label: 'Français',   flag: '🇫🇷', iso: 'fr' },
-  { code: 'en', label: 'English',    flag: '🇬🇧', iso: 'gb' },
-  { code: 'ar', label: 'العربية',    flag: '🇸🇦', iso: 'sa' },
-  { code: 'pt', label: 'Português',  flag: '🇧🇷', iso: 'br' },
-  { code: 'es', label: 'Español',    flag: '🇪🇸', iso: 'es' },
-  { code: 'ha', label: 'Hausa',      flag: '🇳🇬', iso: 'ng' },
-  { code: 'sw', label: 'Kiswahili',  flag: '🇰🇪', iso: 'ke' },
-  { code: 'yo', label: 'Yorùbá',     flag: '🇳🇬', iso: 'ng' },
-  { code: 'de', label: 'Deutsch',    flag: '🇩🇪', iso: 'de' },
-  { code: 'zh', label: '中文',        flag: '🇨🇳', iso: 'cn' },
+  { code: 'fr', label: 'Français',  iso: 'fr' },
+  { code: 'en', label: 'English',   iso: 'gb' },
+  { code: 'ar', label: 'العربية',    iso: 'sa' },
+  { code: 'pt', label: 'Português', iso: 'br' },
+  { code: 'es', label: 'Español',   iso: 'es' },
+  { code: 'ha', label: 'Hausa',     iso: 'ng' },
+  { code: 'sw', label: 'Kiswahili', iso: 'ke' },
+  { code: 'yo', label: 'Yorùbá',    iso: 'ng' },
+  { code: 'de', label: 'Deutsch',   iso: 'de' },
+  { code: 'zh', label: '中文',       iso: 'cn' },
 ];
 
 function FlagImg({ iso, size = 20 }: { iso: string; size?: number }) {
@@ -38,7 +38,6 @@ export default function TranslateWidget() {
     if (saved) { const f = LANGUAGES.find(l => l.code === saved); if (f) setCurrent(f); }
   }, []);
 
-  // Fermer dropdown en cliquant ailleurs
   useEffect(() => {
     if (!open) return;
     const handler = () => setOpen(false);
@@ -51,19 +50,16 @@ export default function TranslateWidget() {
     setOpen(false);
     localStorage.setItem('dkdk_lang', lang.code);
 
-    // Cookie Google Translate
     document.cookie = `googtrans=/fr/${lang.code}; path=/`;
     document.cookie = `googtrans=/fr/${lang.code}; domain=.${window.location.hostname}; path=/`;
 
     if (lang.code === 'fr') {
-      // Reset traduction
       document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/';
       document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:01 GMT; domain=.${window.location.hostname}; path=/`;
       window.location.reload();
       return;
     }
 
-    // Charger Google Translate si pas encore chargé
     if (!(window as any).google?.translate) {
       (window as any).googleTranslateElementInit = () => {
         new (window as any).google.translate.TranslateElement(
@@ -79,7 +75,6 @@ export default function TranslateWidget() {
       }
     }
 
-    // Appliquer la langue après chargement
     const apply = () => {
       const sel = document.querySelector<HTMLSelectElement>('.goog-te-combo');
       if (sel) { sel.value = lang.code; sel.dispatchEvent(new Event('change')); }
@@ -90,10 +85,10 @@ export default function TranslateWidget() {
 
   return (
     <div style={{ position: 'relative', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-      <button onClick={() => setOpen(o => !o)} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:20, padding:'8px 18px', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:5, fontSize:14, fontFamily:'DM Sans, sans-serif', fontWeight:700, height:38 }}>
-        <FlagImg iso={current.iso} size={20} />
-        <span>{current.label}</span>
-        <span style={{ fontSize:9, opacity:0.5 }}>▾</span>
+      <button onClick={() => setOpen(o => !o)} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:20, padding:'6px 12px', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:5, fontSize:12, fontFamily:'DM Sans, sans-serif', fontWeight:700, height:32 }}>
+        <FlagImg iso={current.iso} size={16} />
+        <span style={{ fontSize: 11 }}>{current.label}</span>
+        <span style={{ fontSize:8, opacity:0.5 }}>▾</span>
       </button>
 
       {open && (
