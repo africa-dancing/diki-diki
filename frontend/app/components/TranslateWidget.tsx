@@ -2,32 +2,20 @@
 
 import { useState, useEffect } from 'react';
 
-interface Language { code: string; label: string; iso: string; }
+interface Language { code: string; label: string; flag: string; }
 
 const LANGUAGES: Language[] = [
-  { code: 'fr', label: 'Français',  iso: 'fr' },
-  { code: 'en', label: 'English',   iso: 'gb' },
-  { code: 'ar', label: 'العربية',    iso: 'sa' },
-  { code: 'pt', label: 'Português', iso: 'br' },
-  { code: 'es', label: 'Español',   iso: 'es' },
-  { code: 'ha', label: 'Hausa',     iso: 'ng' },
-  { code: 'sw', label: 'Kiswahili', iso: 'ke' },
-  { code: 'yo', label: 'Yorùbá',    iso: 'ng' },
-  { code: 'de', label: 'Deutsch',   iso: 'de' },
-  { code: 'zh', label: '中文',       iso: 'cn' },
+  { code: 'fr', label: 'Français',  flag: '🇫🇷' },
+  { code: 'en', label: 'English',   flag: '🇬🇧' },
+  { code: 'ar', label: 'العربية',    flag: '🇸🇦' },
+  { code: 'pt', label: 'Português', flag: '🇧🇷' },
+  { code: 'es', label: 'Español',   flag: '🇪🇸' },
+  { code: 'ha', label: 'Hausa',     flag: '🇳🇬' },
+  { code: 'sw', label: 'Kiswahili', flag: '🇰🇪' },
+  { code: 'yo', label: 'Yorùbá',    flag: '🇳🇬' },
+  { code: 'de', label: 'Deutsch',   flag: '🇩🇪' },
+  { code: 'zh', label: '中文',       flag: '🇨🇳' },
 ];
-
-function FlagImg({ iso, size = 20 }: { iso: string; size?: number }) {
-  return (
-    <img
-      src={`https://flagcdn.com/w${size}/${iso}.png`}
-      width={size}
-      height={Math.round(size * 0.75)}
-      alt={iso}
-      style={{ borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
-    />
-  );
-}
 
 export default function TranslateWidget() {
   const [open, setOpen]       = useState(false);
@@ -85,8 +73,8 @@ export default function TranslateWidget() {
 
   return (
     <div style={{ position: 'relative', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-      <button onClick={() => setOpen(o => !o)} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:20, padding:'6px 12px', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:5, fontSize:12, fontFamily:'DM Sans, sans-serif', fontWeight:700, height:32 }}>
-        <FlagImg iso={current.iso} size={16} />
+      <button onClick={() => setOpen(o => !o)} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:20, padding:'6px 12px', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontSize:12, fontFamily:'DM Sans, sans-serif', fontWeight:700, height:32 }}>
+        <span style={{ fontSize: 16 }}>{current.flag}</span>
         <span style={{ fontSize: 11 }}>{current.label}</span>
         <span style={{ fontSize:8, opacity:0.5 }}>▾</span>
       </button>
@@ -95,7 +83,7 @@ export default function TranslateWidget() {
         <div style={{ position:'absolute', top:38, right:0, background:'#12121e', border:'1px solid rgba(255,170,0,0.2)', borderRadius:14, padding:6, zIndex:300, minWidth:165, boxShadow:'0 8px 24px rgba(0,0,0,0.5)' }}>
           {LANGUAGES.map(lang => (
             <button key={lang.code} onClick={() => selectLang(lang)} style={{ display:'flex', alignItems:'center', gap:10, width:'100%', padding:'8px 12px', background:current.code===lang.code?'rgba(255,170,0,0.1)':'none', border:'none', borderRadius:8, color:current.code===lang.code?'#FFAA00':'#f0f0f0', fontSize:13, fontFamily:'DM Sans, sans-serif', cursor:'pointer', textAlign:'left' as const }}>
-              <FlagImg iso={lang.iso} size={22} />
+              <span style={{ fontSize: 18 }}>{lang.flag}</span>
               <span>{lang.label}</span>
               {current.code === lang.code && <span style={{ marginLeft:'auto', fontSize:10 }}>✓</span>}
             </button>
