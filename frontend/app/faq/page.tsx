@@ -1,6 +1,5 @@
 'use client';
 import LogoDikiDiki from '../components/LogoDikiDiki';
-import Navbar from '../components/Navbar';
 import TranslateWidget from '../components/TranslateWidget';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -24,7 +23,7 @@ const s: Record<string, React.CSSProperties> = {
   item:    { borderBottom: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' },
   q:       { width: '100%', background: 'none', border: 'none', color: '#fff', fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, textAlign: 'left' as const, padding: '16px 0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   a:       { fontSize: 14, lineHeight: 1.8, color: 'rgba(232,224,208,0.8)', padding: '0 0 16px' },
-  contact: { background: 'linear-gradient(135deg,rgba(126, 3, 128, 0.52),rgba(237,7,15))', border:'1px solid rgb(10, 0, 0)', borderRadius:16, padding:'20px', marginBottom:20 },
+  contact: { background: 'linear-gradient(135deg, #DC1414, #8B0000)', border: '1px solid rgba(255,0,0,0.3)', borderRadius: 12, padding: '24px', marginTop: 48, textAlign: 'center' as const, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center' },
   ctaBtn:  { display: 'block', width: 'fit-content', marginTop: 12, marginLeft: 'auto', marginRight: 'auto', background: `linear-gradient(90deg,${OR},${OR2})`, color: '#0a0a0f', fontWeight: 700, fontSize: 14, padding: '10px 24px', borderRadius: 8, textDecoration: 'none' },
 };
 
@@ -116,7 +115,10 @@ export default function FAQPage() {
     <div style={s.page}>
       <header style={s.header}>
         <Link href="/home" style={s.logo}><LogoDikiDiki width={200} /></Link>
-        <Link href="/home" style={s.back}>← Retour</Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Link href="/home" style={s.back}>← Retour</Link>
+          <TranslateWidget />
+        </div>
       </header>
 
       <div style={s.hero}>
