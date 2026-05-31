@@ -1,6 +1,7 @@
 'use client';
 import LogoDikiDiki from '../components/LogoDikiDiki';
 import Navbar from '../components/Navbar';
+import TranslateWidget from '../components/TranslateWidget';
 import { useState } from 'react';
 import Link from 'next/link';
 
