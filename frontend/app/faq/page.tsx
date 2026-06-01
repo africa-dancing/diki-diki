@@ -10,7 +10,7 @@ const BG = '#0a0a0f';
 
 const s: Record<string, React.CSSProperties> = {
   page:    { background: BG, minHeight: '100vh', color: '#e8e0d0', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },
-  header:  { borderBottom: `1px solid rgb(249, 246, 246)`, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  header:  { borderBottom: `1px solid rgb(249, 246, 246)`, padding: '20px 12px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   logo:    { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: OR, textDecoration: 'none', letterSpacing: 1 },
   back:    { color: 'rgb(26, 255, 0)', fontSize: 13, textDecoration: 'none' },
   hero:    { padding: '48px 24px 32px', maxWidth: 760, margin: '0 auto', textAlign: 'center' as const },
