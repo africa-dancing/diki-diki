@@ -235,7 +235,7 @@ function DashboardSection({profile,balance,votesEmis,totalEarned,videoCount,onEd
           {[{val:videoCount,label:'Vidéos ajoutées',color:'#f0f0f0'},{val:votesEmis,label:'Votes émis',color:'#f0f0f0'},{val:`${totalEarned.toLocaleString('fr-FR')} F`,label:'Gains reçus',color:'#FFAA00'}].map(s=>(<div key={s.label} style={{background:'rgba(0,0,0,0.35)',borderRadius:12,padding:'14px',textAlign:'center'}}><div style={{fontSize:18,fontWeight:800,color:s.color,fontFamily:'Syne,sans-serif',lineHeight:1}}>{s.val}</div><div style={{fontSize:11,color:'#fff',fontWeight:600,marginTop:4,lineHeight:1.3}}>{s.label}</div></div>))}
         </div>
       </div>
-      <div style={{...card,background:'linear-gradient(135deg, rgba(126, 3, 128, 0.52), rgba(237,7,15))',border:'1px solid rgb(10, 0, 0)'}}>
+      <div style={{...card,background:'linear-gradient(135deg, rgba(126, 3, 128, 0.52), rgba(237,7,15))',border:'none',}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div><div style={{fontSize:11,color:'#FFD700',fontWeight:800,letterSpacing:'.1em',marginBottom:6,textShadow:'0 1px 2px rgba(0,0,0,0.5)'}}>SOLDE WALLET</div><div style={{fontSize:32,fontWeight:800,color:'#fff',fontFamily:'Syne,sans-serif',textShadow:'0 2px 6px rgba(0,0,0,0.7)'}}>{balance.toLocaleString('fr-FR')} F</div><div style={{fontSize:12,color:'rgb(255,255,255)',marginTop:3}}>{Math.floor(balance/100)} vote{Math.floor(balance/100)!==1?'s':''} disponibles</div></div>
           <span style={{fontSize:36}}>💰</span>
