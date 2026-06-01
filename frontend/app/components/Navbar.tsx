@@ -132,7 +132,7 @@ export default function Navbar() {
             onClick={() => setMenuOpen(false)}
             style={{
               position: 'fixed', inset: 0,
-              background: 'rgba(0,0,0,0.65)',
+              background: 'transparent',
               zIndex: 98,
               animation: 'fadeIn .25s ease-out',
             }}
