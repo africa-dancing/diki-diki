@@ -237,7 +237,7 @@ function DashboardSection({profile,balance,votesEmis,totalEarned,videoCount,onEd
       </div>
       <div style={{...card,background:'linear-gradient(135deg, rgba(126, 3, 128, 0.52), rgba(237,7,15))',border:'1px solid rgb(10, 0, 0)'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <div><div style={{fontSize:11,color:'#FFD700',fontWeight:800,letterSpacing:'.1em',marginBottom:6,textShadow:'0 1px 2px rgba(0,0,0,0.5)'}}>SOLDE WALLET</div><div style={{fontSize:28,fontWeight:800,color:'#FFD700',fontFamily:'Syne,sans-serif',textShadow:'0 2px 4px rgba(0,0,0,0.6)'}}>{balance.toLocaleString('fr-FR')} F</div><div style={{fontSize:12,color:'rgb(255,255,255)',marginTop:3}}>{Math.floor(balance/100)} vote{Math.floor(balance/100)!==1?'s':''} disponibles</div></div>
+          <div><div style={{fontSize:11,color:'#FFD700',fontWeight:800,letterSpacing:'.1em',marginBottom:6,textShadow:'0 1px 2px rgba(0,0,0,0.5)'}}>SOLDE WALLET</div><div style={{fontSize:32,fontWeight:800,color:'#fff',fontFamily:'Syne,sans-serif',textShadow:'0 2px 6px rgba(0,0,0,0.7)'}}>{balance.toLocaleString('fr-FR')} F</div><div style={{fontSize:12,color:'rgb(255,255,255)',marginTop:3}}>{Math.floor(balance/100)} vote{Math.floor(balance/100)!==1?'s':''} disponibles</div></div>
           <span style={{fontSize:36}}>💰</span>
         </div>
       </div>
