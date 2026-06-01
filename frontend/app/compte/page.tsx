@@ -223,7 +223,7 @@ function DashboardSection({profile,balance,votesEmis,totalEarned,videoCount,onEd
   const country=COUNTRIES.find(c=>c.code===profile?.country);
   return (
     <div>
-      <div style={{...card, background: 'linear-gradient(135deg, #DC1414, #8B0000)', border: '1px solid rgba(255,0,0,0.3)'}}>
+      <div style={{...card, background: 'linear-gradient(135deg, rgba(126, 3, 128, 0.52), rgba(237,7,15))', border: '1px solid rgba(255,0,0,0.3)'}}>
         <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:16}}>
           <div style={{display:'flex',alignItems:'center',gap:14}}>
             {profile?.photo_url?<img src={profile.photo_url} alt={profile.name} style={{width:56,height:56,borderRadius:'50%',objectFit:'cover',border:'2px solid rgb(239,239,9)'}}/>:<div style={{width:56,height:56,borderRadius:'50%',background:'linear-gradient(135deg,rgba(255,170,0,0.17),rgba(255,107,0,0.1))',border:'2px solid rgba(255,170,0,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:700,color:'#FFAA00',fontFamily:'Syne,sans-serif'}}>{initials}</div>}
@@ -235,7 +235,7 @@ function DashboardSection({profile,balance,votesEmis,totalEarned,videoCount,onEd
           {[{val:videoCount,label:'Vidéos ajoutées',color:'#f0f0f0'},{val:votesEmis,label:'Votes émis',color:'#f0f0f0'},{val:`${totalEarned.toLocaleString('fr-FR')} F`,label:'Gains reçus',color:'#FFAA00'}].map(s=>(<div key={s.label} style={{background:'rgba(255,255,255,0.04)',borderRadius:12,padding:'12px',textAlign:'center'}}><div style={{fontSize:18,fontWeight:800,color:s.color,fontFamily:'Syne,sans-serif',lineHeight:1}}>{s.val}</div><div style={{fontSize:10,color:'rgb(255,255,255)',marginTop:4,lineHeight:1.3}}>{s.label}</div></div>))}
         </div>
       </div>
-      <div style={{...card,background:'linear-gradient(135deg, #DC1414, #8B0000)',border:'1px solid rgba(255,0,0,0.3)'}}>
+      <div style={{...card,background:'linear-gradient(135deg, rgba(126, 3, 128, 0.52), rgba(237,7,15))',border:'1px solid rgb(10, 0, 0)'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div><div style={{fontSize:11,color:'rgb(237,245,12)',fontWeight:700,letterSpacing:'.08em',marginBottom:6}}>SOLDE WALLET</div><div style={{fontSize:28,fontWeight:800,color:'#FFAA00',fontFamily:'Syne,sans-serif'}}>{balance.toLocaleString('fr-FR')} F</div><div style={{fontSize:12,color:'rgb(255,255,255)',marginTop:3}}>{Math.floor(balance/100)} vote{Math.floor(balance/100)!==1?'s':''} disponibles</div></div>
           <span style={{fontSize:36}}>💰</span>
