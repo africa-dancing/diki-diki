@@ -170,3 +170,20 @@ html, body {
 body {
   padding-top: 56px !important;
 }
+
+
+/* === Auth Login & Register === */
+.login-card, .reg-card {
+  padding: 32px 20px !important;
+  border-radius: 18px !important;
+  margin-top: 24px !important;
+}
+@media (max-width: 480px) {
+  .login-card, .reg-card {
+    padding: 28px 18px !important;
+    border-radius: 14px !important;
+  }
+  .logo-area {
+    margin-bottom: 20px !important;
+  }
+}
