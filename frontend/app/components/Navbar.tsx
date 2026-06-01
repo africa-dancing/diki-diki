@@ -66,7 +66,7 @@ export default function Navbar() {
 
       {/* ── Navbar principale ── */}
       <nav style={{
-        position: 'sticky', top: 0, zIndex: 100,
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
         background: 'rgba(6,0,0,0.97)',
         backdropFilter: 'blur(16px)',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
@@ -142,11 +142,11 @@ export default function Navbar() {
 
           {/* Panneau latéral */}
           <div style={{
-            position: 'fixed', top: 0, right: 0, bottom: 0,
+            position: 'fixed', top: 56, right: 0, bottom: 0,
             width: 280, maxWidth: '85vw',
             background: '#0f0f0f',
             borderLeft: '1px solid rgba(255,255,255,0.08)',
-            padding: '76px 22px 24px',
+            padding: '20px 22px 24px',
             zIndex: 99,
             overflowY: 'auto',
             boxShadow: '-8px 0 24px rgba(0,0,0,0.5)',
