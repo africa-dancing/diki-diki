@@ -202,7 +202,7 @@ function ContestCard({contest,userBalance,onVoted,isFavContest,favCandidates,onT
   const cands=lc.map(c=>({...c,percentage:total>0?Math.round((c.votes/total)*100):50}));
   const days=Math.max(0,Math.ceil((new Date(contest.ends_at).getTime()-Date.now())/86_400_000));
   const c0=cands[0],c1=cands[1];const isOpen=contest.status==='active';
-  const bbg=vs.voted||isOpen?'rgba(34,197,94,0.9)':'rgba(255,255,255,.05)';const bco=vs.voted||isOpen?'#fff':'rgba(255,255,255,.3)';const blb=vs.voted?'✓ Voté':isOpen?'● Vote ouvert':'Bientôt';
+  const bbg=vs.voted||isOpen?'#166534':'rgba(255,255,255,.05)';const bco=vs.voted||isOpen?'#fff':'rgba(255,255,255,.3)';const blb=vs.voted?'✓ Voté':isOpen?'● Vote ouvert':'Bientôt';
   return (
     <div style={{background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',border:'none',borderRadius:'20px',overflow:'hidden',marginBottom:'16px'}}>
       <div style={{padding:'14px 16px',borderBottom:'0.5px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,.02)'}}>
