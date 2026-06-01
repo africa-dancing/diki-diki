@@ -164,3 +164,9 @@ html, body {
   background: #0a0a0f !important;
   width: 100% !important;
 }
+
+
+/* Compense la hauteur de la navbar fixed */
+body {
+  padding-top: 56px !important;
+}
