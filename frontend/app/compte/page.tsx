@@ -158,7 +158,7 @@ function ConfidentialiteSection({earnings}:{earnings:number}) {
 }
 
 function SuivreBtn({active,onToggle,size='sm'}:{active:boolean;onToggle:()=>void;size?:'sm'|'md'}) {
-  return <button onClick={onToggle} style={{background:'none',border:'none',cursor:'pointer',padding:0,display:'inline-flex',alignItems:'center',gap:'3px'}}><span style={{fontSize:size==='md'?'11px':'10px',fontWeight:600,color:active?'#e53e3e':'#000',userSelect:'none'as const}}>{active?'Suivi':'Suivre'}</span><span style={{fontSize:size==='md'?'17px':'14px',lineHeight:1,color:active?'#e53e3e':'#000'}}>{active?'★':'☆'}</span></button>;
+  return <button onClick={onToggle} style={{background:'rgba(255,255,255,0.9)',border:'none',cursor:'pointer',padding:'3px 8px',borderRadius:20,display:'inline-flex',alignItems:'center',gap:'3px'}}>;<span style={{fontSize:size==='md'?'11px':'10px',fontWeight:600,color:active?'#e53e3e':'#333',userSelect:'none'as const}}>{active?'Suivi':'Suivre'}</span><span style={{fontSize:size==='md'?'17px':'14px',lineHeight:1,color:active?'#e53e3e':'#000'}}>{active?'★':'☆'}</span></button>;
 }
 
 function CandidateCard({cand,isWinner,isLoser,voteState,loading,contest,isFav,onToggleFav,onVote}:{cand:Candidate;isWinner:boolean;isLoser:boolean;voteState:VoteState;loading:boolean;contest:Contest;isFav:boolean;onToggleFav:()=>void;onVote:()=>void}) {
@@ -202,7 +202,7 @@ function ContestCard({contest,userBalance,onVoted,isFavContest,favCandidates,onT
   const cands=lc.map(c=>({...c,percentage:total>0?Math.round((c.votes/total)*100):50}));
   const days=Math.max(0,Math.ceil((new Date(contest.ends_at).getTime()-Date.now())/86_400_000));
   const c0=cands[0],c1=cands[1];const isOpen=contest.status==='active';
-  const bbg=vs.voted||isOpen?'rgba(74,222,128,.15)':'rgba(255,255,255,.05)';const bco=vs.voted||isOpen?'#4ade80':'rgba(255,255,255,.3)';const blb=vs.voted?'✓ Voté':isOpen?'● Vote ouvert':'Bientôt';
+  const bbg=vs.voted||isOpen?'rgba(34,197,94,0.9)':'rgba(255,255,255,.05)';const bco=vs.voted||isOpen?'#fff':'rgba(255,255,255,.3)';const blb=vs.voted?'✓ Voté':isOpen?'● Vote ouvert':'Bientôt';
   return (
     <div style={{background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',border:'none',borderRadius:'20px',overflow:'hidden',marginBottom:'16px'}}>
       <div style={{padding:'14px 16px',borderBottom:'0.5px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,.02)'}}>
