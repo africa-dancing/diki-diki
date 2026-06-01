@@ -158,7 +158,7 @@ function ConfidentialiteSection({earnings}:{earnings:number}) {
 }
 
 function SuivreBtn({active,onToggle,size='sm'}:{active:boolean;onToggle:()=>void;size?:'sm'|'md'}) {
-  return <button onClick={onToggle} style={{background:'rgba(255,255,255,0.9)',border:'none',cursor:'pointer',padding:'3px 8px',borderRadius:20,display:'inline-flex',alignItems:'center',gap:'3px'}}>;<span style={{fontSize:size==='md'?'11px':'10px',fontWeight:600,color:active?'#e53e3e':'#333',userSelect:'none'as const}}>{active?'Suivi':'Suivre'}</span><span style={{fontSize:size==='md'?'17px':'14px',lineHeight:1,color:active?'#e53e3e':'#000'}}>{active?'★':'☆'}</span></button>;
+  return <button onClick={onToggle} style={{background:'rgba(255,255,255,0.9)',border:'none',cursor:'pointer',padding:'3px 8px',borderRadius:20,display:'inline-flex',alignItems:'center',gap:'3px'}}>;<span style={{fontSize:size==='md'?'11px':'10px',fontWeight:600,color:active?'#FF0000':'#FF6B00',userSelect:'none'as const}}>{active?'Suivi':'Suivre'}</span><span style={{fontSize:size==='md'?'20px':'17px',lineHeight:1,color:active?'#FF0000':'#FF6B00'}}>{active?'★':'☆'}</span></button>;
 }
 
 function CandidateCard({cand,isWinner,isLoser,voteState,loading,contest,isFav,onToggleFav,onVote}:{cand:Candidate;isWinner:boolean;isLoser:boolean;voteState:VoteState;loading:boolean;contest:Contest;isFav:boolean;onToggleFav:()=>void;onVote:()=>void}) {
