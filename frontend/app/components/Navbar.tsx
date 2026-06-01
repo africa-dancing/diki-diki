@@ -68,7 +68,6 @@ export default function Navbar() {
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
         background: 'rgba(6,0,0,0.97)',
-        backdropFilter: 'blur(16px)',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
         padding: '0 12px 0 0',
         height: 56,
