@@ -219,7 +219,7 @@ function ContestCard({contest,userBalance,onVoted,isFavContest,favCandidates,onT
 }
 
 function DashboardSection({profile,balance,votesEmis,totalEarned,videoCount,onEditProfile}:{profile:UserProfile|null;balance:number;votesEmis:number;totalEarned:number;videoCount:number;onEditProfile:()=>void}) {
-  const initials=profile?.name?.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)??'?';
+  const initials=profile?.name?.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'??';
   const country=COUNTRIES.find(c=>c.code===profile?.country);
   return (
     <div>
@@ -229,7 +229,7 @@ function DashboardSection({profile,balance,votesEmis,totalEarned,videoCount,onEd
             {profile?.photo_url?<img src={profile.photo_url} alt={profile.name} style={{width:56,height:56,borderRadius:'50%',objectFit:'cover',border:'2px solid rgb(239,239,9)'}}/>:<div style={{width:56,height:56,borderRadius:'50%',background:'rgba(0,0,0,0.45)',border:'2px solid #FFAA00',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:700,color:'#FFAA00',fontFamily:'Syne,sans-serif'}}>{initials}</div>}
             <div><div style={{fontSize:17,fontWeight:800,color:'#fff',fontFamily:'Syne,sans-serif',marginBottom:3}}>{profile?.name??'—'}</div><div style={{fontSize:12,color:'rgba(255,255,255,0.85)'}}>{profile?.email}</div>{country&&<div style={{fontSize:12,color:'rgba(255,255,255,0.5)',marginTop:3}}>{country.flag} {country.name}</div>}</div>
           </div>
-          <button onClick={onEditProfile} style={{...btnSecondary,padding:'7px 14px',fontSize:12}}>✏️ Modifier</button>
+          <button onClick={onEditProfile} style={{...btnSecondary,padding:'7px 14px',fontSize:12,color:'#fff',border:'1px solid rgba(255,255,255,0.5)',background:'rgba(255,255,255,0.12)'}}>✏️ Modifier</button>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
           {[{val:videoCount,label:'Vidéos ajoutées',color:'#f0f0f0'},{val:votesEmis,label:'Votes émis',color:'#f0f0f0'},{val:`${totalEarned.toLocaleString('fr-FR')} F`,label:'Gains reçus',color:'#FFAA00'}].map(s=>(<div key={s.label} style={{background:'rgba(0,0,0,0.35)',borderRadius:12,padding:'14px',textAlign:'center'}}><div style={{fontSize:18,fontWeight:800,color:s.color,fontFamily:'Syne,sans-serif',lineHeight:1}}>{s.val}</div><div style={{fontSize:11,color:'#fff',fontWeight:600,marginTop:4,lineHeight:1.3}}>{s.label}</div></div>))}
@@ -394,7 +394,7 @@ export default function ComptePage() {
 
   return (
     <div style={{minHeight:'100vh',background:'#0a0a0f',color:'#f0f0f0',fontFamily:'DM Sans,sans-serif',paddingBottom:60}}>
-      <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(8,8,15,0.95)',backdropFilter:'blur(16px)',borderBottom:'1px solid rgb(255,255,255)',padding:'0 20px',height:60,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+      <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(8,8,15,0.95)',borderBottom:'1px solid rgba(255,255,255,0.08)',padding:'0 20px 0 0',height:60,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <Link href="/home" style={{textDecoration:'none',display:'flex',alignItems:'center',gap:7}}><LogoDikiDiki width={200}/></Link>
         <div style={{display:'flex',alignItems:'center',gap:10}}>
           <TranslateWidget/>
