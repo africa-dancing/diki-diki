@@ -158,7 +158,7 @@ function ConfidentialiteSection({earnings}:{earnings:number}) {
 }
 
 function SuivreBtn({active,onToggle,size='sm'}:{active:boolean;onToggle:()=>void;size?:'sm'|'md'}) {
-  return <button onClick={onToggle} style={{background:'none',border:'none',cursor:'pointer',padding:0,display:'inline-flex',alignItems:'center',gap:'3px'}}><span style={{fontSize:size==='md'?'11px':'10px',fontWeight:600,color:active?'#e53e3e':'rgba(255,255,255,0.9)',userSelect:'none'as const}}>{active?'Suivi':'Suivre'}</span><span style={{fontSize:size==='md'?'17px':'14px',lineHeight:1,color:active?'#e53e3e':'rgba(255,255,255,0.7)'}}>{active?'★':'☆'}</span></button>;
+  return <button onClick={onToggle} style={{background:'none',border:'none',cursor:'pointer',padding:0,display:'inline-flex',alignItems:'center',gap:'3px'}}><span style={{fontSize:size==='md'?'11px':'10px',fontWeight:600,color:active?'#e53e3e':'#000',userSelect:'none'as const}}>{active?'Suivi':'Suivre'}</span><span style={{fontSize:size==='md'?'17px':'14px',lineHeight:1,color:active?'#e53e3e':'#000'}}>{active?'★':'☆'}</span></button>;
 }
 
 function CandidateCard({cand,isWinner,isLoser,voteState,loading,contest,isFav,onToggleFav,onVote}:{cand:Candidate;isWinner:boolean;isLoser:boolean;voteState:VoteState;loading:boolean;contest:Contest;isFav:boolean;onToggleFav:()=>void;onVote:()=>void}) {
@@ -183,7 +183,7 @@ function CandidateCard({cand,isWinner,isLoser,voteState,loading,contest,isFav,on
       </div>
       <div style={{width:'100%',textAlign:'center'}}>
         <div style={{fontSize:'28px',fontWeight:800,color:vc,fontFamily:'Syne,sans-serif',lineHeight:1}}>{cand.votes.toLocaleString('fr-FR')}</div>
-        <div style={{fontSize:'11px',color:'rgba(255,255,255,.4)',marginTop:'3px'}}>{cand.percentage}% des votes</div>
+        <div style={{fontSize:'11px',color:'#000',marginTop:'3px',fontWeight:600}}>{cand.percentage}% des votes</div>
         <div style={{width:'100%',height:'5px',background:'rgba(255,255,255,.08)',borderRadius:'3px',marginTop:'8px'}}><div style={{height:'5px',borderRadius:'3px',width:`${cand.percentage}%`,background:bar,transition:'width .6s'}}/></div>
       </div>
       <button onClick={handleVote} disabled={voteState.voted||loading||contest.status!=='active'||!vid} style={{width:'100%',padding:'11px',background:voteState.voted?(isWinner?'rgba(74,222,128,.15)':'rgba(255,255,255,.05)'):'#FFAA00',border:voteState.voted?(isWinner?'0.5px solid rgba(74,222,128,.3)':'0.5px solid rgba(255,255,255,.1)'):'none',borderRadius:'12px',fontFamily:'Syne,sans-serif',fontSize:'13px',fontWeight:700,color:voteState.voted?(isWinner?'#4ade80':'rgba(255,255,255,.3)'):'#000',cursor:voteState.voted||loading||!vid?'not-allowed':'pointer',transform:pop?'scale(1.05)':'scale(1)',transition:'all .2s'}}>
@@ -206,7 +206,7 @@ function ContestCard({contest,userBalance,onVoted,isFavContest,favCandidates,onT
   return (
     <div style={{background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',border:'none',borderRadius:'20px',overflow:'hidden',marginBottom:'16px'}}>
       <div style={{padding:'14px 16px',borderBottom:'0.5px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,.02)'}}>
-        <div><div style={{fontSize:'15px',fontWeight:700,color:'#fff',fontFamily:'Syne,sans-serif',marginBottom:'3px'}}>{DISC_EMOJI[contest.discipline]||'🎭'} {contest.title}</div><div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>{[DISC_FR[contest.discipline]||contest.discipline,contest.comp_type,`⏳ ${days}j restants`].map(l=><span key={l} style={{fontSize:'10px',color:'#fff',background:'rgba(0,0,0,0.3)',padding:'2px 8px',borderRadius:'20px'}}>{l}</span>)}</div></div>
+        <div><div style={{fontSize:'15px',fontWeight:700,color:'#000',fontFamily:'Syne,sans-serif',marginBottom:'3px'}}>{DISC_EMOJI[contest.discipline]||'🎭'} {contest.title}</div><div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>{[DISC_FR[contest.discipline]||contest.discipline,contest.comp_type,`⏳ ${days}j restants`].map(l=><span key={l} style={{fontSize:'10px',color:'#fff',background:'rgba(0,0,0,0.3)',padding:'2px 8px',borderRadius:'20px'}}>{l}</span>)}</div></div>
         <div style={{display:'flex',alignItems:'center',gap:'10px'}}><SuivreBtn active={isFavContest} onToggle={onToggleFavContest} size="md"/><span style={{fontSize:'10px',fontWeight:700,padding:'4px 10px',borderRadius:'20px',background:bbg,color:bco,border:`0.5px solid ${bco.replace(')',',0.3)')}`}}>{blb}</span></div>
       </div>
       {msg&&<div style={{padding:'10px 16px',fontSize:'12px',fontWeight:500,background:mt==='success'?'rgba(74,222,128,.1)':mt==='error'?'rgba(248,113,113,.1)':'rgba(255,255,255,.06)',color:mt==='success'?'#4ade80':mt==='error'?'#f87171':'rgba(255,255,255,.6)',borderBottom:'0.5px solid rgba(255,255,255,.06)'}}>{msg}</div>}
