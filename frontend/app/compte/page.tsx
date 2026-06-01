@@ -223,7 +223,7 @@ function DashboardSection({profile,balance,votesEmis,totalEarned,videoCount,onEd
   const country=COUNTRIES.find(c=>c.code===profile?.country);
   return (
     <div>
-      <div style={{...card, background: 'linear-gradient(135deg, rgba(126, 3, 128, 0.52), rgba(237,7,15))', border: '1px solid rgba(255,0,0,0.3)'}}>
+      <div style={{...card, background: 'linear-gradient(135deg, rgba(126, 3, 128, 0.52), rgba(237,7,15))', border: 'none'}}>
         <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:16}}>
           <div style={{display:'flex',alignItems:'center',gap:14}}>
             {profile?.photo_url?<img src={profile.photo_url} alt={profile.name} style={{width:56,height:56,borderRadius:'50%',objectFit:'cover',border:'2px solid rgb(239,239,9)'}}/>:<div style={{width:56,height:56,borderRadius:'50%',background:'rgba(0,0,0,0.45)',border:'2px solid #FFAA00',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:700,color:'#FFAA00',fontFamily:'Syne,sans-serif'}}>{initials}</div>}
