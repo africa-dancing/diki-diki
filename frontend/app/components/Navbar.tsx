@@ -134,7 +134,6 @@ export default function Navbar() {
             style={{
               position: 'fixed', inset: 0,
               background: 'rgba(0,0,0,0.65)',
-              backdropFilter: 'blur(2px)',
               zIndex: 98,
               animation: 'fadeIn .25s ease-out',
             }}
