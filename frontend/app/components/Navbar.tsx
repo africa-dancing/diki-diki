@@ -34,6 +34,12 @@ export default function Navbar() {
     }
   }, []);
 
+  // Bloquer le scroll du body quand le menu est ouvert
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (search.trim()) {
@@ -47,6 +53,17 @@ export default function Navbar() {
 
   return (
     <>
+      <style>{`
+        @keyframes slideInRight {
+          from { transform: translateX(100%); }
+          to   { transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+      `}</style>
+
       {/* ── Navbar principale ── */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 100,
@@ -57,17 +74,13 @@ export default function Navbar() {
         height: 56,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        {/* Logo collé à gauche */}
         <Link href="/home" style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
           <LogoDikiDiki width={130} />
         </Link>
 
-        {/* Icônes droite */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {/* Sélecteur de langue */}
           <TranslateWidget />
 
-          {/* Loupe */}
           <button
             onClick={() => { setSearchOpen(o => !o); setMenuOpen(false); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#00CC00', fontSize: 18 }}
@@ -75,7 +88,6 @@ export default function Navbar() {
             🔍
           </button>
 
-          {/* Compte */}
           <button
             onClick={() => router.push(token ? '/compte' : '/auth/login')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#FFAA00', fontSize: 20 }}
@@ -83,7 +95,6 @@ export default function Navbar() {
             👤
           </button>
 
-          {/* Hamburger */}
           <button
             onClick={() => { setMenuOpen(o => !o); setSearchOpen(false); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', flexDirection: 'column', gap: 4 }}
@@ -114,56 +125,80 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* ── Menu déroulant ── */}
+      {/* ── Drawer latéral droit ── */}
       {menuOpen && (
-        <div style={{ background: '#0f0f0f', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '8px 16px 12px', position: 'sticky', top: 56, zIndex: 99 }}>
+        <>
+          {/* Overlay sombre */}
+          <div
+            onClick={() => setMenuOpen(false)}
+            style={{
+              position: 'fixed', inset: 0,
+              background: 'rgba(0,0,0,0.65)',
+              backdropFilter: 'blur(2px)',
+              zIndex: 98,
+              animation: 'fadeIn .25s ease-out',
+            }}
+          />
 
-          {[
-            { href: '/home',            label: 'Accueil' },
-            { href: '/challenges',      label: 'Challenges' },
-            { href: '/education',       label: 'Education & Savoirs' },
-            { href: '/faq',             label: 'Comment ça marche' },
-            { href: '/auth/register',   label: "S'inscrire", hide: !!token },
-          ].filter(l => !l.hide).map(l => (
-            <Link
-              key={l.href} href={l.href}
-              onClick={() => setMenuOpen(false)}
-              style={{ color: isActive(l.href) ? '#FFAA00' : '#fff', fontSize: 13, fontWeight: isActive(l.href) ? 700 : 600, textDecoration: 'none', padding: '9px 0', borderBottom: '1px solid #1a1a1a', display: 'block' }}
-            >
-              {l.label}
-            </Link>
-          ))}
+          {/* Panneau latéral */}
+          <div style={{
+            position: 'fixed', top: 0, right: 0, bottom: 0,
+            width: 280, maxWidth: '85vw',
+            background: '#0f0f0f',
+            borderLeft: '1px solid rgba(255,255,255,0.08)',
+            padding: '76px 22px 24px',
+            zIndex: 99,
+            overflowY: 'auto',
+            boxShadow: '-8px 0 24px rgba(0,0,0,0.5)',
+            animation: 'slideInRight .3s ease-out',
+          }}>
+            {[
+              { href: '/home',          label: 'Accueil' },
+              { href: '/challenges',    label: 'Challenges' },
+              { href: '/education',     label: 'Education & Savoirs' },
+              { href: '/faq',           label: 'Comment ça marche' },
+              { href: '/auth/register', label: "S'inscrire", hide: !!token },
+            ].filter(l => !l.hide).map(l => (
+              <Link
+                key={l.href} href={l.href}
+                onClick={() => setMenuOpen(false)}
+                style={{ color: isActive(l.href) ? '#FFAA00' : '#fff', fontSize: 14, fontWeight: isActive(l.href) ? 700 : 600, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid #1a1a1a', display: 'block' }}
+              >
+                {l.label}
+              </Link>
+            ))}
 
-          <div style={{ padding: '8px 0 4px', fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '.1em', fontWeight: 700 }}>DISCIPLINES</div>
-          {DISCIPLINES.map(d => (
-            <Link
-              key={d.value}
-              href={`/home?discipline=${d.value}`}
-              onClick={() => setMenuOpen(false)}
-              style={{ color: '#FF0000', fontSize: 13, fontWeight: 700, textDecoration: 'none', padding: '8px 0', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', gap: 10 }}
-            >
-              <span>{d.emoji}</span> {d.label}
-            </Link>
-          ))}
+            <div style={{ padding: '14px 0 8px', fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '.1em', fontWeight: 700 }}>DISCIPLINES</div>
+            {DISCIPLINES.map(d => (
+              <Link
+                key={d.value}
+                href={`/home?discipline=${d.value}`}
+                onClick={() => setMenuOpen(false)}
+                style={{ color: '#FF0000', fontSize: 14, fontWeight: 700, textDecoration: 'none', padding: '10px 0', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', gap: 12 }}
+              >
+                <span style={{ fontSize: 16 }}>{d.emoji}</span> {d.label}
+              </Link>
+            ))}
 
-          {isAdmin && (
-            <Link href="/admin" onClick={() => setMenuOpen(false)} style={{ color: '#FFAA00', fontSize: 13, fontWeight: 700, textDecoration: 'none', padding: '9px 0', borderBottom: '1px solid #1a1a1a', display: 'block' }}>
-              ⚙️ Admin
-            </Link>
-          )}
-          {token ? (
-            <button
-              onClick={() => { localStorage.removeItem('dkdk_token'); window.location.href = '/home'; }}
-              style={{ background: 'none', border: 'none', color: 'rgba(255,100,100,0.7)', fontSize: 13, cursor: 'pointer', padding: '9px 0', textAlign: 'left', width: '100%', fontFamily: 'DM Sans, sans-serif' }}
-            >
-              Se déconnecter
-            </button>
-          ) : (
-            <Link href="/auth/login" onClick={() => setMenuOpen(false)} style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none', padding: '9px 0', display: 'block' }}>
-              Connexion
-            </Link>
-          )}
-        </div>
+            {isAdmin && (
+              <Link href="/admin" onClick={() => setMenuOpen(false)} style={{ color: '#FFAA00', fontSize: 14, fontWeight: 700, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid #1a1a1a', display: 'block', marginTop: 6 }}>
+                ⚙️ Admin
+              </Link>
+            )}
+            {token ? (
+              <button
+                onClick={() => { localStorage.removeItem('dkdk_token'); window.location.href = '/home'; }}
+                style={{ background: 'none', border: 'none', color: 'rgba(255,100,100,0.8)', fontSize: 14, cursor: 'pointer', padding: '12px 0', textAlign: 'left', width: '100%', fontFamily: 'DM Sans, sans-serif', marginTop: 6 }}
+              >
+                Se déconnecter
+              </button>
+            ) : (
+              <Link href="/auth/login" onClick={() => setMenuOpen(false)} style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, textDecoration: 'none', padding: '12px 0', display: 'block', marginTop: 6 }}>
+                Connexion
+              </Link>
+            )}
+          </div>
+        </>
       )}
     </>
   );
