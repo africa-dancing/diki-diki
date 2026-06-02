@@ -357,7 +357,7 @@ export default function AdminPage() {
                         <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:st.bg, color:st.color }}>{st.label}</span>
                         <span style={{ fontSize:11, color:'rgba(255,255,255,0.35)' }}>{DISC_FR[c.discipline] ?? c.discipline} · {c.comp_type}</span>
                         {c.status !== 'ended' && <span style={{ fontSize:11, color:days<=3?'#f87171':'rgba(255,255,255,0.3)' }}>⏱ {days}j restants</span>}
-                        <span style={{ fontSize:11, color:OR }}>⭐ {fmt(votes)} votes</span>
+                        <span style={{ fontSize:11, color:OR }}><span style={{color:"#FF0000"}}>★</span> {fmt(votes)} votes</span>
                       </div>
                     </div>
                     <div style={{ display:'flex', gap:8, flexShrink:0, flexWrap:'wrap' }}>

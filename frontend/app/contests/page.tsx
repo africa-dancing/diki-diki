@@ -197,7 +197,7 @@ export default function ContestsPage() {
                             <div key={cand.id} style={{ flex: 1, background: `rgba(255,255,255,0.03)`, border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 12, padding: '12px 14px', textAlign: 'center' }}>
                               <div style={{ fontSize: 24, marginBottom: 4 }}>{medal}</div>
                               <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 2 }}>{cand.stage_name ?? cand.name ?? 'Candidat'}</div>
-                              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>⭐ {fmt(cand.votes ?? 0)} votes</div>
+                              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}><span style={{color:'#FF0000'}}>★</span> {fmt(cand.votes ?? 0)} votes</div>
                               <div style={{ fontSize: 12, fontWeight: 700, color }}>+{fmt(prize)} F CFA</div>
                             </div>
                           ))}
@@ -208,8 +208,8 @@ export default function ContestsPage() {
                       {!isEnded && cands.length >= 2 && total > 0 && (
                         <div style={{ marginBottom: 14 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
-                            <span>{sorted[0]?.stage_name ?? sorted[0]?.name ?? 'Candidat 1'} · {fmt(sorted[0]?.votes ?? 0)} ⭐</span>
-                            <span>{sorted[1]?.stage_name ?? sorted[1]?.name ?? 'Candidat 2'} · {fmt(sorted[1]?.votes ?? 0)} ⭐</span>
+                            <span>{sorted[0]?.stage_name ?? sorted[0]?.name ?? 'Candidat 1'} · {fmt(sorted[0]?.votes ?? 0)} <span style={{color:'#FF0000'}}>★</span></span>
+                            <span>{sorted[1]?.stage_name ?? sorted[1]?.name ?? 'Candidat 2'} · {fmt(sorted[1]?.votes ?? 0)} <span style={{color:'#FF0000'}}>★</span></span>
                           </div>
                           <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', display: 'flex' }}>
                             <div style={{ height: '100%', background: OR, width: `${Math.round(((sorted[0]?.votes ?? 0) / total) * 100)}%`, transition: 'width .5s', borderRadius: '4px 0 0 4px' }} />
@@ -231,13 +231,13 @@ export default function ContestsPage() {
                             style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.04)', border: `1px solid ${i === 0 && !isEnded ? 'rgba(255,170,0,0.25)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 50, padding: '6px 14px', fontSize: 12, color: '#fff', cursor: cand.video_id ? 'pointer' : 'default', fontFamily: 'DM Sans,sans-serif' }}>
                             {i === 0 && !isEnded && <span style={{ color: OR }}>👑</span>}
                             <span>{cand.stage_name ?? cand.name ?? 'Candidat'}</span>
-                            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>⭐ {fmt(cand.votes ?? 0)}</span>
+                            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}><span style={{color:'#FF0000'}}>★</span> {fmt(cand.votes ?? 0)}</span>
                           </button>
                         ))}
                         {!isEnded && loggedIn && sorted[0]?.video_id && (
                           <button onClick={() => router.push(`/watch/${sorted[0].video_id}`)}
                             style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 50, padding: '6px 16px', fontSize: 12, fontWeight: 700, color: '#000', cursor: 'pointer', fontFamily: 'DM Sans,sans-serif', marginLeft: 'auto' }}>
-                            ⭐ Voter
+                            ★ Voter
                           </button>
                         )}
                         {!loggedIn && !isEnded && (
