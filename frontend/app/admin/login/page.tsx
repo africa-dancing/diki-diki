@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
     const res = await verifyOTP(code.join(''));
     setLoading(false);
     if (!res.success) { setError(res.error || 'Code incorrect.'); return; }
-    router.replace('/admin/moderation');
+    router.replace('/admin');
   }
 
   function handleOtpInput(val: string, idx: number) {
