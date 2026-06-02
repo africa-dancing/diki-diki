@@ -22,7 +22,8 @@ const AdminAuth = createContext<AdminAuthContext | null>(null);
 
 // ✅ Comptes admin Diki-Diki
 const ADMIN_ACCOUNTS = [
-  { email: 'admin@dkdk.com', password: 'Dkdk@Admin2026!', role: 'admin' as const },
+  { email: 'admin@dikidiki.com', password: 'Admin2026!', role: 'admin' as const },
+  { email: 'ifedeg@gmail.com', password: 'Admin2026!', role: 'admin' as const },
 ];
 
 export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
