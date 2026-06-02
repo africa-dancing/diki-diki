@@ -294,10 +294,10 @@ export default function AdminPage() {
               { label:'En cours',    val:activeCount,  color:'#4ade80', bg:'rgba(74,222,128,0.06)',   border:'rgba(74,222,128,0.2)',   icon:'🟢' },
               { label:'À venir',     val:pendingCount, color:OR,        bg:'rgba(255,170,0,0.06)',    border:'rgba(255,170,0,0.2)',    icon:'⏳' },
               { label:'Terminées',   val:endedCount,   color:'#f87171', bg:'rgba(248,113,113,0.06)', border:'rgba(248,113,113,0.2)', icon:'⏹' },
-              { label:'Total votes', val:fmt(totalVotes), color:'#60a5fa', bg:'rgba(96,165,250,0.06)', border:'rgba(96,165,250,0.2)', icon:'⭐' },
+              { label:'Total votes', val:fmt(totalVotes), color:'#60a5fa', bg:'rgba(96,165,250,0.06)', border:'rgba(96,165,250,0.2)', icon:'★', iconColor:'#FF0000' },
             ].map(k => (
               <div key={k.label} style={{ background:k.bg, border:`1px solid ${k.border}`, borderRadius:14, padding:'16px' }}>
-                <div style={{ fontSize:20, marginBottom:6 }}>{k.icon}</div>
+                <div style={{ fontSize:20, marginBottom:6, color:(k as any).iconColor || 'inherit' }}>{k.icon}</div>
                 <div style={{ fontSize:22, fontWeight:800, color:k.color, fontFamily:'Syne,sans-serif' }}>{k.val}</div>
                 <div style={{ fontSize:11, color:k.color, opacity:.7, marginTop:4 }}>{k.label}</div>
               </div>
