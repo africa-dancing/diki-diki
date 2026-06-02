@@ -87,12 +87,12 @@ export default function ContestsPage() {
         <div style={{ display: 'flex', gap: 10 }}>
           {loggedIn && (
             <button onClick={() => router.push('/challenges')}
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 50, padding: '6px 14px', fontSize: 12, color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}>
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 50, padding: '6px 14px', fontSize: 14, color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}>
               ⚡ Challenges
             </button>
           )}
           <button onClick={() => router.push('/home')}
-            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 50, padding: '6px 14px', fontSize: 12, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
+            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 50, padding: '6px 14px', fontSize: 14, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
             ← Accueil
           </button>
         </div>
@@ -104,7 +104,7 @@ export default function ContestsPage() {
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,170,0,0.1)', border: '1px solid rgba(255,170,0,0.3)', borderRadius: 50, padding: '5px 14px', marginBottom: 12 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: OR, display: 'inline-block', animation: 'pulse 1.5s infinite' }} />
-            <span style={{ fontSize: 11, color: OR, fontWeight: 700, letterSpacing: '.06em' }}>{activeCount} COMPÉTITION{activeCount > 1 ? 'S' : ''} EN COURS</span>
+            <span style={{ fontSize: 14, color: OR, fontWeight: 700, letterSpacing: '.06em' }}>{activeCount} COMPÉTITION{activeCount > 1 ? 'S' : ''} EN COURS</span>
           </div>
           <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(1.6rem,4vw,2.6rem)', color: '#fff', marginBottom: 8 }}>
             🏆 Toutes les <span style={{ color: OR }}>compétitions</span>
@@ -122,7 +122,7 @@ export default function ContestsPage() {
             { key: 'ended',  label: `Terminées (${endedCount})`   },
           ].map(f => (
             <button key={f.key} onClick={() => setFilter(f.key as any)}
-              style={{ padding: '7px 16px', borderRadius: 50, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: `1px solid ${filter === f.key ? OR : 'rgba(255,255,255,0.1)'}`, background: filter === f.key ? 'rgba(255,170,0,0.12)' : 'transparent', color: filter === f.key ? OR : 'rgba(255,255,255,0.4)' }}>
+              style={{ padding: '7px 16px', borderRadius: 50, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: `1px solid ${filter === f.key ? OR : 'rgba(255,255,255,0.1)'}`, background: filter === f.key ? 'rgba(255,170,0,0.12)' : 'transparent', color: filter === f.key ? OR : 'rgba(255,255,255,0.4)' }}>
               {f.label}
             </button>
           ))}
@@ -132,7 +132,7 @@ export default function ContestsPage() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 28 }}>
           {disciplines.map(d => (
             <button key={d} onClick={() => setDisc(d)}
-              style={{ padding: '5px 14px', borderRadius: 50, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: `1px solid ${disc === d ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.07)'}`, background: disc === d ? 'rgba(255,255,255,0.08)' : 'transparent', color: disc === d ? '#fff' : 'rgba(255,255,255,0.35)' }}>
+              style={{ padding: '5px 14px', borderRadius: 50, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: `1px solid ${disc === d ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.07)'}`, background: disc === d ? 'rgba(255,255,255,0.08)' : 'transparent', color: disc === d ? '#fff' : 'rgba(255,255,255,0.35)' }}>
               {d !== 'Tous' ? `${DISC_EMOJI[d] ?? '🎭'} ${DISC_FR[d] ?? d}` : 'Toutes disciplines'}
             </button>
           ))}
@@ -167,21 +167,21 @@ export default function ContestsPage() {
                         <h2 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 16, color: '#fff', margin: 0 }}>{c.title}</h2>
                       </div>
                       {c.description && (
-                        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: '0 0 8px', lineHeight: 1.5 }}>{c.description}</p>
+                        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', margin: '0 0 8px', lineHeight: 1.5 }}>{c.description}</p>
                       )}
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{st.label}</span>
-                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{DISC_FR[c.discipline] ?? c.discipline} · {c.comp_type}</span>
-                        {!isEnded && <span style={{ fontSize: 11, color: days <= 3 ? '#f87171' : 'rgba(255,255,255,0.3)' }}>⏱ {days}j restants</span>}
-                        {isEnded && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>Terminé le {new Date(c.ends_at).toLocaleDateString('fr-FR')}</span>}
+                        <span style={{ fontSize: 15, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{st.label}</span>
+                        <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)' }}>{DISC_FR[c.discipline] ?? c.discipline} · {c.comp_type}</span>
+                        {!isEnded && <span style={{ fontSize: 14, color: days <= 3 ? '#f87171' : 'rgba(255,255,255,0.3)' }}>⏱ {days}j restants</span>}
+                        {isEnded && <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)' }}>Terminé le {new Date(c.ends_at).toLocaleDateString('fr-FR')}</span>}
                       </div>
                     </div>
 
                     {/* Stats votes */}
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{ fontSize: 22, fontWeight: 800, color: OR, fontFamily: 'Syne,sans-serif' }}>{fmt(total)}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>votes au total</div>
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Cagnotte : <strong style={{ color: '#4ade80' }}>{fmt(net)} F</strong></div>
+                      <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>votes au total</div>
+                      <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>Cagnotte : <strong style={{ color: '#4ade80' }}>{fmt(net)} F</strong></div>
                     </div>
                   </div>
 
@@ -196,9 +196,9 @@ export default function ContestsPage() {
                           ].map(({ cand, medal, prize, color }) => (
                             <div key={cand.id} style={{ flex: 1, background: `rgba(255,255,255,0.03)`, border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 12, padding: '12px 14px', textAlign: 'center' }}>
                               <div style={{ fontSize: 24, marginBottom: 4 }}>{medal}</div>
-                              <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 2 }}>{cand.stage_name ?? cand.name ?? 'Candidat'}</div>
-                              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}><span style={{color:'#FF0000'}}>★</span> {fmt(cand.votes ?? 0)} votes</div>
-                              <div style={{ fontSize: 12, fontWeight: 700, color }}>+{fmt(prize)} F CFA</div>
+                              <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 2 }}>{cand.stage_name ?? cand.name ?? 'Candidat'}</div>
+                              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}><span style={{color:'#FF0000'}}>★</span> {fmt(cand.votes ?? 0)} votes</div>
+                              <div style={{ fontSize: 14, fontWeight: 700, color }}>+{fmt(prize)} F CFA</div>
                             </div>
                           ))}
                         </div>
@@ -207,7 +207,7 @@ export default function ContestsPage() {
                       {/* Barre de progression votes */}
                       {!isEnded && cands.length >= 2 && total > 0 && (
                         <div style={{ marginBottom: 14 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
                             <span>{sorted[0]?.stage_name ?? sorted[0]?.name ?? 'Candidat 1'} · {fmt(sorted[0]?.votes ?? 0)} <span style={{color:'#FF0000'}}>★</span></span>
                             <span>{sorted[1]?.stage_name ?? sorted[1]?.name ?? 'Candidat 2'} · {fmt(sorted[1]?.votes ?? 0)} <span style={{color:'#FF0000'}}>★</span></span>
                           </div>
@@ -215,7 +215,7 @@ export default function ContestsPage() {
                             <div style={{ height: '100%', background: OR, width: `${Math.round(((sorted[0]?.votes ?? 0) / total) * 100)}%`, transition: 'width .5s', borderRadius: '4px 0 0 4px' }} />
                             <div style={{ height: '100%', background: '#60a5fa', flex: 1, borderRadius: '0 4px 4px 0' }} />
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 4 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: 'rgba(255,255,255,0.25)', marginTop: 4 }}>
                             <span>{Math.round(((sorted[0]?.votes ?? 0) / total) * 100)}%</span>
                             <span>{Math.round(((sorted[1]?.votes ?? 0) / total) * 100)}%</span>
                           </div>
@@ -228,21 +228,21 @@ export default function ContestsPage() {
                           <button key={cand.id}
                             onClick={() => cand.video_id && router.push(`/watch/${cand.video_id}`)}
                             disabled={!cand.video_id}
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.04)', border: `1px solid ${i === 0 && !isEnded ? 'rgba(255,170,0,0.25)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 50, padding: '6px 14px', fontSize: 12, color: '#fff', cursor: cand.video_id ? 'pointer' : 'default', fontFamily: 'DM Sans,sans-serif' }}>
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.04)', border: `1px solid ${i === 0 && !isEnded ? 'rgba(255,170,0,0.25)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 50, padding: '6px 14px', fontSize: 14, color: '#fff', cursor: cand.video_id ? 'pointer' : 'default', fontFamily: 'DM Sans,sans-serif' }}>
                             {i === 0 && !isEnded && <span style={{ color: OR }}>👑</span>}
                             <span>{cand.stage_name ?? cand.name ?? 'Candidat'}</span>
-                            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}><span style={{color:'#FF0000'}}>★</span> {fmt(cand.votes ?? 0)}</span>
+                            <span style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)' }}><span style={{color:'#FF0000'}}>★</span> {fmt(cand.votes ?? 0)}</span>
                           </button>
                         ))}
                         {!isEnded && loggedIn && sorted[0]?.video_id && (
                           <button onClick={() => router.push(`/watch/${sorted[0].video_id}`)}
-                            style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 50, padding: '6px 16px', fontSize: 12, fontWeight: 700, color: '#000', cursor: 'pointer', fontFamily: 'DM Sans,sans-serif', marginLeft: 'auto' }}>
+                            style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 50, padding: '6px 16px', fontSize: 14, fontWeight: 700, color: '#000', cursor: 'pointer', fontFamily: 'DM Sans,sans-serif', marginLeft: 'auto' }}>
                             ★ Voter
                           </button>
                         )}
                         {!loggedIn && !isEnded && (
                           <button onClick={() => router.push('/auth/login')}
-                            style={{ background: 'rgba(255,170,0,0.08)', border: '1px solid rgba(255,170,0,0.2)', borderRadius: 50, padding: '6px 16px', fontSize: 12, fontWeight: 700, color: OR, cursor: 'pointer', fontFamily: 'DM Sans,sans-serif', marginLeft: 'auto' }}>
+                            style={{ background: 'rgba(255,170,0,0.08)', border: '1px solid rgba(255,170,0,0.2)', borderRadius: 50, padding: '6px 16px', fontSize: 14, fontWeight: 700, color: OR, cursor: 'pointer', fontFamily: 'DM Sans,sans-serif', marginLeft: 'auto' }}>
                             🔒 Voter
                           </button>
                         )}
@@ -251,7 +251,7 @@ export default function ContestsPage() {
                   )}
 
                   {cands.length === 0 && (
-                    <div style={{ padding: '14px 20px', fontSize: 12, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>
+                    <div style={{ padding: '14px 20px', fontSize: 14, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>
                       Aucun candidat inscrit pour l'instant.
                     </div>
                   )}
