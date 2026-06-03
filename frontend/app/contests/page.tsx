@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import LogoDikiDiki from "../components/LogoDikiDiki";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
@@ -80,9 +81,9 @@ export default function ContestsPage() {
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,170,0,0.12)', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link href="/home" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 7 }}>
           <span style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: '1.15rem' }}>
-            <span style={{ color: OR }}>Diki</span><span style={{ color: '#fff', margin: '0 3px' }}>-</span><span style={{ color: OR }}>Diki</span>
+            <LogoDikiDiki width={130} />
           </span>
-          <span style={{ fontSize: '.48rem', fontWeight: 700, color: '#fff', border: '1px solid rgba(255,255,255,.6)', borderRadius: 3, padding: '1px 4px', letterSpacing: '.08em' }}>VISION</span>
+          
         </Link>
         <div style={{ display: 'flex', gap: 10 }}>
           {loggedIn && (
