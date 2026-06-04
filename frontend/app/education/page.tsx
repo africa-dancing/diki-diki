@@ -51,7 +51,7 @@ export default function EducationPage() {
       {/* ── Hero ── */}
       <div style={{
         padding: '20px 16px 16px',
-        background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgb(247, 6, 6) 0%, transparent 70%)',
+        background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)',
         textAlign: 'center'
       }}>
         <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#FFAA00', display: 'inline-block', verticalAlign: 'middle' }} />

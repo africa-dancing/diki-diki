@@ -122,6 +122,16 @@ export default function HomePage() {
     <>
       <Navbar />
 
+      {/* Badge categorie */}
+      <div style={{ padding: '16px', display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span style={{ color: '#FFAA00', fontSize: 12, padding: '5px 12px', border: '1px solid #FFAA00', borderRadius: 20, fontWeight: 600 }}>
+          🎭 Loisirs & Divertissement
+        </span>
+        <Link href="/education" style={{ color: 'rgba(255,170,0,0.6)', fontSize: 12, textDecoration: 'none', padding: '5px 12px', border: '1px solid rgba(255,170,0,0.2)', borderRadius: 20 }}>
+          📚 Education & Savoirs
+        </Link>
+      </div>
+
       {/* Hero */}
       <div style={{ padding: '16px 24px 10px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
         <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.95rem,4.5vw,3rem)', lineHeight: 1.1, marginBottom: 8, whiteSpace: 'nowrap', background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
