@@ -171,9 +171,9 @@ export default function EducationPage() {
 
         {/* CTA Créateur */}
         <div style={{
-          marginTop: 36, background: 'linear-gradient(135deg, rgb(255, 4, 0), rgb(255, 0, 0))',
+          marginTop: 36, background: 'linear-gradient(135deg, hsl(339, 98%, 49%), hsl(330, 90%, 38%))',
           border: '1px solid rgba(255,170,0,0.15)', borderRadius: 14, padding: '24px 18px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 16,
         }}>
           <div style={{ flex: '1 1 220px' }}>
             <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 16, color: '#fff', margin: '0 0 4px' }}>
