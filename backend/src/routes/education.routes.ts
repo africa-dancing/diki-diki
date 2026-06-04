@@ -169,9 +169,9 @@ educationRouter.post('/lecons', async (req: Request, res: Response) => {
 // Noter une leçon /20
 educationRouter.post('/lecons/:id/noter', async (req: Request, res: Response) => {
   try {
-    const { user_id, note } = req.body;
+    const { user_id, device_id, note } = req.body;
 
-    if (!user_id || note === undefined) {
+    if ((!user_id && !device_id) || note === undefined) {
       return res.status(400).json({ success: false, error: 'Champs manquants.' });
     }
 
@@ -181,11 +181,11 @@ educationRouter.post('/lecons/:id/noter', async (req: Request, res: Response) =>
 
     const { data, error } = await getSupabase()
       .from('notes_lecons')
-      .upsert({
-        lecon_id: req.params.id,
-        user_id,
-        note,
-      }, { onConflict: 'lecon_id,user_id' })
+      .upsert(
+        user_id
+          ? { lecon_id: req.params.id, user_id, note }
+          : { lecon_id: req.params.id, device_id, note },
+        { onConflict: user_id ? 'lecon_id,user_id' : 'lecon_id,device_id' })
       .select()
       .single();
 
@@ -217,11 +217,11 @@ educationRouter.post('/lecons/:id/soutenir', async (req: Request, res: Response)
       return res.status(400).json({ success: false, error: 'Champs manquants.' });
     }
 
-    if (!['like', 'etoile'].includes(type)) {
-      return res.status(400).json({ success: false, error: 'Type invalide. Utilisez "like" ou "etoile".' });
+    if (type !== 'etoile') {
+      return res.status(400).json({ success: false, error: 'Seul le soutien par etoile est accepte.' });
     }
 
-    const montant = type === 'like' ? 10 : 20;
+    const montant = 20;
 
     // Appel de la fonction SQL
     const { error } = await getSupabase().rpc('soutenir_lecon', {
@@ -235,7 +235,7 @@ educationRouter.post('/lecons/:id/soutenir', async (req: Request, res: Response)
 
     res.json({
       success: true,
-      message: type === 'like' ? '👍 Like envoyé !' : '⭐ Étoile envoyée !',
+      message: 'Etoile envoyee !',
       montant,
       createur_recoit: montant / 2,
       dkdk_recoit:     montant / 2,
