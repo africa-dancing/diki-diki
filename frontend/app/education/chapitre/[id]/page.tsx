@@ -32,7 +32,12 @@ export default function ChapitreDetailPage() {
       .catch(() => setLoading(false));
   }, [id]);
 
-  const soutenir = async (leconId: string, createurId: string, type: 'like' | 'etoile') => {
+  const deviceId = typeof window !== 'undefined'
+    ? (() => { let d = localStorage.getItem('dkdk_device'); if (!d) { d = 'dev-' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('dkdk_device', d); } return d; })()
+    : '';
+
+  const soutenir = async (leconId: string, createurId: string) => {
+    const type = 'etoile';
     const res  = await fetch(`${API}/v1/education/lecons/${leconId}/soutenir`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId, createur_id: createurId, type }),
@@ -42,8 +47,7 @@ export default function ChapitreDetailPage() {
       setSoutenu(prev => ({ ...prev, [leconId]: type }));
       setLecons(prev => prev.map(l => l.id === leconId ? {
         ...l,
-        likes:   type === 'like'   ? l.likes + 1   : l.likes,
-        etoiles: type === 'etoile' ? l.etoiles + 1 : l.etoiles,
+        etoiles: l.etoiles + 1,
       } : l));
       alert(data.message);
     }
@@ -52,7 +56,7 @@ export default function ChapitreDetailPage() {
   const noter = async (leconId: string, note: number) => {
     await fetch(`${API}/v1/education/lecons/${leconId}/noter`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, note }),
+      body: JSON.stringify({ user_id: userId, device_id: deviceId, note }),
     });
     setLecons(prev => prev.map(l => l.id === leconId ? { ...l, note_moyenne: String(note) } : l));
   };
@@ -110,11 +114,7 @@ export default function ChapitreDetailPage() {
                     Soutenir mon action
                   </p>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                    <button onClick={() => soutenir(l.id, l.createur_id, 'like')} disabled={soutenu[l.id] === 'like'}
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,170,0,0.25)', borderRadius: 8, color: OR, fontSize: 14, fontWeight: 700, padding: '10px 18px', cursor: 'pointer' }}>
-                      👍 Like — 10 F CFA ({l.likes})
-                    </button>
-                    <button onClick={() => soutenir(l.id, l.createur_id, 'etoile')} disabled={soutenu[l.id] === 'etoile'}
+                    <button onClick={() => soutenir(l.id, l.createur_id)} disabled={soutenu[l.id] === 'etoile'}
                       style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,0,0,0.3)', borderRadius: 8, color: '#FF2222', fontSize: 14, fontWeight: 700, padding: '10px 18px', cursor: 'pointer' }}>
                       ★ Étoile — 20 F CFA ({l.etoiles})
                     </button>
