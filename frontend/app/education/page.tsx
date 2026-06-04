@@ -173,7 +173,7 @@ export default function EducationPage() {
         <div style={{
           marginTop: 28, background: 'radial-gradient(ellipse 120% 100% at 50% 50%, hsl(339, 98%, 49%) 0%, #0a0a0f 100%)',
           border: '1px solid rgba(255,170,0,0.15)', borderRadius: 14, padding: '12px 18px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', textAlign: 'center', gap: 14,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 12,
         }}>
           <div>
             <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 16, color: '#fff', margin: '0 0 4px' }}>
