@@ -172,10 +172,10 @@ export default function EducationPage() {
         {/* CTA Créateur */}
         <div style={{
           marginTop: 28, background: 'radial-gradient(ellipse 120% 100% at 50% 50%, hsl(339, 98%, 49%) 0%, #0a0a0f 100%)',
-          border: '1px solid rgba(255,170,0,0.15)', borderRadius: 14, padding: '14px 18px',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 10,
+          border: '1px solid rgba(255,170,0,0.15)', borderRadius: 14, padding: '12px 18px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', textAlign: 'center', gap: 14,
         }}>
-          <div style={{ flex: '1 1 220px' }}>
+          <div>
             <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 16, color: '#fff', margin: '0 0 4px' }}>
               🎓 Vous avez du savoir à partager ?
             </p>
