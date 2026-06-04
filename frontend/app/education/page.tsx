@@ -1,5 +1,6 @@
 'use client';
 import Navbar from '../components/Navbar';
+import TickerBand from '../components/TickerBand';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
@@ -192,6 +193,8 @@ export default function EducationPage() {
           </Link>
         </div>
       </div>
+      {/* Ticker */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100 }}><TickerBand /></div>
     </div>
   );
 }
