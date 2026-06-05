@@ -53,12 +53,7 @@ export default function AdminLoginPage() {
 
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, marginBottom: 4 }}>
-            <span style={{ color: OR }}>Diki</span>
-            <span style={{ color: '#fff', margin: '0 4px' }}>-</span>
-            <span style={{ color: OR }}>Diki</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', border: '1px solid rgba(255,255,255,.5)', borderRadius: 3, padding: '1px 5px', letterSpacing: '.08em', marginLeft: 8 }}>VISION</span>
-          </div>
+          
           <div style={{ fontSize: 12, color: '#4a4a6a' }}>Panel Administrateur</div>
         </div>
 

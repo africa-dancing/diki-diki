@@ -1,4 +1,5 @@
-﻿import { AdminAuthProvider } from '../components/admin/AdminAuthContext';
+﻿import { AdminAuthProvider } from "../components/admin/AdminAuthContext";
+import { AdminTopBar } from "../components/admin/AdminTopBar";
 
 export default function AdminLayout({
   children,
@@ -7,7 +8,10 @@ export default function AdminLayout({
 }) {
   return (
     <AdminAuthProvider>
-      {children}
+      <AdminTopBar />
+      <div>
+        {children}
+      </div>
     </AdminAuthProvider>
   );
 }
