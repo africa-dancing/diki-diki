@@ -8,11 +8,11 @@ export default function AdminLayout({
 }) {
   return (
     <AdminAuthProvider>
-      <div style={{ minHeight: '100vh', background: '#0a0a0f', marginTop: -56 }}>
+      <div style={{ minHeight: '100vh', background: '#0a0a0f' }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 12,
           padding: '12px 24px', background: '#0a0a0f',
-          borderBottom: '1px solid #1e1e2e', position: 'sticky', top: 0, zIndex: 300,
+          borderBottom: '1px solid #1e1e2e',
         }}>
           <LogoDikiDiki width={140} />
           <span style={{ fontSize: 11, color: '#4a4a6a', fontWeight: 600 }}>Panel Administrateur</span>
