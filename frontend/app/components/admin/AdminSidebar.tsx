@@ -18,12 +18,6 @@ export function AdminSidebar() {
   return (
     <div style={{ width: 210, background: '#0d0d14', borderRight: '1px solid #1e1e2e', display: 'flex', flexDirection: 'column', minHeight: '100vh', flexShrink: 0 }}>
 
-      {/* Logo */}
-      <div style={{ padding: "20px 16px", borderBottom: "1px solid #1e1e2e" }}>
-        <LogoDikiDiki width={150} />
-        <div style={{ fontSize: 10, color: "#4a4a6a", marginTop: 6 }}>Panel Administrateur</div>
-      </div>
-
       {/* Info admin */}
       <div style={{ padding: '12px 16px', borderBottom: '1px solid #1e1e2e' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
