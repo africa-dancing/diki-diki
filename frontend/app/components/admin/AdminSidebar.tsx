@@ -8,6 +8,7 @@ const MENU = [
   { href: '/admin/moderation', icon: '🎬', label: 'Modération vidéos'  },
   { href: '/admin/contests',   icon: '🏆', label: 'Compétitions'       },
   { href: '/admin/stats',      icon: '📊', label: 'Statistiques'       },
+  { href: '/admin/ticker',     icon: '📢', label: 'Bande defilante'    },
 ];
 
 export function AdminSidebar() {
