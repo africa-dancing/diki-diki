@@ -4,12 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 
-const DEFAULT_MESSAGES = [
-  '📢 Bienvenue sur Diki-Diki Vision — La scène des talents africains en compétition !',
-  '💰 Rechargez votre compte pour voter et soutenir vos candidats préférés',
-  '🎬 Soumettez votre vidéo et participez aux prochaines compétitions',
-  '⭐ Envoyez des étoiles et des cœurs à vos candidats favoris !',
-];
+const DEFAULT_MESSAGES: string[] = [];
 
 export default function TickerBand() {
   const [messages, setMessages] = useState<string[]>(DEFAULT_MESSAGES);
@@ -22,8 +17,8 @@ export default function TickerBand() {
     fetch(`${API}/ticker`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
-        if (d?.messages?.length) {
-          setMessages(d.messages.map((m: any) => m.message ?? m));
+        if (d?.data?.length) {
+          setMessages(d.data.map((m: any) => m.message ?? m));
         }
       })
       .catch(() => {});
