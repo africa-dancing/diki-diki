@@ -8,7 +8,7 @@ const MENU = [
   { href: '/admin',            icon: '🏠', label: 'Dashboard'         },
   { href: '/admin/moderation', icon: '🎬', label: 'Moderation videos' },
   { href: '/admin/stats',      icon: '📊', label: 'Statistiques'      },
-  { href: '/admin/ticker',     icon: '📢', label: 'Bande defilante'   },
+  { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },
 ];
 
 export function AdminSidebar() {
@@ -48,16 +48,6 @@ export function AdminSidebar() {
           );
         })}
       </nav>
-
-      {/* Lien vers la plateforme */}
-      <div style={{ padding: '8px 16px', borderTop: '1px solid #1e1e2e' }}>
-        <Link href="/home" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#4a4a6a', textDecoration: 'none', marginBottom: 8 }}>
-          ← Retour à la plateforme
-        </Link>
-        <button onClick={logout} style={{ width: '100%', padding: '8px', fontSize: 12, fontWeight: 500, borderRadius: 8, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
-          🚪 Déconnexion
-        </button>
-      </div>
     </div>
   );
 }

@@ -17,6 +17,20 @@ export default function AdminTickerPage() {
   const [busy, setBusy]         = useState(false);
   const [info, setInfo]         = useState('');
 
+  // Bloque le scroll du body uniquement sur la page Communiquer
+  useEffect(() => {
+    const b = document.body.style;
+    const prev = { overflow: b.overflow, height: b.height, paddingTop: b.paddingTop };
+    b.setProperty("overflow", "hidden", "important");
+    b.setProperty("height", "100vh", "important");
+    b.setProperty("padding-top", "0", "important");
+    return () => {
+      b.overflow = prev.overflow;
+      b.height = prev.height;
+      b.paddingTop = prev.paddingTop;
+    };
+  }, []);
+
   const charger = () => {
     setLoading(true);
     fetch(`${API}/ticker`)
@@ -64,7 +78,7 @@ export default function AdminTickerPage() {
     <AdminGuard>
       <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0a0f', color: '#e8e0d0' }}>
         <AdminSidebar />
-        <div style={{ flex: 1, padding: '32px 28px', maxWidth: 800 }}>
+        <div style={{ flex: 1, padding: '88px 28px 32px', maxWidth: 800 }}>
           <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 26, color: OR, margin: '0 0 6px' }}>
             Bande defilante
           </h1>

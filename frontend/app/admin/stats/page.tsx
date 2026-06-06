@@ -56,6 +56,20 @@ export default function AdminStatsPage() {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState('');
   const [pulse,   setPulse]   = useState(false);
+
+  // Bloque le scroll du body uniquement sur la page Statistiques
+  useEffect(() => {
+    const b = document.body.style;
+    const prev = { overflow: b.overflow, height: b.height, paddingTop: b.paddingTop };
+    b.setProperty("overflow", "hidden", "important");
+    b.setProperty("height", "100vh", "important");
+    b.setProperty("padding-top", "0", "important");
+    return () => {
+      b.overflow = prev.overflow;
+      b.height = prev.height;
+      b.paddingTop = prev.paddingTop;
+    };
+  }, []);
   const liveRef = useRef<NodeJS.Timeout>();
   const OR = '#FFAA00';
 
@@ -103,17 +117,17 @@ export default function AdminStatsPage() {
     <AdminGuard>
       <div style={{ display:'flex', minHeight:'100vh', background:'#0a0a0f' }}>
         <AdminSidebar />
-        <main style={{ flex:1, padding:'24px', overflow:'auto', fontFamily:'DM Sans,sans-serif' }}>
+        <main style={{ flex:1, padding:'72px 16px 48px', overflow:'hidden', fontFamily:'DM Sans,sans-serif', position:'relative' }}>
 
           {/* Header */}
-          <div style={{ marginBottom:20 }}>
+          <div style={{ marginBottom:12 }}>
             <div style={{ fontSize:20, fontWeight:800, color:'#fff', fontFamily:'Syne,sans-serif', marginBottom:4 }}>📊 Statistiques & Finances</div>
-            <div style={{ fontSize:12, color:'#4a4a6a' }}>Données confidentielles — accès administrateur uniquement</div>
+            
           </div>
 
           {/* ── BLOC TEMPS RÉEL ─────────────────────────────────────── */}
-          <div style={{ background:'linear-gradient(135deg,rgba(255,170,0,0.06),rgba(255,107,0,0.03))', border:'1px solid rgba(255,170,0,0.2)', borderRadius:16, padding:'18px 20px', marginBottom:20 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+          <div style={{ background:'linear-gradient(135deg,rgba(255,170,0,0.06),rgba(255,107,0,0.03))', border:'1px solid rgba(255,170,0,0.2)', borderRadius:16, padding:'14px 16px', marginBottom:14 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                 <div style={{ width:10, height:10, borderRadius:'50%', background:'#4ade80', boxShadow:'0 0 8px #4ade80', animation:'pulse 2s infinite' }}/>
                 <span style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif' }}>Visiteurs en temps réel</span>
@@ -156,7 +170,7 @@ export default function AdminStatsPage() {
                   <span style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.6)' }}>⏰ Trafic par heure</span>
                   {summary?.peak_hour && <span style={{ fontSize:10, color:OR }}>Pic : {summary.peak_hour}</span>}
                 </div>
-                <div style={{ display:'flex', alignItems:'flex-end', gap:3, height:60 }}>
+                <div style={{ display:'flex', alignItems:'flex-end', gap:3, height:40 }}>
                   {(summary?.hourly_visits ?? new Array(24).fill(0)).map((v, h) => {
                     const max  = Math.max(...(summary?.hourly_visits ?? [1]), 1);
                     const pct  = Math.round((v / max) * 100);
@@ -181,14 +195,14 @@ export default function AdminStatsPage() {
           {stats && (
             <>
               {/* KPIs principaux */}
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:16 }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:10 }}>
                 {[
                   { label:'Votes totaux',       val: fmt(stats.total_votes)+'',          color:OR,        bg:'rgba(255,170,0,0.06)',   border:'rgba(255,170,0,0.2)'    },
                   { label:'Revenus plateforme', val: fmt(stats.platform_cut)+' F',       color:'#4ade80', bg:'rgba(74,222,128,0.06)', border:'rgba(74,222,128,0.2)'   },
                   { label:'Cagnotte nette',     val: fmt(stats.net_cagnotte)+' F',       color:'#60a5fa', bg:'rgba(96,165,250,0.06)', border:'rgba(96,165,250,0.2)'   },
                   { label:'Vidéos en attente',  val: String(stats.pending_videos),       color:'#f87171', bg:'rgba(248,113,113,0.06)',border:'rgba(248,113,113,0.2)'  },
                 ].map(k => (
-                  <div key={k.label} style={{ background:k.bg, border:`1px solid ${k.border}`, borderRadius:14, padding:'16px' }}>
+                  <div key={k.label} style={{ background:k.bg, border:`1px solid ${k.border}`, borderRadius:14, padding:'12px' }}>
                     <div style={{ fontSize:10, fontWeight:700, color:k.color, opacity:.7, letterSpacing:'.5px', marginBottom:6, textTransform:'uppercase' as const }}>{k.label}</div>
                     <div style={{ fontSize:22, fontWeight:800, color:k.color, fontFamily:'Syne,sans-serif' }}>{k.val}</div>
                   </div>
@@ -196,14 +210,14 @@ export default function AdminStatsPage() {
               </div>
 
               {/* KPIs secondaires */}
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:16 }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:10 }}>
                 {[
                   { label:'Compétitions actives', val: String(stats.active_contests),                                           color:'#4ade80'           },
                   { label:'Total vidéos',          val: stats.total_videos > 0 ? fmt(stats.total_videos) : '—',                 color:'rgba(255,255,255,0.5)' },
                   { label:'Utilisateurs',          val: stats.total_users  > 0 ? fmt(stats.total_users)  : '—',                 color:'rgba(255,255,255,0.5)' },
                   { label:'Revenus totaux',        val: fmt(stats.total_revenue)+' F',                                           color:OR                  },
                 ].map(k => (
-                  <div key={k.label} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'14px' }}>
+                  <div key={k.label} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'10px' }}>
                     <div style={{ fontSize:10, color:'#4a4a6a', marginBottom:5, textTransform:'uppercase' as const, letterSpacing:'.5px' }}>{k.label}</div>
                     <div style={{ fontSize:18, fontWeight:700, color:k.color, fontFamily:'Syne,sans-serif' }}>{k.val}</div>
                   </div>
@@ -211,15 +225,15 @@ export default function AdminStatsPage() {
               </div>
 
               {/* Répartition + Opérateurs */}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
-                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'20px' }}>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'10px' }}>
                   <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif', marginBottom:16 }}>Répartition des revenus</div>
                   {[
                     { label:'Diki-Diki (50%)',     pct:50,   val:stats.platform_cut,        color:OR        },
                     { label:'🥇 1er prix (37.5%)', pct:37.5, val:stats.net_cagnotte * 0.75, color:'#4ade80' },
                     { label:'🥈 2e prix (12.5%)',  pct:12.5, val:stats.net_cagnotte * 0.25, color:'#60a5fa' },
                   ].map(r => (
-                    <div key={r.label} style={{ marginBottom:14 }}>
+                    <div key={r.label} style={{ marginBottom:8 }}>
                       <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:5 }}>
                         <span style={{ color:'#a0a0c0' }}>{r.label}</span>
                         <span style={{ color:r.color, fontWeight:700 }}>{fmt(r.val)} F</span>
@@ -231,10 +245,10 @@ export default function AdminStatsPage() {
                   ))}
                 </div>
 
-                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'20px' }}>
-                  <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif', marginBottom:16 }}>Revenus par opérateur</div>
+                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'10px' }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif', marginBottom:10 }}>Revenus par opérateur</div>
                   {(stats.operators ?? DEFAULT_OPERATORS).map(r => (
-                    <div key={r.name} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                    <div key={r.name} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
                       <div style={{ fontSize:11, color:'#6a6a8a', width:110, flexShrink:0 }}>{r.name}</div>
                       <div style={{ flex:1, height:5, background:'rgba(255,255,255,0.05)', borderRadius:3 }}>
                         <div style={{ height:5, borderRadius:3, width:`${r.pct}%`, background:r.color }} />
@@ -247,6 +261,7 @@ export default function AdminStatsPage() {
               </div>
             </>
           )}
+          <div style={{ position:'absolute', left:0, right:0, bottom:12, textAlign:'center', fontSize:11, color:'#4a4a6a' }}>Donnees confidentielles - acces administrateur uniquement</div>
         </main>
       </div>
     </AdminGuard>
