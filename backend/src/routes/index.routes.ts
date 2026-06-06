@@ -77,6 +77,7 @@ const tickerRouter = TickerRouter();
 tickerRouter.get('/',       tickerCtrl.getTicker);
 tickerRouter.post('/',      requireAuth, tickerCtrl.addTicker);
 tickerRouter.delete('/:id', requireAuth, tickerCtrl.removeTicker);
+tickerRouter.put('/:id',    requireAuth, tickerCtrl.updateTicker);
 export { tickerRouter };
 
 // ─── Stats (Admin) ───────────────────────────────────────────

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { AdminGuard }   from '../../components/admin/AdminGuard';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR = '#FFAA00';
 
-interface TickerMsg { id: string; message: string; is_active: boolean; created_at: string; }
+interface TickerMsg { id: string; message: string; is_active: boolean; created_at: string; position?: number; }
 
 export default function AdminTickerPage() {
   const { admin } = useAdminAuth();
@@ -16,6 +16,7 @@ export default function AdminTickerPage() {
   const [nouveau, setNouveau]   = useState('');
   const [busy, setBusy]         = useState(false);
   const [info, setInfo]         = useState('');
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const charger = () => {
     setLoading(true);
@@ -60,6 +61,33 @@ export default function AdminTickerPage() {
     finally { setBusy(false); }
   };
 
+  // Enregistre le nouvel ordre en base (positions 1..N)
+  const enregistrerOrdre = async (liste: TickerMsg[]) => {
+    setBusy(true); setInfo('');
+    try {
+      await Promise.all(liste.map((m, idx) =>
+        fetch(`${API}/ticker/${m.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin.token}` },
+          body: JSON.stringify({ position: idx + 1 }),
+        })
+      ));
+      setInfo('Ordre enregistre.');
+    } catch { setInfo('Erreur lors de l enregistrement de l ordre.'); }
+    finally { setBusy(false); }
+  };
+
+  // Glisser-deposer
+  const onDrop = (dropIndex: number) => {
+    if (dragIndex === null || dragIndex === dropIndex) { setDragIndex(null); return; }
+    const liste = [...messages];
+    const [deplace] = liste.splice(dragIndex, 1);
+    liste.splice(dropIndex, 0, deplace);
+    setMessages(liste);
+    setDragIndex(null);
+    enregistrerOrdre(liste);
+  };
+
   return (
     <AdminGuard>
       <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0a0f', color: '#e8e0d0' }}>
@@ -69,7 +97,7 @@ export default function AdminTickerPage() {
             Bande defilante
           </h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: '0 0 24px' }}>
-            Messages qui defilent en bas des pages du site.
+            Messages qui defilent en bas des pages du site. Glissez-deposez pour reordonner.
           </p>
 
           <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
@@ -95,9 +123,17 @@ export default function AdminTickerPage() {
             <p style={{ color: 'rgba(255,255,255,0.5)' }}>Aucun message. Ajoutez-en un ci-dessus.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {messages.map(m => (
-                <div key={m.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderRadius: 10, background: '#15151c', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <span style={{ fontSize: 14, color: '#fff' }}>{m.message}</span>
+              {messages.map((m, i) => (
+                <div
+                  key={m.id}
+                  draggable
+                  onDragStart={() => setDragIndex(i)}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={() => onDrop(i)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderRadius: 10, background: dragIndex === i ? '#2a2118' : '#15151c', border: '1px solid rgba(255,255,255,0.06)', cursor: 'grab', opacity: busy && dragIndex === i ? 0.5 : 1 }}
+                >
+                  <span style={{ color: OR, fontSize: 16, cursor: 'grab', userSelect: 'none' }}>&#8942;&#8942;</span>
+                  <span style={{ fontSize: 14, color: '#fff', flex: 1 }}>{m.message}</span>
                   <button
                     onClick={() => supprimer(m.id)} disabled={busy}
                     style={{ background: 'transparent', color: '#FF4444', border: '1px solid rgba(255,68,68,0.4)', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}

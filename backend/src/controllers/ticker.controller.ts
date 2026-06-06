@@ -12,7 +12,7 @@ export const getTicker = async (_req: Request, res: Response) => {
     .from('ticker_messages')
     .select('id, message, is_active, created_at')
     .eq('is_active', true)
-    .order('created_at', { ascending: false });
+    .order('position', { ascending: true });
 
   if (error) {
     return res.status(500).json({ success: false, error: 'Erreur récupération ticker.' });
@@ -43,6 +43,32 @@ export const addTicker = async (req: AuthRequest, res: Response) => {
 };
 
 // ─── DELETE /v1/ticker/:id — Supprimer un message (admin) ────────────────────
+export const updateTicker = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { message, position } = req.body;
+
+  const patch: any = {};
+  if (typeof message === 'string' && message.trim()) patch.message = message.trim();
+  if (typeof position === 'number') patch.position = position;
+
+  if (Object.keys(patch).length === 0) {
+    return res.status(400).json({ success: false, error: 'Rien a modifier.' });
+  }
+
+  const { data, error } = await supabase
+    .from('ticker_messages')
+    .update(patch)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    return res.status(500).json({ success: false, error: 'Erreur modification ticker.' });
+  }
+
+  return res.status(200).json({ success: true, data });
+};
+
 export const removeTicker = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
 

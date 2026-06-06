@@ -14,7 +14,7 @@ export default function TickerBand() {
   const pausedRef = useRef(false);
 
   useEffect(() => {
-    fetch(`${API}/ticker`)
+    fetch(`${API}/ticker`, { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (d?.data?.length) {
