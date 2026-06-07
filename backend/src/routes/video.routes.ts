@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
 import {
-  uploadVideo, createVideoFromUrl, moderateVideo, getPendingVideos, getVideosByStatus,
+  uploadVideo, moderateVideo, getPendingVideos, getVideosByStatus,
   getUserVideos, deleteVideo, VIDEO_CONSTRAINTS,
   getVideoById, getApprovedVideos,
   addComment, getCommentsByVideoId,
@@ -44,16 +44,8 @@ videoRouter.get('/constraints', (_req: Request, res: Response) => {
 
 videoRouter.post('/', requireAuth, async (req, res) => {
   try {
-    const { discipline, track_title, track_artist, track_genre, title, description, video_url } = req.body;
+    const { discipline, track_title, track_artist, track_genre, title, description } = req.body;
     if (!discipline) return res.status(400).json({ error: 'DISCIPLINE_REQUIRED' });
-    if (video_url) {
-      const video = await createVideoFromUrl({
-        userId: req.user.userId, discipline,
-        trackTitle: track_title, trackArtist: track_artist, trackGenre: track_genre,
-        title, description, videoUrl: video_url,
-      });
-      return res.status(201).json({ success: true, video, message: 'Video soumise avec succes. Validation sous 24-48h.' });
-    }
     if (req.body.file_base64) {
       const fileBuffer = Buffer.from(req.body.file_base64, 'base64');
       const fileSizeMb = fileBuffer.length / (1024 * 1024);
@@ -66,7 +58,7 @@ videoRouter.post('/', requireAuth, async (req, res) => {
       });
       return res.status(201).json({ success: true, video, message: 'Video soumise avec succes. Validation sous 24-48h.' });
     }
-    return res.status(400).json({ error: 'VIDEO_URL_OR_FILE_REQUIRED' });
+    return res.status(400).json({ error: 'FILE_REQUIRED' });
   } catch (e) {
     return res.status(500).json({ error: (e && e.message) ? e.message : 'SUBMIT_FAILED' });
   }

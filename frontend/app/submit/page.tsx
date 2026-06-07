@@ -70,7 +70,7 @@ export default function SubmitPage() {
   const [trackTitle,  setTrackTitle]  = useState('');
   const [trackArtist, setTrackArtist] = useState('');
 
-  const [uploadMode, setUploadMode] = useState<UploadMode>('url');
+  const [uploadMode, setUploadMode] = useState<UploadMode>('file');
   const [videoUrl,   setVideoUrl]   = useState('');
   const [file,       setFile]       = useState<File | null>(null);
   const [preview,    setPreview]    = useState<string | null>(null);
@@ -121,8 +121,8 @@ export default function SubmitPage() {
   function handleVideoLoaded() {
     const d = videoRef.current?.duration || 0;
     setDuration(d);
-    if (d > 180) {
-      setError('Vidéo trop longue. Maximum 3 minutes.');
+    if (d > 600) {
+      setError('Vidéo trop longue. Maximum 10 minutes.');
       setFile(null); setPreview(null);
     }
   }
@@ -401,7 +401,7 @@ export default function SubmitPage() {
 
             {/* Mode tabs */}
             <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
-              {(['url', 'file'] as UploadMode[]).map(mode => (
+              {(['file'] as UploadMode[]).map(mode => (
                 <button key={mode}
                   onClick={() => { setUploadMode(mode); setFile(null); setPreview(null); setVideoUrl(''); setError(''); }}
                   style={{ flex: 1, padding: '9px', fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, border: 'none', borderRadius: 8, cursor: 'pointer', transition: 'all .2s',
@@ -427,7 +427,7 @@ export default function SubmitPage() {
                 <div onClick={() => fileRef.current?.click()} style={{ border: '1.5px dashed rgba(255,255,255,0.12)', borderRadius: 14, padding: '2.5rem 1rem', textAlign: 'center', cursor: 'pointer', background: 'rgba(255,255,255,0.02)', marginBottom: 16 }}>
                   <div style={{ fontSize: 36, marginBottom: 10 }}>🎬</div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 4 }}>Cliquez pour choisir votre vidéo</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>MP4 ou MOV · Max 500 MB · Max 3 minutes</div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>MP4 ou MOV · Max 500 MB · Max 10 minutes</div>
                   <input ref={fileRef} type="file" accept="video/mp4,video/quicktime" onChange={handleFileChange} style={{ display: 'none' }} />
                 </div>
               ) : (
