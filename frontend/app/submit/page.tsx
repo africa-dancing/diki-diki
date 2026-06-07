@@ -8,7 +8,7 @@ const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/v1';
 type UploadMode = 'url' | 'file';
 
 interface Category   { id: string; name: string; emoji: string; }
-interface Discipline { id: string; name: string; emoji: string; category_id: string; }
+interface Discipline { id: string; name: string; emoji: string; category_id: string; description?: string; }
 interface Subject    { id: string; name: string; discipline_id: string; }
 
 // ── Données statiques — pas besoin de routes backend ──────────────
@@ -20,19 +20,19 @@ const STATIC_CATEGORIES: Category[] = [
 
 const STATIC_DISCIPLINES: Record<string, Discipline[]> = {
   scene: [
-    { id: 'danse',   name: 'Danse',   emoji: '💃', category_id: 'scene' },
-    { id: 'humour',  name: 'Humour',  emoji: '😂', category_id: 'scene' },
-    { id: 'theatre', name: 'Théâtre', emoji: '🎭', category_id: 'scene' },
+    { id: 'danse',   name: 'Danse',   emoji: '💃', category_id: 'scene', description: 'Chor&eacute;graphie sur sc&egrave;ne, tous styles' },
+    { id: 'humour',  name: 'Humour',  emoji: '😂', category_id: 'scene', description: 'Sketchs, imitations, humour' },
+    { id: 'theatre', name: 'Théâtre', emoji: '🎭', category_id: 'scene', description: 'Jeu d&apos;acteur, mise en sc&egrave;ne' },
   ],
   musique: [
-    { id: 'instrument', name: 'Instrument', emoji: '🎸', category_id: 'musique' },
-    { id: 'acapella',   name: 'A cappella', emoji: '🎙️', category_id: 'musique' },
-    { id: 'composition',name: 'Composition',emoji: '🎵', category_id: 'musique' },
+    { id: 'instrument', name: 'Instrument', emoji: '🎸', category_id: 'musique', description: 'Jeu instrumental (guitare, piano, kora, percussion&hellip;)' },
+    { id: 'acapella',   name: 'A cappella', emoji: '🎙️', category_id: 'musique', description: 'Chant sans aucun instrument, voix seule(s)' },
+    { id: 'composition',name: 'Composition',emoji: '🎵', category_id: 'musique', description: 'Cr&eacute;ation musicale originale' },
   ],
   parole: [
-    { id: 'chant',   name: 'Chant',   emoji: '🎤', category_id: 'parole' },
-    { id: 'poesie',  name: 'Poésie',  emoji: '📜', category_id: 'parole' },
-    { id: 'conte',   name: 'Conte',   emoji: '📖', category_id: 'parole' },
+    { id: 'chant',   name: 'Chant',   emoji: '🎤', category_id: 'parole', description: 'Performance vocale accompagn&eacute;e (instru, bande-son&hellip;)' },
+    { id: 'poesie',  name: 'Poésie',  emoji: '📜', category_id: 'parole', description: 'Slam, d&eacute;clamation, vers' },
+    { id: 'conte',   name: 'Conte',   emoji: '📖', category_id: 'parole', description: 'R&eacute;cit, narration orale' },
   ],
 };
 
@@ -316,6 +316,7 @@ export default function SubmitPage() {
                 <div key={d.id} onClick={() => setSelectedDiscipline(d)} style={selectCard(selectedDiscipline?.id === d.id)}>
                   <div style={{ fontSize: 28, marginBottom: 8 }}>{d.emoji}</div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#fff', fontFamily: 'Syne, sans-serif' }}>{d.name}</div>
+                  {d.description && <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 4, lineHeight: 1.3 }} dangerouslySetInnerHTML={{ __html: d.description }} />}
                 </div>
               ))}
             </div>
