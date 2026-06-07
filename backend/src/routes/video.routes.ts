@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
 import {
-  uploadVideo, createVideoFromUrl, moderateVideo, getPendingVideos,
+  uploadVideo, createVideoFromUrl, moderateVideo, getPendingVideos, getVideosByStatus,
   getUserVideos, deleteVideo, VIDEO_CONSTRAINTS,
   getVideoById, getApprovedVideos,
   addComment, getCommentsByVideoId,
@@ -12,6 +12,16 @@ import {
 export const videoRouter = Router();
 
 // ─── Routes statiques ─────────────────────────────────────────────────────────
+
+videoRouter.get('/', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const status = req.query.status as string | undefined;
+    const videos = await getVideosByStatus(status);
+    res.json({ videos, count: videos.length });
+  } catch (e: unknown) {
+    res.status(500).json({ error: (e as Error).message });
+  }
+});
 
 videoRouter.get('/approved', async (_req: Request, res: Response) => {
   const videos = await getApprovedVideos();

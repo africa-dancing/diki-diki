@@ -28,6 +28,14 @@ export async function moderateVideo(videoId: string, moderatorId: string, decisi
   return video;
 }
 
+export async function getVideosByStatus(status?: string) {
+  let query = supabase.from('videos').select('*').order('created_at', { ascending: false });
+  if (status && ['pending','approved','rejected'].includes(status)) query = query.eq('status', status);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
 export async function getPendingVideos() {
   const { data, error } = await supabase.from('videos').select('*').eq('status', 'pending').order('created_at', { ascending: true });
   if (error) throw error;
