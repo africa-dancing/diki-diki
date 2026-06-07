@@ -375,7 +375,7 @@ export default function ComptePage() {
 
   const fetchVideos=useCallback(async(userId:string)=>{
     setVideosLoading(true);
-    try{const res=await fetch(`${API}/users/${userId}/videos`,{headers:{Authorization:`Bearer ${getToken()}`}});if(!res.ok)return;const d=await res.json();setUserVideos(d.videos??d??[]);}catch{}finally{setVideosLoading(false);}
+    try{const res=await fetch(`${API}/videos/my`,{headers:{Authorization:`Bearer ${getToken()}`}});if(!res.ok)return;const d=await res.json();setUserVideos(d.videos??d.data??d??[]);}catch{}finally{setVideosLoading(false);}
   },[]);
 
   useEffect(()=>{

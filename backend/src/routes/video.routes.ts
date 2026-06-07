@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
 import {
-  uploadVideo, moderateVideo, getPendingVideos,
+  uploadVideo, createVideoFromUrl, moderateVideo, getPendingVideos,
   getUserVideos, deleteVideo, VIDEO_CONSTRAINTS,
   getVideoById, getApprovedVideos,
   addComment, getCommentsByVideoId,
@@ -30,6 +30,36 @@ videoRouter.get('/pending', requireAuth, requireAdmin, async (_req, res) => {
 
 videoRouter.get('/constraints', (_req: Request, res: Response) => {
   res.json(VIDEO_CONSTRAINTS);
+});
+
+videoRouter.post('/', requireAuth, async (req, res) => {
+  try {
+    const { discipline, track_title, track_artist, track_genre, title, description, video_url } = req.body;
+    if (!discipline) return res.status(400).json({ error: 'DISCIPLINE_REQUIRED' });
+    if (video_url) {
+      const video = await createVideoFromUrl({
+        userId: req.user.userId, discipline,
+        trackTitle: track_title, trackArtist: track_artist, trackGenre: track_genre,
+        title, description, videoUrl: video_url,
+      });
+      return res.status(201).json({ success: true, video, message: 'Video soumise avec succes. Validation sous 24-48h.' });
+    }
+    if (req.body.file_base64) {
+      const fileBuffer = Buffer.from(req.body.file_base64, 'base64');
+      const fileSizeMb = fileBuffer.length / (1024 * 1024);
+      const mimeType = req.body.mime_type || 'video/mp4';
+      const fileName = req.body.file_name || 'prestation.mp4';
+      const video = await uploadVideo({
+        userId: req.user.userId, discipline,
+        trackTitle: track_title, trackArtist: track_artist, trackGenre: track_genre,
+        title, description, fileBuffer, fileName, mimeType, fileSizeMb,
+      });
+      return res.status(201).json({ success: true, video, message: 'Video soumise avec succes. Validation sous 24-48h.' });
+    }
+    return res.status(400).json({ error: 'VIDEO_URL_OR_FILE_REQUIRED' });
+  } catch (e) {
+    return res.status(500).json({ error: (e && e.message) ? e.message : 'SUBMIT_FAILED' });
+  }
 });
 
 videoRouter.post('/upload', requireAuth, async (req: AuthRequest, res: Response) => {
