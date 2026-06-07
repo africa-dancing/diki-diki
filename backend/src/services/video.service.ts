@@ -54,10 +54,10 @@ export async function refreshVideoUrl(storagePath: string): Promise<string> {
   return data.signedUrl;
 }
 
-export async function deleteVideo(videoId: string, userId: string) {
+export async function deleteVideo(videoId: string, userId: string, isAdmin = false) {
   const { data: video } = await supabase.from('videos').select('storage_path, user_id').eq('id', videoId).single();
   if (!video) throw new Error('VIDEO_NOT_FOUND');
-  if (video.user_id !== userId) throw new Error('FORBIDDEN');
+  if (!isAdmin && video.user_id !== userId) throw new Error('FORBIDDEN');
   await supabase.storage.from(BUCKET).remove([video.storage_path]);
   await supabase.from('videos').delete().eq('id', videoId);
   return { success: true };

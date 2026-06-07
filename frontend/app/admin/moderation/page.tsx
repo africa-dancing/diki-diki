@@ -85,6 +85,19 @@ export default function AdminModerationPage() {
     } catch { showMsg('Erreur lors du refus.', 'error'); }
   }
 
+  async function remove(id: string, name: string) {
+    if (!window.confirm('Supprimer definitivement cette video ? Action irreversible.')) return;
+    try {
+      const res = await fetch(`${API}/videos/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${admin?.token}` },
+      });
+      if (!res.ok) throw new Error();
+      setVideos(prev => prev.filter(v => v.id !== id));
+      showMsg(`Video de ${name} supprimee`);
+    } catch { showMsg('Erreur lors de la suppression.', 'error'); }
+  }
+
   const pending  = videos.filter(v => v.status === 'pending').length;
   const approved = videos.filter(v => v.status === 'approved').length;
   const rejected = videos.filter(v => v.status === 'rejected').length;
@@ -184,6 +197,10 @@ export default function AdminModerationPage() {
                           <button onClick={() => approve(v.id, v.user?.name ?? v.title)}
                             style={{ padding: '6px 14px', fontSize: 11, fontWeight: 700, borderRadius: 8, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80' }}>
                             ✓ Approuver
+                          </button>
+                          <button onClick={() => remove(v.id, v.user?.name ?? v.title)}
+                            style={{ padding: '6px 14px', fontSize: 11, fontWeight: 700, borderRadius: 8, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', background: 'rgba(190,18,60,0.15)', border: '1px solid rgba(190,18,60,0.4)', color: '#fb7185' }}>
+                            🗑 Supprimer
                           </button>
                           <button onClick={() => setRejecting(v.id)}
                             style={{ padding: '6px 14px', fontSize: 11, fontWeight: 700, borderRadius: 8, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171' }}>

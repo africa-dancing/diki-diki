@@ -141,6 +141,6 @@ videoRouter.put('/:id/moderate', requireAuth, requireAdmin, async (req: AuthRequ
 });
 
 videoRouter.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
-  const result = await deleteVideo(req.params.id, req.user!.userId);
+  const result = await deleteVideo(req.params.id, req.user!.userId, ['admin','moderateur'].includes(req.user!.role));
   res.json(result);
 });
