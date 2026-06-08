@@ -59,10 +59,10 @@ export default function AdminModerationPage() {
   // ── Approuver ──
   async function approve(id: string, name: string) {
     try {
-      const res = await fetch(`${API}/videos/${id}`, {
-        method: 'PATCH',
+      const res = await fetch(`${API}/videos/${id}/moderate`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin?.token}` },
-        body: JSON.stringify({ status: 'approved' }),
+        body: JSON.stringify({ decision: 'approved' }),
       });
       if (!res.ok) throw new Error();
       setVideos(prev => prev.map(v => v.id === id ? { ...v, status: 'approved' } : v));
@@ -73,10 +73,10 @@ export default function AdminModerationPage() {
   // ── Rejeter ──
   async function reject(id: string, name: string) {
     try {
-      const res = await fetch(`${API}/videos/${id}`, {
-        method: 'PATCH',
+      const res = await fetch(`${API}/videos/${id}/moderate`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin?.token}` },
-        body: JSON.stringify({ status: 'rejected', rejection_reason: reason }),
+        body: JSON.stringify({ decision: 'rejected', reason }),
       });
       if (!res.ok) throw new Error();
       setVideos(prev => prev.map(v => v.id === id ? { ...v, status: 'rejected', rejection_reason: reason } : v));
