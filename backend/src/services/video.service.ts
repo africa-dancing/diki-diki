@@ -13,7 +13,7 @@ export async function uploadVideo(params: UploadVideoParams) {
   const ext = fileName.split('.').pop();
   const storagePath = `${userId}/${Date.now()}_prestation.${ext}`;
   const { error: uploadErr } = await supabase.storage.from(BUCKET).upload(storagePath, fileBuffer, { contentType: mimeType, upsert: false });
-  if (uploadErr) { console.error('[PROD uploadVideo] SUPABASE STORAGE ERREUR:', JSON.stringify(uploadErr), '| BUCKET:', BUCKET, '| PATH:', storagePath); throw new Error('UPLOAD_FAILED'); }
+  if (uploadErr) throw new Error('UPLOAD_FAILED');
   const { data: signedUrl } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, 604800);
   const { data: video, error: dbErr } = await supabase.from('videos').insert({ user_id: userId, discipline, track_title: trackTitle, track_artist: trackArtist, track_genre: trackGenre, title, description, storage_path: storagePath, storage_url: signedUrl?.signedUrl, file_size_mb: fileSizeMb, format: ext, status: 'pending' }).select().single();
   if (dbErr) throw dbErr;
