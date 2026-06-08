@@ -63,7 +63,7 @@ function CreateModal({ onClose, onCreated, token }: { onClose:()=>void; onCreate
           starts_at:   form.starts_at || new Date().toISOString(),
           ends_at:     new Date(form.ends_at).toISOString(),
           description: form.description,
-          status:      'pending',
+          status:      'active',
         }),
       });
       const d = await res.json();
