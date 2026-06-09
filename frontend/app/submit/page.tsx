@@ -78,6 +78,7 @@ export default function SubmitPage() {
   const [uploading,  setUploading]  = useState(false);
   const [progress,   setProgress]   = useState(0);
   const [error,      setError]      = useState('');
+  const [audioWarning, setAudioWarning] = useState('');
 
   /* ── Auth + catégories statiques ── */
   useEffect(() => {
@@ -124,7 +125,19 @@ export default function SubmitPage() {
     if (d > 600) {
       setError('Vidéo trop longue. Maximum 10 minutes.');
       setFile(null); setPreview(null);
+      return;
     }
+    setAudioWarning('');
+    const v = videoRef.current as any;
+    setTimeout(() => {
+      if (!v) return;
+      const noMoz = v.mozHasAudio === false;
+      const noWebkit = typeof v.webkitAudioDecodedByteCount === 'number' && v.webkitAudioDecodedByteCount === 0;
+      const noTracks = v.audioTracks && v.audioTracks.length === 0;
+      if (noMoz || noWebkit || noTracks) {
+        setAudioWarning('Cette vidéo ne semble pas avoir de son lisible sur le web. Vérifiez votre fichier ou réexportez-le en MP4 (H.264 / AAC). Vous pouvez tout de même l’envoyer.');
+      }
+    }, 800);
   }
 
   function isStep4Valid() {
@@ -449,6 +462,12 @@ export default function SubmitPage() {
             {error && (
               <div style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: 10, padding: '10px 14px', fontSize: 12, color: '#f87171', marginBottom: 12 }}>
                 ⚠️ {error}
+              </div>
+            )}
+
+            {audioWarning && (
+              <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 10, padding: '10px 14px', fontSize: 12, color: '#f59e0b', marginBottom: 12 }}>
+                ⚠️ {audioWarning}
               </div>
             )}
 
