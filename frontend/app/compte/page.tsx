@@ -415,6 +415,7 @@ export default function ComptePage() {
         {activeTab==='finances'&&<FinancesSection balance={balance} totalEarned={totalEarned} router={router}/>}
         {activeTab==='settings'&&(
           <div>
+            <div style={{background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',borderRadius:18,padding:'22px 20px',marginBottom:18,textAlign:'center'}}><div style={{fontSize:38,marginBottom:8}}>⚙️</div><div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:20,color:'#fff',marginBottom:6}}>Paramètres</div><div style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.6}}>Gère ta confidentialité et ton compte</div></div>
             <div style={card}><div style={{fontSize:15,fontWeight:700,color:'#fff',marginBottom:16,fontFamily:'Syne,sans-serif'}}>🔒 Confidentialité</div><ConfidentialiteSection earnings={totalEarned}/></div>
             <div style={{...card,marginTop:12}}><div style={{fontSize:15,fontWeight:700,color:'#fff',marginBottom:12,fontFamily:'Syne,sans-serif'}}>⚙️ Compte</div><button onClick={handleLogout} style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.25)',borderRadius:50,padding:'10px 20px',fontSize:13,fontWeight:600,color:'#f87171',cursor:'pointer',fontFamily:'DM Sans,sans-serif'}}>🚪 Se déconnecter</button></div>
           </div>
