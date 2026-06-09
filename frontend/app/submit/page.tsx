@@ -262,24 +262,21 @@ export default function SubmitPage() {
         </button>
       </div>
 
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px' }}>
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px', background: 'radial-gradient(ellipse 90% 40% at 50% 0%, rgba(244,6,99,0.13) 0%, transparent 65%)' }}>
 
         {/* Stepper */}
         {step < 5 && (
           <div style={{ marginBottom: 28 }}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 4 }}>
-              🎬 Ajouter une vidéo
-            </div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>
-              Étape {step} sur 4 — {STEPS[step - 1]}
-            </div>
-
-            {/* Info flux */}
-            <div style={{ background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.18)', borderRadius: 10, padding: '8px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14 }}>💡</span>
-              <span style={{ fontSize: 11, color: 'rgba(255,170,0,0.8)', lineHeight: 1.5 }}>
-                Ta vidéo sera d'abord enregistrée en <strong>brouillon</strong>. Tu choisiras la compétition au moment de la soumettre à la modération depuis ton compte.
-              </span>
+            <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', borderRadius: 18, padding: '22px 20px', marginBottom: 18, textAlign: 'center' }}>
+              <div style={{ fontSize: 38, marginBottom: 8 }}>🎬</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20, color: '#fff', marginBottom: 6 }}>Ajouter une vidéo</div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6 }}>Étape {step} sur 4 — {STEPS[step - 1]}</div>
+              <div style={{ marginTop: 14, background: 'rgba(0,0,0,0.18)', borderRadius: 10, padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
+                <span style={{ fontSize: 15 }}>💡</span>
+                <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>
+                  Ta vidéo sera d'abord enregistrée en <strong>brouillon</strong>. Tu choisiras la compétition au moment de la soumettre à la modération depuis ton compte.
+                </span>
+              </div>
             </div>
 
             <div style={{ display: 'flex', gap: 6 }}>
