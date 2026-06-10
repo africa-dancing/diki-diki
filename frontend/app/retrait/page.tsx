@@ -119,12 +119,12 @@ export default function RetraitPage() {
     <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f0', fontFamily:'DM Sans, sans-serif', paddingBottom:60 }}>
 
       {/* Topbar */}
-      <div style={{ position:'sticky', top:0, zIndex:100, background:'rgba(8,8,15,0.97)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(255,170,0,0.12)', padding:'0 20px', height:56, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+      <div style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, background:'rgba(8,8,15,0.97)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(255,170,0,0.12)', padding:'0 20px 0 0', height:56, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <Link href="/home" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:7 }}>
           <span style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'1.15rem' }}>
-            <LogoDikiDiki width={200} />
+            <LogoDikiDiki width={130} />
           </span>
-          <span style={{ fontSize:'.48rem', fontWeight:700, color:'#fff', border:'1px solid rgba(255,255,255,.6)', borderRadius:3, padding:'1px 4px', letterSpacing:'.08em' }}></span>
+          
         </Link>
         <button onClick={() => router.push('/compte')} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, padding:'6px 14px', color:'rgba(255,255,255,0.5)', fontSize:12, cursor:'pointer' }}>
           ✕ Annuler
