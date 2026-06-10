@@ -132,8 +132,11 @@ export default function RetraitPage() {
       </div>
 
       <div style={{ maxWidth:520, margin:'0 auto', padding:'24px 16px' }}>
-        <div style={{ fontFamily:'Syne,sans-serif', fontSize:20, fontWeight:800, color:'#fff', marginBottom:4 }}>💸 Retirer mes gains</div>
-        <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)', marginBottom:20 }}>Transfert depuis ton Compte Initial vers Mobile Money ou compte bancaire</div>
+        <div style={{ background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', borderRadius:18, padding:'22px 20px', marginBottom:20, textAlign:'center' }}>
+          <div style={{ fontSize:38, marginBottom:8 }}>💸</div>
+          <div style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:20, color:'#fff', marginBottom:6 }}>Retirer mes gains</div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.85)', lineHeight:1.6 }}>Transfert depuis ton Compte Initial vers Mobile Money ou compte bancaire</div>
+        </div>
 
         {/* Compte Initial */}
         <div style={{ background:'rgba(56,130,220,0.08)', border:'1px solid rgba(56,130,220,0.25)', borderRadius:16, padding:'16px 18px', marginBottom:14 }}>
