@@ -133,15 +133,15 @@ export default function RechargePage() {
 
       {/* ── TOPBAR ── */}
       <div style={{
-        position: 'sticky', top: 0, zIndex: 100,
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
         background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(16px)',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
-        padding: '0 24px', height: 60,
+        padding: '0 24px 0 0', height: 56,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         {/* Logo à gauche — identique aux autres pages */}
         <Link href="/home" style={{ textDecoration: 'none', flexShrink: 0 }}>
-          <LogoDikiDiki width={200} />
+          <LogoDikiDiki width={130} />
         </Link>
 
         {/* Annuler à droite */}
