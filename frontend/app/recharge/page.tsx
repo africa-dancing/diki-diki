@@ -157,14 +157,10 @@ export default function RechargePage() {
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '28px 20px 80px' }}>
 
         {/* Titre */}
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ fontSize: 36, marginBottom: 10 }}>⚡</div>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, color: '#fff', marginBottom: 6 }}>
-            Recharger mon compte
-          </div>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>
-            Choisissez un montant et un mode de paiement
-          </div>
+        <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', borderRadius: 18, padding: '22px 20px', marginBottom: 28, textAlign: 'center' }}>
+          <div style={{ fontSize: 38, marginBottom: 8 }}>⚡</div>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20, color: '#fff', marginBottom: 6 }}>Recharger mon compte</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6 }}>Choisissez un montant et un mode de paiement</div>
         </div>
 
         {/* ── Soldes ── */}
