@@ -144,7 +144,7 @@ export default function HomePage() {
       </div>
 
       {/* Grille vidéos */}
-      <div style={{ padding: '8px 16px 80px', overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' } as React.CSSProperties}>
+      <div style={{ padding: '8px 16px 80px', overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none', background: '#fff' } as React.CSSProperties}>
         {loading && <div className="video-grid">{Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)}</div>}
         {error && (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
