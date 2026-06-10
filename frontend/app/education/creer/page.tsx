@@ -132,12 +132,11 @@ function CreerPageInner() {
       </header>
 
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '48px 24px 80px' }}>
-        <div style={{ display: 'inline-block', background: `linear-gradient(90deg,${OR},${OR2})`, color: BG, fontSize: 11, fontWeight: 700, letterSpacing: 2, padding: '4px 14px', borderRadius: 4, marginBottom: 20, textTransform: 'uppercase' }}>
-          Créer du contenu
+        <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', borderRadius: 18, padding: '22px 20px', marginBottom: 32, textAlign: 'center' }}>
+          <div style={{ fontSize: 38, marginBottom: 8 }}>🎓</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: '#fff', marginBottom: 6 }}>Partagez votre savoir</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6 }}>Créez un chapitre ou une leçon pour la communauté</div>
         </div>
-        <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 30, color: '#fff', marginBottom: 32 }}>
-          Partagez votre savoir 🎓
-        </h1>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 32, background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: 4 }}>
           {(['chapitre', 'lecon'] as const).map(t => (
