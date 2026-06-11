@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
 
 const settingsRouter = Router();
 
@@ -26,10 +27,8 @@ settingsRouter.get('/', async (_req: Request, res: Response) => {
 });
 
 // PATCH /v1/settings - modifier un reglage (admin uniquement)
-settingsRouter.patch('/', async (req: Request, res: Response) => {
+settingsRouter.patch('/', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
-    if (req.headers['x-admin-token'] !== process.env.ADMIN_SECRET)
-      return res.status(403).json({ success: false, error: 'Non autorise.' });
     const { key, value } = req.body;
     if (!key || value === undefined || value === null)
       return res.status(400).json({ success: false, error: 'Champs manquants (key, value).' });
