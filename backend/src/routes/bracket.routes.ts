@@ -16,6 +16,21 @@ function getSupabase() {
   );
 }
 
+// Liste des challenges (page /challenges)
+bracketRouter.get('/', async (req: Request, res: Response) => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('brackets')
+      .select('id, code, title, discipline, categorie, style, status, current_round, total_cagnotte, max_participants, created_at, bracket_participants(count)')
+      .in('status', ['open', 'in_progress', 'waiting_candidates'])
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json({ success: true, data });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 bracketRouter.post('/inscribe', async (req: Request, res: Response) => {
   try {
     const { track_id, user_id, video_id, track_choice } = req.body;
