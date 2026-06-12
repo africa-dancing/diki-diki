@@ -6,6 +6,8 @@ import {
   checkAndAdvanceRounds,
   addVoteToCagnotte,
 } from '../services/bracket.service';
+import { inscribeToArena } from '../services/bracketArena.service';
+import { requireAuth, AuthRequest } from '../middleware/auth.middleware';
 
 const bracketRouter = Router();
 
@@ -30,6 +32,43 @@ bracketRouter.get('/', async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// ===== ROUTES ARENA v2 (cahier des charges v2) =====
+
+// Inscription a un challenge (user extrait du token)
+bracketRouter.post('/arena/inscribe', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { bracket_id, video_id } = req.body;
+    if (!bracket_id || !video_id)
+      return res.status(400).json({ success: false, error: 'Champs manquants.' });
+    const result = await inscribeToArena({
+      bracket_id, video_id, user_id: req.user!.userId,
+    });
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// Vote a 100 F (RPC atomique : debit wallet + trace + compteurs + cagnottes)
+bracketRouter.post('/arena/vote', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { duel_id, participant_id } = req.body;
+    if (!duel_id || !participant_id)
+      return res.status(400).json({ success: false, error: 'Champs manquants.' });
+    const { data, error } = await getSupabase().rpc('vote_bracket', {
+      p_user_id: req.user!.userId,
+      p_duel_id: duel_id,
+      p_participant: participant_id,
+    });
+    if (error) throw error;
+    if (!data.success) return res.status(400).json(data);
+    res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 bracketRouter.post('/inscribe', async (req: Request, res: Response) => {
   try {
