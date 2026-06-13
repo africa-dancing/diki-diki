@@ -1,5 +1,6 @@
 'use client';
 import LogoDikiDiki from '../../components/LogoDikiDiki';
+import Navbar from '../../components/Navbar';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -133,7 +134,7 @@ function DuelCard({ duel, onVote, myVote }: { duel: Duel; onVote: (duelId:string
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           {isEqual && <span style={{ fontSize:10, color:OR, fontWeight:700, background:'rgba(255,170,0,0.1)', borderRadius:20, padding:'2px 8px' }}>⚖️ Égalité !</span>}
           <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:20, background:statusCfg.bg, color:statusCfg.color }}>{statusCfg.label}</span>
-          {(isActive||isOT) && <span style={{ fontSize:10, color:'rgba(255,255,255,0.35)' }}>⏳ {daysLeft}j restants</span>}
+          
         </div>
       </div>
 
@@ -253,12 +254,53 @@ export default function BracketPage() {
 
   useEffect(() => {
     const id = params?.id as string;
-    if (!id) { setBracket(DEMO_BRACKET); setLoading(false); return; }
-    fetch(`${API}/challenges/${id}/bracket`, { headers: getToken()?{Authorization:`Bearer ${getToken()}`}:{} })
-      .then(r=>r.ok?r.json():null)
-      .then(d=>{ setBracket(d??DEMO_BRACKET); setActiveRound((d??DEMO_BRACKET).current_round); })
-      .catch(()=>{ setBracket(DEMO_BRACKET); setActiveRound(DEMO_BRACKET.current_round); })
-      .finally(()=>setLoading(false));
+    if (!id) { setLoading(false); return; }
+    Promise.all([
+      fetch(`${API}/brackets/${id}`).then(r => r.json()),
+      fetch(`${API}/brackets/${id}/duels`).then(r => r.json()),
+    ]).then(([bRes, dRes]) => {
+      if (!bRes.success) throw new Error();
+      const b = bRes.data;
+      const duelsRaw = dRes.success ? dRes.data : [];
+      const mapCand = (p: any, pid: string): Candidate => ({
+        id: pid,
+        name: p?.users?.name ?? 'Candidat',
+        stage_name: p?.users?.name ?? 'Candidat',
+        photo_url: p?.users?.avatar_url ?? undefined,
+        votes: 0, video_id: p?.video_id ?? undefined,
+      });
+      const duels: Duel[] = duelsRaw.map((d: any) => ({
+        id: d.id, round: d.round,
+        candidateA: mapCand(d.part_a, d.participant_a),
+        candidateB: mapCand(d.part_b, d.participant_b),
+        winner_id: d.winner_participant ?? undefined,
+        status: d.status === 'overtime' ? 'overtime' : d.status === 'done' ? 'done' : 'active',
+        ends_at: d.ends_at ?? '', votes_a: d.votes_a, votes_b: d.votes_b,
+        pool_label: d.pool_label ?? undefined,
+      } as any));
+      const ROUND_OBJ: Record<number, {label: string}> = {
+        1:{label:'Huiti\u00E8me de finale'},2:{label:'Quart de finale'},
+        3:{label:'Demi-finale'},4:{label:'Finale'},
+      };
+      const roundsData = (b.bracket_rounds ?? []).sort((a:any,x:any)=>a.round-x.round);
+      const rounds = roundsData.map((r: any) => ({
+        round: r.round, label: ROUND_OBJ[r.round]?.label ?? ('Tour '+r.round),
+        days: 0, duels: duels.filter(d => d.round === r.round),
+        objectif: r.objectif_montant, collecte: r.montant_collecte, statusRound: r.status,
+      }));
+      setBracket({
+        id: b.id, title: b.title, discipline: b.discipline,
+        type: 'libre', status: b.status, rounds,
+        current_round: b.current_round || 1,
+        total_cagnotte: b.total_cagnotte,
+        commission_pct: (b.commission_pct ?? 0.5) * 100,
+        starts_at: b.started_at ?? '',
+        code: b.code, participants_count: b.bracket_participants?.[0]?.count ?? 0,
+        max_participants: b.max_participants ?? 16,
+      } as any);
+      setActiveRound(b.current_round || 1);
+    }).catch(() => setBracket(null))
+      .finally(() => setLoading(false));
   }, [params?.id]);
 
   const handleVote = async (duelId: string, candidateId: string) => {
@@ -282,34 +324,29 @@ export default function BracketPage() {
 
   return (
     <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f0', fontFamily:'DM Sans,sans-serif', paddingBottom:80 }}>
-
-      {/* Topbar */}
-      <div style={{ position:'sticky', top:0, zIndex:100, background:'rgba(8,8,15,0.95)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgb(251,251,250)', padding:'0 20px', height:54, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <Link href="/challenges" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:6 }}>
-          <LogoDikiDiki width={200} />
-        </Link>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <TranslateWidget />
-          <Link href="/compte" style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#FF6B00,#FFD700)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, textDecoration:'none' }}>👤</Link>
-        </div>
+      <Navbar />
+      <div style={{ padding: '16px 24px 10px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
+        <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.75rem,3vw,1.9rem)', lineHeight: 1.1, marginBottom: 8, whiteSpace: 'nowrap', background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Podium Challenges 
+          <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Arena </span>
+        </h1>
       </div>
 
       <div style={{ maxWidth:700, margin:'0 auto', padding:'24px 16px' }}>
 
         {/* Header bracket */}
-        <div style={{ background:'linear-gradient(135deg,rgb(11,0,0),rgba(237,7,15))', border:'1px solid rgb(248,4,4)', borderRadius:16, padding:'20px', marginBottom:20 }}>
+        <div style={{ background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border:'1px solid rgb(10,0,0)', borderRadius:16, padding:'20px', marginBottom:20 }}>
           <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:12 }}>
             <div>
-              <div style={{ fontSize:11, color:OR, fontWeight:700, letterSpacing:'.08em', marginBottom:4 }}>
-                ⚡ CHALLENGE BRACKET · {bracket.type==='repertoire'?'🎵 RÉPERTOIRE':'🆓 LIBRE'}
-              </div>
-              <h1 style={{ fontFamily:'Syne,sans-serif', fontSize:20, fontWeight:800, color:'#0b0b0b', marginBottom:4 }}>{bracket.title}</h1>
+              <div style={{ fontSize:14, color:'#fff', fontWeight:800, letterSpacing:'.12em', marginBottom:4, textAlign:'center' as const }}>CHALLENGES EN COURS</div>
+              <div style={{ fontSize:11, color:'#FFD700', fontWeight:700, textAlign:'center' as const, marginBottom:8 }}>{(bracket as any).code ?? ''}</div>
+              <h1 style={{ fontFamily:'Syne,sans-serif', fontSize:24, fontWeight:800, color:'#ffffff', marginBottom:6, textAlign:'center' as const, textShadow:'0 1px 3px rgba(0,0,0,0.5)' }}>{((bracket as any).style && bracket.discipline) ? ((bracket as any).style + ' — ' + bracket.discipline.charAt(0).toUpperCase() + bracket.discipline.slice(1)) : bracket.title}</h1>
               <div style={{ fontSize:12, color:'rgb(255,255,255)' }}>Tour en cours : <strong style={{color:OR}}>{ROUND_LABELS[bracket.current_round]}</strong></div>
             </div>
             <div style={{ textAlign:'right' as const }}>
-              <div style={{ fontSize:10, color:'rgba(255,255,255,0.99)', marginBottom:2 }}>🏆 Cagnotte nette</div>
-              <div style={{ fontSize:22, fontWeight:800, color:'#0dc41f', fontFamily:'Syne,sans-serif' }}>{netCagnotte.toLocaleString('fr-FR')} F</div>
-              <div style={{ fontSize:9, color:'rgb(255,255,255)' }}>après commission Diki-Diki</div>
+              <div style={{ fontSize:14, color:'rgba(255,255,255,0.99)', marginBottom:4 }}><span style={{ fontSize:28 }}>🏆</span> Cagnotte nette</div>
+              <div style={{ fontSize:22, fontWeight:800, color:'#0dc41f', fontFamily:'Syne,sans-serif', lineHeight:1 }}>{netCagnotte.toLocaleString('fr-FR')} F</div>
+              <div style={{ fontSize:12, color:'rgb(255,255,255)', marginTop:4 }}>après commission Diki-Diki</div>
             </div>
           </div>
 
@@ -320,29 +357,29 @@ export default function BracketPage() {
               { label:'Duels joués', val: bracket.rounds.flatMap(r=>r.duels).filter(d=>d.status==='done').length+' / '+bracket.rounds.flatMap(r=>r.duels).length, icon:'⚔️' },
               { label:'Candidats', val: String((bracket.rounds[0]?.duels.length ?? 0) * 2), icon:'👥' },
             ].map(s=>(
-              <div key={s.label} style={{ background:'rgba(8,8,8,0)', borderRadius:10, padding:'10px', textAlign:'center' as const }}>
-                <div style={{ fontSize:16, marginBottom:3 }}>{s.icon}</div>
-                <div style={{ fontSize:15, fontWeight:700, color:OR, fontFamily:'Syne,sans-serif' }}>{s.val}</div>
-                <div style={{ fontSize:9, color:'rgb(246,243,243)' }}>{s.label}</div>
+              <div key={s.label} style={{ background:'rgba(8,8,8,0)', borderRadius:10, padding:'18px 10px', textAlign:'center' as const }}>
+                <div style={{ fontSize:34, marginBottom:6 }}>{s.icon}</div>
+                <div style={{ fontSize:34, fontWeight:800, color:OR, fontFamily:'Syne,sans-serif', lineHeight:1 }}>{s.val}</div>
+                <div style={{ fontSize:14, color:'rgb(246,243,243)', marginTop:4 }}>{s.label}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* ✅ Règles — ⭐ → <StarRed /> */}
-        <div style={{ background:'rgba(7,6,6,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'12px 16px', marginBottom:20, fontSize:11, color:'rgba(255,255,255,0.4)', lineHeight:1.8 }}>
-          📋 <strong style={{color:'rgba(255,255,255,0.6)'}}>Règles :</strong> Le plus voté <StarRed /> passe au tour suivant · Égalité = prolongation <strong style={{color:OR}}>5 jours</strong> · La cagnotte s'accumule sur tous les tours · Le champion remporte la cagnotte totale après déduction des commissions Diki-Diki
+        <div style={{ background:'rgba(7,6,6,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'14px 18px', marginBottom:20, fontSize:12, color:'rgba(255,255,255,0.75)', lineHeight:1.6, lineHeight:1.8 }}>
+          📋 <strong style={{color:'rgba(255,255,255,0.6)'}}>Règles :</strong> Le plus voté <StarRed /> passe au tour suivant · Chaque étape se termine à l'objectif de cagnotte atteint · Égalité = mini-défi de <strong style={{color:OR}}>3 jours</strong> · Le champion remporte 75% de la cagnotte nette, le finaliste 25%
         </div>
 
         {/* Navigation des tours */}
-        <div style={{ display:'flex', gap:6, marginBottom:20, overflowX:'auto', scrollbarWidth:'none' }}>
+        <div style={{ display:'flex', gap:6, marginBottom:20 }}>
           {bracket.rounds.map(r => {
             const isDone  = r.round < bracket.current_round;
             const isCurr  = r.round === bracket.current_round;
             return (
               <button key={r.round} onClick={()=>setActiveRound(r.round)}
-                style={{ padding:'7px 16px', borderRadius:50, fontSize:11, fontWeight:700, cursor:'pointer', flexShrink:0, border:`1px solid ${activeRound===r.round?OR:'rgba(255,255,255,0.1)'}`, background: activeRound===r.round?`linear-gradient(135deg,${OR},${OR2})`:isDone?'rgba(74,222,128,0.08)':isCurr?'rgba(255,170,0,0.08)':'rgba(255,255,255,0.04)', color: activeRound===r.round?'#000':isDone?'#4ade80':isCurr?OR:'rgba(255,255,255,0.4)' }}>
-                {isDone&&activeRound!==r.round?'✓ ':''}{r.label} · {r.days}j
+                style={{ padding:'9px 8px', borderRadius:50, fontSize:11, fontWeight:700, cursor:'pointer', flex:1, whiteSpace:'nowrap' as const, textAlign:'center' as const, border:`1px solid ${activeRound===r.round?OR:'rgba(255,255,255,0.1)'}`, background: activeRound===r.round?`linear-gradient(135deg,${OR},${OR2})`:isDone?'rgba(74,222,128,0.08)':isCurr?'rgba(255,170,0,0.08)':'rgba(255,255,255,0.04)', color: activeRound===r.round?'#000':isDone?'#4ade80':isCurr?OR:'rgba(255,255,255,0.4)' }}>
+                {isDone&&activeRound!==r.round?'✓ ':''}{r.label} · {(r as any).objectif ? Math.round(((r as any).collecte ?? 0)/(r as any).objectif*100) : 0}%
               </button>
             );
           })}

@@ -112,7 +112,7 @@ bracketRouter.get('/:bracket_id', async (req: Request, res: Response) => {
   try {
     const { data, error } = await getSupabase()
       .from('brackets')
-      .select('*, bracket_duels(id, round, status, votes_a, votes_b, ends_at, participant_a, participant_b)')
+      .select('*, bracket_rounds(round, objectif_montant, montant_collecte, status), bracket_participants(count)')
       .eq('id', req.params.bracket_id)
       .single();
     if (error) throw error;
@@ -126,7 +126,7 @@ bracketRouter.get('/:bracket_id/duels', async (req: Request, res: Response) => {
   try {
     const { data, error } = await getSupabase()
       .from('bracket_duels')
-      .select('*, part_a:bracket_participants!participant_a(user_id, video_id, track_choice), part_b:bracket_participants!participant_b(user_id, video_id, track_choice)')
+      .select('*, part_a:bracket_participants!participant_a(user_id, video_id, users(name, avatar_url)), part_b:bracket_participants!participant_b(user_id, video_id, users(name, avatar_url))')
       .eq('bracket_id', req.params.bracket_id)
       .in('status', ['active', 'overtime'])
       .order('round', { ascending: true });
