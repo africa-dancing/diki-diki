@@ -58,6 +58,11 @@ export default function ChallengesListPage() {
           </div>
         </div>
 
+        {/* Bouton creer un challenge */}
+        <Link href="/challenges/creer" style={{ display:'block', textAlign:'center' as const, background:'linear-gradient(135deg,#FF6B00,#FFD700)', color:'#000', fontWeight:800, fontFamily:'Syne,sans-serif', fontSize:15, padding:'14px', borderRadius:14, textDecoration:'none', marginBottom:20 }}>
+          {'\u{1F3A4}'} Créer un challenge
+        </Link>
+
         {loading && (
           <div style={{ textAlign:'center' as const, padding:'60px 0', color:'rgba(255,255,255,0.3)' }}>{'\u23F3'} Chargement{'\u2026'}</div>
         )}
