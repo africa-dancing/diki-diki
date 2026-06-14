@@ -127,3 +127,51 @@ export async function launchBracket(bracket: any) {
     });
   }
 }
+
+// 3. Creation d'un challenge par un utilisateur
+export async function createArenaChallenge(params: {
+  user_id: string; video_id: string;
+  categorie: string; discipline: string; style: string;
+}) {
+  const { user_id, video_id, categorie, discipline, style } = params;
+
+  const { data: u, error: uErr } = await supabase
+    .from('users').select('is_verified').eq('id', user_id).single();
+  if (uErr || !u) throw new Error('Utilisateur introuvable.');
+  if (!u.is_verified) throw new Error('Verifie ton compte avant de creer un challenge.');
+
+  const { count: vCount } = await supabase
+    .from('videos').select('*', { count: 'exact', head: true })
+    .eq('user_id', user_id).eq('status', 'approved');
+  if (!vCount || vCount < 1) throw new Error('Il te faut au moins une video approuvee.');
+
+  const { data: w } = await supabase
+    .from('wallets').select('total_credited').eq('user_id', user_id).maybeSingle();
+  if ((w?.total_credited ?? 0) < 1000) throw new Error('Tu dois avoir recharge au moins 1000 unites au moins une fois pour creer un challenge.');
+
+  const { data: dup } = await supabase
+    .from('brackets').select('id')
+    .eq('categorie', categorie).eq('discipline', discipline).eq('style', style)
+    .in('status', ['open', 'waiting_candidates'])
+    .limit(1).maybeSingle();
+
+  let bracketId: string;
+  if (dup) {
+    bracketId = dup.id;
+  } else {
+    const { data: created, error: cErr } = await supabase
+      .from('brackets').insert({
+        title: style + ' - ' + discipline,
+        categorie, discipline, style,
+        type: 'libre', status: 'waiting_candidates',
+        max_participants: 16, current_round: 1,
+        total_cagnotte: 0, commission_pct: 0.5,
+        created_at: new Date().toISOString(),
+      }).select('id').single();
+    if (cErr || !created) throw new Error('Erreur lors de la creation du challenge.');
+    bracketId = created.id;
+  }
+
+  const result = await inscribeToArena({ bracket_id: bracketId, user_id, video_id });
+  return { created: !dup, bracket_id: bracketId, participants: result.participants };
+}

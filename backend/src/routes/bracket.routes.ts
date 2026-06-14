@@ -6,7 +6,7 @@ import {
   checkAndAdvanceRounds,
   addVoteToCagnotte,
 } from '../services/bracket.service';
-import { inscribeToArena } from '../services/bracketArena.service';
+import { inscribeToArena, createArenaChallenge } from '../services/bracketArena.service';
 import { requireAuth, AuthRequest } from '../middleware/auth.middleware';
 
 const bracketRouter = Router();
@@ -43,6 +43,21 @@ bracketRouter.post('/arena/inscribe', requireAuth, async (req: AuthRequest, res:
       return res.status(400).json({ success: false, error: 'Champs manquants.' });
     const result = await inscribeToArena({
       bracket_id, video_id, user_id: req.user!.userId,
+    });
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// Creation d'un challenge par un utilisateur (3 gardes + anti-doublon + 1er inscrit)
+bracketRouter.post('/arena/create', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { video_id, categorie, discipline, style } = req.body;
+    if (!video_id || !categorie || !discipline || !style)
+      return res.status(400).json({ success: false, error: 'Champs manquants (video, categorie, discipline, style).' });
+    const result = await createArenaChallenge({
+      user_id: req.user!.userId, video_id, categorie, discipline, style,
     });
     res.json({ success: true, data: result });
   } catch (err: any) {
