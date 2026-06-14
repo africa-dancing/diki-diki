@@ -35,15 +35,15 @@ export async function castVote(userId: string, videoId: string, amount: number =
   };
 }
 export async function getWalletBalance(userId: string) {
-  const { data: w, error } = await supabase
+  const { data: w } = await supabase
     .from('wallets')
     .select('balance')
     .eq('user_id', userId)
-    .single();
-  if (error || !w) throw new Error('USER_NOT_FOUND');
+    .maybeSingle();
+  const balance = w?.balance ?? 0;
   return {
-    balance:        w.balance,
-    votesAvailable: Math.floor(w.balance / MIN_VOTE),
-    canVote:        w.balance >= MIN_VOTE,
+    balance,
+    votesAvailable: Math.floor(balance / MIN_VOTE),
+    canVote:        balance >= MIN_VOTE,
   };
 }
