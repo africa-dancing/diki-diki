@@ -306,13 +306,58 @@ export default function BracketPage() {
   const handleVote = async (duelId: string, candidateId: string) => {
     const token = getToken();
     if (!token) { router.push('/auth/login'); return; }
-    setMyVotes(v => ({...v, [duelId]: candidateId}));
     try {
-      await fetch(`${API}/challenges/duels/${duelId}/vote`, {
+      const res = await fetch(`${API}/brackets/arena/vote`, {
         method:'POST', headers:{'Content-Type':'application/json', Authorization:`Bearer ${token}`},
-        body: JSON.stringify({ candidate_id: candidateId }),
+        body: JSON.stringify({ duel_id: duelId, participant_id: candidateId }),
       });
-    } catch { setMyVotes(v => { const n={...v}; delete n[duelId]; return n; }); }
+      const data = await res.json();
+      if (!data.success) {
+        if ((data.error || '').toLowerCase().includes('solde')) {
+          if (confirm('Solde insuffisant. Veux-tu recharger ton compte ?')) router.push('/recharge');
+        } else { alert(data.error || 'Erreur lors du vote.'); }
+        return;
+      }
+      setMyVotes(v => ({...v, [duelId]: candidateId}));
+      setBracket((prev: any) => {
+        if (!prev) return prev;
+        const rounds = prev.rounds.map((r: any) => ({
+          ...r,
+          duels: r.duels.map((d: any) => {
+            if (d.id !== duelId) return d;
+            const isA = d.candidateA.id === candidateId;
+            return { ...d, votes_a: d.votes_a + (isA?1:0), votes_b: d.votes_b + (isA?0:1) };
+          }),
+        }));
+        return { ...prev, rounds, total_cagnotte: prev.total_cagnotte + 100 };
+      });
+    } catch { alert('Erreur reseau. Reessaie.'); }
+  };
+
+  const handleInscribe = async () => {
+    const token = getToken();
+    if (!token) { router.push('/auth/login'); return; }
+    try {
+      const vr = await fetch(`${API}/videos/my`, { headers: { Authorization: `Bearer ${token}` } });
+      const vd = await vr.json();
+      const approved = (vd.videos ?? []).filter((v: any) => v.status === 'approved');
+      if (approved.length === 0) {
+        alert('Tu dois avoir au moins une video approuvee pour participer.');
+        return;
+      }
+      const video_id = approved[0].id;
+      const res = await fetch(`${API}/brackets/arena/inscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ bracket_id: params?.id, video_id }),
+      });
+      const data = await res.json();
+      if (!data.success) { alert(data.error || 'Erreur lors de l inscription.'); return; }
+      alert('Inscription reussie !');
+      window.location.reload();
+    } catch {
+      alert('Erreur reseau. Reessaie.');
+    }
   };
 
   if (loading) return <div style={{ height:'100vh', background:'#0a0a0f', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.3)', fontFamily:'DM Sans,sans-serif' }}>⏳ Chargement…</div>;
@@ -338,19 +383,22 @@ export default function BracketPage() {
         <div style={{ background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border:'1px solid rgb(10,0,0)', borderRadius:16, padding:'20px', marginBottom:20 }}>
           <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:12 }}>
             <div>
-              <div style={{ fontSize:14, color:'#fff', fontWeight:800, letterSpacing:'.12em', marginBottom:4, textAlign:'center' as const }}>CHALLENGES EN COURS</div>
+              <div style={{ fontSize:14, color:'#fff', fontWeight:800, letterSpacing:'.12em', marginBottom:4, textAlign:'center' as const }}>{bracket.status === 'in_progress' ? 'CHALLENGE EN COURS' : 'INSCRIPTIONS OUVERTES'}</div>
               <div style={{ fontSize:11, color:'#FFD700', fontWeight:700, textAlign:'center' as const, marginBottom:8 }}>{(bracket as any).code ?? ''}</div>
               <h1 style={{ fontFamily:'Syne,sans-serif', fontSize:24, fontWeight:800, color:'#ffffff', marginBottom:6, textAlign:'center' as const, textShadow:'0 1px 3px rgba(0,0,0,0.5)' }}>{((bracket as any).style && bracket.discipline) ? ((bracket as any).style + ' — ' + bracket.discipline.charAt(0).toUpperCase() + bracket.discipline.slice(1)) : bracket.title}</h1>
-              <div style={{ fontSize:12, color:'rgb(255,255,255)' }}>Tour en cours : <strong style={{color:OR}}>{ROUND_LABELS[bracket.current_round]}</strong></div>
+              {bracket.status === 'in_progress' && <div style={{ fontSize:12, color:'rgb(255,255,255)' }}>Tour en cours : <strong style={{color:OR}}>{ROUND_LABELS[bracket.current_round]}</strong></div>}
             </div>
+            {bracket.status === 'in_progress' && (
             <div style={{ textAlign:'right' as const }}>
               <div style={{ fontSize:14, color:'rgba(255,255,255,0.99)', marginBottom:4 }}><span style={{ fontSize:28 }}>🏆</span> Cagnotte nette</div>
               <div style={{ fontSize:22, fontWeight:800, color:'#0dc41f', fontFamily:'Syne,sans-serif', lineHeight:1 }}>{netCagnotte.toLocaleString('fr-FR')} F</div>
               <div style={{ fontSize:12, color:'rgb(255,255,255)', marginTop:4 }}>après commission Diki-Diki</div>
             </div>
+            )}
           </div>
 
-          {/* ✅ Stats — ⭐ → <StarRed /> */}
+          {/* ✅ Stats — seulement si lance */}
+          {bracket.status === 'in_progress' && (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
             {[
               { label:'Votes totaux', val: totalVotes.toLocaleString('fr-FR'), icon:<StarRed /> },
@@ -364,14 +412,18 @@ export default function BracketPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
 
-        {/* ✅ Règles — ⭐ → <StarRed /> */}
+        {/* ✅ Règles — affichees seulement si lance */}
+        {bracket.status === 'in_progress' && (
         <div style={{ background:'rgba(7,6,6,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'14px 18px', marginBottom:20, fontSize:12, color:'rgba(255,255,255,0.75)', lineHeight:1.6, lineHeight:1.8 }}>
           📋 <strong style={{color:'rgba(255,255,255,0.6)'}}>Règles :</strong> Le plus voté <StarRed /> passe au tour suivant · Chaque étape se termine à l'objectif de cagnotte atteint · Égalité = mini-défi de <strong style={{color:OR}}>3 jours</strong> · Le champion remporte 75% de la cagnotte nette, le finaliste 25%
         </div>
+        )}
 
-        {/* Navigation des tours */}
+        {/* Navigation des tours — seulement si lance */}
+        {bracket.status === 'in_progress' && (
         <div style={{ display:'flex', gap:6, marginBottom:20 }}>
           {bracket.rounds.map(r => {
             const isDone  = r.round < bracket.current_round;
@@ -384,7 +436,26 @@ export default function BracketPage() {
             );
           })}
         </div>
+        )}
 
+        {/* Bloc inscriptions ouvertes (bracket pas encore lance) */}
+        {(bracket.status === 'waiting_candidates' || bracket.status === 'open') && (() => {
+          const cnt = (bracket as any).participants_count ?? 0;
+          const max = (bracket as any).max_participants ?? 16;
+          const pct = Math.round(cnt / max * 100);
+          return (
+            <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, padding:'24px', textAlign:'center' as const, marginBottom:20 }}>
+              <div style={{ fontSize:40, marginBottom:10 }}>{'\u{1F4E2}'}</div>
+              <div style={{ fontSize:18, fontWeight:800, fontFamily:'Syne,sans-serif', color:'#fff', marginBottom:8 }}>Inscriptions ouvertes</div>
+              <div style={{ fontSize:13, color:'rgba(255,255,255,0.6)', marginBottom:16 }}>Le tournoi d{'\u00E9'}marrera automatiquement {'\u00E0'} {max} candidats inscrits.</div>
+              <div style={{ fontSize:30, fontWeight:800, fontFamily:'Syne,sans-serif', color:OR, marginBottom:6 }}>{cnt} / {max}</div>
+              <div style={{ height:10, background:'rgba(255,255,255,0.08)', borderRadius:6, overflow:'hidden', marginBottom:20 }}>
+                <div style={{ height:'100%', width:pct+'%', background:'linear-gradient(90deg,#FF6B00,#FFD700)', transition:'width 0.4s' }} />
+              </div>
+              <button onClick={handleInscribe} style={{ width:'100%', padding:'14px', borderRadius:14, fontSize:15, fontWeight:800, fontFamily:'Syne,sans-serif', cursor:'pointer', border:'none', background:'linear-gradient(135deg,#FF6B00,#FFD700)', color:'#000' }}>Je participe</button>
+            </div>
+          );
+        })()}
         {/* Duels du tour actif */}
         {currentRoundData && (
           <div>
