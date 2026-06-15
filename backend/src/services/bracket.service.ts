@@ -155,25 +155,28 @@ async function openNewBracket(track_id: string, previousBracket: any) {
 
 // ── 4. Vérifier et avancer les tours (appelé par le cron) ──────────
 export async function checkAndAdvanceRounds() {
-  const now = new Date();
-
-  // Récupérer tous les duels actifs expirés
-  const { data: expiredDuels } = await supabase
-    .from('bracket_duels')
+  // Tous les brackets elimination en cours
+  const { data: brackets } = await supabase
+    .from('brackets')
     .select('*')
-    .eq('status', 'active')
-    .lt('ends_at', now.toISOString());
+    .eq('type', 'elimination')
+    .eq('status', 'in_progress');
+  if (!brackets || brackets.length === 0) return;
 
-  if (!expiredDuels || expiredDuels.length === 0) return;
+  for (const bracket of brackets) {
+    // Le round actuellement in_progress
+    const { data: round } = await supabase
+      .from('bracket_rounds')
+      .select('*')
+      .eq('bracket_id', bracket.id)
+      .eq('status', 'in_progress')
+      .maybeSingle();
+    if (!round) continue;
 
-  for (const duel of expiredDuels) {
-    await resolveDuel(duel);
-  }
-
-  // Vérifier si tous les duels d'un tour sont terminés → avancer
-  const bracketIds = [...new Set(expiredDuels.map((d:any) => d.bracket_id))];
-  for (const bracketId of bracketIds) {
-    await checkRoundCompletion(bracketId);
+    // Objectif de l etape atteint ?
+    if ((round.montant_collecte || 0) >= (round.objectif_montant || 0) && (round.objectif_montant || 0) > 0) {
+      await closeStage(bracket, round);
+    }
   }
 }
 
@@ -281,50 +284,67 @@ async function checkRoundCompletion(bracketId: string) {
 }
 
 // ── 7. Distribuer la cagnotte ──────────────────────────────────────
-async function distributeCagnotte(bracket: any, finalDuel: any) {
-  const winnerId    = finalDuel.winner_participant;
-  const totalCag    = bracket.total_cagnotte;
-  const champGains  = Math.floor(totalCag * (1 - COMMISSION_PCT));
-  const dikiGains   = totalCag - champGains;
+async function distributeCagnotte(bracket: any, championId: string, secondId: string | null) {
+  const bracketId = bracket.id;
+  const totalCag  = bracket.total_cagnotte || 0;
 
-  // Récupérer le user_id du champion
-  const { data: winner } = await supabase
-    .from('bracket_participants')
-    .select('user_id')
-    .eq('id', winnerId)
-    .single();
+  // Lire les pourcentages depuis settings (modifiables sans toucher au code)
+  const { data: rows } = await supabase.from('settings').select('key, value')
+    .in('key', ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct', 'bracket_troisieme_pct']);
+  const cfg: Record<string, number> = {};
+  (rows || []).forEach((r: any) => { cfg[r.key] = parseInt(r.value, 10); });
+  const commissionPct = (cfg.bracket_commission_pct ?? 50) / 100;
+  const champPct      = (cfg.bracket_champion_pct ?? 60) / 100;
+  const secondPct     = (cfg.bracket_second_pct ?? 25) / 100;
+  const troisiemePct  = (cfg.bracket_troisieme_pct ?? 15) / 100;
 
-  if (!winner) return;
+  // Cagnotte nette apres commission plateforme
+  const net = Math.floor(totalCag * (1 - commissionPct));
+  const gainChampion  = Math.floor(net * champPct);
+  const gainSecond    = Math.floor(net * secondPct);
+  const gainTroisieme = Math.floor(net * troisiemePct);
 
-  // Créditer le champion
-  await supabase.rpc('credit_wallet', { p_user_id: winner.user_id, p_amount: champGains });
+  // Recuperer le 3e fige en demi-finale
+  const { data: bRow } = await supabase.from('brackets').select('third_id').eq('id', bracketId).single();
+  const thirdId = bRow?.third_id ?? null;
 
-  // Enregistrer la transaction
-  await supabase.from('transactions').insert({
-    user_id:    winner.user_id,
-    type:       'bracket_win',
-    amount:     champGains,
-    status:     'completed',
-    metadata:   { bracket_id: bracket.id, total_cagnotte: totalCag, commission: dikiGains },
-    created_at: new Date().toISOString(),
-  });
+  // Helper : crediter un participant + tracer + notifier
+  const payer = async (participantId: string | null, gain: number, rang: string) => {
+    if (!participantId || gain <= 0) return;
+    const { data: p } = await supabase.from('bracket_participants').select('user_id').eq('id', participantId).single();
+    if (!p) return;
+    await supabase.rpc('credit_wallet', { p_user_id: p.user_id, p_amount: gain });
+    await supabase.from('transactions').insert({
+      user_id: p.user_id,
+      type: 'bracket_win',
+      amount: gain,
+      status: 'completed',
+      metadata: { bracket_id: bracketId, rang, total_cagnotte: totalCag },
+      created_at: new Date().toISOString(),
+    });
+    await supabase.from('notifications').insert({
+      user_id: p.user_id,
+      type: 'win',
+      title: `Podium : ${rang} !`,
+      message: `Felicitations ! Tu remportes ${gain.toLocaleString('fr-FR')} F CFA (${rang}).`,
+      read: false,
+      created_at: new Date().toISOString(),
+    });
+  };
 
-  // Fermer le bracket
+  await payer(championId, gainChampion, '1ere place');
+  await payer(secondId, gainSecond, '2e place');
+  await payer(thirdId, gainTroisieme, '3e place');
+
+  // Fermer le bracket (podium en participant_id, convention unifiee)
   await supabase.from('brackets').update({
-    status:     'done',
-    winner_id:  winner.user_id,
-    ended_at:   new Date().toISOString(),
-  }).eq('id', bracket.id);
+    status: 'done',
+    winner_id: championId,
+    second_id: secondId,
+    ended_at: new Date().toISOString(),
+  }).eq('id', bracketId);
 
-  // Notifier le champion
-  await supabase.from('notifications').insert({
-    user_id:    winner.user_id,
-    type:       'win',
-    title:      '🏆 Tu es Champion !',
-    message:    `Félicitations ! Tu remportes ${champGains.toLocaleString('fr-FR')} F CFA après déduction des commissions Diki-Diki.`,
-    read:       false,
-    created_at: new Date().toISOString(),
-  });
+  console.log(`[DISTRIB] Bracket ${bracketId} : net=${net}, champ=${gainChampion}, 2e=${gainSecond}, 3e=${gainTroisieme}`);
 }
 
 // ── 8. Notifier les participants d'un duel ─────────────────────────
@@ -338,6 +358,89 @@ async function notifyDuelParticipants(duel: any, title: string, message: string)
       user_id, type:'challenge', title, message, read:false, created_at: new Date().toISOString(),
     });
   }
+}
+
+// ── Cloturer une etape (classement global au score) ───────────────
+async function closeStage(bracket: any, round: any) {
+  const bracketId = bracket.id;
+  const currentRound = round.round;
+
+  // Candidats encore en lice, tries par score decroissant
+  const { data: alive } = await supabase
+    .from('bracket_participants')
+    .select('id, user_id, score')
+    .eq('bracket_id', bracketId)
+    .is('eliminated_at', null)
+    .order('score', { ascending: false });
+  if (!alive || alive.length === 0) return;
+
+  // Combien on garde selon l etape : 1->8, 2->4, 3->2 (finale), 4->fin
+  const keepMap: Record<number, number> = { 1: 8, 2: 4, 3: 2 };
+
+  // ── Finale (round 4) : 1er = champion, 2e = second ──
+  if (currentRound === 4) {
+    // Egalite a la 1ere place -> prolongation (on ne clot pas)
+    if (alive.length >= 2 && alive[0].score === alive[1].score) {
+      console.log(`[CLOSE] Egalite finale bracket ${bracketId} -> prolongation`);
+      return;
+    }
+    await distributeCagnotte(bracket, alive[0].id, alive[1]?.id ?? null);
+    return;
+  }
+
+  const keep = keepMap[currentRound];
+  if (!keep) return;
+
+  // ── Gestion egalite a la place limite (entre keep-1 et keep) ──
+  if (alive.length > keep) {
+    const scoreLimite = alive[keep - 1].score;
+    const scoreSuivant = alive[keep].score;
+    if (scoreLimite === scoreSuivant) {
+      console.log(`[CLOSE] Egalite place limite bracket ${bracketId} round ${currentRound} -> prolongation`);
+      return; // on prolonge l etape jusqu a ce qu un score departage
+    }
+  }
+
+  const qualifies = alive.slice(0, keep);
+  const elimines  = alive.slice(keep);
+  const now = new Date().toISOString();
+
+  // ── Demi-finale (round 3) : figer le 3e avant d eliminer ──
+  if (currentRound === 3 && alive.length >= 3) {
+    const troisieme = alive[2];
+    await supabase.from('brackets').update({ third_id: troisieme.id }).eq('id', bracketId);
+  }
+
+  // Eliminer les non qualifies
+  const idsElimines = elimines.map((p: any) => p.id);
+  if (idsElimines.length > 0) {
+    await supabase.from('bracket_participants').update({ eliminated_at: now }).in('id', idsElimines);
+  }
+
+  // Reset du score des qualifies (chaque etape repart a zero)
+  const idsQualifies = qualifies.map((p: any) => p.id);
+  await supabase.from('bracket_participants').update({ score: 0 }).in('id', idsQualifies);
+
+  // Cloturer le round courant, activer le suivant
+  const nextRound = currentRound + 1;
+  await supabase.from('bracket_rounds').update({ status: 'done', ended_at: now }).eq('bracket_id', bracketId).eq('round', currentRound);
+  await supabase.from('bracket_rounds').update({ status: 'in_progress', started_at: now }).eq('bracket_id', bracketId).eq('round', nextRound);
+  await supabase.from('brackets').update({ current_round: nextRound }).eq('id', bracketId);
+
+  // Notifier les qualifies
+  const labels = ['', 'Huitieme', 'Quart', 'Demi', 'Finale'];
+  for (const p of qualifies) {
+    await supabase.from('notifications').insert({
+      user_id: p.user_id,
+      type: 'challenge',
+      title: `Qualifie pour le ${labels[nextRound]} !`,
+      message: `Felicitations, tu passes au tour suivant. Nouvelle etape, les scores repartent a zero !`,
+      read: false,
+      created_at: now,
+    });
+  }
+
+  console.log(`[CLOSE] Bracket ${bracketId} round ${currentRound} -> ${nextRound} : ${keep} qualifies, ${idsElimines.length} elimines`);
 }
 
 // ── 9. Ajouter les votes à la cagnotte ─────────────────────────────
