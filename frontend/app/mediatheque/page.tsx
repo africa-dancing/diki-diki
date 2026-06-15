@@ -76,7 +76,7 @@ export default function MediathequePage() {
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>{m.artiste}{m.album ? ` - ${m.album}` : ''}</div>
               <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                 {m.danse && <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: 'rgba(255,170,0,0.15)', color: OR, fontWeight: 700 }}>{m.danse}</span>}
-                {m.pays_origine && <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)' }}>{m.pays_origine}</span>}
+                {m.pays_origine && <img src={`https://flagcdn.com/${m.pays_origine.toLowerCase()}.svg`} alt={m.pays_origine} title={m.pays_origine} style={{ width: 18, height: 'auto', borderRadius: 3, objectFit: 'cover', verticalAlign: 'middle' }} />}
               </div>
             </div>
             {m.duree_sec ? <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>{fmtDuree(m.duree_sec)}</div> : null}
