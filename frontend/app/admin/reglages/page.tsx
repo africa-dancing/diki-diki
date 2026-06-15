@@ -11,8 +11,9 @@ interface Reglage { key: string; value: string; description: string; }
 
 const GROUPES: { titre: string; cles: string[] }[] = [
   { titre: '💰 Votes & cagnotte', cles: ['bracket_vote_amount'] },
-  { titre: '🏆 Répartition', cles: ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct'] },
+  { titre: '🏆 Répartition', cles: ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct', 'bracket_troisieme_pct'] },
   { titre: '🎯 Objectifs par étape', cles: ['bracket_obj_huitieme', 'bracket_obj_quart', 'bracket_obj_demi', 'bracket_obj_finale'] },
+  { titre: '\u{1F94A} Objectifs DUO', cles: ['duo_obj_1', 'duo_obj_2', 'duo_obj_3'] },
   { titre: '⏱️ Délais', cles: ['bracket_egalite_jours', 'bracket_soumission_jours', 'bracket_relance_jours'] },
 ];
 
