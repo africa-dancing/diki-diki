@@ -314,14 +314,16 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
     const { data: p } = await supabase.from('bracket_participants').select('user_id').eq('id', participantId).single();
     if (!p) return;
     await supabase.rpc('credit_wallet', { p_user_id: p.user_id, p_amount: gain });
-    await supabase.from('transactions').insert({
+    const { error: txErr } = await supabase.from('transactions').insert({
       user_id: p.user_id,
       type: 'bracket_win',
       amount: gain,
-      status: 'completed',
+      net_amount: gain,
+      status: 'success',
       metadata: { bracket_id: bracketId, rang, total_cagnotte: totalCag },
       created_at: new Date().toISOString(),
     });
+    if (txErr) console.error('🔴 [DISTRIB] Echec trace transaction pour', p.user_id, ':', txErr.message);
     await supabase.from('notifications').insert({
       user_id: p.user_id,
       type: 'win',
