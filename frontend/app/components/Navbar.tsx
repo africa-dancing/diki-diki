@@ -153,6 +153,7 @@ export default function Navbar() {
             {[
               { href: '/home',          label: 'Accueil' },
               { href: '/challenges',    label: 'Challenges' },
+              { href: '/mediatheque',   label: 'M\u00e9diath\u00e8que' },
               { href: '/education',     label: 'Education & Savoirs' },
               { href: '/faq',           label: 'Comment ça marche' },
               { href: '/auth/register', label: "S'inscrire", hide: !!token },
