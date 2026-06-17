@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import LogoDikiDiki from '../../components/LogoDikiDiki';
 
 // ── TickerBand inline ─────────────────────────────────────────────
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
@@ -140,6 +141,16 @@ function NumKeypad({ value, onChange, max }: { value: number; onChange: (v: numb
   );
 }
 
+/*DKDK_COMPACT*/
+/*DKDK_ALIGN*/
+/*DKDK_LISIBLE*/
+/*DKDK_COULEURS*/
+/*DKDK_CARTES*/
+/*DKDK_STYLE5*/
+/*DKDK_STYLE4B*/
+/*DKDK_CARTE_PANNEAU*/
+/*DKDK_LABELS*/
+/*DKDK_LABELS_BLANC*/
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 
 interface Video {
@@ -204,7 +215,7 @@ function OverlayBtn({ children, label, onClick, active = false, activeColor = 'r
           <div style={{ position: 'absolute', bottom: -2, right: -2, width: 14, height: 14, borderRadius: '50%', background: 'rgba(255,80,80,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8 }}>🔒</div>
         )}
       </div>
-      <span style={{ fontSize: 9, color: locked ? 'rgba(255,80,80,0.5)' : 'rgba(255,255,255,0.65)', textAlign: 'center' as const, fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap' as const }}>{label}</span>
+      <span style={{ fontSize: 11, color: locked ? 'rgba(255,80,80,0.5)' : '#fff', textAlign: 'center' as const, fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap' as const }}>{label}</span>
     </div>
   );
 }
@@ -238,6 +249,9 @@ export default function WatchPage() {
   const [comments, setComments]             = useState<Comment[]>([]);
   const [loading, setLoading]               = useState(true);
   const [error, setError]                   = useState<string | null>(null);
+  // ── Donnees bracket (chantier #1 : pool au score + cagnotte) ──
+  const [bracketData, setBracketData] = useState<any>(null);
+  const [poolLoading, setPoolLoading] = useState(true);
 
   // ── Compte Soutenir (unités) ──
   const [wallet, setWallet]                 = useState<number | null>(null); // en F CFA
@@ -286,6 +300,19 @@ export default function WatchPage() {
   const textareaRef   = useRef<HTMLTextAreaElement>(null);
 
   const isLoggedIn = () => !!getToken();
+
+  // DKDK_BODY_NOSCROLL : pas de scrollbar sur watch (retabli en quittant)
+  useEffect(() => {
+    const prevHtml = document.documentElement.style.overflow;
+    const prevBody = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.documentElement.style.overflow = prevHtml;
+      document.body.style.overflow = prevBody;
+    };
+  }, []);
+
 
   const requireLogin = (msg: string) => {
     setLoginPopupMsg(msg);
@@ -390,6 +417,23 @@ export default function WatchPage() {
   }, []);
 
   useEffect(() => { fetchVideo(); }, [fetchVideo]);
+  // Recupere bracket + round + pool trie par score, via la video courante
+  useEffect(() => {
+    let alive = true;
+    setPoolLoading(true);
+    fetch(`${API}/brackets/by-video/${id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(res => {
+        if (!alive) return;
+        const data = res && res.success ? res.data : null;
+        setBracketData(data);
+        console.log("[DKDK by-video] ->", data);
+      })
+      .catch(() => { if (alive) setBracketData(null); })
+      .finally(() => { if (alive) setPoolLoading(false); });
+    return () => { alive = false; };
+  }, [id]);
+
   useEffect(() => { if (video) { fetchCandidates(); fetchOtherCandidates(); fetchComments(id); } }, [video, fetchCandidates, fetchOtherCandidates, fetchComments, id]);
 
   const goTo = (index: number) => {
@@ -575,12 +619,7 @@ export default function WatchPage() {
       {/* ── TOPBAR ── */}
       <div style={{ ...s.fixedHeader, height: HEADER_H }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '1.25rem', display: 'flex', alignItems: 'center' }}>
-            <span style={{ color: '#FFAA00' }}>Diki</span>
-            <span style={{ color: '#fff', margin: '0 3px', fontWeight: 900 }}>-</span>
-            <span style={{ color: '#FFAA00' }}>Diki</span>
-          </span>
-          <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#fff', border: '1px solid #fff', borderRadius: 3, padding: '1px 4px', letterSpacing: '0.08em' }}>VISION</span>
+          <LogoDikiDiki width={150} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <TranslateWidget />
@@ -667,7 +706,7 @@ export default function WatchPage() {
             <button onClick={handleSubscribe} style={{ width: 34, height: 34, borderRadius: '50%', background: subscribed ? 'rgba(255,170,0,0.2)' : 'rgba(15,15,25,0.9)', border: `1.5px solid ${subscribed ? '#FFAA00' : 'rgba(255,255,255,0.18)'}`, color: subscribed ? '#FFAA00' : '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <SubscribeIcon active={subscribed} />
             </button>
-            <span style={{ fontSize: 9, color: subscribed ? '#FFAA00' : 'rgba(255,255,255,0.65)', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 11, color: subscribed ? '#FFAA00' : '#fff', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap' }}>
               {subscribed ? 'Abonné' : "S'abonner"}
             </span>
           </div>
@@ -684,7 +723,7 @@ export default function WatchPage() {
                 <div style={{ position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: '#FFAA00', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 700, color: '#000', padding: '0 3px' }}>{myVotesOnVideo}</div>
               )}
             </div>
-            <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', fontFamily: 'DM Sans, sans-serif' }}>Voter</span>
+            <span style={{ fontSize: 11, color: '#fff', fontFamily: 'DM Sans, sans-serif' }}>Voter</span>
           </div>
         )}
 
@@ -703,7 +742,7 @@ export default function WatchPage() {
               <div style={{ position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: '#ff4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 700, color: '#fff', padding: '0 3px' }}>{likeCount}</div>
             )}
           </div>
-          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', fontFamily: 'DM Sans, sans-serif' }}>Liker</span>
+          <span style={{ fontSize: 11, color: '#fff', fontFamily: 'DM Sans, sans-serif' }}>Liker</span>
         </div>
 
         {/* COMMENTER */}
@@ -734,17 +773,66 @@ export default function WatchPage() {
 
       {/* ── PANEL DROIT : CLAVIERS NUMÉRIQUES ou INVITE VISITEUR ── */}
       <div
-        style={{ position: 'fixed', top: PLAYER_TOP, left: HERO_LEFT, right: 0, height: playerH, overflowY: 'hidden', zIndex: 49, padding: '8px 10px' }}
+        style={{ position: 'fixed', top: PLAYER_TOP, left: HERO_LEFT, right: 8, height: playerH, overflowY: 'hidden', zIndex: 49, padding: '8px 10px', display: 'flex', flexDirection: 'column', background: '#0a0a0f', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' }}
         onClick={e => e.stopPropagation()}
       >
         {loggedIn ? (
-          <>
-            {/* Solde Compte Soutenir */}
-            <div style={{ background: 'rgba(255,170,0,0.07)', border: '1px solid rgba(255,170,0,0.22)', borderRadius: 10, padding: '7px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+        <>
+            {/* DKDK_CAGNOTTE_BLOCK — chantier #1 : transparence cagnotte */}
+{bracketData && bracketData.bracket && (() => {
+  const b = bracketData.bracket;
+  const r = bracketData.active_round;
+  const ROUND_LABELS: Record<number,string> = {1:"Huitième de finale",2:"Quart de finale",3:"Demi-finale",4:"Finale"};
+  const ROUND_CUT: Record<number,string> = {1:"16 → 8",2:"8 → 4",3:"4 → 3",4:"2 → 1"};
+  const obj = r ? r.objectif_montant : 0;
+  const col = r ? r.montant_collecte : 0;
+  const pct = obj > 0 ? Math.min(100, Math.round(col / obj * 100)) : 0;
+  const total = b.total_cagnotte || 0;
+  const comm = b.commission_pct != null ? b.commission_pct : 0.5;
+  const net = Math.round(total * (1 - comm));
+  const fmt = (n: number) => n.toLocaleString("fr-FR");
+  return (
+    <div style={{ background:"linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))", borderRadius:12, padding:"8px 11px", marginBottom:7, boxShadow:"0 4px 14px rgba(237,7,15,0.18)" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:9 }}>
+        <div>
+          <div style={{ fontSize:8, fontWeight:800, letterSpacing:".12em", color:"#fff" }}>ÉTAPE EN COURS</div>
+          <div style={{ fontFamily:"Syne, sans-serif", fontSize:15, fontWeight:800, color:"#fff" }}>{ROUND_LABELS[b.current_round] ?? ("Tour " + b.current_round)}</div>
+        </div>
+        <div style={{ textAlign:"right" }}>
+          <div style={{ fontSize:10, color:"#fff" }}>{ROUND_CUT[b.current_round] ?? ""} candidats</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"#FFD700" }}>⏱ se clôt à l’objectif</div>
+        </div>
+      </div>
+      <div style={{ fontSize:11, color:"#fff", display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+        <span>Objectif de l’étape</span>
+        <span><b style={{ color:"#fff" }}>{fmt(col)}</b> / {fmt(obj)} F</span>
+      </div>
+      <div style={{ height:10, borderRadius:6, background:"rgba(0,0,0,0.28)", overflow:"hidden" }}>
+        <div style={{ height:"100%", width:pct + "%", background:"linear-gradient(90deg,#FFAA00,#FFD700)", borderRadius:6, transition:"width .5s" }} />
+      </div>
+      <div style={{ textAlign:"right", fontSize:11, fontWeight:800, color:"#FFD700", marginTop:3 }}>{pct} %</div>
+      <div style={{ display:"flex", gap:7, marginTop:10 }}>
+        <div style={{ flex:1, background:"rgba(0,0,0,0.45)", borderRadius:9, padding:"8px 9px" }}>
+          <div style={{ fontSize:10, color:"#fff" }}>🏆 Cagnotte des prix</div>
+          <div style={{ fontFamily:"Syne, sans-serif", fontSize:16, fontWeight:800, color:"#fff", lineHeight:1.1 }}>{fmt(total)} F</div>
+        </div>
+        <div style={{ flex:1, background:"rgba(0,0,0,0.45)", borderRadius:9, padding:"8px 9px" }}>
+          <div style={{ fontSize:10, color:"#fff" }}>À partager (net)</div>
+          <div style={{ fontFamily:"Syne, sans-serif", fontSize:16, fontWeight:800, color:"#4ade80", lineHeight:1.1 }}>{fmt(net)} F</div>
+          <div style={{ fontSize:10, color:"#fff" }}>après commission {Math.round(comm*100)} %</div>
+        </div>
+      </div>
+      <div style={{ fontSize:10, color:"#fff", marginTop:6, textAlign:"center" }}>Champion 60 % · 2ᵉ 25 % · 3ᵉ 15 %</div>
+    </div>
+  );
+})()}
+
+              {/* Solde Compte Soutenir */}
+            <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))', border: '1px solid rgba(255,170,0,0.22)', borderRadius: 9, padding: '5px 11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <div>
                 <div style={{ fontSize: 8, color: 'rgba(255,170,0,0.7)', fontWeight: 700, letterSpacing: '.08em', marginBottom: 1 }}>COMPTE SOUTENIR</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#FFAA00', fontFamily: 'Syne, sans-serif' }}>{soutenirUnits} unités</div>
-                <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.3)' }}>1 unité = 10 F CFA</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#FFAA00', fontFamily: 'Syne, sans-serif' }}>{soutenirUnits} unités</div>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.8)' }}>1 unité = 10 F CFA</div>
               </div>
               <span style={{ fontSize: 18 }}>🏅</span>
             </div>
@@ -754,18 +842,18 @@ export default function WatchPage() {
             {voteSuccess && <div style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: 8, padding: '8px 12px', fontSize: 11, color: '#4ade80', marginBottom: 8 }}>⭐ {starsQty} étoile{starsQty > 1 ? 's' : ''} envoyée{starsQty > 1 ? 's' : ''} !</div>}
 
             {/* Clavier unique — onglets ⭐ / ❤️ */}
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '8px 10px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '6px 8px' }}>
 
               {/* Onglets */}
-              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
                 {[
-                  { key: 'stars',  icon: '⭐', label: 'Voter',  color: '#FFAA00', bg: 'rgba(255,170,0,0.12)',  border: 'rgba(255,170,0,0.4)'  },
-                  { key: 'hearts', icon: '❤️', label: 'Liker',  color: '#ff6b6b', bg: 'rgba(255,80,80,0.12)',  border: 'rgba(255,80,80,0.4)'  },
+                  { key: 'stars',  icon: <span style={{ color: '#FF0000', fontSize: 17 }}>★</span>, label: 'Voter',  color: '#fff', bg: 'linear-gradient(135deg,#FF6B00,#FFAA00)',  border: 'rgba(255,170,0,0.5)'  },
+                  { key: 'hearts', icon: <span style={{ color: '#FF1493', fontSize: 17 }}>♥</span>, label: 'Liker',  color: '#fff', bg: 'linear-gradient(135deg,#FF6B00,#FFAA00)',  border: 'rgba(255,80,80,0.5)'  },
                 ].map(tab => {
                   const active = activeTab === tab.key;
                   return (
                     <button key={tab.key} onClick={() => setActiveTab(tab.key as 'stars'|'hearts')}
-                      style={{ flex: 1, padding: '6px 4px', borderRadius: 8, border: `1px solid ${active ? tab.border : 'rgba(255,255,255,0.08)'}`, background: active ? tab.bg : 'transparent', color: active ? tab.color : 'rgba(255,255,255,0.35)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                      style={{ flex: 1, padding: '6px 4px', borderRadius: 8, border: `1px solid ${active ? tab.border : 'rgba(255,255,255,0.08)'}`, background: active ? tab.bg : 'transparent', color: active ? tab.color : '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                       {tab.icon} {tab.label}
                     </button>
                   );
@@ -782,19 +870,19 @@ export default function WatchPage() {
                 const border  = isStar ? 'rgba(255,170,0,0.2)'   : 'rgba(255,80,80,0.2)';
                 const loading = isStar ? voteLoading : likeLoading;
                 const overBal = qty > soutenirUnits;
-                const btnBg   = overBal ? 'rgba(255,255,255,0.05)' : (isStar ? '#FAEEDA' : '#FCEBEB');
-                const btnCol  = overBal ? 'rgba(255,255,255,0.3)'  : (isStar ? '#633806' : '#791F1F');
+                const btnBg   = overBal ? 'rgba(255,255,255,0.14)' : (isStar ? '#FAEEDA' : 'linear-gradient(135deg,rgba(126,3,128,0.85),rgb(237,7,15))');
+                const btnCol  = overBal ? 'rgba(255,255,255,0.75)' : (isStar ? '#633806' : '#ffffff');
                 const onSend  = isStar ? handleSendStars : handleSendHearts;
                 return (
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
                       <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 26, height: 26, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 15, color: '#f0f0f0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
-                      <div style={{ flex: 1, textAlign: 'center', fontSize: 20, fontWeight: 800, color, fontFamily: 'Syne, sans-serif', background: bgVal, border: `1px solid ${border}`, borderRadius: 7, padding: '3px 0' }}>{qty}</div>
+                      <div style={{ flex: 1, textAlign: 'center', fontSize: 20, fontWeight: 800, color, fontFamily: 'Syne, sans-serif', background: 'linear-gradient(135deg,#1a1a1a,#000)', border: `1px solid ${border}`, borderRadius: 7, padding: '3px 0' }}>{qty}</div>
                       <button onClick={() => setQty(q => Math.min(soutenirUnits, q + 1))} style={{ width: 26, height: 26, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 15, color: '#f0f0f0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
                     </div>
 
                     {/* Pavé */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 4, marginBottom: 6 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 3, marginBottom: 5 }}>
                       {['1','2','3','4','5','6','7','8','9','0','⌫'].map(k => (
                         <button key={k} onClick={() => {
                           if (k === '⌫') {
@@ -806,20 +894,20 @@ export default function WatchPage() {
                             if (!isNaN(n) && n > 0) setQty(Math.min(n, soutenirUnits || 9999));
                           }
                         }}
-                          style={{ gridColumn: k === '0' ? '1/3' : 'auto', padding: '7px 4px', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 7, background: 'rgba(255,255,255,0.05)', fontSize: 14, fontWeight: 500, color: k === '⌫' ? '#f87171' : '#f0f0f0', cursor: 'pointer', textAlign: 'center', fontFamily: 'DM Sans, sans-serif' }}>
+                          style={{ gridColumn: k === '0' ? '1/3' : 'auto', padding: '4px 2px', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 6, background: 'rgba(255,255,255,0.05)', fontSize: 13, fontWeight: 500, color: k === '⌫' ? '#f87171' : '#f0f0f0', cursor: 'pointer', textAlign: 'center', fontFamily: 'DM Sans, sans-serif' }}>
                           {k}
                         </button>
                       ))}
                     </div>
 
                     {/* Récap + Bouton */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,0.8)', marginBottom: 6 }}>
                       <span>{qty} unité{qty > 1 ? 's' : ''} · {qty * 100} F</span>
                       <span>Reste : {Math.max(0, soutenirUnits - qty)}</span>
                     </div>
                     <button onClick={onSend} disabled={loading || overBal || qty < 1}
-                      style={{ width: '100%', padding: '8px', background: btnBg, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, color: btnCol, cursor: overBal ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-                      {loading ? '⏳…' : `${isStar ? '⭐' : '❤️'} Envoyer ${qty} ${isStar ? `étoile${qty > 1 ? 's' : ''}` : `cœur${qty > 1 ? 's' : ''}`}`}
+                      style={{ width: '100%', padding: '7px', background: btnBg, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, marginTop: 'auto', color: btnCol, cursor: overBal ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+                      {loading ? '⏳…' : (<><span style={{ color: isStar ? '#FF0000' : '#FF1493', fontSize: 18, marginRight: 4 }}>{isStar ? '★' : '♥'}</span>{`Envoyer ${qty} ${isStar ? `étoile${qty > 1 ? 's' : ''}` : `cœur${qty > 1 ? 's' : ''}`}`}</>)}
                     </button>
                   </>
                 );
@@ -911,16 +999,25 @@ export default function WatchPage() {
             }}
           >
             <span style={{ fontSize: 14, flexShrink: 0, marginRight: 4 }}>🏆</span>
-            {(otherCandidates.length > 0 ? [...otherCandidates, ...otherCandidates, ...otherCandidates] : []).map((c, i) => (
-              <button key={`${c.id}-${i}`} style={s.candidateCard} onClick={() => c.video_id && router.push(`/watch/${c.video_id}`)}>
-                <div style={s.candidateAvatar}>{(c.stage_name ?? c.name ?? '?')[0].toUpperCase()}</div>
-                <div>
-                  <div style={s.candidateName}>{c.stage_name ?? c.name ?? 'Candidat'}</div>
-                  <div style={s.candidateNum}>{c.discipline ?? ''} · #{pad(c.position ?? i + 1)}</div>
-                </div>
-              </button>
-            ))}
-            {otherCandidates.length === 0 && <span style={{ color: 'rgba(255,154,0,0.5)', fontSize: 12, fontStyle: 'italic', fontFamily: 'DM Sans, sans-serif' }}>Autres compétitions à venir</span>}
+            {/* DKDK_CLASSEMENT — bande rayee = classement du bracket, trie par score */}
+            {(bracketData?.pool ?? []).map((c: any, i: number) => {
+              const isCurrent = c.participant_id === bracketData?.current_participant_id;
+              const rank = i + 1;
+              const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : ('#' + rank);
+              const initial = (c.name ?? '?')[0].toUpperCase();
+              return (
+                <button key={c.participant_id} style={{ ...s.candidateCard, border: isCurrent ? '1px solid #FFAA00' : s.candidateCard.border, background: isCurrent ? 'rgba(255,170,0,0.18)' : s.candidateCard.background }}
+                  onClick={() => c.video_id && router.push(`/watch/${c.video_id}`)}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: '#FFD700', minWidth: 18, textAlign: 'center' }}>{medal}</span>
+                  <div style={s.candidateAvatar}>{initial}</div>
+                  <div>
+                    <div style={s.candidateName}>{c.name ?? 'Candidat'}{isCurrent ? ' • en lecture' : ''}</div>
+                    <div style={s.candidateNum}>⭐ {(c.score ?? 0).toLocaleString('fr-FR')}{c.eliminated_at ? ' · éliminé' : ''}</div>
+                  </div>
+                </button>
+              );
+            })}
+            {(!bracketData?.pool || bracketData.pool.length === 0) && <span style={{ color: 'rgba(255,154,0,0.5)', fontSize: 12, fontStyle: 'italic', fontFamily: 'DM Sans, sans-serif' }}>Autres compétitions à venir</span>}
           </div>
         </div>
 
@@ -962,7 +1059,7 @@ export default function WatchPage() {
 }
 
 const s: Record<string, React.CSSProperties> = {
-  page: { minHeight: '100vh', background: '#0a0a0f', color: '#f0f0f0', fontFamily: 'DM Sans, sans-serif', position: 'relative', overflowX: 'hidden' },
+  page: { minHeight: '100vh', background: '#ffffff', color: '#f0f0f0', /*DKDK_NOSCROLL*/ fontFamily: 'DM Sans, sans-serif', position: 'relative', overflow: 'hidden', height: '100vh' },
   fixedHeader: { position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(8,8,15,0.95)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,170,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', zIndex: 100 },
   logoInline: { display: 'inline-flex', alignItems: 'center' },
   logoDiki: { color: '#FFAA00', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20 },

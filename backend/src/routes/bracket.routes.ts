@@ -167,4 +167,89 @@ bracketRouter.post('/:bracket_id/vote', async (req: Request, res: Response) => {
   }
 });
 
+
+// ===== ROUTES POOL (chantier #1 : classement au score, sans duel) =====
+
+// Resout video -> participant -> bracket, et renvoie le pool trie par score
+bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
+  try {
+    const supabase = getSupabase();
+    const { data: parts, error: partErr } = await supabase
+      .from('bracket_participants')
+      .select('id, bracket_id, score, eliminated_at, video_id, user_id')
+      .eq('video_id', req.params.videoId)
+      .limit(1);
+    if (partErr) throw partErr;
+    const part = (parts && parts[0]) || null;
+    if (!part || !part.bracket_id) {
+      return res.json({ success: true, data: null });
+    }
+    const bracketId = part.bracket_id;
+
+    const { data: bracket, error: bErr } = await supabase
+      .from('brackets')
+      .select('id, title, discipline, status, current_round, total_cagnotte, commission_pct')
+      .eq('id', bracketId)
+      .single();
+    if (bErr) throw bErr;
+
+    const { data: rounds, error: rErr } = await supabase
+      .from('bracket_rounds')
+      .select('round, objectif_montant, montant_collecte, status')
+      .eq('bracket_id', bracketId)
+      .eq('status', 'active')
+      .order('round', { ascending: false })
+      .limit(1);
+    if (rErr) throw rErr;
+    const activeRound = (rounds && rounds[0]) || null;
+
+    const { data: pool, error: poolErr } = await supabase
+      .from('bracket_participants')
+      .select('id, score, eliminated_at, video_id, user_id, users(name, avatar_url)')
+      .eq('bracket_id', bracketId)
+      .order('score', { ascending: false });
+    if (poolErr) throw poolErr;
+
+    return res.json({
+      success: true,
+      data: {
+        current_participant_id: part.id,
+        bracket,
+        active_round: activeRound,
+        pool: (pool || []).map((p: any) => ({
+          participant_id: p.id,
+          score: p.score,
+          eliminated_at: p.eliminated_at,
+          video_id: p.video_id,
+          user_id: p.user_id,
+          name: p.users ? p.users.name : null,
+          avatar_url: p.users ? p.users.avatar_url : null,
+        })),
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Vote pool (plusieurs etoiles possibles) -> RPC vote_bracket_pool
+bracketRouter.post('/arena/vote-pool', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { participant_id, qty } = req.body;
+    if (!participant_id)
+      return res.status(400).json({ success: false, error: 'Champ participant_id manquant.' });
+    const q = parseInt(qty, 10);
+    const { data, error } = await getSupabase().rpc('vote_bracket_pool', {
+      p_user_id: req.user!.userId,
+      p_participant_id: participant_id,
+      p_qty: Number.isFinite(q) && q > 0 ? q : 1,
+    });
+    if (error) throw error;
+    if (!data.success) return res.status(400).json(data);
+    res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 export default bracketRouter;
