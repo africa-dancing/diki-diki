@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import LogoDikiDiki from '../../components/LogoDikiDiki';
 
 // ── TickerBand inline ─────────────────────────────────────────────
@@ -580,7 +581,7 @@ export default function WatchPage() {
   const closeAll = () => { setShowShareMenu(false); setShowEmojiPicker(false); };
 
   const playerH      = `calc(100vh - ${PLAYER_TOP}px - ${FOOTER_H}px - 16px)`;
-  const playerLeft   = expanded ? '0px' : '50%';
+  const playerLeft   = expanded ? '8px' : `calc((50% + ${PLAYER_MAX_W / 2 + BTN_COL_W / 2 + 4}px) / 2)`;
   const playerTransf = expanded ? 'none' : 'translateX(-50%)';
   const playerW      = expanded ? BTN_COL_LEFT : '100%';
   const playerMaxW   = expanded ? 'none' : `${PLAYER_MAX_W}px`;
@@ -619,7 +620,7 @@ export default function WatchPage() {
       {/* ── TOPBAR ── */}
       <div style={{ ...s.fixedHeader, height: HEADER_H }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <LogoDikiDiki width={150} />
+          <Link href="/home" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}><LogoDikiDiki width={130} /></Link>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <TranslateWidget />
@@ -1060,24 +1061,24 @@ export default function WatchPage() {
 
 const s: Record<string, React.CSSProperties> = {
   page: { minHeight: '100vh', background: '#ffffff', color: '#f0f0f0', /*DKDK_NOSCROLL*/ fontFamily: 'DM Sans, sans-serif', position: 'relative', overflow: 'hidden', height: '100vh' },
-  fixedHeader: { position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(8,8,15,0.95)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,170,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', zIndex: 100 },
+  fixedHeader: { position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(8,8,15,0.95)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,170,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px 0 0', zIndex: 100 },
   logoInline: { display: 'inline-flex', alignItems: 'center' },
   logoDiki: { color: '#FFAA00', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20 },
   logoDash: { color: '#fff', fontFamily: 'Syne, sans-serif', fontWeight: 300, fontSize: 20, margin: '0 2px' },
   scrollContent: { paddingTop: 8, paddingLeft: 16, paddingRight: 16 },
   video: { width: '100%', height: '100%', objectFit: 'contain', display: 'block' },
   videoOverlay: { position: 'absolute', bottom: 36, left: 0, right: 0, padding: '36px 12px 10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', pointerEvents: 'none' },
-  disciplineBadge: { display: 'inline-block', background: 'rgba(255,154,0,0.25)', border: '1px solid rgba(255,154,0,0.4)', color: '#FF9A00', borderRadius: 20, padding: '2px 8px', fontSize: 10, marginBottom: 3 },
+  disciplineBadge: { display: 'inline-block', background: 'linear-gradient(135deg,rgba(126,3,128,0.85),rgb(237,7,15))', border: '1px solid rgba(237,7,15,0.5)', color: '#fff', borderRadius: 20, padding: '2px 8px', fontSize: 10, marginBottom: 3 },
   overlayTitle: { margin: '0 0 2px', fontSize: 13, fontWeight: 700, fontFamily: 'Syne, sans-serif', color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.8)' },
   overlayTrack: { margin: '0 0 2px', fontSize: 11, color: '#ddd', fontStyle: 'italic' },
   overlayMeta: { margin: 0, fontSize: 10, color: '#aaa' },
   progressOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 10px 7px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', transition: 'opacity 0.3s' },
   progressRow: { display: 'flex', alignItems: 'center', gap: 5 },
   timeText: { color: '#ddd', fontSize: 9, minWidth: 24, fontVariantNumeric: 'tabular-nums' },
-  progressBar: { flex: 1, height: 2, cursor: 'pointer', accentColor: '#FF9A00' },
+  progressBar: { flex: 1, height: 2, cursor: 'pointer', accentColor: '#FF0000' },
   ctrlBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 3, display: 'flex', alignItems: 'center', minWidth: 22, justifyContent: 'center' },
   playOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' },
-  playBubble: { width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,154,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  /*DKDK_BADGE_PLAY*/ playBubble: { width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,rgba(126,3,128,0.85),rgb(237,7,15))', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   shareMenu: { position: 'absolute', left: 50, bottom: 0, background: '#1a1a1a', border: '1px solid rgba(255,154,0,0.25)', borderRadius: 12, padding: '6px', zIndex: 200, minWidth: 155 },
   shareMenuItem: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 12px', background: 'none', border: 'none', color: '#f0f0f0', fontSize: 13, fontFamily: 'DM Sans, sans-serif', cursor: 'pointer', borderRadius: 8, textAlign: 'left' as const },
   toast: { margin: '8px 0', background: 'rgba(40,200,100,0.14)', border: '1px solid rgba(40,200,100,0.3)', color: '#4ade80', borderRadius: 10, padding: '8px 14px', fontSize: 12 },
