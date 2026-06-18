@@ -262,6 +262,9 @@ export default function WatchPage() {
   // ── Claviers étoiles / cœurs ──
   const [starsQty, setStarsQty]             = useState(1);
   const [heartsQty, setHeartsQty]           = useState(1);
+  // Montants pilotés depuis la page Réglages (table settings)
+  const [voteAmount, setVoteAmount]   = useState(100); // prix étoile = valeur d'1 unité (F CFA)
+  const [heartAmount, setHeartAmount] = useState(200); // prix cœur (F CFA)
   const [activeTab, setActiveTab]           = useState<'stars'|'hearts'>('stars');
 
   const [myVotesOnVideo, setMyVotesOnVideo] = useState(0);  // nb étoiles envoyées
@@ -315,6 +318,19 @@ export default function WatchPage() {
       if (scrollTimer.current) clearInterval(scrollTimer.current);
     };
   }, [bracketData]);
+  // Charge les montants depuis la table settings (pilotés par /admin/reglages)
+  useEffect(() => {
+    fetch(`${API}/settings`)
+      .then(r => r.json())
+      .then(res => {
+        const rows = res?.data || [];
+        const vote  = rows.find((s: any) => s.key === 'bracket_vote_amount');
+        const heart = rows.find((s: any) => s.key === 'bracket_heart_amount');
+        if (vote?.value)  setVoteAmount(Number(vote.value));
+        if (heart?.value) setHeartAmount(Number(heart.value));
+      })
+      .catch(() => { /* garde les valeurs par défaut */ });
+  }, []);
 
   const textareaRef   = useRef<HTMLTextAreaElement>(null);
 
@@ -362,7 +378,7 @@ export default function WatchPage() {
         if (d) {
           const bal = d.wallet ?? d.balance ?? 0;
           setWallet(bal);
-          setSoutenirUnits(Math.floor(bal / 100));
+          setSoutenirUnits(Math.floor(bal / voteAmount));
           setVoteCount(d.votes_count ?? d.voteCount ?? null);
         }
       })
@@ -610,7 +626,7 @@ export default function WatchPage() {
   const fmtTime = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
   const closeAll = () => { setShowShareMenu(false); setShowEmojiPicker(false); };
 
-  const playerH      = `calc(100vh - ${PLAYER_TOP}px - ${FOOTER_H}px - 16px)`;
+  const playerH      = `calc(100vh - ${PLAYER_TOP}px - ${FOOTER_H}px - 5px)`;
   const playerLeft   = expanded ? '8px' : `calc((50% + ${PLAYER_MAX_W / 2 + BTN_COL_W / 2 + 4}px) / 2)`;
   const playerTransf = expanded ? 'none' : 'translateX(-50%)';
   const playerW      = expanded ? BTN_COL_LEFT : '100%';
@@ -858,12 +874,13 @@ export default function WatchPage() {
   );
 })()}
 
-              {/* Solde Compte Soutenir */}
-            <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))', border: '1px solid rgba(255,170,0,0.22)', borderRadius: 9, padding: '5px 11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              {/* Mon Solde */}
+            <div style={{ background: '#13131a', border: '1px solid rgba(255,170,0,0.22)', borderRadius: 9, padding: '5px 11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <div>
-                <div style={{ fontSize: 8, color: 'rgba(255,170,0,0.7)', fontWeight: 700, letterSpacing: '.08em', marginBottom: 1 }}>COMPTE SOUTENIR</div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#FFAA00', fontFamily: 'Syne, sans-serif' }}>{soutenirUnits} unités</div>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.8)' }}>1 unité = 10 F CFA</div>
+                <div style={{ fontSize: 13, color: 'rgb(252, 219, 32)', fontWeight: 700, letterSpacing: '.08em', marginBottom: 2 }}>MON SOLDE</div>
+                <div style={{ fontSize: 11, color: '#fff', display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 1 }}><span>Crédit disponible :</span><b style={{ color: '#FFAA00', fontFamily: 'Syne, sans-serif' }}>{wallet ?? 0} F CFA</b></div>
+                <div style={{ fontSize: 11, color: '#fff', display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 1 }}><span>Disponible en ★ :</span><b style={{ color: '#FF0000' }}>{Math.floor((wallet ?? 0) / voteAmount)} étoile{Math.floor((wallet ?? 0) / voteAmount) > 1 ? 's' : ''}</b></div>
+                <div style={{ fontSize: 11, color: '#fff', display: 'flex', justifyContent: 'space-between', gap: 10 }}><span>Disponible en ♥ :</span><b style={{ color: '#FF1493' }}>{Math.floor((wallet ?? 0) / heartAmount)} cœur{Math.floor((wallet ?? 0) / heartAmount) > 1 ? 's' : ''}</b></div>
               </div>
               <span style={{ fontSize: 18 }}>🏅</span>
             </div>
@@ -1146,7 +1163,7 @@ function MuteIcon()    { return <svg width={13} height={13} viewBox="0 0 24 24" 
 function FsIcon()      { return <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>; }
 function ExitFsIcon()  { return <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#FFAA00" strokeWidth={2.5}><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" /></svg>; }
 function LikeIcon({ liked }: { liked: boolean }) { return <svg width={20} height={20} viewBox="0 0 24 24" fill={liked ? '#ff6b6b' : 'none'} stroke={liked ? '#ff6b6b' : '#fff'} strokeWidth={2}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>; }
-function VoteIcon({ active }: { active: boolean }) { return <svg width={20} height={20} viewBox="0 0 24 24" fill={active ? '#FFAA00' : 'none'} stroke={active ? '#FFAA00' : '#fff'} strokeWidth={2}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>; }
+function VoteIcon({ active }: { active: boolean }) { return <svg width={20} height={20} viewBox="0 0 24 24" fill={active ? '#FF0000' : 'none'} stroke={active ? '#FF0000' : '#fff'} strokeWidth={2}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>; }
 function SubscribeIcon({ active }: { active: boolean }) { return <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={active ? '#FFAA00' : '#fff'} strokeWidth={2} strokeLinecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>; }
 function RemixIcon()   { return <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round"><polyline points="17 1 21 5 17 9" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><polyline points="7 23 3 19 7 15" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg>; }
 function ShareIcon()   { return <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>; }
