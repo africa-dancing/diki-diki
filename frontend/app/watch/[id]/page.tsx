@@ -298,6 +298,24 @@ export default function WatchPage() {
   const bandRef       = useRef<HTMLDivElement>(null);
   const controlsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollTimer   = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // DKDK_AUTOSCROLL : defilement auto permanent de la bande (pause au survol via onMouseEnter)
+  useEffect(() => {
+    const start = () => {
+      if (scrollTimer.current) clearInterval(scrollTimer.current);
+      scrollTimer.current = setInterval(() => {
+        const b = bandRef.current; if (!b) return;
+        if (b.scrollLeft >= b.scrollWidth - b.clientWidth - 2) b.scrollLeft = 0;
+        else b.scrollLeft += 1.2;
+      }, 20);
+    };
+    const t = setTimeout(start, 600);
+    return () => {
+      clearTimeout(t);
+      if (scrollTimer.current) clearInterval(scrollTimer.current);
+    };
+  }, [bracketData]);
+
   const textareaRef   = useRef<HTMLTextAreaElement>(null);
 
   const isLoggedIn = () => !!getToken();
@@ -435,6 +453,16 @@ export default function WatchPage() {
     return () => { alive = false; };
   }, [id]);
 
+  // DKDK_C2_VOTE : rafraichit le pool (scores/compteurs) apres un vote
+  const refreshPool = async () => {
+    try {
+      const r = await fetch(`${API}/brackets/by-video/${id}`);
+      if (!r.ok) return;
+      const res = await r.json();
+      if (res && res.success) setBracketData(res.data);
+    } catch {}
+  };
+
   useEffect(() => { if (video) { fetchCandidates(); fetchOtherCandidates(); fetchComments(id); } }, [video, fetchCandidates, fetchOtherCandidates, fetchComments, id]);
 
   const goTo = (index: number) => {
@@ -460,10 +488,10 @@ export default function WatchPage() {
     const vidId = currentVideo?.id ?? id;
     setVoteLoading(true);
     try {
-      const res = await fetch(`${API}/votes`, {
+      const res = await fetch(`${API}/brackets/arena/vote-pool`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ video_id: vidId, amount: starsQty * 100, type: 'star' }),
+        body: JSON.stringify({ participant_id: bracketData?.current_participant_id, qty: starsQty, type: 'star' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Erreur');
@@ -472,6 +500,7 @@ export default function WatchPage() {
       setWallet(w => w !== null ? w - starsQty * 100 : w);
       setVoteSuccess(true);
       setTimeout(() => setVoteSuccess(false), 1500);
+      refreshPool();
     } catch (e: unknown) {
       setVoteError((e as Error).message);
       setTimeout(() => setVoteError(null), 4000);
@@ -490,15 +519,16 @@ export default function WatchPage() {
     const vidId = currentVideo?.id ?? id;
     setLikeLoading(true);
     try {
-      await fetch(`${API}/votes`, {
+      await fetch(`${API}/brackets/arena/vote-pool`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ video_id: vidId, amount: heartsQty * 100, type: 'heart' }),
+        body: JSON.stringify({ participant_id: bracketData?.current_participant_id, qty: heartsQty, type: 'heart' }),
       });
       setLiked(true);
       setLikeCount(c => c + heartsQty);
-      setSoutenirUnits(u => u - heartsQty);
-      setWallet(w => w !== null ? w - heartsQty * 100 : w);
+      setSoutenirUnits(u => u - heartsQty * 2);
+      setWallet(w => w !== null ? w - heartsQty * 200 : w);
+      refreshPool();
     } catch {
       // rollback silencieux
     } finally { setLikeLoading(false); }
@@ -1000,24 +1030,34 @@ export default function WatchPage() {
             }}
           >
             <span style={{ fontSize: 14, flexShrink: 0, marginRight: 4 }}>🏆</span>
-            {/* DKDK_CLASSEMENT — bande rayee = classement du bracket, trie par score */}
-            {(bracketData?.pool ?? []).map((c: any, i: number) => {
-              const isCurrent = c.participant_id === bracketData?.current_participant_id;
-              const rank = i + 1;
-              const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : ('#' + rank);
-              const initial = (c.name ?? '?')[0].toUpperCase();
-              return (
-                <button key={c.participant_id} style={{ ...s.candidateCard, border: isCurrent ? '1px solid #FFAA00' : s.candidateCard.border, background: isCurrent ? 'rgba(255,170,0,0.18)' : s.candidateCard.background }}
-                  onClick={() => c.video_id && router.push(`/watch/${c.video_id}`)}>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: '#FFD700', minWidth: 18, textAlign: 'center' }}>{medal}</span>
-                  <div style={s.candidateAvatar}>{initial}</div>
-                  <div>
-                    <div style={s.candidateName}>{c.name ?? 'Candidat'}{isCurrent ? ' • en lecture' : ''}</div>
-                    <div style={s.candidateNum}>⭐ {(c.score ?? 0).toLocaleString('fr-FR')}{c.eliminated_at ? ' · éliminé' : ''}</div>
-                  </div>
-                </button>
-              );
-            })}
+            {/* DKDK_BANDE_EXCLURE — cartes verticales, sans le candidat en lecture */}
+            {(bracketData?.pool ?? [])
+              .filter((c: any) => c.participant_id !== bracketData?.current_participant_id)
+              .map((c: any, i: number) => {
+                const rank = i + 1;
+                const isPodium = rank <= 3;
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : ('#' + rank);
+                const rankBg = rank === 1 ? '#FFAA00' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#3a3a44';
+                const initial = (c.name ?? '?')[0].toUpperCase();
+                return (
+                  <button key={c.participant_id}
+                    style={{ ...s.candidateCard, border: rank === 1 ? '2px solid #FFAA00' : s.candidateCard.border, opacity: c.eliminated_at ? 0.5 : 1 }}
+                    onClick={() => c.video_id && router.push(`/watch/${c.video_id}`)}>
+                    <span style={{ position: 'absolute', top: 6, left: 6, width: 24, height: 24, borderRadius: '50%', background: rankBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isPodium ? 13 : 11, fontWeight: 800, color: '#0a0a0f' }}>{medal}</span>
+                    <div style={s.candidateAvatar}>
+                      {c.avatar_url ? <img src={c.avatar_url} alt='' style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : initial}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+                      <div style={s.candidateName}>{c.name ?? 'Candidat'}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700 }}>
+                        <span style={{ color: '#FF0000' }}>★ <span style={{ color: '#fff' }}>{c.stars_count ?? 0}</span></span>
+                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+                        <span style={{ color: '#FF1493' }}>♥ <span style={{ color: '#fff' }}>{c.hearts_count ?? 0}</span></span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             {(!bracketData?.pool || bracketData.pool.length === 0) && <span style={{ color: 'rgba(255,154,0,0.5)', fontSize: 12, fontStyle: 'italic', fontFamily: 'DM Sans, sans-serif' }}>Autres compétitions à venir</span>}
           </div>
         </div>
@@ -1089,10 +1129,10 @@ const s: Record<string, React.CSSProperties> = {
   emojiPickerInline: { display: 'flex', flexWrap: 'wrap' as const, gap: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px', marginBottom: 8 },
   emojiBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: '2px 3px', borderRadius: 4 },
   fixedFooter: { position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0e0e0e', borderTop: '0.5px solid rgba(255,255,255,0.07)', zIndex: 100, display: 'flex', flexDirection: 'column' },
-  band: { display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' as const, height: '100%', background: 'repeating-linear-gradient(60deg, #5C2400 0px, #5C2400 10px, #8B3D00 10px, #8B3D00 20px)', padding: '8px 12px', borderTop: '2px solid #FF8C00', borderBottom: '1px solid rgba(255,154,0,0.3)' },
-  candidateCard: { display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,154,0,0.3)', borderRadius: 40, padding: '4px 10px 4px 4px', cursor: 'pointer', flexShrink: 0, fontFamily: 'DM Sans, sans-serif' },
-  candidateAvatar: { width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,154,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF9A00', fontWeight: 700, fontSize: 11 },
-  candidateName: { color: '#fff', fontSize: 10, fontWeight: 600, whiteSpace: 'nowrap' as const },
+  band: { display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 10, overflowX: 'auto', overflowY: 'hidden' as const, scrollbarWidth: 'none' as const, height: '100%', background: '#0a0a0f', padding: '0 12px', borderTop: '2px solid #FF8C00', borderBottom: '1px solid rgba(255,154,0,0.3)' },
+  candidateCard: { display: 'flex', flexDirection: 'row' as const, alignItems: 'center', gap: 8, width: 'auto', height: 76, background: 'linear-gradient(180deg,#16161f,#0c0c12)' /*DKDK_CARTES_CENTRE*/, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14, padding: '8px 14px 8px 10px', cursor: 'pointer', flexShrink: 0, fontFamily: 'DM Sans, sans-serif', position: 'relative' as const } /*DKDK_C1B*/,
+  candidateAvatar: { width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#7e0380,#ed070f)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 18, overflow: 'hidden' as const, flexShrink: 0 },
+  candidateName: { color: '#fff', fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' as const, maxWidth: 110, overflow: 'hidden' as const, textOverflow: 'ellipsis' as const, textAlign: 'left' as const },
   candidateNum: { color: '#FFD480', fontSize: 8, fontWeight: 700 },
   navBtn: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', flex: 1, height: '100%' },
   navIconBox: { width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,140,0,0.7)' },

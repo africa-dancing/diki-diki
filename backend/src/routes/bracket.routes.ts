@@ -205,7 +205,7 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
 
     const { data: pool, error: poolErr } = await supabase
       .from('bracket_participants')
-      .select('id, score, eliminated_at, video_id, user_id, users(name, avatar_url)')
+      .select('id, score, stars_count, hearts_count, eliminated_at, video_id, user_id, users(name, avatar_url)')
       .eq('bracket_id', bracketId)
       .order('score', { ascending: false });
     if (poolErr) throw poolErr;
@@ -219,6 +219,8 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
         pool: (pool || []).map((p: any) => ({
           participant_id: p.id,
           score: p.score,
+          stars_count: p.stars_count ?? 0,
+          hearts_count: p.hearts_count ?? 0,
           eliminated_at: p.eliminated_at,
           video_id: p.video_id,
           user_id: p.user_id,
@@ -235,7 +237,7 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
 // Vote pool (plusieurs etoiles possibles) -> RPC vote_bracket_pool
 bracketRouter.post('/arena/vote-pool', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { participant_id, qty } = req.body;
+    const { participant_id, qty, type } = req.body;
     if (!participant_id)
       return res.status(400).json({ success: false, error: 'Champ participant_id manquant.' });
     const q = parseInt(qty, 10);
@@ -243,6 +245,7 @@ bracketRouter.post('/arena/vote-pool', requireAuth, async (req: AuthRequest, res
       p_user_id: req.user!.userId,
       p_participant_id: participant_id,
       p_qty: Number.isFinite(q) && q > 0 ? q : 1,
+      p_type: type === 'heart' ? 'heart' : 'star',
     });
     if (error) throw error;
     if (!data.success) return res.status(400).json(data);
