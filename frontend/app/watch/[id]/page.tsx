@@ -511,7 +511,7 @@ export default function WatchPage() {
   const handleSendHearts = async () => {
     if (!isLoggedIn()) { requireLogin('Connectez-vous pour liker et envoyer des cœurs à ce candidat.'); return; }
     if (heartsQty < 1) return;
-    if (soutenirUnits < heartsQty) {
+    if (soutenirUnits < heartsQty * 2) {
       setVoteError(`Solde insuffisant. Tu as ${soutenirUnits} unité${soutenirUnits > 1 ? 's' : ''} sur ton Compte Soutenir.`);
       setTimeout(() => setVoteError(null), 4000); return;
     }
@@ -869,7 +869,7 @@ export default function WatchPage() {
             </div>
 
             {/* Messages erreur / succès */}
-            {voteError && <div style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: 8, padding: '8px 12px', fontSize: 11, color: '#f87171', marginBottom: 8 }}>⚠️ {voteError}</div>}
+            {voteError && <div style={{ background: 'rgba(255,0,0,0.15)', border: '1.5px solid rgba(255,0,0,0.6)', borderRadius: 8, padding: '10px 12px', fontSize: 14, fontWeight: 700, color: '#FF0000', marginBottom: 8 }}>⚠️ {voteError}</div>}
             {voteSuccess && <div style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: 8, padding: '8px 12px', fontSize: 11, color: '#4ade80', marginBottom: 8 }}>⭐ {starsQty} étoile{starsQty > 1 ? 's' : ''} envoyée{starsQty > 1 ? 's' : ''} !</div>}
 
             {/* Clavier unique — onglets ⭐ / ❤️ */}
@@ -933,16 +933,15 @@ export default function WatchPage() {
 
                     {/* Récap + Bouton */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,0.8)', marginBottom: 6 }}>
-                      <span>{qty} unité{qty > 1 ? 's' : ''} · {qty * 100} F</span>
-                      <span>Reste : {Math.max(0, soutenirUnits - qty)}</span>
+                      <span>{isStar ? qty : qty * 2} unité{(isStar ? qty : qty * 2) > 1 ? 's' : ''} · {isStar ? qty * 100 : qty * 200} F</span>
+                      <span>Reste : {Math.max(0, soutenirUnits - (isStar ? qty : qty * 2))}</span>
                     </div>
                     <button onClick={onSend} disabled={loading || overBal || qty < 1}
                       style={{ width: '100%', padding: '7px', background: btnBg, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, marginTop: 'auto', color: btnCol, cursor: overBal ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
                       {loading ? '⏳…' : (<><span style={{ color: isStar ? '#FF0000' : '#FF1493', fontSize: 18, marginRight: 4 }}>{isStar ? '★' : '♥'}</span>{`Envoyer ${qty} ${isStar ? `étoile${qty > 1 ? 's' : ''}` : `cœur${qty > 1 ? 's' : ''}`}`}</>)}
                     </button>
                   </>
-                );
-              })()}
+                );              })()}
             </div>
           </>
         ) : (
