@@ -744,7 +744,7 @@ export default function WatchPage() {
 
       {/* ── BANDE BOUTONS FIXE ── */}
       <div
-        style={{ position: 'fixed', top: PLAYER_TOP, left: BTN_COL_LEFT, width: BTN_COL_W, height: playerH, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, zIndex: 55, background: 'rgba(8,8,20,0.65)', borderLeft: '1px solid rgba(255,255,255,0.04)', padding: '0 4px' }}
+        style={{ position: 'fixed', top: PLAYER_TOP, left: BTN_COL_LEFT, width: BTN_COL_W, height: playerH, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, zIndex: 55, background: 'rgba(8,8,20,0.65)', borderLeft: '1px solid rgba(255,255,255,0.04)', padding: '0 6px' }}
         onClick={e => e.stopPropagation()}
       >
         {/* S'ABONNER — visiteurs */}
@@ -820,7 +820,7 @@ export default function WatchPage() {
 
       {/* ── PANEL DROIT : CLAVIERS NUMÉRIQUES ou INVITE VISITEUR ── */}
       <div
-        style={{ position: 'fixed', top: PLAYER_TOP, left: HERO_LEFT, right: 8, height: playerH, overflowY: 'hidden', zIndex: 49, padding: '8px 10px', display: 'flex', flexDirection: 'column', background: '#0a0a0f', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' }}
+        style={{ position: 'fixed', top: PLAYER_TOP, left: HERO_LEFT, right: 8, height: `calc(${playerH} - 18px)`, overflowY: 'hidden', zIndex: 49, /*DKDK_PANEL_H*/ padding: '8px 10px', display: 'flex', flexDirection: 'column', background: '#0a0a0f', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' }}
         onClick={e => e.stopPropagation()}
       >
         {loggedIn ? (
@@ -858,16 +858,9 @@ export default function WatchPage() {
         <div style={{ height:"100%", width:pct + "%", background:"linear-gradient(90deg,#FFAA00,#FFD700)", borderRadius:6, transition:"width .5s" }} />
       </div>
       <div style={{ textAlign:"right", fontSize:11, fontWeight:800, color:"#FFD700", marginTop:3 }}>{pct} %</div>
-      <div style={{ display:"flex", gap:7, marginTop:10 }}>
-        <div style={{ flex:1, background:"rgba(0,0,0,0.45)", borderRadius:9, padding:"8px 9px" }}>
-          <div style={{ fontSize:10, color:"#fff" }}>🏆 Cagnotte des prix</div>
-          <div style={{ fontFamily:"Syne, sans-serif", fontSize:16, fontWeight:800, color:"#fff", lineHeight:1.1 }}>{fmt(total)} F</div>
-        </div>
-        <div style={{ flex:1, background:"rgba(0,0,0,0.45)", borderRadius:9, padding:"8px 9px" }}>
-          <div style={{ fontSize:10, color:"#fff" }}>À partager (net)</div>
-          <div style={{ fontFamily:"Syne, sans-serif", fontSize:16, fontWeight:800, color:"#4ade80", lineHeight:1.1 }}>{fmt(net)} F</div>
-          <div style={{ fontSize:10, color:"#fff" }}>après commission {Math.round(comm*100)} %</div>
-        </div>
+      <div style={{ background:"rgba(0,0,0,0.45)", borderRadius:9, padding:"8px 11px", marginTop:10 }} /*DKDK_CAGNOTTE_NET*/>
+        <div style={{ fontSize:10, color:"#fff", fontWeight:700, whiteSpace:"nowrap", letterSpacing:"0.01em" }}>🏆 CAGNOTTE DES PRIX À PARTAGER (Net après commission Plateforme {Math.round(comm*100)} %)</div>
+        <div style={{ fontFamily:"Syne, sans-serif", fontSize:18, fontWeight:800, color:"#4ade80", lineHeight:1.1 }}>{fmt(net)} F</div>
       </div>
       <div style={{ fontSize:10, color:"#fff", marginTop:6, textAlign:"center" }}>Champion 60 % · 2ᵉ 25 % · 3ᵉ 15 %</div>
     </div>
@@ -893,20 +886,7 @@ export default function WatchPage() {
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '6px 8px' }}>
 
               {/* Onglets */}
-              <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-                {[
-                  { key: 'stars',  icon: <span style={{ color: '#FF0000', fontSize: 17 }}>★</span>, label: 'Voter',  color: '#fff', bg: 'linear-gradient(135deg,#FF6B00,#FFAA00)',  border: 'rgba(255,170,0,0.5)'  },
-                  { key: 'hearts', icon: <span style={{ color: '#FF1493', fontSize: 17 }}>♥</span>, label: 'Liker',  color: '#fff', bg: 'linear-gradient(135deg,#FF6B00,#FFAA00)',  border: 'rgba(255,80,80,0.5)'  },
-                ].map(tab => {
-                  const active = activeTab === tab.key;
-                  return (
-                    <button key={tab.key} onClick={() => setActiveTab(tab.key as 'stars'|'hearts')}
-                      style={{ flex: 1, padding: '6px 4px', borderRadius: 8, border: `1px solid ${active ? tab.border : 'rgba(255,255,255,0.08)'}`, background: active ? tab.bg : 'transparent', color: active ? tab.color : '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                      {tab.icon} {tab.label}
-                    </button>
-                  );
-                })}
-              </div>
+              {/*DKDK_FUSION_LIGNE*/}
 
               {/* Saisie ± */}
               {(() => {
@@ -923,14 +903,16 @@ export default function WatchPage() {
                 const onSend  = isStar ? handleSendStars : handleSendHearts;
                 return (
                   <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
-                      <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 26, height: 26, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 15, color: '#f0f0f0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
-                      <div style={{ flex: 1, textAlign: 'center', fontSize: 20, fontWeight: 800, color, fontFamily: 'Syne, sans-serif', background: 'linear-gradient(135deg,#1a1a1a,#000)', border: `1px solid ${border}`, borderRadius: 7, padding: '3px 0' }}>{qty}</div>
-                      <button onClick={() => setQty(q => Math.min(soutenirUnits, q + 1))} style={{ width: 26, height: 26, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 15, color: '#f0f0f0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                      <button onClick={() => setActiveTab('stars')} style={{ flex: 1, minWidth: 64, padding: '6px 2px', borderRadius: 7, border: `1px solid ${isStar ? 'rgba(255,170,0,0.5)' : 'rgba(255,255,255,0.08)'}`, background: isStar ? 'linear-gradient(135deg,#FF6B00,#FFAA00)' : 'transparent', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, flexShrink: 0 }}><span style={{ color: '#FF0000', fontSize: 14 }}>★</span>Voter</button>
+                      <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 24, height: 28, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 15, color: '#f0f0f0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
+                      <div style={{ width: 70, textAlign: 'center', fontSize: 18, fontWeight: 800, color, fontFamily: 'Syne, sans-serif', background: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 7, padding: '4px 0', flexShrink: 0 }} /*DKDK_EQUILIBRE*/>{qty}</div>
+                      <button onClick={() => setQty(q => Math.min(soutenirUnits, q + 1))} style={{ width: 24, height: 28, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 15, color: '#f0f0f0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
+                      <button onClick={() => setActiveTab('hearts')} style={{ flex: 1, minWidth: 64, padding: '6px 2px', borderRadius: 7, border: `1px solid ${!isStar ? 'rgba(255,80,80,0.5)' : 'rgba(255,255,255,0.08)'}`, background: !isStar ? 'linear-gradient(135deg,#FF6B00,#FFAA00)' : 'transparent', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, flexShrink: 0 }}><span style={{ color: '#FF1493', fontSize: 14 }}>♥</span>Liker</button>
                     </div>
 
                     {/* Pavé */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 3, marginBottom: 5 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 3, marginBottom: 4 }}>
                       {['1','2','3','4','5','6','7','8','9','0','⌫'].map(k => (
                         <button key={k} onClick={() => {
                           if (k === '⌫') {
@@ -949,10 +931,11 @@ export default function WatchPage() {
                     </div>
 
                     {/* Récap + Bouton */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,0.8)', marginBottom: 6 }}>
-                      <span>{isStar ? qty : qty * 2} unité{(isStar ? qty : qty * 2) > 1 ? 's' : ''} · {isStar ? qty * 100 : qty * 200} F</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,0.8)', marginBottom: 2 }}>
+                      <span>{isStar ? qty : qty * 2} unité{(isStar ? qty : qty * 2) > 1 ? 's' : ''} · {isStar ? qty * voteAmount : qty * heartAmount} F</span>
                       <span>Reste : {Math.max(0, soutenirUnits - (isStar ? qty : qty * 2))}</span>
                     </div>
+                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginBottom: 4, lineHeight: 1.3 }} /*DKDK_C3_MENTION*/>{isStar ? `1 Étoile = 1 Unité = ${voteAmount} F CFA` : `1 Cœur (Compte Double) = 2 Unités = ${heartAmount} F CFA`}</div>
                     <button onClick={onSend} disabled={loading || overBal || qty < 1}
                       style={{ width: '100%', padding: '7px', background: btnBg, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, marginTop: 'auto', color: btnCol, cursor: overBal ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
                       {loading ? '⏳…' : (<><span style={{ color: isStar ? '#FF0000' : '#FF1493', fontSize: 18, marginRight: 4 }}>{isStar ? '★' : '♥'}</span>{`Envoyer ${qty} ${isStar ? `étoile${qty > 1 ? 's' : ''}` : `cœur${qty > 1 ? 's' : ''}`}`}</>)}
