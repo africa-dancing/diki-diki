@@ -265,6 +265,9 @@ export default function WatchPage() {
   // Montants pilotés depuis la page Réglages (table settings)
   const [voteAmount, setVoteAmount]   = useState(100); // prix étoile = valeur d'1 unité (F CFA)
   const [heartAmount, setHeartAmount] = useState(200); // prix cœur (F CFA)
+  // Objectifs NETS par etape (1..4) + commission, pilotes depuis /admin/reglages
+  const [objEtapes, setObjEtapes] = useState<Record<number, number>>({1:0,2:0,3:0,4:0});
+  const [commission, setCommission] = useState(0.5);
   const [activeTab, setActiveTab]           = useState<'stars'|'hearts'>('stars');
 
   const [myVotesOnVideo, setMyVotesOnVideo] = useState(0);  // nb étoiles envoyées
@@ -328,6 +331,18 @@ export default function WatchPage() {
         const heart = rows.find((s: any) => s.key === 'bracket_heart_amount');
         if (vote?.value)  setVoteAmount(Number(vote.value));
         if (heart?.value) setHeartAmount(Number(heart.value));
+        const oh = rows.find((s: any) => s.key === 'bracket_obj_huitieme');
+        const oq = rows.find((s: any) => s.key === 'bracket_obj_quart');
+        const od = rows.find((s: any) => s.key === 'bracket_obj_demi');
+        const of = rows.find((s: any) => s.key === 'bracket_obj_finale');
+        setObjEtapes({
+          1: oh?.value ? Number(oh.value) : 0,
+          2: oq?.value ? Number(oq.value) : 0,
+          3: od?.value ? Number(od.value) : 0,
+          4: of?.value ? Number(of.value) : 0,
+        });
+        const cp = rows.find((s: any) => s.key === 'bracket_commission_pct');
+        if (cp?.value) setCommission(Number(cp.value) / 100);
       })
       .catch(() => { /* garde les valeurs par défaut */ });
   }, []);
@@ -831,8 +846,8 @@ export default function WatchPage() {
   const r = bracketData.active_round;
   const ROUND_LABELS: Record<number,string> = {1:"Huitième de finale",2:"Quart de finale",3:"Demi-finale",4:"Finale"};
   const ROUND_CUT: Record<number,string> = {1:"16 → 8",2:"8 → 4",3:"4 → 3",4:"2 → 1"};
-  const obj = r ? r.objectif_montant : 0;
-  const col = r ? r.montant_collecte : 0;
+  const obj = objEtapes[b.current_round] || 0; /*DKDK_OBJ_NET*/
+  const col = r ? Math.round(r.montant_collecte * (1 - commission)) : 0;
   const pct = obj > 0 ? Math.min(100, Math.round(col / obj * 100)) : 0;
   const total = b.total_cagnotte || 0;
   const comm = b.commission_pct != null ? b.commission_pct : 0.5;
