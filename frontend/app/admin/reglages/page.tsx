@@ -15,6 +15,7 @@ const GROUPES: { titre: string; cles: string[] }[] = [
   { titre: '🎯 Objectifs par étape', cles: ['bracket_obj_huitieme', 'bracket_obj_quart', 'bracket_obj_demi', 'bracket_obj_finale'] },
   { titre: '\u{1F94A} Objectifs DUO', cles: ['duo_obj_1', 'duo_obj_2', 'duo_obj_3'] },
   { titre: '⏱️ Délais', cles: ['bracket_egalite_jours', 'bracket_soumission_jours', 'bracket_relance_jours'] },
+  { titre: '\u{1F3B5} Musique d ambiance', cles: ['ambiance_audio_url', 'ambiance_active', 'ambiance_pages_exclues'] },
 ];
 
 export default function AdminReglagesPage() {
