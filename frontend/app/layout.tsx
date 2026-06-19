@@ -1,4 +1,5 @@
 import './mobile.css';
+import BackgroundMusic from './components/BackgroundMusic';
 import type { Metadata } from 'next';
 import { Syne, DM_Sans } from 'next/font/google';
 
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`${syne.variable} ${dmSans.variable}`}>
-      <body>{children}</body>
+      <body>{children}<BackgroundMusic /></body>
     </html>
   );
 }
