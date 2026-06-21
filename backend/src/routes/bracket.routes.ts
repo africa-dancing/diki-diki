@@ -205,7 +205,7 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
 
     const { data: pool, error: poolErr } = await supabase
       .from('bracket_participants')
-      .select('id, score, stars_count, hearts_count, eliminated_at, video_id, user_id, users(name, avatar_url)')
+      .select('id, score, stars_count, hearts_count, eliminated_at, registered_at, video_id, user_id, users(name, avatar_url)')
       .eq('bracket_id', bracketId)
       .order('score', { ascending: false });
     if (poolErr) throw poolErr;
@@ -222,6 +222,7 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
           stars_count: p.stars_count ?? 0,
           hearts_count: p.hearts_count ?? 0,
           eliminated_at: p.eliminated_at,
+          registered_at: p.registered_at,
           video_id: p.video_id,
           user_id: p.user_id,
           name: p.users ? p.users.name : null,
