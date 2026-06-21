@@ -607,6 +607,12 @@ export default function WatchPage() {
   const hasPrev      = currentVideoIndex > 0;
   const hasNext      = currentVideoIndex < totalInComp - 1;
   const loggedIn     = isLoggedIn();
+  /*DKDK_ETAT_GLOBAL*/ // Variables d'etat accessibles dans tout le panneau (hors IIFE)
+  const _bk = bracketData?.bracket;
+  const challengeEnCours = _bk?.status === 'in_progress';
+  const candidatsInscrits = bracketData?.pool?.length ?? 0;
+  const capaciteMax = _bk?.max_participants ?? 16;
+  const placesRestantes = Math.max(0, capaciteMax - candidatsInscrits);
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#0a0a0f', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
@@ -833,6 +839,8 @@ export default function WatchPage() {
           <div style={{ fontSize:10, color:"rgba(255,255,255,0.7)", marginTop:8, lineHeight:1.5 }}>Le vote ouvrira quand le groupe sera complet.</div>
         </div>
       )}
+      {/*DKDK_WRAP_ENCOURS*/}
+      {challengeEnCours && (<>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:9 }}>
         <div>
           <div style={{ fontSize:8, fontWeight:800, letterSpacing:".12em", color:"#fff" }}>ÉTAPE EN COURS</div>
@@ -856,10 +864,13 @@ export default function WatchPage() {
         <div style={{ fontFamily:"Syne, sans-serif", fontSize:18, fontWeight:800, color:"#4ade80", lineHeight:1.1 }}>{fmt(net)} F</div>
       </div>
       <div style={{ fontSize:10, color:"#fff", marginTop:6, textAlign:"center" }}>Champion 60 % · 2ᵉ 25 % · 3ᵉ 15 %</div>
+      </>)}
     </div>
   );
 })()}
 
+              {/*DKDK_WRAP_VOTE*/}
+              {challengeEnCours && (<>
               {/* Mon Solde */}
             <div style={{ background: '#13131a', border: '1px solid rgba(255,170,0,0.22)', borderRadius: 9, padding: '5px 11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <div>
@@ -936,6 +947,7 @@ export default function WatchPage() {
                   </>
                 );              })()}
             </div>
+          </>)}
           </>
         ) : (
           /* ── Visiteur — invite à se connecter ── */
