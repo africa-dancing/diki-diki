@@ -1048,7 +1048,6 @@ export default function WatchPage() {
           const parScore = [...inscrits].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
           const rangScore = {};
           parScore.forEach((c, idx) => { if (c) rangScore[c.participant_id] = idx + 1; });
-          console.log('[DKDK SIEGES]', { N, occupes: inscrits.length, libres: N - inscrits.length, ordre: sieges.map((c) => c ? c.name : '(libre)'), rangsScore: rangScore });
           return null;
         })()}
           <style>{`@keyframes dkdkMarquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } } .dkdk-marquee-track:hover { animation-play-state: paused; }`}</style>
