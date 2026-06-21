@@ -695,9 +695,17 @@ export default function WatchPage() {
               </div>
             </div>
           )}
-          <button onClick={() => router.push('/compte')} style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#FF6B00,#FFD700)', border:'none', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, cursor:'pointer', flexShrink:0 }}>
-            👤
-          </button>
+          {/*DKDK_TOPBAR_VISITEUR*/}
+          {!loggedIn && (
+            <button onClick={() => router.push('/auth/register')} style={{ background:'linear-gradient(135deg,#FF6B00,#FFAA00)', color:'#fff', border:'none', borderRadius:20, padding:'7px 16px', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'DM Sans, sans-serif', whiteSpace:'nowrap', flexShrink:0 }}>
+              S'inscrire
+            </button>
+          )}
+          {loggedIn && (
+            <button onClick={() => router.push('/compte')} style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#FF6B00,#FFD700)', border:'none', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, cursor:'pointer', flexShrink:0 }}>
+              👤
+            </button>
+          )}
         </div>
       </div>
 
