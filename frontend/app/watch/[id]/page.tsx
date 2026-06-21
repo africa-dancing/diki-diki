@@ -260,7 +260,7 @@ export default function WatchPage() {
   const scrollTimer   = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // DKDK_AUTOSCROLL : defilement auto permanent de la bande (pause au survol via onMouseEnter)
-  useEffect(() => {
+  useEffect(() => { return; /*DKDK_MARQUEE_NOJS*/
     const start = () => {
       if (scrollTimer.current) clearInterval(scrollTimer.current);
       scrollTimer.current = setInterval(() => {
@@ -328,7 +328,7 @@ export default function WatchPage() {
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => {
+  useEffect(() => { return; /*DKDK_MARQUEE_NOJS2*/
     const band = bandRef.current; if (!band) return;
     scrollTimer.current = setInterval(() => {
       if (!band) return;
@@ -1051,16 +1051,9 @@ export default function WatchPage() {
           console.log('[DKDK SIEGES]', { N, occupes: inscrits.length, libres: N - inscrits.length, ordre: sieges.map((c) => c ? c.name : '(libre)'), rangsScore: rangScore });
           return null;
         })()}
-          <div ref={bandRef} style={s.band}
-            onMouseEnter={() => { if (scrollTimer.current) clearInterval(scrollTimer.current); }}
-            onMouseLeave={() => {
-              const b = bandRef.current; if (!b) return;
-              scrollTimer.current = setInterval(() => {
-                if (b.scrollLeft >= b.scrollWidth - b.clientWidth - 2) b.scrollLeft = 0;
-                else b.scrollLeft += 1.2;
-              }, 20);
-            }}
-          >
+          <style>{`@keyframes dkdkMarquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } } .dkdk-marquee-track:hover { animation-play-state: paused; }`}</style>
+          <div ref={bandRef} style={{ ...s.band, overflowX: 'hidden' }} /*DKDK_MARQUEE_WRAP*/>
+            <div className="dkdk-marquee-track" style={{ display: 'flex', alignItems: 'center', gap: 10, width: 'max-content', animation: 'dkdkMarquee 40s linear infinite' }}>
             <span style={{ fontSize: 14, flexShrink: 0, marginRight: 4 }}>🏆</span>
             {/* DKDK_BANDE_EXCLURE — cartes verticales, sans le candidat en lecture */}
             {(() => {
@@ -1101,6 +1094,7 @@ export default function WatchPage() {
               });
             })()/*DKDK_SIEGES_IIFE_CLOSE*/}
             {(!bracketData?.pool || bracketData.pool.length === 0) && <span style={{ color: 'rgba(255,154,0,0.5)', fontSize: 12, fontStyle: 'italic', fontFamily: 'DM Sans, sans-serif' }}>Autres compétitions à venir</span>}
+            </div>{/*DKDK_MARQUEE_END*/}
           </div>
         </div>
 
