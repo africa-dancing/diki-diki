@@ -950,8 +950,25 @@ export default function WatchPage() {
           </>)}
           </>
         ) : (
-          /* ── Visiteur — invite à se connecter ── */
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60%', gap: 12, padding: '20px 10px', textAlign: 'center' }}>
+          /* ── Visiteur — info challenge + invite a se connecter ── */
+          <>
+          {/*DKDK_VISITEUR_INFO*/}
+          {bracketData && bracketData.bracket && (
+            challengeEnCours ? (
+              <div style={{ background:"linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))", borderRadius:12, padding:"10px 12px", marginBottom:8 }}>
+                <div style={{ fontSize:8, fontWeight:800, letterSpacing:".12em", color:"#fff" }}>ÉTAPE EN COURS</div>
+                <div style={{ fontFamily:"Syne, sans-serif", fontSize:15, fontWeight:800, color:"#fff" }}>{({1:"Huitième de finale",2:"Quart de finale",3:"Demi-finale",4:"Finale"} as Record<number,string>)[bracketData.bracket.current_round] ?? ("Tour " + bracketData.bracket.current_round)}</div>
+              </div>
+            ) : (
+              <div style={{ background:"linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))", borderRadius:12, padding:"12px 14px", marginBottom:8, textAlign:"center" }}>
+                <div style={{ fontFamily:"Syne, sans-serif", fontSize:15, fontWeight:800, color:"#fff", marginBottom:6 }}>⏳ Challenge en formation</div>
+                <div style={{ fontSize:22, fontWeight:800, color:"#FFD700", fontFamily:"Syne, sans-serif", lineHeight:1.1 }}>{candidatsInscrits} / {capaciteMax}</div>
+                <div style={{ fontSize:10, color:"rgba(255,255,255,0.85)", marginBottom:8 }}>candidats inscrits</div>
+                <div style={{ display:"inline-block", background:"rgba(255,170,0,0.18)", border:"1px solid rgba(255,170,0,0.4)", borderRadius:20, padding:"3px 12px", fontSize:11, fontWeight:700, color:"#FFD700" }}>{placesRestantes} place{placesRestantes > 1 ? "s" : ""} restante{placesRestantes > 1 ? "s" : ""}</div>
+              </div>
+            )
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '40%', gap: 12, padding: '20px 10px', textAlign: 'center' }}>
             <div style={{ fontSize: 32 }}>🔒</div>
             <div>
               <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '0.95rem', color: '#fff', marginBottom: 6 }}>Compte requis</div>
@@ -970,6 +987,7 @@ export default function WatchPage() {
               <span style={{ fontSize: 9, color: '#FFAA00', fontWeight: 700, letterSpacing: '.06em' }}>COMPÉTITIONS EN COURS</span>
             </div>
           </div>
+          </>
         )}
       </div>
 
