@@ -8,6 +8,13 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1'; /*DKD
 export default function BackgroundMusic() {
   const pathname = usePathname();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [tabVisible, setTabVisible] = useState(true); /*DKDK_TABVIS_FIX*/
+  useEffect(() => {
+    const onVis = () => setTabVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', onVis);
+    onVis();
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
   const [audioUrl, setAudioUrl] = useState('/ambiance.mp3');
   const [active, setActive] = useState(true);
   const [pagesExclues, setPagesExclues] = useState<string[]>([]);
@@ -89,6 +96,8 @@ export default function BackgroundMusic() {
   // Coupure auto quand une vidéo joue (écoute globale play/pause)
   useEffect(() => {
     const onPlay = (e: Event) => {
+      /*DKDK_COUPURE_WATCH*/ // ne couper que sur la vraie page de visionnage
+      if (!pathname?.startsWith('/watch')) return;
       if ((e.target as HTMLElement)?.tagName === 'VIDEO') setVideoActive(true);
     };
     const onPause = (e: Event) => {
@@ -102,15 +111,15 @@ export default function BackgroundMusic() {
       document.removeEventListener('pause', onPause, true);
       document.removeEventListener('ended', onPause, true);
     };
-  }, []);
+  }, [pathname]);
 
   // Décide si la musique doit jouer ou non
   useEffect(() => {
-    const shouldPlay = !muted && !pageSilencieuse && !videoActive;
+    const shouldPlay = !muted && !pageSilencieuse && !videoActive && tabVisible;
     if (shouldPlay) attemptPlay();
     else pause();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [muted, pageSilencieuse, videoActive]);
+  }, [muted, pageSilencieuse, videoActive, tabVisible]);
 
   const attemptPlay = () => {
     const a = audioRef.current;
