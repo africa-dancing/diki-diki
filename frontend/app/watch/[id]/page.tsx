@@ -823,6 +823,16 @@ export default function WatchPage() {
   const fmt = (n: number) => n.toLocaleString("fr-FR");
   return (
     <div style={{ background:"linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))", borderRadius:12, padding:"8px 11px", marginBottom:7, boxShadow:"0 4px 14px rgba(237,7,15,0.18)" }}>
+      {/*DKDK_ENCART_FORMATION*/}
+      {!challengeEnCours && (
+        <div style={{ background:"rgba(0,0,0,0.25)", borderRadius:10, padding:"12px 14px", marginBottom:9, textAlign:"center" }}>
+          <div style={{ fontFamily:"Syne, sans-serif", fontSize:15, fontWeight:800, color:"#fff", marginBottom:6 }}>⏳ Challenge en formation</div>
+          <div style={{ fontSize:22, fontWeight:800, color:"#FFD700", fontFamily:"Syne, sans-serif", lineHeight:1.1 }}>{candidatsInscrits} / {capaciteMax}</div>
+          <div style={{ fontSize:10, color:"rgba(255,255,255,0.85)", marginBottom:8 }}>candidats inscrits</div>
+          <div style={{ display:"inline-block", background:"rgba(255,170,0,0.18)", border:"1px solid rgba(255,170,0,0.4)", borderRadius:20, padding:"3px 12px", fontSize:11, fontWeight:700, color:"#FFD700" }}>{placesRestantes} place{placesRestantes > 1 ? "s" : ""} restante{placesRestantes > 1 ? "s" : ""}</div>
+          <div style={{ fontSize:10, color:"rgba(255,255,255,0.7)", marginTop:8, lineHeight:1.5 }}>Le vote ouvrira quand le groupe sera complet.</div>
+        </div>
+      )}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:9 }}>
         <div>
           <div style={{ fontSize:8, fontWeight:800, letterSpacing:".12em", color:"#fff" }}>ÉTAPE EN COURS</div>
