@@ -1,4 +1,5 @@
 'use client';
+import TranslateWidget from '../../components/TranslateWidget';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -68,53 +69,6 @@ function formatAmount(xof: number, cur: CurrencyConfig): string {
 }
 
 // ── Sélecteur de langue inline ────────────────────────────────────
-const LANGS = [
-  { code:'fr', label:'Français', flag:'🇫🇷' }, { code:'en', label:'English', flag:'🇬🇧' },
-  { code:'ar', label:'العربية',  flag:'🇸🇦' }, { code:'pt', label:'Português', flag:'🇧🇷' },
-  { code:'es', label:'Español',  flag:'🇪🇸' }, { code:'ha', label:'Hausa', flag:'🇳🇬' },
-  { code:'sw', label:'Kiswahili',flag:'🇰🇪' }, { code:'de', label:'Deutsch', flag:'🇩🇪' },
-];
-function TranslateWidget() {
-  const [open, setOpen] = useState(false);
-  const [cur, setCur]   = useState(LANGS[0]);
-  useEffect(() => {
-    const saved = localStorage.getItem('dkdk_lang');
-    if (saved) { const f = LANGS.find(l => l.code === saved); if (f) setCur(f); }
-  }, []);
-  useEffect(() => {
-    if (!open) return;
-    const h = () => setOpen(false);
-    document.addEventListener('click', h);
-    return () => document.removeEventListener('click', h);
-  }, [open]);
-  const select = (lang: typeof LANGS[0]) => {
-    setCur(lang); setOpen(false); localStorage.setItem('dkdk_lang', lang.code);
-    document.cookie = `googtrans=/fr/${lang.code}; path=/`;
-    if (lang.code === 'fr') { document.cookie='googtrans=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/'; window.location.reload(); return; }
-    if (!(window as any).google?.translate) {
-      (window as any).googleTranslateElementInit = () => { new (window as any).google.translate.TranslateElement({ pageLanguage:'fr', autoDisplay:false }, 'gt-c'); };
-      if (!document.getElementById('gt-s')) { const s = document.createElement('script'); s.id='gt-s'; s.src='//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'; document.head.appendChild(s); }
-    }
-    setTimeout(() => { const sel = document.querySelector<HTMLSelectElement>('.goog-te-combo'); if (sel) { sel.value=lang.code; sel.dispatchEvent(new Event('change')); } }, 900);
-  };
-  return (
-    <div style={{ position:'relative', flexShrink:0 }} onClick={e=>e.stopPropagation()}>
-      <button onClick={()=>setOpen(o=>!o)} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:20, padding:'5px 10px', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:5, fontSize:12, fontFamily:'DM Sans, sans-serif' }}>
-        <span style={{ fontSize:14 }}>{cur.flag}</span><span>{cur.label}</span><span style={{ fontSize:9, opacity:0.5 }}>▾</span>
-      </button>
-      {open && (
-        <div style={{ position:'absolute', top:38, right:0, background:'#12121e', border:'1px solid rgba(255,170,0,0.2)', borderRadius:14, padding:6, zIndex:300, minWidth:160, boxShadow:'0 8px 24px rgba(0,0,0,0.5)' }}>
-          {LANGS.map(l => (
-            <button key={l.code} onClick={()=>select(l)} style={{ display:'flex', alignItems:'center', gap:10, width:'100%', padding:'8px 12px', background:cur.code===l.code?'rgba(255,170,0,0.1)':'none', border:'none', borderRadius:8, color:cur.code===l.code?'#FFAA00':'#f0f0f0', fontSize:13, cursor:'pointer', fontFamily:'DM Sans, sans-serif', textAlign:'left' as const }}>
-              <span>{l.flag}</span><span>{l.label}</span>{cur.code===l.code&&<span style={{ marginLeft:'auto', fontSize:10 }}>✓</span>}
-            </button>
-          ))}
-        </div>
-      )}
-      <div id="gt-c" style={{ display:'none' }} />
-    </div>
-  );
-}
 
 // ── Pavé numérique ────────────────────────────────────────────────
 function NumKeypad({ value, onChange, max }: { value: number; onChange: (v: number) => void; max: number }) {
