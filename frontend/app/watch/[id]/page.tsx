@@ -1063,24 +1063,33 @@ export default function WatchPage() {
           >
             <span style={{ fontSize: 14, flexShrink: 0, marginRight: 4 }}>🏆</span>
             {/* DKDK_BANDE_EXCLURE — cartes verticales, sans le candidat en lecture */}
-            {(bracketData?.pool ?? [])
-              .filter((c: any) => c.participant_id !== bracketData?.current_participant_id)
-              .map((c: any, i: number) => {
-                const rank = i + 1;
+            {(() => {
+              const _ins = [...(bracketData?.pool ?? [])].sort((a: any, b: any) => String(a.registered_at ?? '').localeCompare(String(b.registered_at ?? '')));
+              const _N = bracketData?.bracket?.max_participants ?? 16;
+              const _siegesArr = Array.from({ length: _N }, (_, i) => _ins[i] ?? null);
+              const _parScore = [..._ins].sort((a: any, b: any) => (b.score ?? 0) - (a.score ?? 0));
+              const _rangScore: Record<string, number> = {};
+              _parScore.forEach((p: any, idx: number) => { if (p) _rangScore[p.participant_id] = idx + 1; });
+              return _siegesArr.map((c: any, i: number) => {
+                if (!c) return (<div key={'libre-'+i} style={{ ...s.candidateCard, opacity:0.35, justifyContent:'center', cursor:'default' }}><span style={{ fontSize:11, color:'rgba(255,255,255,0.4)', fontStyle:'italic' }}>Siege {i+1} - libre</span></div>);
+                const enLecture = c.participant_id === bracketData?.current_participant_id;
+                const elimine = !!c.eliminated_at;
+                const rank = _rangScore[c.participant_id] ?? 99;
                 const isPodium = rank <= 3;
                 const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : ('#' + rank);
                 const rankBg = rank === 1 ? '#FFAA00' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#3a3a44';
                 const initial = (c.name ?? '?')[0].toUpperCase();
+                if (enLecture) return (<div key={c.participant_id} style={{ ...s.candidateCard, border:'2px solid #FFAA00', justifyContent:'center', cursor:'default' }}><div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}><span style={{ fontSize:9, fontWeight:800, letterSpacing:'.08em', color:'#FFAA00' }}>CANDIDAT EN LECTURE</span><span style={s.candidateName}>{c.name ?? 'Candidat'}</span></div></div>);
                 return (
                   <button key={c.participant_id}
-                    style={{ ...s.candidateCard, border: rank === 1 ? '2px solid #FFAA00' : s.candidateCard.border, opacity: c.eliminated_at ? 0.5 : 1 }}
-                    onClick={() => c.video_id && router.push(`/watch/${c.video_id}`)}>
+                    style={{ ...s.candidateCard, border: rank === 1 ? '2px solid #FFAA00' : s.candidateCard.border, opacity: elimine ? 0.4 : 1, cursor: elimine ? 'default' : 'pointer' }} /*DKDK_ELIM*/
+                    onClick={() => { if (!elimine && c.video_id) router.push(`/watch/${c.video_id}`); }}>
                     <span style={{ position: 'absolute', top: 6, left: 6, width: 24, height: 24, borderRadius: '50%', background: rankBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isPodium ? 13 : 11, fontWeight: 800, color: '#0a0a0f' }}>{medal}</span>
                     <div style={s.candidateAvatar}>
                       {c.avatar_url ? <img src={c.avatar_url} alt='' style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : initial}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
-                      <div style={s.candidateName}>{c.name ?? 'Candidat'}</div>
+                      <div style={s.candidateName}>{elimine ? 'Éliminé' : (c.name ?? 'Candidat')}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700 }}>
                         <span style={{ color: '#FF0000' }}>★ <span style={{ color: '#fff' }}>{c.stars_count ?? 0}</span></span>
                         <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
@@ -1089,7 +1098,8 @@ export default function WatchPage() {
                     </div>
                   </button>
                 );
-              })}
+              });
+            })()/*DKDK_SIEGES_IIFE_CLOSE*/}
             {(!bracketData?.pool || bracketData.pool.length === 0) && <span style={{ color: 'rgba(255,154,0,0.5)', fontSize: 12, fontStyle: 'italic', fontFamily: 'DM Sans, sans-serif' }}>Autres compétitions à venir</span>}
           </div>
         </div>
