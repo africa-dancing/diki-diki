@@ -1040,6 +1040,17 @@ export default function WatchPage() {
       {/* ── FOOTER ── */}
       <div style={{ ...s.fixedFooter, height: FOOTER_H }}>
         <div style={{ height: BAND_H, overflow: 'hidden' }}>
+        {/*DKDK_SIEGES_CALC*/}
+        {(() => {
+          const inscrits = [...(bracketData?.pool ?? [])].sort((a, b) => String(a.registered_at ?? '').localeCompare(String(b.registered_at ?? '')));
+          const N = bracketData?.bracket?.max_participants ?? 16;
+          const sieges = Array.from({ length: N }, (_, i) => inscrits[i] ?? null);
+          const parScore = [...inscrits].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+          const rangScore = {};
+          parScore.forEach((c, idx) => { if (c) rangScore[c.participant_id] = idx + 1; });
+          console.log('[DKDK SIEGES]', { N, occupes: inscrits.length, libres: N - inscrits.length, ordre: sieges.map((c) => c ? c.name : '(libre)'), rangsScore: rangScore });
+          return null;
+        })()}
           <div ref={bandRef} style={s.band}
             onMouseEnter={() => { if (scrollTimer.current) clearInterval(scrollTimer.current); }}
             onMouseLeave={() => {
