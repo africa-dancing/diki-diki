@@ -817,7 +817,6 @@ export default function WatchPage() {
   const capaciteMax = b?.max_participants ?? 16;
   const placesRestantes = Math.max(0, capaciteMax - candidatsInscrits);
   const challengeEnCours = b?.status === 'in_progress';
-  console.log('[DKDK ETAT]', { status: b?.status, challengeEnCours, candidatsInscrits, capaciteMax, placesRestantes, type: b?.type });
   const ROUND_LABELS: Record<number,string> = {1:"Huitième de finale",2:"Quart de finale",3:"Demi-finale",4:"Finale"};
   const ROUND_CUT: Record<number,string> = {1:"16 → 8",2:"8 → 4",3:"4 → 3",4:"2 → 1"};
   const obj = objEtapes[b.current_round] || 0; /*DKDK_OBJ_NET*/
