@@ -188,7 +188,7 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
 
     const { data: bracket, error: bErr } = await supabase
       .from('brackets')
-      .select('id, title, discipline, status, current_round, total_cagnotte, commission_pct')
+      .select('id, title, discipline, status, current_round, total_cagnotte, commission_pct, max_participants, type')
       .eq('id', bracketId)
       .single();
     if (bErr) throw bErr;
