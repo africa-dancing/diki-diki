@@ -124,10 +124,14 @@ export default function HomePage() {
 
       {/* Badge categorie */}
       <div style={{ padding: '16px', display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span style={{ color: '#FFAA00', fontSize: 12, padding: '5px 12px', border: '1px solid #FFAA00', borderRadius: 20, fontWeight: 600 }}>
-          🎭 Loisirs & Divertissement
+        {/*DKDK_HOME_BTN*/}
+        <span style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', color: '#000', fontSize: 12, padding: '5px 12px', borderRadius: 20, fontWeight: 800 }}>
+          🎭 Loisirs & Divertissements
         </span>
-        <Link href="/education" style={{ color: 'rgba(255,170,0,0.6)', fontSize: 12, textDecoration: 'none', padding: '5px 12px', border: '1px solid rgba(255,170,0,0.2)', borderRadius: 20 }}>
+        <Link href="/challenges" style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 50, padding: '5px 14px', fontSize: 12, fontWeight: 800, color: '#000', textDecoration: 'none', display: 'inline-block' }}>
+          Explorer →
+        </Link>
+        <Link href="/education" style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', color: '#000', fontSize: 12, textDecoration: 'none', padding: '5px 12px', borderRadius: 20, fontWeight: 800 }}>
           📚 Education & Savoirs
         </Link>
       </div>
@@ -135,12 +139,9 @@ export default function HomePage() {
       {/* Hero */}
       <div style={{ padding: '16px 24px 10px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
         <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.75rem,3vw,1.9rem)', lineHeight: 1.1, marginBottom: 8, whiteSpace: 'nowrap', background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Podium Challenges 
-          <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Arena </span>
+          Podium Challenges{' '}
+          <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Arena</span>
         </h1>
-        <Link href="/challenges" style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 50, padding: '5px 14px', fontSize: '0.78rem', fontWeight: 700, color: '#000', textDecoration: 'none', display: 'inline-block' }}>
-          Explorer →
-        </Link>
       </div>
 
       {/* Grille vidéos */}
