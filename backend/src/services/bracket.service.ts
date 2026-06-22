@@ -26,6 +26,48 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+/*DKDK_STAGECONFIG*/
+// ── Configuration des étapes par type (5 types de challenges) ──────
+// Discriminant = max_participants (2/4/8/12/16). NON branché pour l'instant.
+// keep = nb gardés ; isFinale = champion/2e ; isBronzeMatch = match 3e place (C16) ; freezeThird = 3e figé auto (C12).
+export interface StageConfig {
+  keep: number;
+  isFinale: boolean;
+  isBronzeMatch: boolean;
+  freezeThird: boolean;
+  totalRounds: number;
+}
+
+export function getStageConfig(maxParticipants: number, round: number): StageConfig | null {
+  // Tables de progression par type. La valeur = nb gardés à l'issue du round.
+  // isFinale quand le round produit le champion. isBronzeMatch = round special (C16 R4).
+  const M: Record<number, {
+    totalRounds: number;
+    keep: Record<number, number>;
+    finaleRound: number;
+    bronzeMatchRound?: number;
+    freezeThirdRound?: number;
+  }> = {
+    2:  { totalRounds: 1, keep: {},                 finaleRound: 1 },
+    4:  { totalRounds: 2, keep: { 1: 2 },           finaleRound: 2 },
+    8:  { totalRounds: 3, keep: { 1: 4, 2: 2 },     finaleRound: 3 },
+    12: { totalRounds: 4, keep: { 1: 6, 2: 3, 3: 2 }, finaleRound: 4, freezeThirdRound: 3 },
+    16: { totalRounds: 5, keep: { 1: 8, 2: 4, 3: 2 }, finaleRound: 5, bronzeMatchRound: 4 },
+  };
+
+  const cfg = M[maxParticipants];
+  if (!cfg) return null;
+  if (round < 1 || round > cfg.totalRounds) return null;
+
+  return {
+    keep: cfg.keep[round] ?? 0,
+    isFinale: round === cfg.finaleRound,
+    isBronzeMatch: round === cfg.bronzeMatchRound,
+    freezeThird: round === cfg.freezeThirdRound,
+    totalRounds: cfg.totalRounds,
+  };
+}
+
 // ── 1. Inscrire un candidat ────────────────────────────────────────
 export async function inscribeCandidatToBracket(params: {
   track_id: string;
