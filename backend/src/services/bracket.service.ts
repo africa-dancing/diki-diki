@@ -330,15 +330,31 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
   const bracketId = bracket.id;
   const totalCag  = bracket.total_cagnotte || 0;
 
-  // Lire les pourcentages depuis settings (modifiables sans toucher au code)
+  /*DKDK_DISTRIB_BYTYPE*/
+  // Lire tous les pourcentages depuis settings (modifiables sans toucher au code)
   const { data: rows } = await supabase.from('settings').select('key, value')
-    .in('key', ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct', 'bracket_troisieme_pct']);
+    .in('key', ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct', 'bracket_troisieme_pct', 'bracket_c8_champion_pct', 'bracket_c8_second_pct']);
   const cfg: Record<string, number> = {};
   (rows || []).forEach((r: any) => { cfg[r.key] = parseInt(r.value, 10); });
   const commissionPct = (cfg.bracket_commission_pct ?? 50) / 100;
-  const champPct      = (cfg.bracket_champion_pct ?? 60) / 100;
-  const secondPct     = (cfg.bracket_second_pct ?? 25) / 100;
-  const troisiemePct  = (cfg.bracket_troisieme_pct ?? 15) / 100;
+
+  // Repartition selon le type (max_participants) — nb de laureats variable
+  const maxP = bracket.max_participants ?? 16;
+  let champPct: number, secondPct: number, troisiemePct: number;
+  if (maxP <= 4) {
+    // C2 / C4 : 1 laureat, champion 100%
+    champPct = 1; secondPct = 0; troisiemePct = 0;
+  } else if (maxP <= 8) {
+    // C8 : 2 laureats (65/35 par defaut, reglable)
+    champPct = (cfg.bracket_c8_champion_pct ?? 65) / 100;
+    secondPct = (cfg.bracket_c8_second_pct ?? 35) / 100;
+    troisiemePct = 0;
+  } else {
+    // C12 / C16 : 3 laureats (60/25/15)
+    champPct     = (cfg.bracket_champion_pct ?? 60) / 100;
+    secondPct    = (cfg.bracket_second_pct ?? 25) / 100;
+    troisiemePct = (cfg.bracket_troisieme_pct ?? 15) / 100;
+  }
 
   // Cagnotte nette apres commission plateforme
   const net = Math.floor(totalCag * (1 - commissionPct));
