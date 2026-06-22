@@ -418,12 +418,19 @@ async function closeStage(bracket: any, round: any) {
     .order('score', { ascending: false });
   if (!alive || alive.length === 0) return;
 
-  // Combien on garde selon l etape : 1->8, 2->4, 3->2 (finale), 4->fin
-  const keepMap: Record<number, number> = { 1: 8, 2: 4, 3: 2 };
+  /*DKDK_CLOSESTAGE_BRANCHED*/
+  // ── Config dynamique selon le type (max_participants) ──
+  const stage = getStageConfig(bracket.max_participants, currentRound);
+  if (!stage) { console.log(`[CLOSE] Pas de config pour max=${bracket.max_participants} round=${currentRound}`); return; }
 
-  // ── Finale (round 4) : 1er = champion, 2e = second ──
-  if (currentRound === 4) {
-    // Egalite a la 1ere place -> prolongation (on ne clot pas)
+  // ── MATCH BRONZE (C16 round 4) : pas encore implemente, on protege ──
+  if (stage.isBronzeMatch) {
+    console.log(`[CLOSE] Round bronze (match 3e place) bracket ${bracketId} round ${currentRound} -> logique a venir, on ne touche a rien`);
+    return;
+  }
+
+  // ── Finale : 1er = champion, 2e = second ──
+  if (stage.isFinale) {
     if (alive.length >= 2 && alive[0].score === alive[1].score) {
       console.log(`[CLOSE] Egalite finale bracket ${bracketId} -> prolongation`);
       return;
@@ -432,7 +439,7 @@ async function closeStage(bracket: any, round: any) {
     return;
   }
 
-  const keep = keepMap[currentRound];
+  const keep = stage.keep;
   if (!keep) return;
 
   // ── Gestion egalite a la place limite (entre keep-1 et keep) ──
@@ -449,8 +456,8 @@ async function closeStage(bracket: any, round: any) {
   const elimines  = alive.slice(keep);
   const now = new Date().toISOString();
 
-  // ── Demi-finale (round 3) : figer le 3e avant d eliminer ──
-  if (currentRound === 3 && alive.length >= 3) {
+  // ── Figer le 3e avant d eliminer (C12 : 3e auto) ──
+  if (stage.freezeThird && alive.length >= 3) {
     const troisieme = alive[2];
     await supabase.from('brackets').update({ third_id: troisieme.id }).eq('id', bracketId);
   }
