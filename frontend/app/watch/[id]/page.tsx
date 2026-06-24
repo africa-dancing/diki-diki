@@ -16,7 +16,7 @@ function getRoundLabel(maxP: number, round: number): { label: string; cut: strin
       1: { label: "Huitième de finale", cut: "16 → 8" },
       2: { label: "Quart de finale",    cut: "8 → 4" },
       3: { label: "Demi-finale",        cut: "4 → 2" },
-      4: { label: "Match pour la 3e place 🥉", cut: "Bronze" },
+      4: { label: "Match de classement 🥉", cut: "Bronze" },
       5: { label: "Finale",             cut: "2 → 1" },
     };
     return M[round] ?? { label: "Tour " + round, cut: "" };
@@ -259,7 +259,7 @@ export default function WatchPage() {
   const [voteAmount, setVoteAmount]   = useState(100); // prix étoile = valeur d'1 unité (F CFA)
   const [heartAmount, setHeartAmount] = useState(200); // prix cœur (F CFA)
   // Objectifs NETS par etape (1..4) + commission, pilotes depuis /admin/reglages
-  const [objEtapes, setObjEtapes] = useState<Record<number, number>>({1:0,2:0,3:0,4:0});
+  const [objEtapes, setObjEtapes] = useState<Record<number, number>>({1:0,2:0,3:0,4:0,5:0});
   const [commission, setCommission] = useState(0.5);
   const [activeTab, setActiveTab]           = useState<'stars'|'hearts'>('stars');
 
@@ -329,10 +329,12 @@ export default function WatchPage() {
         const od = rows.find((s: any) => s.key === 'bracket_obj_demi');
         const of = rows.find((s: any) => s.key === 'bracket_obj_finale');
         setObjEtapes({
+          /*DKDK_OBJ_BRONZE*/
           1: oh?.value ? Number(oh.value) : 0,
           2: oq?.value ? Number(oq.value) : 0,
           3: od?.value ? Number(od.value) : 0,
-          4: of?.value ? Number(of.value) : 0,
+          4: od?.value ? Number(od.value) : 0,
+          5: of?.value ? Number(of.value) : 0,
         });
         const cp = rows.find((s: any) => s.key === 'bracket_commission_pct');
         if (cp?.value) setCommission(Number(cp.value) / 100);
