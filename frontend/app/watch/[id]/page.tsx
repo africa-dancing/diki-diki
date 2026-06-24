@@ -1140,17 +1140,22 @@ export default function WatchPage() {
                 const _estBronze = c.final_path === 'bronze';
                 const _estFinaliste = c.final_path === 'finale';
                 const _attente = _estRoundBronze && _estFinaliste;
+                /*DKDK_MEDAILLE_BRONZE*/
+                const _estApresBronze = bracketData?.bracket?.max_participants === 16 && (bracketData?.active_round?.round === 5 || bracketData?.bracket?.status === 'done');
+                const _estTroisieme = _estApresBronze && bracketData?.bracket?.third_id === c.participant_id;
                 if (enLecture) return (<div key={c.participant_id} style={{ ...s.candidateCard, border:'2px solid #FFAA00', justifyContent:'center', cursor:'default' }}><div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}><span style={{ fontSize:9, fontWeight:800, letterSpacing:'.08em', color:'#FFAA00' }}>CANDIDAT EN LECTURE</span><span style={s.candidateName}>{c.name ?? 'Candidat'}</span></div></div>);
                 return (
                   <button key={c.participant_id}
                     style={{ ...s.candidateCard, border: rank === 1 ? '2px solid #FFAA00' : s.candidateCard.border, opacity: elimine ? 0.4 : (_attente ? 0.5 : 1), cursor: elimine ? 'default' : 'pointer' }} /*DKDK_ELIM*/
                     onClick={() => { if (!elimine && c.video_id) router.push(`/watch/${c.video_id}`); }}>
-                    {!_estRoundBronze && (<span style={{ position: 'absolute', top: 6, left: 6, width: 24, height: 24, borderRadius: '50%', background: rankBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isPodium ? 13 : 11, fontWeight: 800, color: '#0a0a0f' }}>{medal}</span>)}
+                    {!_estRoundBronze && !_estTroisieme && (<span style={{ position: 'absolute', top: 6, left: 6, width: 24, height: 24, borderRadius: '50%', background: rankBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isPodium ? 13 : 11, fontWeight: 800, color: '#0a0a0f' }}>{medal}</span>)}
+                    {_estTroisieme && (<span style={{ position: 'absolute', top: 6, left: 6, width: 24, height: 24, borderRadius: '50%', background: '#cd7f32', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#0a0a0f' }}>🥉</span>)}
                     {_estRoundBronze && (_estBronze || _estFinaliste) && (
                       <span style={{ position: 'absolute', bottom: 6, left: 6, right: 6, fontSize: 8, fontWeight: 800, textAlign: 'center', lineHeight: 1.2, color: _estBronze ? '#cd7f32' : '#fff' }}>
                         {_estBronze ? 'QUALIFIE POUR LA 3eme PLACE' : 'QUALIFIE POUR LA FINALE'}
                       </span>
                     )}
+                    {_estTroisieme && (<span style={{ position: 'absolute', bottom: 6, left: 6, right: 6, fontSize: 8, fontWeight: 800, textAlign: 'center', lineHeight: 1.2, color: '#cd7f32' }}>🥉 3ème PLACE</span>)}
                     <div style={s.candidateAvatar}>
                       {c.avatar_url ? <img src={c.avatar_url} alt='' style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : initial}
                     </div>
