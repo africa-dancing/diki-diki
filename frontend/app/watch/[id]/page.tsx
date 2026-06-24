@@ -8,6 +8,45 @@ import LogoDikiDiki from '../../components/LogoDikiDiki';
 
 // ── TickerBand inline ─────────────────────────────────────────────
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
+/*DKDK_ROUNDLABEL_MODULE*/
+// Libelle d'etape adapte au type (miroir frontend de getStageConfig). 5 types.
+function getRoundLabel(maxP: number, round: number): { label: string; cut: string } {
+  if (maxP === 16) {
+    const M: Record<number, {label:string;cut:string}> = {
+      1: { label: "Huitième de finale", cut: "16 → 8" },
+      2: { label: "Quart de finale",    cut: "8 → 4" },
+      3: { label: "Demi-finale",        cut: "4 → 2" },
+      4: { label: "Match pour la 3e place 🥉", cut: "Bronze" },
+      5: { label: "Finale",             cut: "2 → 1" },
+    };
+    return M[round] ?? { label: "Tour " + round, cut: "" };
+  }
+  if (maxP === 12) {
+    const M: Record<number, {label:string;cut:string}> = {
+      1: { label: "Tour 1",        cut: "12 → 6" },
+      2: { label: "Quart de finale", cut: "6 → 3" },
+      3: { label: "Demi-finale",   cut: "3 → 2" },
+      4: { label: "Finale",        cut: "2 → 1" },
+    };
+    return M[round] ?? { label: "Tour " + round, cut: "" };
+  }
+  if (maxP === 8) {
+    const M: Record<number, {label:string;cut:string}> = {
+      1: { label: "Quart de finale", cut: "8 → 4" },
+      2: { label: "Demi-finale",   cut: "4 → 2" },
+      3: { label: "Finale",        cut: "2 → 1" },
+    };
+    return M[round] ?? { label: "Tour " + round, cut: "" };
+  }
+  if (maxP === 4) {
+    const M: Record<number, {label:string;cut:string}> = {
+      1: { label: "Demi-finale", cut: "4 → 2" },
+      2: { label: "Finale",      cut: "2 → 1" },
+    };
+    return M[round] ?? { label: "Tour " + round, cut: "" };
+  }
+  return { label: "Finale", cut: "2 → 1" };
+}
 const DEFAULT_MSGS = [
   '📢 Bienvenue sur Diki-Diki Vision — La scène des talents africains !',
   '💰 Rechargez votre compte pour voter et soutenir vos candidats',
@@ -464,6 +503,16 @@ export default function WatchPage() {
   // ── VOTER — envoyer des ⭐ étoiles (connectés uniquement) ─────────
   const handleSendStars = async () => {
     if (!isLoggedIn()) { requireLogin('Connectez-vous pour voter et envoyer des étoiles à ce candidat.'); return; }
+    /*DKDK_BRONZE_VOTEGUARD*/
+    {
+      const estRoundBronze = bracketData?.bracket?.max_participants === 16 && bracketData?.active_round?.round === 4;
+      const enLecture = bracketData?.pool?.find((pp: any) => pp.participant_id === bracketData?.current_participant_id);
+      if (estRoundBronze && enLecture && enLecture.final_path !== 'bronze') {
+        setVoteError("Ce candidat est qualifie pour la finale. Pendant le match pour la 3e place, seuls les 2 candidats du bronze peuvent recevoir des votes.");
+        setTimeout(() => setVoteError(null), 5000);
+        return;
+      }
+    }
     if (starsQty < 1) return;
     if (soutenirUnits < starsQty) {
       setVoteError(`Solde insuffisant. Tu as ${soutenirUnits} unité${soutenirUnits > 1 ? 's' : ''} sur ton Compte Soutenir.`);
@@ -495,6 +544,16 @@ export default function WatchPage() {
   // ── LIKER — envoyer des ❤️ cœurs (connectés uniquement) ──────────
   const handleSendHearts = async () => {
     if (!isLoggedIn()) { requireLogin('Connectez-vous pour liker et envoyer des cœurs à ce candidat.'); return; }
+    /*DKDK_BRONZE_VOTEGUARD*/
+    {
+      const estRoundBronze = bracketData?.bracket?.max_participants === 16 && bracketData?.active_round?.round === 4;
+      const enLecture = bracketData?.pool?.find((pp: any) => pp.participant_id === bracketData?.current_participant_id);
+      if (estRoundBronze && enLecture && enLecture.final_path !== 'bronze') {
+        setVoteError("Ce candidat est qualifie pour la finale. Pendant le match pour la 3e place, seuls les 2 candidats du bronze peuvent recevoir des votes.");
+        setTimeout(() => setVoteError(null), 5000);
+        return;
+      }
+    }
     if (heartsQty < 1) return;
     if (soutenirUnits < heartsQty * 2) {
       setVoteError(`Solde insuffisant. Tu as ${soutenirUnits} unité${soutenirUnits > 1 ? 's' : ''} sur ton Compte Soutenir.`);
@@ -819,6 +878,7 @@ export default function WatchPage() {
   const challengeEnCours = b?.status === 'in_progress';
   const ROUND_LABELS: Record<number,string> = {1:"Huitième de finale",2:"Quart de finale",3:"Demi-finale",4:"Finale"};
   const ROUND_CUT: Record<number,string> = {1:"16 → 8",2:"8 → 4",3:"4 → 3",4:"2 → 1"};
+
   const obj = objEtapes[b.current_round] || 0; /*DKDK_OBJ_NET*/
   const col = r ? Math.round(r.montant_collecte * (1 - commission)) : 0;
   const pct = obj > 0 ? Math.min(100, Math.round(col / obj * 100)) : 0;
@@ -826,6 +886,8 @@ export default function WatchPage() {
   const comm = b.commission_pct != null ? b.commission_pct : 0.5;
   const net = Math.round(total * (1 - comm));
   const fmt = (n: number) => n.toLocaleString("fr-FR");
+  /*DKDK_ROUNDLABEL_USE1*/
+  const rl = getRoundLabel(b.max_participants ?? 16, b.current_round);
   return (
     <div style={{ background:"linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))", borderRadius:12, padding:"8px 11px", marginBottom:7, boxShadow:"0 4px 14px rgba(237,7,15,0.18)" }}>
       {/*DKDK_ENCART_FORMATION*/}
@@ -843,10 +905,10 @@ export default function WatchPage() {
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:9 }}>
         <div>
           <div style={{ fontSize:8, fontWeight:800, letterSpacing:".12em", color:"#fff" }}>ÉTAPE EN COURS</div>
-          <div style={{ fontFamily:"Syne, sans-serif", fontSize:15, fontWeight:800, color:"#fff" }}>{ROUND_LABELS[b.current_round] ?? ("Tour " + b.current_round)}</div>
+          <div style={{ fontFamily:"Syne, sans-serif", fontSize:15, fontWeight:800, color:"#fff" }}>{rl.label}</div>
         </div>
         <div style={{ textAlign:"right" }}>
-          <div style={{ fontSize:10, color:"#fff" }}>{ROUND_CUT[b.current_round] ?? ""} candidats</div>
+          <div style={{ fontSize:10, color:"#fff" }}>{rl.cut} {rl.cut === "Bronze" ? "" : "candidats"}</div>
           <div style={{ fontSize:11, fontWeight:700, color:"#FFD700" }}>⏱ se clôt à l’objectif</div>
         </div>
       </div>
@@ -956,7 +1018,7 @@ export default function WatchPage() {
             challengeEnCours ? (
               <div style={{ background:"linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))", borderRadius:12, padding:"10px 12px", marginBottom:8 }}>
                 <div style={{ fontSize:8, fontWeight:800, letterSpacing:".12em", color:"#fff" }}>ÉTAPE EN COURS</div>
-                <div style={{ fontFamily:"Syne, sans-serif", fontSize:15, fontWeight:800, color:"#fff" }}>{({1:"Huitième de finale",2:"Quart de finale",3:"Demi-finale",4:"Finale"} as Record<number,string>)[bracketData.bracket.current_round] ?? ("Tour " + bracketData.bracket.current_round)}</div>
+                <div style={{ fontFamily:"Syne, sans-serif", fontSize:15, fontWeight:800, color:"#fff" }} /*DKDK_ROUNDLABEL_USE_VISITEUR*/>{getRoundLabel(bracketData.bracket.max_participants ?? 16, bracketData.bracket.current_round).label}</div>
               </div>
             ) : (
               <div style={{ background:"linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))", borderRadius:12, padding:"12px 14px", marginBottom:8, textAlign:"center" }}>
