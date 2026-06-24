@@ -47,6 +47,20 @@ function getRoundLabel(maxP: number, round: number): { label: string; cut: strin
   }
   return { label: "Finale", cut: "2 → 1" };
 }
+/*DKDK_GETROUNDOBJ*/
+// Retourne le montant objectif pour (type, round) — miroir de getStageConfig cote backend.
+function getRoundObjectif(maxP: number, round: number, obj: Record<string,number>): number {
+  const M: Record<number, Record<number, string>> = {
+    2:  { 1: 'finale' },
+    4:  { 1: 'demi', 2: 'finale' },
+    8:  { 1: 'quart', 2: 'demi', 3: 'finale' },
+    12: { 1: 'huitieme', 2: 'quart', 3: 'demi', 4: 'finale' },
+    16: { 1: 'huitieme', 2: 'quart', 3: 'demi', 4: 'demi', 5: 'finale' },
+  };
+  const key = M[maxP]?.[round] ?? 'finale';
+  return obj[key] ?? 0;
+}
+
 const DEFAULT_MSGS = [
   '📢 Bienvenue sur Diki-Diki Vision — La scène des talents africains !',
   '💰 Rechargez votre compte pour voter et soutenir vos candidats',
@@ -259,7 +273,7 @@ export default function WatchPage() {
   const [voteAmount, setVoteAmount]   = useState(100); // prix étoile = valeur d'1 unité (F CFA)
   const [heartAmount, setHeartAmount] = useState(200); // prix cœur (F CFA)
   // Objectifs NETS par etape (1..4) + commission, pilotes depuis /admin/reglages
-  const [objEtapes, setObjEtapes] = useState<Record<number, number>>({1:0,2:0,3:0,4:0,5:0});
+  const [objSettings, setObjSettings] = useState<Record<string,number>>({huitieme:0,quart:0,demi:0,finale:0});
   const [commission, setCommission] = useState(0.5);
   const [activeTab, setActiveTab]           = useState<'stars'|'hearts'>('stars');
 
@@ -328,13 +342,11 @@ export default function WatchPage() {
         const oq = rows.find((s: any) => s.key === 'bracket_obj_quart');
         const od = rows.find((s: any) => s.key === 'bracket_obj_demi');
         const of = rows.find((s: any) => s.key === 'bracket_obj_finale');
-        setObjEtapes({
-          /*DKDK_OBJ_BRONZE*/
-          1: oh?.value ? Number(oh.value) : 0,
-          2: oq?.value ? Number(oq.value) : 0,
-          3: od?.value ? Number(od.value) : 0,
-          4: od?.value ? Number(od.value) : 0,
-          5: of?.value ? Number(of.value) : 0,
+        setObjSettings({
+          huitieme: oh?.value ? Number(oh.value) : 0,
+          quart:    oq?.value ? Number(oq.value) : 0,
+          demi:     od?.value ? Number(od.value) : 0,
+          finale:   of?.value ? Number(of.value) : 0,
         });
         const cp = rows.find((s: any) => s.key === 'bracket_commission_pct');
         if (cp?.value) setCommission(Number(cp.value) / 100);
@@ -881,7 +893,7 @@ export default function WatchPage() {
   const ROUND_LABELS: Record<number,string> = {1:"Huitième de finale",2:"Quart de finale",3:"Demi-finale",4:"Finale"};
   const ROUND_CUT: Record<number,string> = {1:"16 → 8",2:"8 → 4",3:"4 → 3",4:"2 → 1"};
 
-  const obj = objEtapes[b.current_round] || 0; /*DKDK_OBJ_NET*/
+  const obj = getRoundObjectif(b.max_participants ?? 16, b.current_round, objSettings); /*DKDK_OBJ_NET*/
   const col = r ? Math.round(r.montant_collecte * (1 - commission)) : 0;
   const pct = obj > 0 ? Math.min(100, Math.round(col / obj * 100)) : 0;
   const total = b.total_cagnotte || 0;
