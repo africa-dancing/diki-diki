@@ -337,4 +337,38 @@ bracketRouter.post('/arena/vote-pool', requireAuth, async (req: AuthRequest, res
   }
 });
 
+// ===== ROUTE SOUTENIR (hors challenge, 10F/clic, 50/50) =====
+/*DKDK_SOUTENIR_ROUTE*/
+bracketRouter.post('/video/:videoId/soutenir', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const supabase = getSupabase();
+    const { videoId } = req.params;
+
+    // Recuperer la video et l'artiste
+    const { data: vid, error: vidErr } = await supabase
+      .from('videos')
+      .select('id, user_id, status')
+      .eq('id', videoId)
+      .single();
+    if (vidErr || !vid) return res.status(404).json({ success: false, error: 'Video introuvable.' });
+    if (vid.status !== 'approved') return res.status(400).json({ success: false, error: 'Video non approuvee.' });
+    if (vid.user_id === req.user!.userId) return res.status(400).json({ success: false, error: 'Vous ne pouvez pas vous soutenir vous-meme.' });
+
+    // Appel RPC soutenir_video
+    const { data, error } = await supabase.rpc('soutenir_video', {
+      p_user_id:   req.user!.userId,
+      p_artist_id: vid.user_id,
+      p_video_id:  videoId,
+    });
+    if (error) {
+      if (error.message.includes('INSUFFICIENT_BALANCE'))
+        return res.status(400).json({ success: false, error: 'Solde insuffisant (minimum 10 F CFA).' });
+      throw error;
+    }
+    res.json({ success: true, data });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 export default bracketRouter;

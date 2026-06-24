@@ -281,6 +281,8 @@ export default function WatchPage() {
   const [likeCount, setLikeCount]           = useState(0);   // nb cœurs envoyés
   const [liked, setLiked]                   = useState(false);
 
+  const [soutenirLoading, setSoutenirLoading] = useState(false);
+  const [soutenirSuccess, setSoutenirSuccess] = useState(false);
   const [voteLoading, setVoteLoading]       = useState(false);
   const [likeLoading, setLikeLoading]       = useState(false);
   const [voteSuccess, setVoteSuccess]       = useState(false);
@@ -590,6 +592,34 @@ export default function WatchPage() {
     } catch {
       // rollback silencieux
     } finally { setLikeLoading(false); }
+  };
+
+  // ── SOUTENIR (hors challenge, 10F/clic) ──────────────────────────
+  /*DKDK_HANDLE_SOUTENIR*/
+  const handleSoutenir = async () => {
+    if (!isLoggedIn()) { requireLogin('Connectez-vous pour soutenir ce candidat.'); return; }
+    if (soutenirLoading) return;
+    if ((wallet ?? 0) < 10) {
+      setVoteError('Solde insuffisant. Minimum 10 F CFA pour soutenir.');
+      setTimeout(() => setVoteError(null), 3000);
+      return;
+    }
+    setSoutenirLoading(true);
+    try {
+      const vidId = currentVideo?.id ?? id;
+      const res = await fetch(`${API}/brackets/video/${vidId}/soutenir`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Erreur');
+      setWallet(w => w !== null ? w - 10 : w);
+      setSoutenirSuccess(true);
+      setTimeout(() => setSoutenirSuccess(false), 2000);
+    } catch (e: unknown) {
+      setVoteError((e as Error).message);
+      setTimeout(() => setVoteError(null), 3000);
+    } finally { setSoutenirLoading(false); }
   };
 
   // ── S'ABONNER ─────────────────────────────────────────────────────
@@ -1023,6 +1053,22 @@ export default function WatchPage() {
                 );              })()}
             </div>
           </>)}
+          {/*DKDK_SOUTENIR_BLOCK*/}
+          {loggedIn && !challengeEnCours && bracketData?.current_participant_id && (
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'10px 12px', marginTop:8 }}>
+              <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.5)', letterSpacing:'.08em', marginBottom:8 }}>SOUTENIR CE CANDIDAT</div>
+              <div style={{ fontSize:12, color:'rgba(255,255,255,0.6)', marginBottom:10, lineHeight:1.5 }}>
+                Le challenge est entre deux rounds. Soutenez ce candidat avec <b style={{ color:'#FFAA00' }}>10 F CFA</b> — 50 % lui reviennent directement.
+              </div>
+              {voteError && <div style={{ background:'rgba(255,0,0,0.15)', border:'1.5px solid rgba(255,0,0,0.6)', borderRadius:8, padding:'8px 10px', fontSize:12, fontWeight:700, color:'#FF0000', marginBottom:8 }}>⚠️ {voteError}</div>}
+              {soutenirSuccess && <div style={{ background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.25)', borderRadius:8, padding:'8px 10px', fontSize:11, color:'#4ade80', marginBottom:8 }}>💚 Soutien envoyé !</div>}
+              <button onClick={handleSoutenir} disabled={soutenirLoading}
+                style={{ width:'100%', padding:'9px', background:'linear-gradient(135deg,rgba(126,3,128,0.85),rgb(237,7,15))', border:'none', borderRadius:9, fontSize:13, fontWeight:700, color:'#fff', cursor:soutenirLoading ? 'not-allowed' : 'pointer', fontFamily:'DM Sans, sans-serif', opacity:soutenirLoading ? 0.6 : 1 }}>
+                {soutenirLoading ? '⏳…' : '💚 Soutenir — 10 F CFA'}
+              </button>
+              <div style={{ fontSize:9, color:'rgba(255,255,255,0.35)', textAlign:'center', marginTop:6 }}>Solde : {wallet ?? 0} F CFA</div>
+            </div>
+          )}
           </>
         ) : (
           /* ── Visiteur — info challenge + invite a se connecter ── */
