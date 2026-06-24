@@ -237,6 +237,85 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
   }
 });
 
+// ===== ROUTES VIDEOS PAR ROUND (modele une video par etape) =====
+/*DKDK_VIDEO_ROUND*/
+
+// Soumettre une video pour le round actif
+bracketRouter.post('/participant/:participantId/video', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const supabase = getSupabase();
+    const { participantId } = req.params;
+    const { video_id } = req.body;
+    if (!video_id) return res.status(400).json({ success: false, error: 'video_id manquant.' });
+
+    // Verifier que le participant appartient a l'utilisateur
+    const { data: part, error: partErr } = await supabase
+      .from('bracket_participants')
+      .select('id, bracket_id, eliminated_at')
+      .eq('id', participantId)
+      .eq('user_id', req.user!.userId)
+      .single();
+    if (partErr || !part) return res.status(403).json({ success: false, error: 'Participant introuvable ou non autorise.' });
+    if (part.eliminated_at) return res.status(400).json({ success: false, error: 'Participant elimine.' });
+
+    // Recuperer le round actif
+    const { data: rounds } = await supabase
+      .from('bracket_rounds')
+      .select('round')
+      .eq('bracket_id', part.bracket_id)
+      .eq('status', 'in_progress')
+      .order('round', { ascending: false })
+      .limit(1);
+    const currentRound = rounds?.[0]?.round;
+    if (!currentRound) return res.status(400).json({ success: false, error: 'Aucun round actif.' });
+
+    // Verifier que la video est approuvee
+    const { data: vid } = await supabase
+      .from('videos')
+      .select('id, status, user_id')
+      .eq('id', video_id)
+      .single();
+    if (!vid || vid.status !== 'approved') return res.status(400).json({ success: false, error: 'Video non approuvee.' });
+    if (vid.user_id !== req.user!.userId) return res.status(403).json({ success: false, error: 'Video non autorisee.' });
+
+    // Upsert dans bracket_participant_videos (1 video par participant par round)
+    const { error: uvErr } = await supabase
+      .from('bracket_participant_videos')
+      .upsert({
+        participant_id: participantId,
+        round_number: currentRound,
+        video_id,
+      }, { onConflict: 'participant_id,round_number' });
+    if (uvErr) throw uvErr;
+
+    // Mettre a jour le video_id actif sur bracket_participants
+    await supabase
+      .from('bracket_participants')
+      .update({ video_id })
+      .eq('id', participantId);
+
+    res.json({ success: true, round: currentRound, video_id });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Lister les videos d'un participant par round
+bracketRouter.get('/participant/:participantId/videos', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('bracket_participant_videos')
+      .select('round_number, video_id, created_at, videos(title, storage_url, status)')
+      .eq('participant_id', req.params.participantId)
+      .order('round_number', { ascending: true });
+    if (error) throw error;
+    res.json({ success: true, data: data || [] });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Vote pool (plusieurs etoiles possibles) -> RPC vote_bracket_pool
 bracketRouter.post('/arena/vote-pool', requireAuth, async (req: AuthRequest, res: Response) => {
   try {

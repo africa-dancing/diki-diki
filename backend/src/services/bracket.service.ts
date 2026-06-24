@@ -565,6 +565,23 @@ async function closeStage(bracket: any, round: any) {
   await supabase.from('bracket_rounds').update({ status: 'in_progress', started_at: now }).eq('bracket_id', bracketId).eq('round', nextRound);
   await supabase.from('brackets').update({ current_round: nextRound }).eq('id', bracketId);
 
+  /*DKDK_UPDATE_VIDEO_ROUND*/
+  // Mettre a jour video_id des qualifies si une video a ete soumise pour le prochain round
+  for (const p of qualifies) {
+    const { data: nextVid } = await supabase
+      .from('bracket_participant_videos')
+      .select('video_id')
+      .eq('participant_id', p.id)
+      .eq('round_number', nextRound)
+      .maybeSingle();
+    if (nextVid?.video_id) {
+      await supabase
+        .from('bracket_participants')
+        .update({ video_id: nextVid.video_id })
+        .eq('id', p.id);
+    }
+  }
+
   // Notifier les qualifies
   const labels = ['', 'Huitieme', 'Quart', 'Demi', 'Finale'];
   for (const p of qualifies) {
