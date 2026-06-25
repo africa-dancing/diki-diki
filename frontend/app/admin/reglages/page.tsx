@@ -11,7 +11,8 @@ interface Reglage { key: string; value: string; description: string; }
 
 const GROUPES: { titre: string; cles: string[] }[] = [
   { titre: '💰 Votes & cagnotte', cles: ['bracket_vote_amount'] },
-  { titre: '🏆 Répartition', cles: ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct', 'bracket_troisieme_pct'] },
+  { titre: '🏆 Répartition C12 / C16 (3 lauréats)', cles: ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct', 'bracket_troisieme_pct'] },
+  { titre: '🥈 Répartition C8 (2 lauréats)', cles: ['bracket_c8_champion_pct', 'bracket_c8_second_pct'] },
   { titre: '🎯 Objectifs par étape', cles: ['bracket_obj_huitieme', 'bracket_obj_quart', 'bracket_obj_demi', 'bracket_obj_finale'] },
   { titre: '⏱️ Délais', cles: ['bracket_egalite_jours', 'bracket_soumission_jours', 'bracket_relance_jours'] },
   { titre: '\u{1F3B5} Musique d ambiance', cles: ['ambiance_audio_url', 'ambiance_active', 'ambiance_pages_exclues'] },
