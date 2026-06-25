@@ -10,6 +10,7 @@ const MENU = [
   { href: '/admin/stats',      icon: '📊', label: 'Statistiques'      },
   { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },
   { href: '/admin/reglages',   icon: '⚙️', label: 'Réglages Challenge' },
+  { href: '/admin/mediatheque', icon: '🎵', label: 'Médiathèque' },
 ];
 
 export function AdminSidebar() {
