@@ -371,16 +371,11 @@ export default function SubmitPage() {
               <label style={lbl}>Type de challenge *</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 6 }}>
                 {[
-                  { type:'C2',  label:'C2',  desc:'2
-Duel',      rounds:'1 round' },
-                  { type:'C4',  label:'C4',  desc:'4
-candidats', rounds:'2 rounds' },
-                  { type:'C8',  label:'C8',  desc:'8
-candidats', rounds:'3 rounds' },
-                  { type:'C12', label:'C12', desc:'12
-candidats',rounds:'4 rounds' },
-                  { type:'C16', label:'C16', desc:'16
-candidats',rounds:'5 rounds' },
+                  { type:'C2',  label:'C2',  desc:'2\nDuel',      rounds:'1 round' },
+                  { type:'C4',  label:'C4',  desc:'4\ncandidats', rounds:'2 rounds' },
+                  { type:'C8',  label:'C8',  desc:'8\ncandidats', rounds:'3 rounds' },
+                  { type:'C12', label:'C12', desc:'12\ncandidats',rounds:'4 rounds' },
+                  { type:'C16', label:'C16', desc:'16\ncandidats',rounds:'5 rounds' },
                 ].map(t => (
                   <div key={t.type} onClick={() => setSelectedType(t.type)}
                     style={{ background: selectedType === t.type ? 'rgba(255,170,0,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${selectedType === t.type ? 'rgba(255,170,0,0.5)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 10, padding: '8px 4px', textAlign: 'center', cursor: 'pointer', transition: 'all .2s' }}>
