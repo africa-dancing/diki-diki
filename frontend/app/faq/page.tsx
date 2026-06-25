@@ -29,47 +29,53 @@ const s: Record<string, React.CSSProperties> = {
 
 const faqs = [
   {
-    cat: '🌍 Diki-Diki Vision — La plateforme',
+    cat: '🌍 Diki-Diki — La plateforme',
     items: [
       {
-        q: "C'est quoi Diki-Diki Vision ?",
-        a: `Diki-Diki Vision est une plateforme panafricaine d'éducation, du savoir, de loisir et de divertissement.\n\nElle offre un écosystème riche en découverte du savoir et permet à la fois à ses utilisateurs de s'affronter dans des jeux de compétitions en ligne et de gagner de l'argent grâce aux votes du public — danse, chant, musique, comédie, poésie, conte, etc.\n\n🌍 Ouverte à toute l'Afrique, à toute la diaspora internationale et au reste du monde.`,
+        q: "C'est quoi Diki-Diki ?",
+        a: `Diki-Diki est une plateforme panafricaine de compétitions artistiques avec votes monétisés en temps réel.\n\nLes artistes soumettent leurs vidéos de prestation et s'affrontent dans des challenges par élimination. Le public vote en envoyant des étoiles ★ ou des cœurs ❤️, et la cagnotte est distribuée au podium à la fin du challenge.\n\nDisciplines : danse, chant, instrument, acapella, humour, poésie, conte, théâtre.\n\n🌍 Ouverte à toute l'Afrique, à toute la diaspora internationale et au reste du monde.`,
       },
       {
-        q: "Quels sont les avantages d'être sur Diki-Diki Vision ?",
-        a: `Pour les artistes :\n• Visibilité auprès d'une audience africaine et internationale\n• Compétition équitable — c'est le public qui vote\n• Gains réels — le champion remporte 50 % de la cagnotte\n• Rémunération sur le contenu éducatif publié\n• Appartenir à une communauté de talents africains en pleine croissance\n\nPour le public :\n• Découverte de talents que vous n'auriez jamais rencontrés ailleurs\n• Soutien direct — vos votes vont dans la cagnotte de votre artiste favori\n• Accès gratuit — regarder, commenter et partager est entièrement gratuit, sans inscription`,
+        q: "Quels sont les avantages d'être sur Diki-Diki ?",
+        a: `Pour les artistes :\n• Visibilité auprès d'une audience africaine et internationale\n• Compétition équitable — c'est le public qui vote\n• Gains réels — le podium se partage la cagnotte (60 % champion, 25 % 2e, 15 % 3e)\n• Compte créé automatiquement — voter ne nécessite qu'un numéro de téléphone\n• Appartenir à une communauté de talents africains en pleine croissance\n\nPour le public :\n• Découverte de talents que vous n'auriez jamais rencontrés ailleurs\n• Soutien direct — vos votes alimentent la cagnotte de vos artistes favoris\n• Accès gratuit — regarder, commenter et partager est entièrement gratuit`,
       },
     ],
   },
   {
-    cat: '🏆 Comprendre le Bracket',
+    cat: '🏆 Comprendre le Challenge',
     items: [
       {
-        q: "C'est quoi un « bracket » ?",
-        a: `Un bracket est un tableau de compétition par élimination directe, inspiré des tournois sportifs. Les candidats s'affrontent en duels : le gagnant passe au tour suivant, le perdant est éliminé. Sur Diki-Diki Vision, c'est le public qui vote pour désigner le gagnant de chaque duel.\n\nStructure d'un bracket :\n• Huitième de finale — 16 candidats, 8 duels — 10 jours\n• Quart de finale — 8 candidats, 4 duels — 10 jours\n• Demi-finale — 4 candidats, 2 duels — 10 jours\n• Finale — 2 candidats, 1 duel — 10 jours\n• Champion — remporte 50 % de la cagnotte totale accumulée`,
+        q: "C'est quoi un challenge Diki-Diki ?",
+        a: `Un challenge est une compétition par élimination où les candidats s'affrontent devant le public. À chaque étape, les candidats les mieux votés passent au tour suivant. Le public vote en envoyant des étoiles ★ (100 F CFA) ou des cœurs ❤️ (200 F CFA).\n\n5 types de challenges selon le nombre de candidats :\n• C2 — 2 candidats, 1 étape (Finale directe)\n• C4 — 4 candidats, 2 étapes (Demi + Finale)\n• C8 — 8 candidats, 3 étapes (Quart + Demi + Finale)\n• C12 — 12 candidats, 4 étapes (+ 3e place automatique)\n• C16 — 16 candidats, 5 étapes (+ Match bronze inédit pour la 3e place)\n\nChaque étape se clôture quand l'objectif de cagnotte est atteint.`,
       },
       {
-        q: "Bracket « Libre / Duel » vs « Répertoire / Groupe » — quelle différence ?",
-        a: `Libre — chaque candidat choisit librement son adversaire et lui envoie une invitation à compétir sur le Podium Aréna Challenge sur un morceau ou une séquence d'un morceau. L'autre candidat accepte ou décline l'invitation. Ils se fixent un délai en commun accord pour déposer leur enregistrement et après validation la compétition est lancée.\n\nRépertoire Groupe — tous les candidats font leurs choix respectifs et tombent chacun dans un pool ; une fois les pools formés, la compétition démarre par les éliminations appelées Huitième de finale puis le Quart de finale, la Demi-finale et enfin la Finale. Les disciplines sont les suivantes : le chant par l'interprétation ; la danse ; la chorégraphie sur le même morceau imposé pour tous. Cela permet une comparaison équitable sur la même base artistique et met en valeur l'interprétation personnelle de chaque artiste.`,
+        q: "Comment les gagnants sont-ils désignés ?",
+        a: `À chaque étape, les candidats sont classés par score (votes reçus). Les mieux classés passent au tour suivant, les autres sont éliminés.\n\nEn cas d'égalité à la place limite, l'étape se prolonge naturellement jusqu'à ce qu'un vote départage les candidats.\n\nEn C16, les 2 candidats éliminés en demi-finale s'affrontent dans un match bronze pour la 3e place avant la grande finale.`,
+      },
+      {
+        q: "Qui peut créer un challenge ?",
+        a: `Tout utilisateur vérifié ayant rechargé au minimum 1 000 F CFA sur sa vie de compte et disposant d'au moins une vidéo approuvée peut créer un challenge.\n\nLe créateur est automatiquement inscrit comme 1er candidat. Le challenge démarre quand tous les candidats sont inscrits.`,
       },
     ],
   },
   {
     cat: '🎤 Participation',
     items: [
-      { q: 'Comment participer à un concours ?', a: "Créez un compte, choisissez le morceau (track) auquel vous souhaitez participer ; soumettez une vidéo de votre prestation sur le morceau ou la séquence depuis la page Challenges. Une fois 16 candidats inscrits, le bracket (ou encore la compétition) démarre automatiquement." },
-      { q: 'Quel type de vidéo puis-je soumettre ?', a: "Toute performance artistique : danse, chant, musique, slam, comédie... La vidéo doit être originale, vous appartenir, et respecter les règles de la communauté (pas de contenu violent ou offensant)." },
-      { q: "Combien coûte l'inscription à une compétition (un bracket) ?", a: "L'inscription est 100 % gratuite pour tout candidat. Seul le public paie pour voter (1 vote = 10 F CFA)." },
-      { q: 'Puis-je participer à plusieurs concours en même temps ?', a: "Oui, vous pouvez vous inscrire à plusieurs brackets simultanément, à condition de respecter les règles de chaque concours." },
+      { q: 'Comment participer à un challenge ?', a: "Soumettez une vidéo de votre prestation depuis la page Ajouter. Choisissez votre type de challenge (C2 à C16). Une fois votre vidéo approuvée, rejoignez un challenge existant ou créez le vôtre. Le challenge démarre quand tous les candidats sont inscrits." },
+      { q: 'Quel type de vidéo puis-je soumettre ?', a: "Toute performance artistique originale : danse, chant, instrument, humour, poésie... Format MP4 ou MOV, maximum 500 MB et 10 minutes. La vidéo doit vous appartenir et respecter les règles de la communauté." },
+      { q: "Combien coûte l'inscription à un challenge ?", a: "L'inscription est 100 % gratuite pour tout candidat. Seul le public paie pour voter." },
+      { q: 'Puis-je participer à plusieurs challenges en même temps ?', a: "Oui, vous pouvez vous inscrire à plusieurs challenges simultanément, à condition de disposer d'une vidéo approuvée pour chacun." },
+      { q: 'Puis-je changer ma vidéo entre deux étapes ?', a: "Oui ! Le modèle une vidéo par étape vous permet de soumettre une nouvelle vidéo avant le début de chaque nouvelle étape. Allez dans Mes vidéos → Soumettre pour cette étape." },
     ],
   },
   {
     cat: '🗳️ Votes & Cagnotte',
     items: [
-      { q: 'Comment fonctionne le vote ?', a: "1 vote = 1 unité = 10 F CFA. Vous choisissez le candidat que vous souhaitez soutenir dans un duel actif, et le montant est débité de votre portefeuille ou payé directement." },
-      { q: "La cagnotte, c'est quoi exactement ?", a: "La cagnotte est l'ensemble des votes accumulés sur tous les tours d'un bracket. Le champion final remporte 50 % de la cagnotte totale, après déduction de la commission Diki-Diki Vision." },
-      { q: "Que se passe-t-il en cas d'égalité ?", a: "En cas d'égalité à la fin d'un duel, une prolongation automatique de 5 jours est accordée. Si l'égalité persiste, le jury Diki-Diki tranche." },
-      { q: 'Puis-je voter plusieurs fois pour le même candidat ?', a: "Oui, vous pouvez voter autant de fois que vous le souhaitez pour un candidat, tant que le duel est actif." },
+      { q: 'Comment fonctionne le vote ?', a: "Deux types de votes :\n• ★ Étoile = 1 unité = 100 F CFA (poids +1 dans le classement)\n• ❤️ Cœur = 2 unités = 200 F CFA (poids +2 dans le classement)\n\nTous les montants votés alimentent directement la cagnotte du challenge après déduction de la commission plateforme (50 %)." },
+      { q: "La cagnotte, c'est quoi exactement ?", a: "La cagnotte est l'ensemble des votes accumulés sur toutes les étapes d'un challenge. À la fin :\n• C2/C4 : 100 % au champion\n• C8 : 65 % champion, 35 % 2e\n• C12/C16 : 60 % champion, 25 % 2e, 15 % 3e\n\nCes pourcentages sont appliqués sur le montant net après commission plateforme (50 %)." },
+      { q: "Qu'est-ce que le Soutenir ?", a: "Hors période de vote active (entre deux étapes ou pour une vidéo sans challenge), vous pouvez Soutenir un artiste pour 10 F CFA. 50 % vont directement à l'artiste, 50 % à la plateforme." },
+      { q: 'Puis-je voter plusieurs fois pour le même candidat ?', a: "Oui, vous pouvez envoyer autant d'étoiles ou de cœurs que vous souhaitez, tant que l'étape est active et que votre solde le permet." },
+      { q: "Que se passe-t-il en cas d'égalité ?", a: "L'étape se prolonge naturellement jusqu'à ce qu'un vote départage les candidats à égalité. Les votes continuent d'être acceptés normalement." },
     ],
   },
   {
