@@ -93,3 +93,28 @@ export async function resendOTP(req: Request, res: Response) {
     res.status(400).json({ error: err.message || 'RESEND_FAILED' });
   }
 }
+
+/*DKDK_ONETAP_CTRL*/
+export async function oneTapSend(req: Request, res: Response) {
+  try {
+    const { phone } = phoneSchema.parse(req.body);
+    const result    = await authService.oneTapSend(phone);
+    res.json(result);
+  } catch (err: any) {
+    if (err.name === 'ZodError')
+      return res.status(400).json({ error: 'VALIDATION_ERROR' });
+    res.status(400).json({ error: err.message || 'ONETAP_SEND_FAILED' });
+  }
+}
+
+export async function oneTapVerify(req: Request, res: Response) {
+  try {
+    const { phone, otp } = otpSchema.parse(req.body);
+    const result         = await authService.oneTapVerify(phone, otp);
+    res.json(result);
+  } catch (err: any) {
+    if (err.name === 'ZodError')
+      return res.status(400).json({ error: 'VALIDATION_ERROR' });
+    res.status(400).json({ error: err.message || 'ONETAP_VERIFY_FAILED' });
+  }
+}

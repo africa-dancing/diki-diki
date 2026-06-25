@@ -298,6 +298,14 @@ export default function WatchPage() {
   const [showShareMenu, setShowShareMenu]   = useState(false);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [loginPopupMsg, setLoginPopupMsg]   = useState('');
+  /*DKDK_ONETAP_STATE*/
+  const [showOneTap, setShowOneTap]         = useState(false);
+  const [oneTapPhone, setOneTapPhone]       = useState('');
+  const [oneTapOtp, setOneTapOtp]           = useState('');
+  const [oneTapStep, setOneTapStep]         = useState('phone');
+  const [oneTapLoading, setOneTapLoading]   = useState(false);
+  const [oneTapError, setOneTapError]       = useState('');
+  const [oneTapAction, setOneTapAction]     = useState('stars');
   const [newComment, setNewComment]         = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
   const [copied, setCopied]                 = useState(false);
@@ -376,6 +384,49 @@ export default function WatchPage() {
   const requireLogin = (msg: string) => {
     setLoginPopupMsg(msg);
     setShowLoginPopup(true);
+  };
+  /*DKDK_ONETAP_OPEN*/
+  const openOneTap = (action: string) => {
+    setOneTapAction(action);
+    setOneTapStep('phone');
+    setOneTapPhone('');
+    setOneTapOtp('');
+    setOneTapError('');
+    setShowOneTap(true);
+  };
+  const handleOneTapSend = async () => {
+    if (!oneTapPhone.trim()) { setOneTapError('Entrez votre numero.'); return; }
+    setOneTapLoading(true); setOneTapError('');
+    try {
+      const res = await fetch(API + '/auth/one-tap', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: oneTapPhone }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Erreur');
+      setOneTapStep('otp');
+    } catch (e: any) { setOneTapError(e.message); }
+    finally { setOneTapLoading(false); }
+  };
+  const handleOneTapVerify = async () => {
+    if (oneTapOtp.length !== 6) { setOneTapError('Code a 6 chiffres.'); return; }
+    setOneTapLoading(true); setOneTapError('');
+    try {
+      const res = await fetch(API + '/auth/one-tap/verify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: oneTapPhone, otp: oneTapOtp }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Erreur');
+      localStorage.setItem('dkdk_token', data.token);
+      localStorage.setItem('dkdk_user', JSON.stringify(data.user));
+      setShowOneTap(false);
+      setSoutenirUnits(Math.floor((data.user.wallet ?? 0) / voteAmount));
+      setWallet(data.user.wallet ?? 0);
+      if (oneTapAction === 'stars') setTimeout(() => handleSendStars(), 300);
+      else setTimeout(() => handleSendHearts(), 300);
+    } catch (e: any) { setOneTapError(e.message); }
+    finally { setOneTapLoading(false); }
   };
 
   useEffect(() => {
@@ -518,7 +569,7 @@ export default function WatchPage() {
 
   // ── VOTER — envoyer des ⭐ étoiles (connectés uniquement) ─────────
   const handleSendStars = async () => {
-    if (!isLoggedIn()) { requireLogin('Connectez-vous pour voter et envoyer des étoiles à ce candidat.'); return; }
+    if (!isLoggedIn()) { openOneTap('stars'); return; }
     /*DKDK_BRONZE_VOTEGUARD*/
     {
       const estRoundBronze = bracketData?.bracket?.max_participants === 16 && bracketData?.active_round?.round === 4;
@@ -559,7 +610,7 @@ export default function WatchPage() {
 
   // ── LIKER — envoyer des ❤️ cœurs (connectés uniquement) ──────────
   const handleSendHearts = async () => {
-    if (!isLoggedIn()) { requireLogin('Connectez-vous pour liker et envoyer des cœurs à ce candidat.'); return; }
+    if (!isLoggedIn()) { openOneTap('hearts'); return; }
     /*DKDK_BRONZE_VOTEGUARD*/
     {
       const estRoundBronze = bracketData?.bracket?.max_participants === 16 && bracketData?.active_round?.round === 4;
@@ -739,6 +790,51 @@ export default function WatchPage() {
           onLogin={() => { setShowLoginPopup(false); router.push('/auth/login'); }}
           onClose={() => setShowLoginPopup(false)}
         />
+      )}
+
+      {/*DKDK_ONETAP_POPUP*/}
+      {showOneTap && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.75)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:400 }} onClick={() => setShowOneTap(false)}>
+          <div style={{ background:'#12121e', border:'1px solid rgba(255,170,0,0.3)', borderRadius:20, padding:'28px 24px', maxWidth:320, width:'90%' }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize:32, textAlign:'center', marginBottom:12 }}>{oneTapAction === 'stars' ? '⭐' : '❤️'}</div>
+            <h3 style={{ fontFamily:'Syne, sans-serif', fontWeight:700, fontSize:'1rem', color:'#fff', textAlign:'center', marginBottom:6 }}>
+              {oneTapStep === 'phone' ? 'Voter en 1 tap' : 'Code de confirmation'}
+            </h3>
+            <p style={{ fontSize:'0.8rem', color:'rgba(255,255,255,0.45)', textAlign:'center', marginBottom:16, lineHeight:1.5 }}>
+              {oneTapStep === 'phone'
+                ? 'Entrez votre numero — on cree votre compte automatiquement.'
+                : 'Code envoye au ' + oneTapPhone}
+            </p>
+            {oneTapError && <div style={{ background:'rgba(255,0,0,0.12)', border:'1px solid rgba(255,0,0,0.3)', borderRadius:8, padding:'8px 12px', fontSize:12, color:'#f87171', marginBottom:10, textAlign:'center' }}>{oneTapError}</div>}
+            {oneTapStep === 'phone' ? (
+              <>
+                <input
+                  type="tel" placeholder="+225 07 00 00 00 00"
+                  value={oneTapPhone} onChange={e => setOneTapPhone(e.target.value)}
+                  style={{ width:'100%', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'10px 14px', fontSize:14, color:'#fff', outline:'none', fontFamily:'DM Sans, sans-serif', boxSizing:'border-box' as const, marginBottom:12 }}
+                />
+                <button onClick={handleOneTapSend} disabled={oneTapLoading}
+                  style={{ width:'100%', background:'linear-gradient(135deg,#FFAA00,#FF6B00)', border:'none', borderRadius:50, padding:'10px', fontSize:14, fontWeight:700, color:'#000', cursor:'pointer', fontFamily:'DM Sans, sans-serif', opacity:oneTapLoading ? 0.6 : 1 }}>
+                  {oneTapLoading ? '⏳…' : 'Recevoir le code →'}
+                </button>
+              </>
+            ) : (
+              <>
+                <input
+                  type="text" placeholder="123456" maxLength={6}
+                  value={oneTapOtp} onChange={e => setOneTapOtp(e.target.value.replace(/D/g,''))}
+                  style={{ width:'100%', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'10px 14px', fontSize:18, color:'#fff', outline:'none', fontFamily:'DM Sans, sans-serif', boxSizing:'border-box' as const, marginBottom:12, textAlign:'center' as const, letterSpacing:8 }}
+                />
+                <button onClick={handleOneTapVerify} disabled={oneTapLoading}
+                  style={{ width:'100%', background:'linear-gradient(135deg,#FFAA00,#FF6B00)', border:'none', borderRadius:50, padding:'10px', fontSize:14, fontWeight:700, color:'#000', cursor:'pointer', fontFamily:'DM Sans, sans-serif', opacity:oneTapLoading ? 0.6 : 1 }}>
+                  {oneTapLoading ? '⏳…' : (oneTapAction === 'stars' ? 'Voter ⭐' : 'Liker ❤️')}
+                </button>
+                <button onClick={() => setOneTapStep('phone')} style={{ width:'100%', background:'none', border:'none', color:'rgba(255,255,255,0.35)', fontSize:12, cursor:'pointer', marginTop:8, fontFamily:'DM Sans, sans-serif' }}>← Changer de numero</button>
+              </>
+            )}
+            <button onClick={() => { setShowOneTap(false); router.push('/auth/login'); }} style={{ width:'100%', background:'none', border:'none', color:'rgba(255,255,255,0.25)', fontSize:11, cursor:'pointer', marginTop:10, fontFamily:'DM Sans, sans-serif' }}>J ai deja un compte →</button>
+          </div>
+        </div>
       )}
 
       {/* ── TOPBAR ── */}

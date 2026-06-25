@@ -44,8 +44,8 @@ async function sendSMSOTP(phone: string, otp: string): Promise<void> {
     new URLSearchParams({
       username,
       to:      phone,
-      message: `[PAC] Votre code de vérification : ${otp}. Valide 10 min.`,
-      from:    'PAC',
+      message: `[DkDk] Votre code de vérification : ${otp}. Valide 10 min.`,
+      from:    'DkDk',
     }),
     {
       headers: {
@@ -227,6 +227,65 @@ export async function socialAuth(
   );
 
   return { token: jwtToken, user, isNewUser };
+}
+
+// ─── ONE-TAP : Envoyer OTP (compte implicite si nouveau) ────────
+/*DKDK_ONETAP_SEND*/
+export async function oneTapSend(phone: string) {
+  // Verifier si l'utilisateur existe
+  const { data: existing } = await supabase
+    .from('users').select('id, name').eq('phone', phone).maybeSingle();
+
+  // Creer un compte implicite si inexistant
+  if (!existing) {
+    const suffix = Math.floor(1000 + Math.random() * 9000);
+    const { error } = await supabase.from('users').insert({
+      name:        `Fan_${suffix}`,
+      phone,
+      email:       null,
+      password:    null,
+      country:     null,
+      is_verified: true,
+      role:        'user',
+      wallet:      0,
+      created_at:  new Date().toISOString(),
+    });
+    if (error) throw new Error('ACCOUNT_CREATION_FAILED');
+  }
+
+  // Envoyer OTP
+  const otp = generateOTP();
+  await redis.setex(`otp:${phone}`, OTP_TTL, otp);
+  console.log(`[DEV] ONE-TAP OTP pour ${phone}: ${otp}`);
+  try { await sendSMSOTP(phone, otp); } catch (e) { console.error('[AT] SMS one-tap failed:', e); }
+
+  return { message: 'OTP_SENT', is_new: !existing };
+}
+
+// ─── ONE-TAP : Verifier OTP → JWT immédiat ────────────────────
+/*DKDK_ONETAP_VERIFY*/
+export async function oneTapVerify(phone: string, otp: string) {
+  const stored = await redis.get<string>(`otp:${phone}`);
+  if (!stored) throw new Error('OTP_EXPIRED');
+  if (String(stored) !== String(otp)) throw new Error('OTP_INVALID');
+
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('id, phone, name, role, avatar_url, wallet, is_verified')
+    .eq('phone', phone)
+    .single();
+
+  if (error || !user) throw new Error('USER_NOT_FOUND');
+
+  await redis.del(`otp:${phone}`);
+
+  const token = jwt.sign(
+    { userId: user.id, role: user.role },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+
+  return { token, user };
 }
 
 // ─── RESEND OTP ───────────────────────────────────────────────
