@@ -55,6 +55,7 @@ videoRouter.post('/', requireAuth, async (req, res) => {
         userId: req.user.userId, discipline,
         trackTitle: track_title, trackArtist: track_artist, trackGenre: track_genre,
         title, description, fileBuffer, fileName, mimeType, fileSizeMb,
+        challengeType: req.body.challenge_type || 'C16',
       });
       return res.status(201).json({ success: true, video, message: 'Video soumise avec succes. Validation sous 24-48h.' });
     }
@@ -76,6 +77,7 @@ videoRouter.post('/upload', requireAuth, async (req: AuthRequest, res: Response)
     userId: req.user!.userId, discipline,
     trackTitle: track_title, trackArtist: track_artist, trackGenre: track_genre,
     title, description, fileBuffer, fileName, mimeType, fileSizeMb,
+    challengeType: req.body.challenge_type || 'C16',
   });
   res.status(201).json({ success: true, video, message: 'Vidéo soumise avec succès. Validation sous 24–48h.' });
 });

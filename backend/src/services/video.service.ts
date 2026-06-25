@@ -1,13 +1,13 @@
 ﻿import { supabase } from '../../config/supabase';
-const BUCKET = 'pac-videos';
+const BUCKET = 'dkdk-videos';
 const MAX_SIZE_MB = 500;
 const MAX_DURATION = 600;
 const ALLOWED_TYPES = ['video/mp4', 'video/quicktime'];
 export type Discipline = 'danse' | 'chant' | 'instrument' | 'acapella' | 'humour' | 'poesie';
-export interface UploadVideoParams { userId: string; discipline: Discipline; trackTitle?: string; trackArtist?: string; trackGenre?: string; title?: string; description?: string; fileBuffer: Buffer; fileName: string; mimeType: string; fileSizeMb: number; }
+export interface UploadVideoParams { userId: string; discipline: Discipline; trackTitle?: string; trackArtist?: string; trackGenre?: string; title?: string; description?: string; fileBuffer: Buffer; fileName: string; mimeType: string; fileSizeMb: number; challengeType?: string; }
 
 export async function uploadVideo(params: UploadVideoParams) {
-  const { userId, discipline, trackTitle, trackArtist, trackGenre, title, description, fileBuffer, fileName, mimeType, fileSizeMb } = params;
+  const { userId, discipline, trackTitle, trackArtist, trackGenre, title, description, fileBuffer, fileName, mimeType, fileSizeMb, challengeType } = params;
   if (!ALLOWED_TYPES.includes(mimeType)) throw new Error('INVALID_FORMAT');
   if (fileSizeMb > MAX_SIZE_MB) throw new Error('FILE_TOO_LARGE');
   const ext = fileName.split('.').pop();
@@ -15,7 +15,7 @@ export async function uploadVideo(params: UploadVideoParams) {
   const { error: uploadErr } = await supabase.storage.from(BUCKET).upload(storagePath, fileBuffer, { contentType: mimeType, upsert: false });
   if (uploadErr) throw new Error('UPLOAD_FAILED');
   const { data: signedUrl } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, 604800);
-  const { data: video, error: dbErr } = await supabase.from('videos').insert({ user_id: userId, discipline, track_title: trackTitle, track_artist: trackArtist, track_genre: trackGenre, title, description, storage_path: storagePath, storage_url: signedUrl?.signedUrl, file_size_mb: fileSizeMb, format: ext, status: 'pending' }).select().single();
+  const { data: video, error: dbErr } = await supabase.from('videos').insert({ user_id: userId, discipline, track_title: trackTitle, track_artist: trackArtist, track_genre: trackGenre, title, description, storage_path: storagePath, storage_url: signedUrl?.signedUrl, file_size_mb: fileSizeMb, format: ext, status: 'pending', challenge_type: challengeType || 'C16' }).select().single();
   if (dbErr) throw dbErr;
   await notifyModerators(video.id, userId, discipline);
   return video;
@@ -63,14 +63,14 @@ export async function deleteVideo(videoId: string, userId: string, isAdmin = fal
   return { success: true };
 }
 
-export interface CreateVideoFromUrlParams { userId: string; discipline: string; trackTitle?: string; trackArtist?: string; trackGenre?: string; title?: string; description?: string; videoUrl: string; }
+export interface CreateVideoFromUrlParams { userId: string; discipline: string; trackTitle?: string; trackArtist?: string; trackGenre?: string; title?: string; description?: string; videoUrl: string; challengeType?: string; }
 
 export async function createVideoFromUrl(params: CreateVideoFromUrlParams) {
-  const { userId, discipline, trackTitle, trackArtist, trackGenre, title, description, videoUrl } = params;
+  const { userId, discipline, trackTitle, trackArtist, trackGenre, title, description, videoUrl, challengeType } = params;
   if (!videoUrl || !/^https?:\/\//i.test(videoUrl)) throw new Error('INVALID_URL');
   const { data: video, error: dbErr } = await supabase.from('videos').insert({
     user_id: userId, discipline, track_title: trackTitle, track_artist: trackArtist, track_genre: trackGenre,
-    title, description, storage_url: videoUrl, storage_path: videoUrl, status: 'pending'
+    title, description, storage_url: videoUrl, storage_path: videoUrl, status: 'pending', challenge_type: challengeType || 'C16'
   }).select().single();
   if (dbErr) { console.log('[createVideoFromUrl] ERREUR INSERT', JSON.stringify(dbErr)); throw dbErr; }
   try { await notifyModerators(video.id, userId, discipline as Discipline); } catch (e) { console.log('[createVideoFromUrl] notifyModerators a echoue (non bloquant):', e.message); }

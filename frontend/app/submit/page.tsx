@@ -66,6 +66,7 @@ export default function SubmitPage() {
   const [selectedCategory,   setSelectedCategory]   = useState<Category | null>(null);
   const [selectedDiscipline, setSelectedDiscipline] = useState<Discipline | null>(null);
   const [selectedSubject,    setSelectedSubject]    = useState<Subject | null>(null);
+  const [selectedType, setSelectedType] = useState<string>('C16');
   const [title,       setTitle]       = useState('');
   const [description, setDescription] = useState('');
   const [trackTitle,  setTrackTitle]  = useState('');
@@ -157,6 +158,7 @@ export default function SubmitPage() {
 
       const payload: any = {
         status: 'draft', // ← enregistré en brouillon, pas encore soumis
+        challenge_type: selectedType,
         title: title.trim() || `${selectedDiscipline?.name} — ${selectedSubject?.name || 'Prestation'}`,
         discipline: selectedDiscipline?.name?.toLowerCase(),
         subject: selectedSubject?.name,
@@ -197,6 +199,7 @@ export default function SubmitPage() {
     setStep(1); setSelectedCategory(null); setSelectedDiscipline(null);
     setSelectedSubject(null); setTitle(''); setDescription('');
     setTrackTitle(''); setTrackArtist('');
+    setSelectedType('C16');
     setVideoUrl(''); setFile(null); setPreview(null);
     setError(''); setProgress(0);
   }
@@ -362,6 +365,41 @@ export default function SubmitPage() {
                 </div>
               </div>
             )}
+
+            {/*DKDK_TYPE_SELECTOR*/}
+            <div style={{ marginBottom: 16 }}>
+              <label style={lbl}>Type de challenge *</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 6 }}>
+                {[
+                  { type:'C2',  label:'C2',  desc:'2
+Duel',      rounds:'1 round' },
+                  { type:'C4',  label:'C4',  desc:'4
+candidats', rounds:'2 rounds' },
+                  { type:'C8',  label:'C8',  desc:'8
+candidats', rounds:'3 rounds' },
+                  { type:'C12', label:'C12', desc:'12
+candidats',rounds:'4 rounds' },
+                  { type:'C16', label:'C16', desc:'16
+candidats',rounds:'5 rounds' },
+                ].map(t => (
+                  <div key={t.type} onClick={() => setSelectedType(t.type)}
+                    style={{ background: selectedType === t.type ? 'rgba(255,170,0,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${selectedType === t.type ? 'rgba(255,170,0,0.5)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 10, padding: '8px 4px', textAlign: 'center', cursor: 'pointer', transition: 'all .2s' }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: selectedType === t.type ? '#FFAA00' : '#fff', fontFamily: 'Syne, sans-serif' }}>{t.label}</div>
+                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', marginTop: 2, whiteSpace: 'pre-line', lineHeight: 1.3 }}>{t.desc}</div>
+                    <div style={{ fontSize: 8, color: selectedType === t.type ? '#FFAA00' : 'rgba(255,255,255,0.25)', marginTop: 2 }}>{t.rounds}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 6 }}>
+                {{
+                  C2:'⚡ Duel direct — 1 adversaire, 1 round, tout se joue là.',
+                  C4:'🔥 4 candidats — 2 rounds, demi-finale + finale.',
+                  C8:'🏆 8 candidats — 3 rounds, quart + demi + finale.',
+                  C12:'🥉 12 candidats — 4 rounds, 3e place attribuée auto.',
+                  C16:'👑 16 candidats — 5 rounds avec match bronze inédit.',
+                }[selectedType]}
+              </div>
+            </div>
 
             <div style={{ marginBottom: 12 }}>
               <label style={lbl}>Titre de la piste <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
