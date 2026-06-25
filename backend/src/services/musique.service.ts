@@ -82,6 +82,27 @@ export async function submitMusique(params: {
   return { id: data.id };
 }
 
+/*DKDK_SUBMIT_ADMIN*/
+// Enregistre un morceau ajoute par l'admin (source=admin, status=approved directement)
+export async function submitMusiqueAdmin(params: {
+  admin_id: string; artiste: string; titre: string; album?: string;
+  duree_sec?: number; pays_origine?: string; continent?: string;
+  danse?: string; style?: string; cover_url?: string;
+}) {
+  const { admin_id, artiste, titre } = params;
+  if (!artiste || !artiste.trim() || !titre || !titre.trim()) throw new Error('Artiste et titre obligatoires.');
+  const { data, error } = await supabase.from('musiques').insert({
+    artiste: artiste.trim(), titre: titre.trim(),
+    album: params.album || null, duree_sec: params.duree_sec || null,
+    pays_origine: params.pays_origine || null, continent: params.continent || null,
+    danse: params.danse || null, style: params.style || null,
+    cover_url: params.cover_url || null,
+    source: 'admin', submitted_by: admin_id, status: 'approved',
+  }).select('id').single();
+  if (error) throw new Error('Erreur lors de l enregistrement du morceau (admin).');
+  return { id: data.id };
+}
+
 // Liste des morceaux approuves (filtres optionnels)
 export async function listMusiques(filters: { continent?: string; pays?: string }) {
   let q = supabase.from('musiques').select('*').eq('status', 'approved').order('created_at', { ascending: false });

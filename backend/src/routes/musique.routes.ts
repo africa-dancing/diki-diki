@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { requireAuth, AuthRequest } from '../middleware/auth.middleware';
-import { lookupMusique, submitMusique, listMusiques } from '../services/musique.service';
+import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
+import { lookupMusique, submitMusique, submitMusiqueAdmin, listMusiques } from '../services/musique.service';
 
 const musiqueRouter = Router();
 
@@ -24,6 +24,21 @@ musiqueRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => 
     const result = await submitMusique({
       user_id: req.user!.userId,
       artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url, source,
+    });
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+/*DKDK_ADMIN_MUSIC_ROUTE*/
+// Ajout d'un morceau par l'admin (source=admin, status=approved force serveur)
+musiqueRouter.post('/admin', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url } = req.body;
+    const result = await submitMusiqueAdmin({
+      admin_id: req.user!.userId,
+      artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url,
     });
     res.json({ success: true, data: result });
   } catch (err: any) {
