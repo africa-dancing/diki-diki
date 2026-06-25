@@ -112,3 +112,11 @@ export async function listMusiques(filters: { continent?: string; pays?: string 
   if (error) throw new Error('Erreur lors du chargement.');
   return data || [];
 }
+
+/*DKDK_LIST_ADMIN*/
+// Liste TOUS les morceaux (approved + pending) pour l admin
+export async function listAllMusiquesAdmin() {
+  const { data, error } = await supabase.from('musiques').select('*').order('created_at', { ascending: false });
+  if (error) throw new Error('Erreur lors du chargement (admin).');
+  return data || [];
+}

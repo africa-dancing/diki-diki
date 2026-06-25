@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
-import { lookupMusique, submitMusique, submitMusiqueAdmin, listMusiques } from '../services/musique.service';
+import { lookupMusique, submitMusique, submitMusiqueAdmin, listMusiques, listAllMusiquesAdmin } from '../services/musique.service';
 
 const musiqueRouter = Router();
 
@@ -52,6 +52,18 @@ musiqueRouter.get('/', async (req: Request, res: Response) => {
     const continent = req.query.continent ? String(req.query.continent) : undefined;
     const pays = req.query.pays ? String(req.query.pays) : undefined;
     const data = await listMusiques({ continent, pays });
+    res.json({ success: true, data });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+
+/*DKDK_LIST_ADMIN_ROUTE*/
+// Liste TOUS les morceaux (approved + pending) - admin seulement
+musiqueRouter.get('/admin/list', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const data = await listAllMusiquesAdmin();
     res.json({ success: true, data });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });

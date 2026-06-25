@@ -2,7 +2,7 @@
 import { AdminGuard }   from '../../components/admin/AdminGuard';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR = '#FFAA00';
@@ -21,6 +21,23 @@ function AdminMediathequeInner() {
   const [lookupBusy, setLB]   = useState(false);
   const [info, setInfo]       = useState('');
   const [erreur, setErreur]   = useState('');
+
+  /*DKDK_LISTE_FRONT*/
+  const [liste, setListe]     = useState<any[]>([]);
+  const [loadingList, setLL]  = useState(false);
+
+  const chargerListe = async () => {
+    setLL(true);
+    try {
+      const r = await fetch(API + '/musiques/admin/list', {
+        headers: { Authorization: 'Bearer ' + admin?.token },
+      });
+      const j = await r.json();
+      if (j.success) setListe(j.data || []);
+    } catch (e) {} finally { setLL(false); }
+  };
+
+  useEffect(() => { chargerListe(); }, []);
 
   const maj = (k: keyof Form, v: string) => setForm(f => ({ ...f, [k]: v }));
 
@@ -74,6 +91,7 @@ function AdminMediathequeInner() {
       if (!j.success) { setErreur(j.error || 'Ajout echoue.'); return; }
       setInfo('Musique ajoutee a la mediatheque.');
       setForm(VIDE); setRech('');
+      chargerListe();
     } catch (e: any) {
       setErreur('Erreur reseau lors de l ajout.');
     } finally { setBusy(false); }
@@ -128,6 +146,35 @@ function AdminMediathequeInner() {
         <button onClick={ajouter} disabled={busy} style={btnMain}>
           {busy ? 'Ajout en cours...' : 'Ajouter a la mediatheque'}
         </button>
+
+        {liste.length > 0 && (
+          <div style={{ marginTop: 32 }}>
+            <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 18, marginBottom: 12 }}>
+              Musiques dans la mediatheque ({liste.length})
+            </h2>
+            <div style={{ background: '#12121e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, overflow: 'hidden' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 70px 90px', gap: 8, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.12)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.5)', fontFamily: 'Syne, sans-serif' }}>
+                <div>TITRE</div><div>ARTISTE</div><div>DUREE</div><div>STATUT</div>
+              </div>
+              {liste.map((m: any) => (
+                <div key={m.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 70px 90px', gap: 8, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 13, alignItems: 'center' }}>
+                  <div style={{ fontWeight: 600 }}>{m.titre}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.7)' }}>{m.artiste}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.5)' }}>{m.duree_sec ? m.duree_sec + 's' : '-'}</div>
+                  <div>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6, background: m.status === 'approved' ? 'rgba(61,220,132,0.15)' : 'rgba(255,170,0,0.15)', color: m.status === 'approved' ? '#3ddc84' : OR }}>
+                      {m.status === 'approved' ? 'Validee' : 'En attente'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {loadingList && liste.length === 0 && (
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 20 }}>Chargement de la liste...</p>
+        )}
       </div>
     </div>
   );
