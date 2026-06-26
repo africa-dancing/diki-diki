@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
-import { lookupMusique, submitMusique, submitMusiqueAdmin, listMusiques, listAllMusiquesAdmin } from '../services/musique.service';
+import { lookupMusique, submitMusique, submitMusiqueAdmin, listMusiques, listAllMusiquesAdmin, deleteMusiqueAdmin } from '../services/musique.service';
 
 const musiqueRouter = Router();
 
@@ -65,6 +65,18 @@ musiqueRouter.get('/admin/list', requireAuth, requireAdmin, async (req: AuthRequ
   try {
     const data = await listAllMusiquesAdmin();
     res.json({ success: true, data });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+
+/*DKDK_DELETE_ADMIN_ROUTE*/
+// Suppression d un morceau - admin seulement
+musiqueRouter.delete('/admin/:id', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await deleteMusiqueAdmin(req.params.id);
+    res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
   }

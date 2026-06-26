@@ -120,3 +120,12 @@ export async function listAllMusiquesAdmin() {
   if (error) throw new Error('Erreur lors du chargement (admin).');
   return data || [];
 }
+
+/*DKDK_DELETE_ADMIN*/
+// Supprime un morceau de la mediatheque (admin uniquement)
+export async function deleteMusiqueAdmin(id: string) {
+  if (!id || !id.trim()) throw new Error('Identifiant manquant.');
+  const { error } = await supabase.from('musiques').delete().eq('id', id);
+  if (error) throw new Error('Erreur lors de la suppression.');
+  return { deleted: true };
+}
