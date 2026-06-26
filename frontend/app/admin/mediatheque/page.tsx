@@ -93,6 +93,16 @@ function AdminMediathequeInner() {
   const ajouter = async () => {
     setErreur(''); setInfo('');
     if (!form.artiste.trim() || !form.titre.trim()) { setErreur('Artiste et titre obligatoires.'); return; }
+    /*DKDK_DOUBLON*/
+    const dureeAjout = form.duree_sec ? parseInt(form.duree_sec, 10) : null;
+    const doublon = liste.find((m: any) =>
+      m.titre === form.titre.trim() &&
+      m.artiste === form.artiste.trim() &&
+      ((m.duree_sec === null || m.duree_sec === undefined) ? null : m.duree_sec) === dureeAjout
+    );
+    if (doublon) {
+      if (!window.confirm('Une musique identique existe deja (meme titre, artiste et duree). Ajouter quand meme ?')) return;
+    }
     setBusy(true);
     try {
       const r = await fetch(`${API}/musiques/admin`, {
