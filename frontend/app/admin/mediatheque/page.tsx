@@ -59,6 +59,11 @@ function AdminMediathequeInner() {
 
   const maj = (k: keyof Form, v: string) => setForm(f => ({ ...f, [k]: v }));
 
+  /*DKDK_INVERSER*/
+  const inverserArtisteTitre = () => {
+    setForm(f => ({ ...f, artiste: f.titre, titre: f.artiste }));
+  };
+
   const lookup = async () => {
     if (!recherche.trim()) return;
     setLB(true); setErreur(''); setInfo('');
@@ -150,6 +155,11 @@ function AdminMediathequeInner() {
 
         {champ('Artiste *', 'artiste')}
         {champ('Titre *', 'titre')}
+        <div style={{ marginTop: -8, marginBottom: 14 }}>
+          <button onClick={inverserArtisteTitre} style={btnInv}>
+            ⇄ Inverser artiste / titre
+          </button>
+        </div>
         {champ('Album', 'album')}
         {champ('Duree (secondes)', 'duree_sec', 'Ex : 210', 'number')}
         {champ('Pays d origine', 'pays_origine', 'Ex : BJ')}
@@ -207,6 +217,8 @@ const btnMain: React.CSSProperties = { background: OR, color: '#0a0a0f', border:
 const btnSec: React.CSSProperties = { background: 'rgba(255,170,0,0.15)', color: OR, border: '1px solid rgba(255,170,0,0.4)', borderRadius: 9, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'Syne, sans-serif' };
 
 const btnDel: React.CSSProperties = { background: 'rgba(255,0,0,0.12)', color: '#ff5555', border: '1px solid rgba(255,0,0,0.35)', borderRadius: 7, padding: '5px 10px', fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'Syne, sans-serif' };
+
+const btnInv: React.CSSProperties = { background: 'transparent', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 7, padding: '5px 10px', fontWeight: 600, fontSize: 12, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' };
 
 export default function AdminMediathequePage() {
   return <AdminGuard><AdminMediathequeInner /></AdminGuard>;
