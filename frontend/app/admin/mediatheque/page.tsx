@@ -181,11 +181,11 @@ function AdminMediathequeInner() {
               Musiques dans la mediatheque ({liste.length})
             </h2>
             <div style={{ background: '#12121e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, overflow: 'hidden' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 70px 90px 90px', gap: 8, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.12)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.5)', fontFamily: 'Syne, sans-serif' }}>
-                <div>TITRE</div><div>ARTISTE</div><div>DUREE</div><div>STATUT</div><div>ACTION</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 70px 90px 90px 120px', gap: 8, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.12)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.5)', fontFamily: 'Syne, sans-serif' }}>
+                <div>TITRE</div><div>ARTISTE</div><div>DUREE</div><div>STATUT</div><div>USAGE</div><div>ACTION</div>
               </div>
               {liste.map((m: any) => (
-                <div key={m.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 70px 90px 90px', gap: 8, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 13, alignItems: 'center' }}>
+                <div key={m.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 70px 90px 90px 120px', gap: 8, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 13, alignItems: 'center' }}>
                   <div style={{ fontWeight: 600 }}>{m.titre}</div>
                   <div style={{ color: 'rgba(255,255,255,0.7)' }}>{m.artiste}</div>
                   <div style={{ color: 'rgba(255,255,255,0.5)' }}>{m.duree_sec ? m.duree_sec + 's' : '-'}</div>
@@ -193,6 +193,18 @@ function AdminMediathequeInner() {
                     <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6, background: m.status === 'approved' ? 'rgba(61,220,132,0.15)' : 'rgba(255,170,0,0.15)', color: m.status === 'approved' ? '#3ddc84' : OR }}>
                       {m.status === 'approved' ? 'Validee' : 'En attente'}
                     </span>
+                  </div>
+                  {/*DKDK_USAGE_FRONT*/}
+                  <div>
+                    {m.usage_status === 'jamais' && (
+                      <span style={badgeJamais}>Jamais utilisee</span>
+                    )}
+                    {m.usage_status === 'en_cours' && (
+                      <span style={badgeEnCours}>En cours - {m.usage_count}</span>
+                    )}
+                    {m.usage_status === 'termine' && (
+                      <span style={badgeTermine}>Utilisee - {m.usage_count}</span>
+                    )}
                   </div>
                   <div>
                     <button onClick={() => supprimer(m.id, m.titre)} style={btnDel}>Supprimer</button>
@@ -216,6 +228,10 @@ const inp: React.CSSProperties = { width: '100%', background: '#000', border: '1
 const btnMain: React.CSSProperties = { background: OR, color: '#0a0a0f', border: 'none', borderRadius: 9, padding: '12px 28px', fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'Syne, sans-serif' };
 const btnSec: React.CSSProperties = { background: 'rgba(255,170,0,0.15)', color: OR, border: '1px solid rgba(255,170,0,0.4)', borderRadius: 9, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'Syne, sans-serif' };
 
+const badgeBase: React.CSSProperties = { fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6, whiteSpace: 'nowrap' };
+const badgeJamais: React.CSSProperties = { ...badgeBase, background: 'rgba(70,130,255,0.15)', color: '#5b8cff' };
+const badgeEnCours: React.CSSProperties = { ...badgeBase, background: 'rgba(61,220,132,0.15)', color: '#3ddc84' };
+const badgeTermine: React.CSSProperties = { ...badgeBase, background: 'rgba(255,80,80,0.15)', color: '#ff5050' };
 const btnDel: React.CSSProperties = { background: 'rgba(255,0,0,0.12)', color: '#ff5555', border: '1px solid rgba(255,0,0,0.35)', borderRadius: 7, padding: '5px 10px', fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'Syne, sans-serif' };
 
 const btnInv: React.CSSProperties = { background: 'transparent', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 7, padding: '5px 10px', fontWeight: 600, fontSize: 12, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' };

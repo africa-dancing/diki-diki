@@ -115,10 +115,34 @@ export async function listMusiques(filters: { continent?: string; pays?: string 
 
 /*DKDK_LIST_ADMIN*/
 // Liste TOUS les morceaux (approved + pending) pour l admin
+/*DKDK_USAGE_COUNT*/
 export async function listAllMusiquesAdmin() {
   const { data, error } = await supabase.from('musiques').select('*').order('created_at', { ascending: false });
   if (error) throw new Error('Erreur lors du chargement (admin).');
-  return data || [];
+  const musiques = data || [];
+
+  // 1 seule requete: tous les brackets (track_id + status)
+  const { data: brackets } = await supabase.from('brackets').select('track_id, status');
+  const rows = brackets || [];
+
+  // Comptage en memoire par track_id
+  const total: Record<string, number> = {};
+  const vivant: Record<string, number> = {};
+  for (const b of rows) {
+    const tid = b.track_id;
+    if (!tid) continue;
+    total[tid] = (total[tid] || 0) + 1;
+    // Defensif: tout statut different de 'done' est considere comme vivant
+    if (b.status !== 'done') vivant[tid] = (vivant[tid] || 0) + 1;
+  }
+
+  // Attache usage_count + usage_status a chaque musique
+  return musiques.map((m: any) => {
+    const n = total[m.id] || 0;
+    let statut = 'jamais';
+    if (n > 0) statut = (vivant[m.id] || 0) > 0 ? 'en_cours' : 'termine';
+    return { ...m, usage_count: n, usage_status: statut };
+  });
 }
 
 /*DKDK_DELETE_ADMIN*/
