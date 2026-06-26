@@ -6,6 +6,7 @@ import Navbar from '../../components/Navbar';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR = '#FFAA00';
 const CATEGORIES = ['Arts de la scene', 'Musique', 'Arts de la parole'];
+const DISCIPLINES = ['Danse', 'Chant', 'A cappella', 'Instrument', 'Humour', 'Poesie'];
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
 
 interface Video { id: string; title?: string; status: string; }
@@ -79,7 +80,11 @@ export default function CreerChallengePage() {
         </div>
 
         <label style={labelStyle}>Discipline</label>
-        <input style={inputStyle} value={discipline} onChange={e => setDiscipline(e.target.value)} placeholder='Ex : Danse, Chant, Slam...' />
+        {/*DKDK_DISCIPLINE_SELECT*/}
+        <select style={inputStyle} value={discipline} onChange={e => setDiscipline(e.target.value)}>
+          <option value='' style={{ background: '#1a1a1f' }}>-- Choisir une discipline --</option>
+          {DISCIPLINES.map(d => <option key={d} value={d} style={{ background: '#1a1a1f' }}>{d}</option>)}
+        </select>
 
         <label style={labelStyle}>Style</label>
         <input style={inputStyle} value={style} onChange={e => setStyle(e.target.value)} placeholder='Ex : Ndombolo, Afrobeats...' />
