@@ -6,6 +6,7 @@ import Navbar from '../../components/Navbar';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR = '#FFAA00';
 const CATEGORIES = ['Arts de la scene', 'Musique', 'Arts de la parole'];
+const MODES = [{ val: 'normal', label: 'Normal' }, { val: 'improvisation', label: 'Improvisation' }];
 const DISCIPLINES = ['Danse', 'Chant', 'A cappella', 'Instrument', 'Humour', 'Poesie'];
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
 
@@ -15,6 +16,7 @@ export default function CreerChallengePage() {
   const router = useRouter();
   const [videos, setVideos] = useState<Video[]>([]);
   const [categorie, setCategorie] = useState('');
+  const [mode, setMode] = useState('normal'); /*DKDK_MODE*/
   const [discipline, setDiscipline] = useState('');
   const [style, setStyle] = useState('');
   const [videoId, setVideoId] = useState('');
@@ -46,7 +48,7 @@ export default function CreerChallengePage() {
       const res = await fetch(`${API}/brackets/arena/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
-        body: JSON.stringify({ video_id: videoId, categorie, discipline: discipline.trim(), style: style.trim() }),
+        body: JSON.stringify({ video_id: videoId, categorie, discipline: discipline.trim(), style: style.trim(), mode }),
       });
       const data = await res.json();
       if (!data.success) { setMsg(data.error || 'Erreur.'); setSubmitting(false); return; }
@@ -72,6 +74,13 @@ export default function CreerChallengePage() {
           <h1 style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 800, color: '#fefefe' }}>Créer un challenge</h1>
         </div>
 
+        {/*DKDK_MODE_BLOC*/}
+        <label style={labelStyle}>Mode</label>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          {MODES.map(m => (
+            <button key={m.val} onClick={() => setMode(m.val)} style={{ flex: 1, minWidth: 120, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: mode === m.val ? `1px solid ${OR}` : '1px solid rgba(255,255,255,0.15)', background: mode === m.val ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'rgba(255,255,255,0.05)', color: mode === m.val ? '#000' : 'rgba(255,255,255,0.6)' }}>{m.label}</button>
+          ))}
+        </div>
         <label style={labelStyle}>Catégorie</label>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           {CATEGORIES.map(c => (
