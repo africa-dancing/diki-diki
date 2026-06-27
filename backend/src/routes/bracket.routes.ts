@@ -127,7 +127,7 @@ bracketRouter.get('/:bracket_id', async (req: Request, res: Response) => {
   try {
     const { data, error } = await getSupabase()
       .from('brackets')
-      .select('*, bracket_rounds(round, objectif_montant, montant_collecte, status), bracket_participants(count)')
+      .select('*, bracket_rounds(round, objectif_montant, montant_collecte, status), bracket_participants!bracket_participants_bracket_id_fkey(count)') /*DKDK_FIX_EMBED*/
       .eq('id', req.params.bracket_id)
       .single();
     if (error) throw error;
