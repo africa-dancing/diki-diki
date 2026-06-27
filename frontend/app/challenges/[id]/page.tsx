@@ -361,7 +361,14 @@ export default function BracketPage() {
   };
 
   if (loading) return <div style={{ height:'100vh', background:'#0a0a0f', display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.3)', fontFamily:'DM Sans,sans-serif' }}>⏳ Chargement…</div>;
-  if (!bracket) return null;
+  if (!bracket) return ( /*DKDK_INTROUVABLE*/
+    <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f0', fontFamily:'DM Sans,sans-serif', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:18, padding:'24px', textAlign:'center' }}>
+      <div style={{ fontSize:48 }}>{'\u{1F50D}'}</div>
+      <div style={{ fontSize:18, fontWeight:700, fontFamily:'Syne,sans-serif' }}>Challenge introuvable</div>
+      <div style={{ fontSize:14, color:'rgba(255,255,255,0.6)', maxWidth:340 }}>Ce challenge n existe pas ou n est plus disponible.</div>
+      <button onClick={() => router.push('/challenges')} style={{ marginTop:6, padding:'12px 22px', borderRadius:12, fontSize:14, fontWeight:700, fontFamily:'Syne,sans-serif', cursor:'pointer', border:'none', background:'linear-gradient(135deg,#FF6B00,#FFD700)', color:'#000' }}>Retour aux challenges</button>
+    </div>
+  );
 
   const currentRoundData = bracket.rounds.find(r=>r.round===activeRound);
   const totalVotes = bracket.rounds.flatMap(r=>r.duels).reduce((s,d)=>s+d.votes_a+d.votes_b, 0);
