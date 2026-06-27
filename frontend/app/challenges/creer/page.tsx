@@ -17,6 +17,8 @@ export default function CreerChallengePage() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [categorie, setCategorie] = useState('');
   const [mode, setMode] = useState('normal'); /*DKDK_MODE*/
+  const [musiques, setMusiques] = useState<any[]>([]); /*DKDK_MUSIQUE_SELECT*/
+  const [trackId, setTrackId] = useState('');
   const [discipline, setDiscipline] = useState('');
   const [style, setStyle] = useState('');
   const [videoId, setVideoId] = useState('');
@@ -35,6 +37,10 @@ export default function CreerChallengePage() {
         if (approved[0]) setVideoId(approved[0].id);
       })
       .catch(() => {});
+    fetch(`${API}/musiques`)
+      .then(r => r.json())
+      .then((d: any) => { setMusiques(d.data ?? []); })
+      .catch(() => {});
   }, [router]);
 
   const submit = async () => {
@@ -48,7 +54,7 @@ export default function CreerChallengePage() {
       const res = await fetch(`${API}/brackets/arena/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
-        body: JSON.stringify({ video_id: videoId, categorie, discipline: discipline.trim(), style: style.trim(), mode }),
+        body: JSON.stringify({ video_id: videoId, categorie, discipline: discipline.trim(), style: style.trim(), mode, track_id: mode === 'normal' ? (trackId || undefined) : undefined }),
       });
       const data = await res.json();
       if (!data.success) { setMsg(data.error || 'Erreur.'); setSubmitting(false); return; }
@@ -95,6 +101,15 @@ export default function CreerChallengePage() {
           {DISCIPLINES.map(d => <option key={d} value={d} style={{ background: '#1a1a1f' }}>{d}</option>)}
         </select>
 
+        {mode === 'normal' && (
+          <>
+            <label style={labelStyle}>Musique imposee</label>
+            <select style={inputStyle} value={trackId} onChange={e => setTrackId(e.target.value)}>
+              <option value='' style={{ background: '#1a1a1f' }}>-- Choisir une musique --</option>
+              {musiques.map((m: any) => <option key={m.id} value={m.id} style={{ background: '#1a1a1f' }}>{m.titre} - {m.artiste}</option>)}
+            </select>
+          </>
+        )}
         <label style={labelStyle}>Style</label>
         <input style={inputStyle} value={style} onChange={e => setStyle(e.target.value)} placeholder='Ex : Ndombolo, Afrobeats...' />
 

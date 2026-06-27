@@ -132,8 +132,10 @@ export async function launchBracket(bracket: any) {
 export async function createArenaChallenge(params: {
   user_id: string; video_id: string;
   categorie: string; discipline: string; style: string;
+  track_id?: string; mode?: string; /*DKDK_TRACK_MODE*/
 }) {
-  const { user_id, video_id, categorie, discipline, style } = params;
+  const { user_id, video_id, categorie, discipline, style, track_id, mode } = params;
+  const modeVal = mode || 'normal';
 
   const { data: u, error: uErr } = await supabase
     .from('users').select('is_verified').eq('id', user_id).single();
@@ -152,6 +154,7 @@ export async function createArenaChallenge(params: {
   const { data: dup } = await supabase
     .from('brackets').select('id')
     .eq('categorie', categorie).eq('discipline', discipline).eq('style', style)
+    .eq('mode', modeVal)
     .in('status', ['open', 'waiting_candidates'])
     .limit(1).maybeSingle();
 
@@ -163,6 +166,7 @@ export async function createArenaChallenge(params: {
       .from('brackets').insert({
         title: style + ' - ' + discipline,
         categorie, discipline, style,
+        track_id: track_id || null, mode: modeVal,
         type: 'libre', status: 'waiting_candidates',
         max_participants: 16, current_round: 1,
         total_cagnotte: 0, commission_pct: 0.5,
