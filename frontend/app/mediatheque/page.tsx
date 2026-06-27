@@ -80,6 +80,8 @@ export default function MediathequePage() {
               </div>
             </div>
             {m.duree_sec ? <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>{fmtDuree(m.duree_sec)}</div> : null}
+            {/*DKDK_PARTICIPER*/}
+            <Link href={`/challenges/creer?track=${m.id}`} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', whiteSpace: 'nowrap' }}>Participer</Link>
           </div>
         ))}
 

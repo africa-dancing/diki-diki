@@ -28,6 +28,10 @@ export default function CreerChallengePage() {
   useEffect(() => {
     const t = getToken();
     if (!t) { router.push('/auth/login'); return; }
+    /*DKDK_READ_TRACK*/
+    const params = new URLSearchParams(window.location.search);
+    const preTrack = params.get('track');
+    if (preTrack) { setMode('normal'); setTrackId(preTrack); }
     fetch(`${API}/videos/my`, { headers: { Authorization: `Bearer ${t}` } })
       .then(r => r.json())
       .then((d: any) => {
