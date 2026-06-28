@@ -27,7 +27,7 @@ export async function initiate(req: Request, res: Response) {
     const result = await initiatePayment({
       amount,
       phone,
-      operator,
+      operator: 'mtn',
       userId,
       userEmail: user?.email || 'user@dkdk.com',
       firstName: user?.first_name || 'User',
@@ -41,38 +41,93 @@ export async function initiate(req: Request, res: Response) {
   }
 }
 
+/*DKDK_VOTE_PAY*/
+// --- INITIER UN PAIEMENT DE VOTE (visiteur one-tap) ---
+export async function initiateVotePayment(req: Request, res: Response) {
+  try {
+    const userId = (req as any).user.userId;
+    /*DKDK_VOTE_QTY*/
+    const { participant_id, vote_type, phone, qty } = req.body;
+    if (!participant_id || !vote_type || !phone) {
+      return res.status(400).json({ error: 'MISSING_FIELDS' });
+    }
+    const voteQty = Number.isInteger(qty) && qty >= 1 ? qty : 1;
+    if (vote_type !== 'star' && vote_type !== 'heart') {
+      return res.status(400).json({ error: 'INVALID_VOTE_TYPE' });
+    }
+    /*DKDK_VOTE_AMT*/
+    const amount = (vote_type === 'heart' ? 200 : 100) * voteQty;
+    const { data: user } = await supabase
+      .from('users')
+      .select('email, first_name, last_name')
+      .eq('id', userId)
+      .single();
+    /*DKDK_VOTE_OP_FIX*/
+    const result = await initiatePayment({
+      amount,
+      phone,
+      operator: 'mtn',
+      userId,
+      userEmail: user?.email || 'fan@dkdk.com',
+      firstName: user?.first_name || 'Fan',
+      lastName:  user?.last_name  || 'DKDK',
+    });
+    const { error: txErr } = await supabase
+      .from('transactions')
+      .insert({
+        user_id:    userId,
+        type:       'vote',
+        amount,
+        net_amount: amount,
+        phone,
+        ref:        String(result.transactionId),
+        status:     'pending',
+        /*DKDK_VOTE_META*/
+        metadata:   { participant_id, p_type: vote_type, qty: voteQty },
+      });
+    if (txErr) return res.status(500).json({ error: 'TX_INSERT_FAILED', detail: txErr.message });
+    return res.status(200).json({ success: true, paymentUrl: result.paymentUrl });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'VOTE_PAYMENT_FAILED' });
+  }
+}
+
 // ─── WEBHOOK FEDAPAY ─────────────────────────────────────────
-export async function webhook(req: Request, res: Response) {
+export async function webhook(req: Request, res: Response) { /*DKDK_WEBHOOK_VOTE*/
   try {
     const { transaction_id, status } = req.body;
-
     if (status === 'approved') {
       const payment = await verifyPayment(transaction_id);
-
       if (payment.approved) {
-        // Récupérer la transaction en base pour retrouver l'userId
         const { data: tx } = await supabase
           .from('transactions')
-          .select('user_id, amount')
-          .eq('fedapay_id', transaction_id)
+          .select('id, user_id, amount, type, metadata, status')
+          .eq('ref', String(transaction_id))
           .single();
-
-        if (tx) {
-          // Créditer le wallet
+        if (tx && tx.status !== 'success') {
+          // Crediter le wallet du montant paye (flux unifie)
           await supabase.rpc('credit_wallet', {
             p_user_id: tx.user_id,
             p_amount:  tx.amount,
           });
-
-          // Marquer la transaction comme approuvée
+          if (tx.type === 'vote' && tx.metadata) {
+            // Vote paye directement : le RPC va debiter ce credit et enregistrer le vote
+            await supabase.rpc('vote_bracket_pool', {
+              p_user_id:        tx.user_id,
+              p_participant_id: tx.metadata.participant_id,
+              /*DKDK_WEBHOOK_QTY*/
+              p_qty:            tx.metadata.qty ?? 1,
+              p_type:           tx.metadata.p_type,
+            });
+          }
+          // Marquer la transaction comme reussie
           await supabase
             .from('transactions')
-            .update({ status: 'approved' })
-            .eq('fedapay_id', transaction_id);
+            .update({ status: 'success' })
+            .eq('id', tx.id);
         }
       }
     }
-
     return res.status(200).json({ received: true });
   } catch {
     return res.status(500).json({ error: 'WEBHOOK_FAILED' });

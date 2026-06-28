@@ -423,8 +423,19 @@ export default function WatchPage() {
       setShowOneTap(false);
       setRechargeUnits(Math.floor((data.user.wallet ?? 0) / voteAmount));
       setWallet(data.user.wallet ?? 0);
-      if (oneTapAction === 'stars') setTimeout(() => handleSendStars(), 300);
-      else setTimeout(() => handleSendHearts(), 300);
+      /*DKDK_VISITEUR_PAY*/
+      const vType = oneTapAction === 'stars' ? 'star' : 'heart';
+      const vQty  = oneTapAction === 'stars' ? starsQty : heartsQty;
+      try {
+        const payRes = await fetch(API + '/payment/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.token}` },
+          body: JSON.stringify({ participant_id: bracketData?.current_participant_id, vote_type: vType, qty: vQty, phone: oneTapPhone }),
+        });
+        const payData = await payRes.json();
+        if (!payRes.ok || !payData.paymentUrl) throw new Error(payData.error || 'Erreur paiement');
+        window.location.href = payData.paymentUrl;
+      } catch (e: any) { setOneTapError(e.message); }
     } catch (e: any) { setOneTapError(e.message); }
     finally { setOneTapLoading(false); }
   };

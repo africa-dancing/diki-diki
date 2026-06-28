@@ -30,6 +30,7 @@ import * as paymentCtrl from '../controllers/payment.controller';
 
 const paymentRouter = PaymentRouter();
 paymentRouter.post('/initiate', requireAuth, paymentCtrl.initiate);
+paymentRouter.post('/vote', requireAuth, paymentCtrl.initiateVotePayment); /*DKDK_VOTE_PAY_ROUTE*/
 paymentRouter.post('/webhook',  paymentCtrl.webhook);
 export { paymentRouter };
 
