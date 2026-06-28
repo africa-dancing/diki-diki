@@ -187,7 +187,7 @@ export default function RegisterPage() {
                 fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 800,
                 color: '#fff', marginBottom: 6, letterSpacing: '-.5px',
               }}>
-                Crée ton compte vite !
+                Crée ton compte!
               </h1>
               <p style={{ fontSize: 14, color: 'rgba(255,255,255,.4)', marginBottom: 24 }}>
                 Pour participer aux challenges artistiques
