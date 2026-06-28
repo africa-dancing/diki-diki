@@ -54,7 +54,7 @@ function fmt(n: number) { return n.toLocaleString('fr-FR'); }
 export default function RechargePage() {
   const router = useRouter();
   const [initialBalance, setInitialBalance] = useState(0);
-  const [soutenirUnits,  setSoutenirUnits]  = useState(0);
+  const [rechargeUnits,  setRechargeUnits]  = useState(0);
   const [selectedAmount, setSelectedAmount] = useState(2000);
   const [customAmount,   setCustomAmount]   = useState('');
   const [method,  setMethod]  = useState('mtn');
@@ -72,7 +72,7 @@ export default function RechargePage() {
       .catch(() => {});
     fetch(`${API}/votes/balance`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setSoutenirUnits(Math.floor((d.wallet ?? d.balance ?? 0) / 100)); })
+      .then(d => { if (d) setRechargeUnits(Math.floor((d.wallet ?? d.balance ?? 0) / 100)); })
       .catch(() => {});
   }, [router]);
 
@@ -93,7 +93,7 @@ export default function RechargePage() {
       if (!res.ok) throw new Error(data.message ?? 'Erreur');
       if (data.payment_url) { window.location.href = data.payment_url; return; }
       setSuccess(true);
-      setSoutenirUnits(u => u + units);
+      setRechargeUnits(u => u + units);
     } catch (e: any) { setError(e.message); }
     finally { setLoading(false); }
   };
@@ -104,7 +104,7 @@ export default function RechargePage() {
       <div style={{ fontSize: 60 }}>✅</div>
       <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 24, fontWeight: 800, color: '#4ade80' }}>Rechargement réussi !</div>
       <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
-        {fmt(amount)} F CFA → +{fmt(units)} unités sur Compte Soutenir
+        {fmt(amount)} F CFA → +{fmt(units)} unités sur Compte Voter & Soutenir
       </div>
       <button
         onClick={() => router.push('/compte')}
@@ -171,8 +171,8 @@ export default function RechargePage() {
             <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 3 }}>Dépôts · Retraits · Gains</div>
           </div>
           <div style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 14, padding: '14px 16px' }}>
-            <div style={{ fontSize: 9, color: 'rgba(99,102,241,0.8)', fontWeight: 700, letterSpacing: '.1em', marginBottom: 5 }}>COMPTE SOUTENIR</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, color: '#818cf8' }}>{fmt(soutenirUnits)} unités</div>
+            <div style={{ fontSize: 9, color: 'rgba(99,102,241,0.8)', fontWeight: 700, letterSpacing: '.1em', marginBottom: 5 }}>COMPTE VOTER & SOUTENIR</div>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, color: '#818cf8' }}>{fmt(rechargeUnits)} unités</div>
             <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 3 }}><StarRed /> Voter · ❤️ Liker</div>
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function RechargePage() {
         {/* ── Info unités ── */}
         <div style={{ background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.18)', borderRadius: 12, padding: '11px 14px', fontSize: 12, color: 'rgba(255,170,0,0.85)', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 8, lineHeight: 1.5 }}>
           <span style={{ flexShrink: 0 }}>💡</span>
-          <span><strong>1 unité = 10 F CFA</strong> — chaque unité devient <StarRed /> étoile (voter) ou ❤️ cœur (liker) selon ton choix</span>
+          <span><strong>1 unité = 100 F CFA</strong> — chaque unité devient <StarRed /> étoile (voter) ou ❤️ cœur (liker) selon ton choix</span>
         </div>
 
         {/* ── Montants ── */}

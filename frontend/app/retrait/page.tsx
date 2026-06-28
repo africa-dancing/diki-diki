@@ -152,9 +152,9 @@ export default function RetraitPage() {
           </div>
         </div>
 
-        {/* Info Compte Soutenir */}
+        {/* Info Compte Voter & Soutenir */}
         <div style={{ background:'rgba(255,80,80,0.05)', border:'1px solid rgba(255,80,80,0.18)', borderRadius:10, padding:'10px 14px', marginBottom:14, fontSize:12, color:'rgba(255,120,120,0.8)' }}>
-          🔒 Le Compte Soutenir (étoiles/cœurs) ne permet pas de retrait. Seul le Compte Initial peut être retiré.
+          🔒 Le Compte Voter & Soutenir (étoiles/cœurs) ne permet pas de retrait. Seul le Compte Initial peut être retiré.
         </div>
 
         {/* Montant */}

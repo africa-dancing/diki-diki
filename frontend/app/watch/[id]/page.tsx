@@ -261,9 +261,9 @@ export default function WatchPage() {
   const [bracketData, setBracketData] = useState<any>(null);
   const [poolLoading, setPoolLoading] = useState(true);
 
-  // ── Compte Soutenir (unités) ──
+  // ── Compte Voter & Soutenir (unités) ──
   const [wallet, setWallet]                 = useState<number | null>(null); // en F CFA
-  const [soutenirUnits, setSoutenirUnits]   = useState(0);                   // en unités (wallet / 100)
+  const [rechargeUnits, setRechargeUnits]   = useState(0);                   // en unités (wallet / 100)
   const [voteCount, setVoteCount]           = useState<number | null>(null);
 
   // ── Claviers étoiles / cœurs ──
@@ -421,7 +421,7 @@ export default function WatchPage() {
       localStorage.setItem('dkdk_token', data.token);
       localStorage.setItem('dkdk_user', JSON.stringify(data.user));
       setShowOneTap(false);
-      setSoutenirUnits(Math.floor((data.user.wallet ?? 0) / voteAmount));
+      setRechargeUnits(Math.floor((data.user.wallet ?? 0) / voteAmount));
       setWallet(data.user.wallet ?? 0);
       if (oneTapAction === 'stars') setTimeout(() => handleSendStars(), 300);
       else setTimeout(() => handleSendHearts(), 300);
@@ -444,7 +444,7 @@ export default function WatchPage() {
     return () => { if (scrollTimer.current) clearInterval(scrollTimer.current); };
   }, [otherCandidates]);
 
-  // ── Charger solde Compte Soutenir ──
+  // ── Charger Compte Voter & Soutenir ──
   useEffect(() => {
     const token = getToken(); if (!token) return;
     fetch(`${API}/votes/balance`, { headers: { Authorization: `Bearer ${token}` } })
@@ -453,7 +453,7 @@ export default function WatchPage() {
         if (d) {
           const bal = d.wallet ?? d.balance ?? 0;
           setWallet(bal);
-          setSoutenirUnits(Math.floor(bal / voteAmount));
+          setRechargeUnits(Math.floor(bal / voteAmount));
           setVoteCount(d.votes_count ?? d.voteCount ?? null);
         }
       })
@@ -581,8 +581,8 @@ export default function WatchPage() {
       }
     }
     if (starsQty < 1) return;
-    if (soutenirUnits < starsQty) {
-      setVoteError(`Solde insuffisant. Tu as ${soutenirUnits} unité${soutenirUnits > 1 ? 's' : ''} sur ton Compte Soutenir.`);
+    if (rechargeUnits < starsQty) {
+      setVoteError(`Solde insuffisant. Tu as ${rechargeUnits} unité${rechargeUnits > 1 ? 's' : ''} sur ton Compte Voter & Soutenir.`);
       setTimeout(() => setVoteError(null), 4000); return;
     }
     if (voteLoading) return;
@@ -597,7 +597,7 @@ export default function WatchPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Erreur');
       setMyVotesOnVideo(v => v + starsQty);
-      setSoutenirUnits(u => u - starsQty);
+      setRechargeUnits(u => u - starsQty);
       setWallet(w => w !== null ? w - starsQty * 100 : w);
       setVoteSuccess(true);
       setTimeout(() => setVoteSuccess(false), 1500);
@@ -622,8 +622,8 @@ export default function WatchPage() {
       }
     }
     if (heartsQty < 1) return;
-    if (soutenirUnits < heartsQty * 2) {
-      setVoteError(`Solde insuffisant. Tu as ${soutenirUnits} unité${soutenirUnits > 1 ? 's' : ''} sur ton Compte Soutenir.`);
+    if (rechargeUnits < heartsQty * 2) {
+      setVoteError(`Solde insuffisant. Tu as ${rechargeUnits} unité${rechargeUnits > 1 ? 's' : ''} sur ton Compte Voter & Soutenir.`);
       setTimeout(() => setVoteError(null), 4000); return;
     }
     if (likeLoading) return;
@@ -637,7 +637,7 @@ export default function WatchPage() {
       });
       setLiked(true);
       setLikeCount(c => c + heartsQty);
-      setSoutenirUnits(u => u - heartsQty * 2);
+      setRechargeUnits(u => u - heartsQty * 2);
       setWallet(w => w !== null ? w - heartsQty * 200 : w);
       refreshPool();
     } catch {
@@ -844,13 +844,13 @@ export default function WatchPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <TranslateWidget />
-          {/* Affichage Compte Soutenir si connecté */}
+          {/* Affichage Compte Voter & Soutenir si connecté */}
           {loggedIn && wallet !== null && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,170,0,0.08)', border: '1px solid rgba(255,170,0,0.25)', borderRadius: 20, padding: '5px 12px' }}>
               <span>🏅</span>
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#FFAA00', fontFamily: 'Syne, sans-serif' }}>{soutenirUnits} unités</span>
-                <span style={{ fontSize: 9, color: 'rgba(255,170,0,0.6)', fontFamily: 'DM Sans, sans-serif' }}>Compte Soutenir</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#FFAA00', fontFamily: 'Syne, sans-serif' }}>{rechargeUnits} unités</span>
+                <span style={{ fontSize: 9, color: 'rgba(255,170,0,0.6)', fontFamily: 'DM Sans, sans-serif' }}>Compte Voter & Soutenir</span>
               </div>
             </div>
           )}
@@ -1102,7 +1102,7 @@ export default function WatchPage() {
                 const bgVal   = isStar ? 'rgba(255,170,0,0.06)'  : 'rgba(255,80,80,0.06)';
                 const border  = isStar ? 'rgba(255,170,0,0.2)'   : 'rgba(255,80,80,0.2)';
                 const loading = isStar ? voteLoading : likeLoading;
-                const overBal = qty > soutenirUnits;
+                const overBal = qty > rechargeUnits;
                 const btnBg   = overBal ? 'rgba(255,255,255,0.14)' : (isStar ? '#FAEEDA' : 'linear-gradient(135deg,rgba(126,3,128,0.85),rgb(237,7,15))');
                 const btnCol  = overBal ? 'rgba(255,255,255,0.75)' : (isStar ? '#633806' : '#ffffff');
                 const onSend  = isStar ? handleSendStars : handleSendHearts;
@@ -1112,7 +1112,7 @@ export default function WatchPage() {
                       <button onClick={() => setActiveTab('stars')} style={{ flex: 1, minWidth: 64, padding: '6px 2px', borderRadius: 7, border: `1px solid ${isStar ? 'rgba(255,170,0,0.5)' : 'rgba(255,255,255,0.08)'}`, background: isStar ? 'linear-gradient(135deg,#FF6B00,#FFAA00)' : 'transparent', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, flexShrink: 0 }}><span style={{ color: '#FF0000', fontSize: 14 }}>★</span>Voter</button>
                       <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 24, height: 28, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 15, color: '#f0f0f0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
                       <div style={{ width: 70, textAlign: 'center', fontSize: 18, fontWeight: 800, color, fontFamily: 'Syne, sans-serif', background: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 7, padding: '4px 0', flexShrink: 0 }} /*DKDK_EQUILIBRE*/>{qty}</div>
-                      <button onClick={() => setQty(q => Math.min(soutenirUnits, q + 1))} style={{ width: 24, height: 28, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 15, color: '#f0f0f0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
+                      <button onClick={() => setQty(q => Math.min(rechargeUnits, q + 1))} style={{ width: 24, height: 28, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 15, color: '#f0f0f0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
                       <button onClick={() => setActiveTab('hearts')} style={{ flex: 1, minWidth: 64, padding: '6px 2px', borderRadius: 7, border: `1px solid ${!isStar ? 'rgba(255,80,80,0.5)' : 'rgba(255,255,255,0.08)'}`, background: !isStar ? 'linear-gradient(135deg,#FF6B00,#FFAA00)' : 'transparent', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, flexShrink: 0 }}><span style={{ color: '#FF1493', fontSize: 14 }}>♥</span>Liker</button>
                     </div>
 
@@ -1126,7 +1126,7 @@ export default function WatchPage() {
                           } else {
                             const s = String(qty === 1 ? '' : qty) + k;
                             const n = parseInt(s);
-                            if (!isNaN(n) && n > 0) setQty(Math.min(n, soutenirUnits || 9999));
+                            if (!isNaN(n) && n > 0) setQty(Math.min(n, rechargeUnits || 9999));
                           }
                         }}
                           style={{ gridColumn: k === '0' ? '1/3' : 'auto', padding: '4px 2px', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 6, background: 'rgba(255,255,255,0.05)', fontSize: 13, fontWeight: 500, color: k === '⌫' ? '#f87171' : '#f0f0f0', cursor: 'pointer', textAlign: 'center', fontFamily: 'DM Sans, sans-serif' }}>
@@ -1138,7 +1138,7 @@ export default function WatchPage() {
                     {/* Récap + Bouton */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,0.8)', marginBottom: 2 }}>
                       <span>{isStar ? qty : qty * 2} unité{(isStar ? qty : qty * 2) > 1 ? 's' : ''} · {isStar ? qty * voteAmount : qty * heartAmount} F</span>
-                      <span>Reste : {Math.max(0, soutenirUnits - (isStar ? qty : qty * 2))}</span>
+                      <span>Reste : {Math.max(0, rechargeUnits - (isStar ? qty : qty * 2))}</span>
                     </div>
                     <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginBottom: 4, lineHeight: 1.3 }} /*DKDK_C3_MENTION*/>{isStar ? `1 Étoile = 1 Unité = ${voteAmount} F CFA` : `1 Cœur (Compte Double) = 2 Unités = ${heartAmount} F CFA`}</div>
                     <button onClick={onSend} disabled={loading || overBal || qty < 1}
