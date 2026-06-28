@@ -34,7 +34,7 @@ export async function initiatePayment(params: {
     { headers: { Authorization: `Bearer ${SECRET_KEY}`, 'Content-Type': 'application/json' } }
   );
 
-  const transaction = response.data.v1.transaction;
+  /*DKDK_FEDA_FIX*/ const transaction = response.data['v1/transaction'];
 
   const tokenRes = await axios.post(
     `${FEDAPAY_API}/transactions/${transaction.id}/token`,
@@ -54,7 +54,7 @@ export async function verifyPayment(transactionId: string) {
     `${FEDAPAY_API}/transactions/${transactionId}`,
     { headers: { Authorization: `Bearer ${SECRET_KEY}` } }
   );
-  const transaction = response.data.v1.transaction;
+  /*DKDK_FEDA_FIX2*/ const transaction = response.data['v1/transaction'];
   return {
     status:   transaction.status,
     amount:   transaction.amount,
@@ -90,7 +90,7 @@ export async function withdrawPayment(params: {
     { headers: { Authorization: `Bearer ${SECRET_KEY}`, 'Content-Type': 'application/json' } }
   );
 
-  const payout = response.data.v1.payout;
+  const payout = response.data['v1/payout'];
 
   // Déclencher le payout immédiatement
   await axios.put(
