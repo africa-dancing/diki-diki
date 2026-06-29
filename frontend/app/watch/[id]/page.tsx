@@ -584,6 +584,8 @@ export default function WatchPage() {
 
   // ── VOTER — envoyer des ⭐ étoiles (connectés uniquement) ─────────
   const handleSendStars = async () => {
+    /*DKDK_VOTE_STATE_GUARD_STARS*/
+    if (!estEnCours) { setVoteError('Le vote n est pas encore ouvert pour ce challenge.'); setTimeout(() => setVoteError(null), 4000); return; }
     if (!isLoggedIn()) { openOneTap('stars'); return; }
     /*DKDK_BRONZE_VOTEGUARD*/
     {
@@ -625,6 +627,8 @@ export default function WatchPage() {
 
   // ── LIKER — envoyer des ❤️ cœurs (connectés uniquement) ──────────
   const handleSendHearts = async () => {
+    /*DKDK_VOTE_STATE_GUARD_HEARTS*/
+    if (!estEnCours) { setVoteError('Le vote n est pas encore ouvert pour ce challenge.'); setTimeout(() => setVoteError(null), 4000); return; }
     if (!isLoggedIn()) { openOneTap('hearts'); return; }
     /*DKDK_BRONZE_VOTEGUARD*/
     {
@@ -891,8 +895,16 @@ export default function WatchPage() {
       {/* ── LECTEUR ── */}
       <div
         style={{ position: 'fixed', top: PLAYER_TOP, left: playerLeft, transform: playerTransf, width: playerW, maxWidth: playerMaxW, height: playerH, borderRadius: playerRadius, overflow: 'hidden', background: '#000', cursor: 'pointer', zIndex: 50, transition: 'all 0.35s cubic-bezier(.4,0,.2,1)' }}
-        onMouseMove={resetTimer} onClick={togglePlay}
+        onMouseMove={resetTimer} onClick={estEnAttente ? undefined : togglePlay}
       >
+        {/*DKDK_WAITING_OVERLAY*/}
+        {estEnAttente && (
+          <div style={{ position:'absolute', inset:0, zIndex:30, background:'rgba(10,10,15,0.82)', backdropFilter:'blur(3px)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:12, padding:'0 24px', textAlign:'center', cursor:'default' }}>
+            <div style={{ fontSize:34 }}>⏳</div>
+            <div style={{ fontFamily:'Syne, sans-serif', fontSize:16, fontWeight:800, color:'#fff' }}>Challenge en formation</div>
+            <div style={{ fontSize:13, color:'rgba(255,255,255,0.75)', lineHeight:1.5, maxWidth:300 }}>Le vote ouvrira quand le groupe sera complet.</div>
+          </div>
+        )}
         <video ref={videoRef} src={displayVideo.storage_url} style={s.video}
           onTimeUpdate={() => { const v = videoRef.current; if (v) setProgress(v.currentTime); }}
           onLoadedMetadata={() => { const v = videoRef.current; if (v) setDuration(v.duration); }}
@@ -965,7 +977,7 @@ export default function WatchPage() {
         {loggedIn && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <div style={{ position: 'relative' }}>
-              <button onClick={handleSendStars} style={{ width: 34, height: 34, borderRadius: '50%', background: myVotesOnVideo > 0 ? 'rgba(255,170,0,0.2)' : 'rgba(15,15,25,0.9)', border: `1.5px solid ${myVotesOnVideo > 0 ? '#FFAA00' : 'rgba(255,255,255,0.18)'}`, color: '#fff', cursor: voteLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: voteLoading ? 0.6 : 1 }}>
+              <button onClick={handleSendStars} /*DKDK_VOTER_GRISE*/ style={{ width: 34, height: 34, borderRadius: '50%', background: myVotesOnVideo > 0 ? 'rgba(255,170,0,0.2)' : 'rgba(15,15,25,0.9)', border: `1.5px solid ${myVotesOnVideo > 0 ? '#FFAA00' : 'rgba(255,255,255,0.18)'}`, color: '#fff', cursor: (!estEnCours || voteLoading) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !estEnCours ? 0.4 : (voteLoading ? 0.6 : 1) }}>
                 {voteLoading ? <SpinIcon /> : <VoteIcon active={myVotesOnVideo > 0} />}
               </button>
               {myVotesOnVideo > 0 && (
@@ -984,7 +996,7 @@ export default function WatchPage() {
                 if (!isLoggedIn()) { requireLogin('Connectez-vous pour envoyer des cœurs à ce candidat.'); return; }
                 handleSendHearts();
               }}
-              style={{ width: 34, height: 34, borderRadius: '50%', background: liked ? 'rgba(255,80,80,0.2)' : 'rgba(15,15,25,0.9)', border: `1.5px solid ${liked ? '#ff4444' : 'rgba(255,255,255,0.18)'}`, color: '#fff', cursor: likeLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: likeLoading ? 0.6 : 1 }}>
+              /*DKDK_LIKER_GRISE*/ style={{ width: 34, height: 34, borderRadius: '50%', background: liked ? 'rgba(255,80,80,0.2)' : 'rgba(15,15,25,0.9)', border: `1.5px solid ${liked ? '#ff4444' : 'rgba(255,255,255,0.18)'}`, color: '#fff', cursor: (!estEnCours || likeLoading) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !estEnCours ? 0.4 : (likeLoading ? 0.6 : 1) }}>
               {likeLoading ? <SpinIcon /> : <LikeIcon liked={liked} />}
             </button>
             {likeCount > 0 && (
@@ -1175,7 +1187,7 @@ export default function WatchPage() {
             <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'10px 12px', marginTop:8 }}>
               <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.5)', letterSpacing:'.08em', marginBottom:8 }}>SOUTENIR CE CANDIDAT</div>
               <div style={{ fontSize:12, color:'rgba(255,255,255,0.6)', marginBottom:10, lineHeight:1.5 }}>
-                Le challenge est entre deux rounds. Soutenez ce candidat avec <b style={{ color:'#FFAA00' }}>10 F CFA</b> — 50 % lui reviennent directement.
+                {/*DKDK_SOUTENIR_TEXTE_FIN*/}{/*DKDK_SOUTENIR_NO50*/}Ce challenge est terminé. Vous pouvez encore soutenir ce candidat avec <b style={{ color:'#FFAA00' }}>{soutenirAmount} F CFA</b>.
               </div>
               {voteError && <div style={{ background:'rgba(255,0,0,0.15)', border:'1.5px solid rgba(255,0,0,0.6)', borderRadius:8, padding:'8px 10px', fontSize:12, fontWeight:700, color:'#FF0000', marginBottom:8 }}>⚠️ {voteError}</div>}
               {soutenirSuccess && <div style={{ background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.25)', borderRadius:8, padding:'8px 10px', fontSize:11, color:'#4ade80', marginBottom:8 }}>💚 Soutien envoyé !</div>}
