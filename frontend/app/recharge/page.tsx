@@ -176,7 +176,7 @@ export default function RechargePage() {
         {/* ── Soldes ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
           <div style={{ background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.2)', borderRadius: 14, padding: '14px 16px' }}>
-            <div style={{ fontSize: 9, color: 'rgba(255,170,0,0.6)', fontWeight: 700, letterSpacing: '.1em', marginBottom: 5 }}>COMPTE INITIAL</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,170,0,0.6)', fontWeight: 700, letterSpacing: '.1em', marginBottom: 5 }}>COMPTE DE RETRAIT</div>{/*DKDK_RENAME_RETRAIT*/}
             <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, color: '#FFAA00' }}>{fmt(initialBalance)} F</div>
             <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 3 }}>Dépôts · Retraits · Gains</div>
           </div>

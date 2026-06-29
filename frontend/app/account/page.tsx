@@ -311,7 +311,7 @@ export default function AccountPage() {
               <div style={{ fontSize:13, color:'rgba(255,255,255,0.5)', marginBottom:16, lineHeight:1.6 }}>
                 ⚠️ Action irréversible. Toutes tes données, vidéos et historique seront définitivement supprimés.<br/>
                 <br/>
-                <span style={{ color:'rgba(251,146,60,0.8)', fontWeight:600 }}>💰 Compte Initial :</span> <span style={{ color:'rgba(255,255,255,0.45)' }}>ton solde restant en F CFA sera remboursé automatiquement vers ton dernier moyen de paiement sous 7 jours ouvrés.</span><br/>
+                <span style={{ color:'rgba(251,146,60,0.8)', fontWeight:600 }}>💰 Compte de Retrait :</span>{/*DKDK_RENAME_RETRAIT_ACC*/} <span style={{ color:'rgba(255,255,255,0.45)' }}>ton solde restant en F CFA sera remboursé automatiquement vers ton dernier moyen de paiement sous 7 jours ouvrés.</span><br/>
                 <span style={{ color:'rgba(248,113,113,0.8)', fontWeight:600 }}>⭐ Compte Soutenir :</span> <span style={{ color:'rgba(255,255,255,0.45)' }}>tes unités non utilisées (étoiles et cœurs) seront définitivement perdues — elles ne sont pas remboursables.</span>
               </div>
               <div style={{ marginBottom:14 }}>

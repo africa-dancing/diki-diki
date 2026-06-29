@@ -108,7 +108,7 @@ export default function RetraitPage() {
         <div style={{ fontSize:14, color:'rgba(255,255,255,0.5)', marginBottom:6 }}>{fmt(amountNum)} F CFA en cours de traitement</div>
         <div style={{ fontSize:13, color:'rgba(255,255,255,0.35)', marginBottom:28, lineHeight:1.7 }}>
           Ton virement sera effectué sous <strong style={{ color:'#fff' }}>48h ouvrées</strong>.<br/>
-          Nouveau solde Compte Initial : <strong style={{ color:OR }}>{fmt(initialBalance)} F CFA</strong>
+          Nouveau solde Compte de Retrait : <strong style={{ color:OR }}>{fmt(initialBalance)} F CFA</strong>
         </div>
         <button onClick={() => router.push('/compte')} style={btnP}>Retourner à mon compte</button>
       </div>
@@ -135,14 +135,14 @@ export default function RetraitPage() {
         <div style={{ background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', borderRadius:18, padding:'22px 20px', marginBottom:20, textAlign:'center' }}>
           <div style={{ fontSize:38, marginBottom:8 }}>💸</div>
           <div style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:20, color:'#fff', marginBottom:6 }}>Retirer mes gains</div>
-          <div style={{ fontSize:13, color:'rgba(255,255,255,0.85)', lineHeight:1.6 }}>Transfert depuis ton Compte Initial vers Mobile Money ou compte bancaire</div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.85)', lineHeight:1.6 }}>Transfert depuis ton Compte de Retrait vers Mobile Money ou compte bancaire</div>
         </div>
 
-        {/* Compte Initial */}
+        {/* Compte de Retrait *//*DKDK_RENAME_RETRAIT_PAGE*/}
         <div style={{ background:'rgba(56,130,220,0.08)', border:'1px solid rgba(56,130,220,0.25)', borderRadius:16, padding:'16px 18px', marginBottom:14 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
-              <div style={{ fontSize:10, color:'rgba(56,130,220,0.8)', fontWeight:700, letterSpacing:'.08em', marginBottom:4 }}>COMPTE INITIAL — disponible</div>
+              <div style={{ fontSize:10, color:'rgba(56,130,220,0.8)', fontWeight:700, letterSpacing:'.08em', marginBottom:4 }}>COMPTE DE RETRAIT — disponible</div>
               <div style={{ fontSize:26, fontWeight:800, color:'#60a5fa', fontFamily:'Syne,sans-serif' }}>{fmt(initialBalance)} F CFA</div>
               <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginTop:3 }}>
                 dont {fmt(totalEarned)} F issus de tes gains candidat
@@ -154,7 +154,7 @@ export default function RetraitPage() {
 
         {/* Info Compte Voter & Soutenir */}
         <div style={{ background:'rgba(255,80,80,0.05)', border:'1px solid rgba(255,80,80,0.18)', borderRadius:10, padding:'10px 14px', marginBottom:14, fontSize:12, color:'rgba(255,120,120,0.8)' }}>
-          🔒 Le Compte Voter & Soutenir (étoiles/cœurs) ne permet pas de retrait. Seul le Compte Initial peut être retiré.
+          🔒 Le Compte Voter & Soutenir (étoiles/cœurs) ne permet pas de retrait. Seul le Compte de Retrait peut être retiré.
         </div>
 
         {/* Montant */}
