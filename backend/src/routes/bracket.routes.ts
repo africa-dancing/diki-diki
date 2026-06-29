@@ -301,13 +301,14 @@ bracketRouter.post('/participant/:participantId/video', requireAuth, async (req:
 });
 
 // Lister les videos d'un participant par round
-bracketRouter.get('/participant/:participantId/videos', requireAuth, async (req: AuthRequest, res: Response) => {
+bracketRouter.get('/participant/:participantId/videos', /*DKDK_PARCOURS_PUBLIC*/ async (req: AuthRequest, res: Response) => {
   try {
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('bracket_participant_videos')
       .select('round_number, video_id, created_at, videos(title, storage_url, status)')
       .eq('participant_id', req.params.participantId)
+      .eq('videos.status', 'approved') /*DKDK_PARCOURS_APPROVED*/
       .order('round_number', { ascending: true });
     if (error) throw error;
     res.json({ success: true, data: data || [] });
