@@ -123,6 +123,27 @@ bracketRouter.get('/track/:track_id', async (req: Request, res: Response) => {
   }
 });
 
+// Liste de tous les candidats ayant participe a au moins un challenge (public) /*DKDK_LISTE_CANDIDATS*/
+bracketRouter.get('/candidats', async (req: Request, res: Response) => {
+  try {
+    const supabase = getSupabase();
+    const { data: parts, error: pErr } = await supabase
+      .from('bracket_participants')
+      .select('user_id');
+    if (pErr) throw pErr;
+    const ids = Array.from(new Set((parts || []).map(function(p){ return p.user_id; }).filter(Boolean)));
+    if (ids.length === 0) { res.json({ success: true, data: [] }); return; }
+    const { data: users, error: uErr } = await supabase
+      .from('users')
+      .select('id, name, avatar_url, country')
+      .in('id', ids);
+    if (uErr) throw uErr;
+    res.json({ success: true, data: users || [] });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 bracketRouter.get('/:bracket_id', async (req: Request, res: Response) => {
   try {
     const { data, error } = await getSupabase()
