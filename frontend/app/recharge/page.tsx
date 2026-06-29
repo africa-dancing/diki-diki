@@ -55,6 +55,7 @@ export default function RechargePage() {
   const router = useRouter();
   const [initialBalance, setInitialBalance] = useState(0);
   const [rechargeUnits,  setRechargeUnits]  = useState(0);
+  /*DKDK_UNIT_VALUE*/ const [unitValue, setUnitValue] = useState(100); // 1 unite = X F (settings)
   const [selectedAmount, setSelectedAmount] = useState(2000);
   const [customAmount,   setCustomAmount]   = useState('');
   const [method,  setMethod]  = useState('mtn');
@@ -72,12 +73,21 @@ export default function RechargePage() {
       .catch(() => {});
     fetch(`${API}/votes/balance`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setRechargeUnits(Math.floor((d.wallet ?? d.balance ?? 0) / 100)); })
+      .then(d => { if (d) setRechargeUnits(Math.floor((d.wallet ?? d.balance ?? 0) / unitValue)); })
+      .catch(() => {});
+    /*DKDK_UNIT_FETCH*/
+    fetch(`${API}/settings`)
+      .then(r => r.ok ? r.json() : null)
+      .then(res => {
+        const rows = res?.data || [];
+        const uv = rows.find((x: any) => x.key === 'recharge_unit_value');
+        if (uv?.value) setUnitValue(Number(uv.value));
+      })
       .catch(() => {});
   }, [router]);
 
   const amount = customAmount ? parseInt(customAmount.replace(/\D/g, '')) || 0 : selectedAmount;
-  const units  = Math.floor(amount / 100);
+  /*DKDK_UNIT_CALC*/ const units  = Math.floor(amount / unitValue);
 
   const handleRecharge = async () => {
     if (!amount || amount < 500) { setError('Montant minimum : 500 F CFA.'); return; }
@@ -180,7 +190,7 @@ export default function RechargePage() {
         {/* ── Info unités ── */}
         <div style={{ background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.18)', borderRadius: 12, padding: '11px 14px', fontSize: 12, color: 'rgba(255,170,0,0.85)', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 8, lineHeight: 1.5 }}>
           <span style={{ flexShrink: 0 }}>💡</span>
-          <span><strong>1 unité = 100 F CFA</strong> — chaque unité devient <StarRed /> étoile (voter) ou ❤️ cœur (liker) selon ton choix</span>
+          <span><strong>{`1 unité = ${unitValue} F CFA`}</strong> — chaque unité devient <StarRed /> étoile (voter) ou ❤️ cœur (liker) selon ton choix</span>
         </div>
 
         {/* ── Montants ── */}
@@ -204,7 +214,7 @@ export default function RechargePage() {
                   {fmt(a)} F
                 </div>
                 <div style={{ fontSize: 10, color: isSel ? 'rgba(255,170,0,0.6)' : 'rgba(255,255,255,0.3)', marginTop: 2 }}>
-                  {fmt(Math.floor(a / 100))} unités
+                  {fmt(Math.floor(a / unitValue))} unités
                 </div>
               </button>
             );
