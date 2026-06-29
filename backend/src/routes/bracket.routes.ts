@@ -144,6 +144,21 @@ bracketRouter.get('/candidats', async (req: Request, res: Response) => {
   }
 });
 
+// Liste des challenges d un candidat (tout statut, public) /*DKDK_CANDIDAT_CHALLENGES*/
+bracketRouter.get('/candidats/:userId/challenges', async (req: Request, res: Response) => {
+  try {
+    const supabase = getSupabase();
+    const { data: parts, error: pErr } = await supabase
+      .from('bracket_participants')
+      .select('id, bracket_id, video_id, score, final_path, eliminated_at, brackets!bracket_participants_bracket_id_fkey(id, title, status, discipline, type, max_participants, current_round, winner_id, created_at, ended_at, mode)') /*DKDK_FK_FIX*/
+      .eq('user_id', req.params.userId);
+    if (pErr) throw pErr;
+    res.json({ success: true, data: parts || [] });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 bracketRouter.get('/:bracket_id', async (req: Request, res: Response) => {
   try {
     const { data, error } = await getSupabase()
