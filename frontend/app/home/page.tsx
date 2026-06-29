@@ -68,6 +68,16 @@ function VideoCard({ video, index }: { video: Video; index: number }) {
             <StarRed /> {video.vote_count}
           </div>
         )}
+      {/*DKDK_HOME_STATE_BADGE*/}
+      {video.challenge_state === 'waiting' && (
+        <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(255,170,0,0.92)', color: '#1a1a1a', fontSize: '0.62rem', fontWeight: 800, padding: '3px 8px', borderRadius: '20px', letterSpacing: '0.05em' }}>⏳ BIENTÔT</div>
+      )}
+      {video.challenge_state === 'live' && (
+        <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', color: '#fff', fontSize: '0.62rem', fontWeight: 800, padding: '3px 8px', borderRadius: '20px', letterSpacing: '0.05em' }}>🔴 EN COURS</div>
+      )}
+      {video.challenge_state === 'ended' && (
+        <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'linear-gradient(135deg,rgba(126,3,128,0.92),rgb(237,7,15))', color: '#fff', fontSize: '0.62rem', fontWeight: 800, padding: '3px 8px', borderRadius: '20px', letterSpacing: '0.05em' }}>💚 SOUTENIR</div>
+      )}
       </div>
       <div style={{ padding: '12px 14px 14px' }}>
         <p style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem', color: '#f0f0f0', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

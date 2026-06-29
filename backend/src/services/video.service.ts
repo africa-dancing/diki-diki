@@ -108,9 +108,39 @@ export async function addComment(videoId: string, userId: string, content: strin
 }
 
 export async function getApprovedVideos() {
-  const { data, error } = await supabase.from('videos').select('*').eq('status', 'approved').order('created_at', { ascending: false });
+  /*DKDK_HOME_CHALLENGE_STATE*/
+  // Home = videos rattachees a un challenge + etat normalise (waiting/live/ended)
+  const { data: parts, error: pErr } = await supabase
+    .from('bracket_participants')
+    .select('video_id, bracket_id')
+    .not('video_id', 'is', null);
+  if (pErr) throw pErr;
+  const partList = parts || [];
+  const ids = Array.from(new Set(partList.map((p: any) => p.video_id).filter(Boolean)));
+  if (ids.length === 0) return [];
+  const bracketIds = Array.from(new Set(partList.map((p: any) => p.bracket_id).filter(Boolean)));
+  const { data: bks, error: bErr } = await supabase
+    .from('brackets')
+    .select('id, status')
+    .in('id', bracketIds);
+  if (bErr) throw bErr;
+  const norm = (st: string): string => {
+    if (st === 'done') return 'ended';
+    if (st === 'active' || st === 'in_progress') return 'live';
+    return 'waiting';
+  };
+  const stateByBracket: Record<string, string> = {};
+  (bks || []).forEach((b: any) => { stateByBracket[b.id] = norm(b.status); });
+  const stateByVideo: Record<string, string> = {};
+  partList.forEach((p: any) => { if (p.video_id && p.bracket_id) stateByVideo[p.video_id] = stateByBracket[p.bracket_id] || 'waiting'; });
+  const { data, error } = await supabase
+    .from('videos')
+    .select('*')
+    .eq('status', 'approved')
+    .in('id', ids)
+    .order('created_at', { ascending: false });
   if (error) throw error;
-  return data || [];
+  return (data || []).map((v: any) => ({ ...v, challenge_state: stateByVideo[v.id] || 'waiting' }));
 }
 
 export async function getCommentsByVideoId(videoId: string) {

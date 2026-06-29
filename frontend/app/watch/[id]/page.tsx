@@ -778,7 +778,12 @@ export default function WatchPage() {
   const loggedIn     = isLoggedIn();
   /*DKDK_ETAT_GLOBAL*/ // Variables d'etat accessibles dans tout le panneau (hors IIFE)
   const _bk = bracketData?.bracket;
-  const challengeEnCours = _bk?.status === 'in_progress';
+  const challengeEnCours = _bk?.status === 'in_progress' || _bk?.status === 'active'; /*DKDK_ENCOURS_ACTIVE_GLOBAL*/
+  /*DKDK_ETATS_3*/ // 3 etats normalises de la spec home/watch
+  const _st = _bk?.status;
+  const estEnAttente = _st === 'open' || _st === 'waiting_candidates' || _st === 'ouvert' || _st === 'ouvrir';
+  const estEnCours   = _st === 'in_progress' || _st === 'active';
+  const estTermine   = _st === 'done';
   const candidatsInscrits = bracketData?.pool?.length ?? 0;
   const capaciteMax = _bk?.max_participants ?? 16;
   const placesRestantes = Math.max(0, capaciteMax - candidatsInscrits);
@@ -1030,7 +1035,7 @@ export default function WatchPage() {
   const candidatsInscrits = bracketData.pool?.length ?? 0;
   const capaciteMax = b?.max_participants ?? 16;
   const placesRestantes = Math.max(0, capaciteMax - candidatsInscrits);
-  const challengeEnCours = b?.status === 'in_progress';
+  const challengeEnCours = b?.status === 'in_progress' || b?.status === 'active'; /*DKDK_ENCOURS_ACTIVE*/
   const ROUND_LABELS: Record<number,string> = {1:"Huitième de finale",2:"Quart de finale",3:"Demi-finale",4:"Finale"};
   const ROUND_CUT: Record<number,string> = {1:"16 → 8",2:"8 → 4",3:"4 → 3",4:"2 → 1"};
 
@@ -1165,7 +1170,8 @@ export default function WatchPage() {
             </div>
           </>)}
           {/*DKDK_SOUTENIR_BLOCK*/}
-          {loggedIn && !challengeEnCours && bracketData?.current_participant_id && (
+          {/*DKDK_SOUTENIR_COND_FIX*/}
+          {loggedIn && estTermine && bracketData?.current_participant_id && (
             <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'10px 12px', marginTop:8 }}>
               <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.5)', letterSpacing:'.08em', marginBottom:8 }}>SOUTENIR CE CANDIDAT</div>
               <div style={{ fontSize:12, color:'rgba(255,255,255,0.6)', marginBottom:10, lineHeight:1.5 }}>
