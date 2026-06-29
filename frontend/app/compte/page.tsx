@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import TickerBand from '../components/TickerBand';
 import TranslateWidget from '../components/TranslateWidget';
+import ParcoursSection from './ParcoursSection';/*DKDK_IMPORT_PARCOURS*/
 
 // ✅ Étoile rouge — identique au logo
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
@@ -39,7 +40,7 @@ interface Privacy     { name_visible:boolean;photo_visible:boolean;phone_visible
 const TABS: {id:TabId;emoji:string;label:string}[] = [
   {id:'dashboard',   emoji:'📊', label:'Tableau de bord'},
   {id:'videos',      emoji:'🎬', label:'Mes vidéos'},
-  {id:'competitions',emoji:'🏆', label:'Compétitions'},
+  {id:'competitions',emoji:'🏆', label:'Mes challenges'},/*DKDK_TAB_MESCHALLENGES*/
   {id:'education',   emoji:'📚', label:'Éducation & Savoirs'},
   {id:'finances',    emoji:'💳', label:'Finances'},
   {id:'settings',    emoji:'⚙️', label:'Paramètres'},
@@ -410,7 +411,7 @@ export default function ComptePage() {
       <div style={{maxWidth:660,margin:'0 auto',padding:'20px 16px'}}>
         {activeTab==='dashboard'&&<DashboardSection profile={profile} balance={balance} votesEmis={votesEmis} totalEarned={totalEarned} videoCount={userVideos.length} onEditProfile={()=>setShowEdit(true)}/>}
         {activeTab==='videos'&&<MesVideosSection videos={userVideos} loading={videosLoading} contests={contests} router={router} onRefresh={()=>{const t=getToken();const d=t?decodeToken(t):null;if(d?.userId)fetchVideos(d.userId);}}/>}
-        {activeTab==='competitions'&&(loading?<div style={{textAlign:'center',padding:'40px',color:'rgba(255,255,255,0.8)'}}>⏳ Chargement…</div>:<CompetitionsSection contests={contests} balance={balance} approvedVideos={approved} onVoted={nb=>setBalance(nb)} favContests={favContests} favCandidates={favCandidates} onToggleFavContest={toggleFavContest} onToggleFavCandidate={toggleFavCandidate}/>)}
+        {activeTab==='competitions'&&(loading?<div style={{textAlign:'center',padding:'40px',color:'rgba(255,255,255,0.8)'}}>⏳ Chargement…</div>:<ParcoursSection/>/*DKDK_USE_PARCOURS*/)}
         {activeTab==='education'&&<EducationSection router={router}/>}
         {activeTab==='finances'&&<FinancesSection balance={balance} totalEarned={totalEarned} router={router}/>}
         {activeTab==='settings'&&(
