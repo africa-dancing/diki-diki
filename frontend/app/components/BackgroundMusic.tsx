@@ -28,6 +28,8 @@ export default function BackgroundMusic() {
 
   const bannerCount = useRef(0);
   const startedOnce = useRef(false);
+  const mutedRef = useRef(false); /*DKDK_MUTEDREF_FIX*/
+  useEffect(() => { mutedRef.current = muted; }, [muted]);
 
   // Page silencieuse ? (liste pilotée par settings à l'étape 2)
   const pageSilencieuse = pagesExclues.some(p => pathname?.startsWith(p));
@@ -124,6 +126,7 @@ export default function BackgroundMusic() {
   const attemptPlay = () => {
     const a = audioRef.current;
     if (!a) return;
+    if (mutedRef.current) { a.pause(); setPlaying(false); return; } /*DKDK_MUTEDREF_GUARD*/
     a.volume = volume;
     a.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
   };
@@ -172,11 +175,11 @@ export default function BackgroundMusic() {
               <span style={{ fontSize: 12 }}>🔉</span>
               <input type="range" min={0} max={1} step={0.05} value={volume}
                 onChange={e => setVolume(Number(e.target.value))}
-                style={{ flex: 1, accentColor: '#FFAA00' }} />
+                style={{ flex: 1, accentColor: '#7e0380' }} /> /*DKDK_MUSIC_MAGENTA*/
             </div>
             <button onClick={togglePlay} style={{
               width: '100%', padding: '7px', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: playing ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg,#FF6B00,#FFAA00)',
+              background: playing ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg,#7e0380,#ed070f)',
               color: '#fff', fontSize: 12, fontWeight: 700
             }}>
               {playing ? '⏸ Mettre en pause' : '▶ Lancer la musique'}
