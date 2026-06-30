@@ -194,31 +194,7 @@ function CandidateCard({cand,isWinner,isLoser,voteState,loading,contest,isFav,on
   );
 }
 
-function ContestCard({contest,userBalance,onVoted,isFavContest,favCandidates,onToggleFavContest,onToggleFavCandidate}:{contest:Contest;userBalance:number;onVoted:(nb:number)=>void;isFavContest:boolean;favCandidates:string[];onToggleFavContest:()=>void;onToggleFavCandidate:(id:string)=>void}) {
-  const [vs,setVs]=useState<VoteState>({voted:false});const [load,setLoad]=useState(false);const [msg,setMsg]=useState('');const [mt,setMt]=useState<'success'|'error'|'info'>('info');const [lc,setLc]=useState(contest.candidates);
-  useEffect(()=>{const t=localStorage.getItem('dkdk_token');if(!t)return;Promise.all(contest.candidates.filter(c=>c.video?.id).map(c=>fetch(`${API}/votes/check/${c.video!.id}`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.json()).then((d:any)=>({videoId:c.video!.id,hasVoted:d.hasVoted??d.voted??false})).catch(()=>({videoId:c.video!.id,hasVoted:false})))).then(r=>{const f=r.find(x=>x.hasVoted);if(f)setVs({voted:true,votedVideoId:f.videoId});});},[contest.candidates]);
-  async function handleVote(videoId:string,name:string){if(vs.voted){showMsg('Vous avez déjà voté.','info');return;}if(userBalance<100){showMsg('Solde insuffisant.','error');return;}setLoad(true);setVs({voted:true,votedVideoId:videoId});setLc(p=>p.map(c=>c.video?.id===videoId?{...c,votes:c.votes+1}:c));try{const res=await fetch(`${API}/votes`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${localStorage.getItem('dkdk_token')}`},body:JSON.stringify({video_id:videoId})});const r=await res.json();if(!res.ok)throw new Error(r.error||r.code||'ERR');onVoted(r.new_balance??r.balance??userBalance-100);showMsg(`✓ Vote pour ${name} · -10 F CFA`,'success');}catch(e:any){setVs({voted:false});setLc(contest.candidates);const EM:Record<string,string>={INSUFFICIENT_BALANCE:'Solde insuffisant.',ALREADY_VOTED:'Déjà voté.',CONTEST_NOT_ACTIVE:'Concours terminé.',TOKEN_MISSING:'Connectez-vous.'};showMsg(EM[(e as any).message]??'Erreur.','error');}finally{setLoad(false);}  }
-  function showMsg(t:string,type:'success'|'error'|'info'){setMsg(t);setMt(type);setTimeout(()=>setMsg(''),3500);}
-  const total=lc.reduce((s,c)=>s+c.votes,0);
-  const cands=lc.map(c=>({...c,percentage:total>0?Math.round((c.votes/total)*100):50}));
-  const days=Math.max(0,Math.ceil((new Date(contest.ends_at).getTime()-Date.now())/86_400_000));
-  const c0=cands[0],c1=cands[1];const isOpen=contest.status==='active';
-  const bbg=vs.voted||isOpen?'#166534':'rgba(255,255,255,.05)';const bco=vs.voted||isOpen?'#fff':'rgba(255,255,255,.3)';const blb=vs.voted?'✓ Voté':isOpen?'● Vote ouvert':'Bientôt';
-  return (
-    <div style={{background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',border:'none',borderRadius:'20px',overflow:'hidden',marginBottom:'16px'}}>
-      <div style={{padding:'14px 16px',borderBottom:'0.5px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,.02)'}}>
-        <div><div style={{fontSize:'15px',fontWeight:700,color:'#fff',fontFamily:'Syne,sans-serif',marginBottom:'3px',textShadow:'0 1px 3px rgba(0,0,0,0.5)'}}>{DISC_EMOJI[contest.discipline]||'🎭'} {contest.title}</div><div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>{[DISC_FR[contest.discipline]||contest.discipline,contest.comp_type,`⏳ ${days}j restants`].map(l=><span key={l} style={{fontSize:'10px',color:'#fff',background:'rgba(0,0,0,0.3)',padding:'2px 8px',borderRadius:'20px'}}>{l}</span>)}</div></div>
-        <div style={{display:'flex',alignItems:'center',gap:'10px'}}><SuivreBtn active={isFavContest} onToggle={onToggleFavContest} size="md"/><span style={{fontSize:'10px',fontWeight:700,padding:'4px 10px',borderRadius:'20px',background:bbg,color:bco,border:`0.5px solid ${bco.replace(')',',0.3)')}`}}>{blb}</span></div>
-      </div>
-      {msg&&<div style={{padding:'10px 16px',fontSize:'12px',fontWeight:500,background:mt==='success'?'rgba(74,222,128,.1)':mt==='error'?'rgba(248,113,113,.1)':'rgba(255,255,255,.06)',color:mt==='success'?'#4ade80':mt==='error'?'#f87171':'rgba(255,255,255,.6)',borderBottom:'0.5px solid rgba(255,255,255,.06)'}}>{msg}</div>}
-      <div style={{padding:'16px',background:'#fff'}}>
-        {c0&&c1?(<div style={{display:'flex',gap:'10px',alignItems:'stretch'}}><CandidateCard cand={c0} isWinner={vs.voted&&vs.votedVideoId===c0.video?.id} isLoser={vs.voted&&vs.votedVideoId!==c0.video?.id} voteState={vs} loading={load} contest={contest} isFav={favCandidates.includes(c0.id)} onToggleFav={()=>onToggleFavCandidate(c0.id)} onVote={()=>c0.video?.id&&handleVote(c0.video.id,c0.stage_name||c0.name)}/><div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px',padding:'0 4px'}}><div style={{width:'1px',flex:1,background:'rgba(255,255,255,.08)'}}/><div style={{width:'36px',height:'36px',borderRadius:'50%',background:'rgba(255,170,0,.12)',border:'1px solid rgba(255,170,0,.25)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',fontWeight:800,color:'#FFAA00',fontFamily:'Syne,sans-serif'}}>VS</div><div style={{width:'1px',flex:1,background:'rgba(255,255,255,.08)'}}/></div><CandidateCard cand={c1} isWinner={vs.voted&&vs.votedVideoId===c1.video?.id} isLoser={vs.voted&&vs.votedVideoId!==c1.video?.id} voteState={vs} loading={load} contest={contest} isFav={favCandidates.includes(c1.id)} onToggleFav={()=>onToggleFavCandidate(c1.id)} onVote={()=>c1.video?.id&&handleVote(c1.video.id,c1.stage_name||c1.name)}/></div>):<div style={{textAlign:'center',padding:'2rem',color:'rgba(10,10,15,0.7)',fontSize:'13px'}}>🎭 Aucun candidat inscrit pour l'instant.</div>}
-      </div>
-      <div style={{padding:'10px 16px',borderTop:'0.5px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',justifyContent:'flex-end',background:'rgba(255,255,255,.02)',fontSize:'12px',color:'rgba(255,255,255,0.9)'}}>🗳️ <span style={{fontWeight:700,color:'#FFAA00',marginLeft:'4px'}}>{total.toLocaleString('fr-FR')} votes</span></div>
-    </div>
-  );
-}
-
+/*DKDK_DEAD_CONTESTCARD retire*/
 function DashboardSection({profile,balance,votesEmis,totalEarned,videoCount,onEditProfile}:{profile:UserProfile|null;balance:number;votesEmis:number;totalEarned:number;videoCount:number;onEditProfile:()=>void}) {
   const initials=profile?.name?.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'??';
   const country=COUNTRIES.find(c=>c.code===profile?.country);
@@ -309,19 +285,7 @@ function MesVideosSection({videos,loading,contests,onRefresh,router}:{videos:Use
   );
 }
 
-function CompetitionsSection({contests,balance,approvedVideos,onVoted,favContests,favCandidates,onToggleFavContest,onToggleFavCandidate}:{contests:Contest[];balance:number;approvedVideos:UserVideo[];onVoted:(nb:number)=>void;favContests:string[];favCandidates:string[];onToggleFavContest:(id:string)=>void;onToggleFavCandidate:(id:string)=>void}) {
-  const [filter,setFilter]=useState('all');const [showIns,setShowIns]=useState(false);
-  const filtered=contests.filter(c=>filter==='all'||c.discipline===filter);
-  return (
-    <div>
-      <div style={{background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',borderRadius:18,padding:'22px 20px',marginBottom:16,textAlign:'center'}}><div style={{fontSize:38,marginBottom:8}}>🏆</div><div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:20,color:'#fff',marginBottom:6}}>Compétitions</div><div style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.6,marginBottom:16}}>{filtered.length} compétition{filtered.length!==1?'s':''} · Inscris ta vidéo et reçois des votes</div><button onClick={()=>setShowIns(true)} style={{...btnPrimary,padding:'11px 22px',fontSize:13}}>🏆 Inscrire ma vidéo dans une compétition</button></div>
-      <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:14}}>{DISCS.map(d=><button key={d} onClick={()=>setFilter(d)} style={{padding:'5px 14px',borderRadius:50,fontSize:11,fontWeight:600,cursor:'pointer',background:filter===d?'#FFAA00':'rgba(237,7,15,0.18)',color:filter===d?'#000':'#fff',border:filter===d?'none':'1px solid rgba(237,7,15,0.4)'}}>{DISC_LABELS[d]}</button>)}</div>
-      {filtered.length===0?(<div style={{textAlign:'center',padding:'40px 20px',color:'rgba(255,255,255,0.8)',fontSize:13}}>{contests.length===0?'Aucune compétition active pour le moment.':'Aucune compétition dans cette catégorie.'}</div>):filtered.map(c=><ContestCard key={c.id} contest={c} userBalance={balance} onVoted={onVoted} isFavContest={favContests.includes(c.id)} favCandidates={favCandidates} onToggleFavContest={()=>onToggleFavContest(c.id)} onToggleFavCandidate={onToggleFavCandidate}/>)}
-      {showIns&&<InscriptionModal contests={contests} approvedVideos={approvedVideos} onClose={()=>setShowIns(false)} onSuccess={()=>setShowIns(false)}/>}
-    </div>
-  );
-}
-
+/*DKDK_DEAD_COMPSECTION retire*/
 function EducationSection({router}:{router:any}) {
   const MATIERES=['🌍 Langues du monde','📜 Histoire & Géographie','🔬 Sciences & Vie','🎨 Art & Culture du monde','🌿 Agriculture','💻 Informatique','🎵 Musique du monde','🍽️ Gastronomie du monde'];
   return (
