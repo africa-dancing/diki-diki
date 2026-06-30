@@ -320,6 +320,7 @@ export default function WatchPage() {
 
   const videoRef      = useRef<HTMLVideoElement>(null);
   const bandRef       = useRef<HTMLDivElement>(null);
+  const bandTrackRef  = useRef<HTMLDivElement>(null); /*DKDK_BANDTRACKREF*/
   const controlsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollTimer   = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -449,15 +450,31 @@ export default function WatchPage() {
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => { return; /*DKDK_MARQUEE_NOJS2*/
-    const band = bandRef.current; if (!band) return;
-    scrollTimer.current = setInterval(() => {
-      if (!band) return;
-      if (band.scrollLeft >= band.scrollWidth - band.clientWidth - 2) band.scrollLeft = 0;
-      else band.scrollLeft += 1.2;
-    }, 20);
-    return () => { if (scrollTimer.current) clearInterval(scrollTimer.current); };
-  }, [otherCandidates]);
+  useEffect(() => { /*DKDK_MQ_JS_LOOP*/
+    const band = bandRef.current; const track = bandTrackRef.current;
+    if (!band || !track) return;
+    let pos = band.clientWidth;
+    let raf = 0;
+    let paused = false;
+    const onEnter = () => { paused = true; };
+    const onLeave = () => { paused = false; };
+    band.addEventListener('mouseenter', onEnter);
+    band.addEventListener('mouseleave', onLeave);
+    const step = () => {
+      if (!paused) {
+        pos -= 1.5;
+        if (pos <= -track.scrollWidth) pos = band.clientWidth;
+        track.style.transform = 'translateX(' + pos + 'px)';
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => {
+      cancelAnimationFrame(raf);
+      band.removeEventListener('mouseenter', onEnter);
+      band.removeEventListener('mouseleave', onLeave);
+    };
+  }, [otherCandidates, bracketData]);
 
   // ── Charger Compte Voter & Soutenir ──
   useEffect(() => {
@@ -1303,7 +1320,7 @@ export default function WatchPage() {
         })()}
           <style>{`@keyframes dkdkMarquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } } .dkdk-marquee-track:hover { animation-play-state: paused; }`}</style>
           <div ref={bandRef} style={{ ...s.band, overflowX: 'hidden' }} /*DKDK_MARQUEE_WRAP*/>
-            <div className="dkdk-marquee-track" style={{ display: 'flex', alignItems: 'center', gap: 10, width: 'max-content', animation: 'dkdkMarquee 40s linear infinite' }}>
+            <div ref={bandTrackRef} className="dkdk-marquee-track" style={{ display: 'flex', alignItems: 'center', gap: 10, width: 'max-content', willChange: 'transform' }} /*DKDK_TRACK_JS*/>
             <span style={{ fontSize: 14, flexShrink: 0, marginRight: 4 }}>🏆</span>
             {/* DKDK_BANDE_EXCLURE — cartes verticales, sans le candidat en lecture */}
             {(() => {
