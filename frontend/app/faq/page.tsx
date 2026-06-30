@@ -1,5 +1,6 @@
 'use client';
 import LogoDikiDiki from '../components/LogoDikiDiki';
+import Navbar from '../components/Navbar';/*DKDK_FAQ_NAVBAR_IMPORT*/
 import TranslateWidget from '../components/TranslateWidget';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -9,7 +10,7 @@ const OR2 = '#FF6B00';
 const BG = '#0a0a0f';
 
 const s: Record<string, React.CSSProperties> = {
-  page:    { background: BG, minHeight: '100vh', color: '#e8e0d0', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },
+  page:    { background: BG, minHeight: '100vh', color: '#e8e0d0', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },/*DKDK_FAQ_PADTOP*/
   header:  { borderBottom: `1px solid rgb(249, 246, 246)`, padding: '20px 12px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   logo:    { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: OR, textDecoration: 'none', letterSpacing: 1 },
   back:    { color: 'rgb(26, 255, 0)', fontSize: 13, textDecoration: 'none' },
@@ -119,13 +120,14 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 export default function FAQPage() {
   return (
     <div style={s.page}>
-      <header style={s.header}>
-        <Link href="/home" style={s.logo}><LogoDikiDiki width={200} /></Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Link href="/home" style={s.back}>← Retour</Link>
-          <TranslateWidget />
-        </div>
-      </header>
+      <Navbar />{/*DKDK_FAQ_NAVBAR_USE*/}
+      {/*DKDK_FAQ_HERO*/}
+      <div style={{ padding: '72px 24px 10px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
+        <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.75rem,3vw,1.9rem)', lineHeight: 1.1, marginBottom: 8, whiteSpace: 'nowrap', background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Podium Challenges{' '}
+          <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Arena</span>
+        </h1>
+      </div>
 
       <div style={s.hero}>
         <div style={s.badge}>Aide</div>
