@@ -1113,7 +1113,7 @@ export default function WatchPage() {
         <div style={{ fontSize:10, color:"#fff", fontWeight:700, whiteSpace:"nowrap", letterSpacing:"0.01em" }}>🏆 CAGNOTTE DES PRIX À PARTAGER (Net après commission Plateforme {Math.round(comm*100)} %)</div>
         <div style={{ fontFamily:"Syne, sans-serif", fontSize:18, fontWeight:800, color:"#4ade80", lineHeight:1.1 }}>{fmt(net)} F</div>
       </div>
-      <div style={{ fontSize:10, color:"#fff", marginTop:6, textAlign:"center" }}>Champion 60 % · 2ᵉ 25 % · 3ᵉ 15 %</div>
+      <div style={{ fontSize:10, color:"#fff", marginTop:6, textAlign:"center" }}>{(function DKDK_PODIUM_LABEL(){var n = (b && b.max_participants) || 16;if (n <= 4) return "Champion 100 %";if (n <= 8) return "Champion 65 % \u00b7 2\u1d49 35 %";return "Champion 60 % \u00b7 2\u1d49 25 % \u00b7 3\u1d49 15 %";})()}</div>
       </>)}
     </div>
   );
