@@ -7,10 +7,10 @@ import LogoDikiDiki from "../LogoDikiDiki";
 const MENU = [
   { href: '/admin',            icon: '🏠', label: 'Dashboard'         },
   { href: '/admin/moderation', icon: '🎬', label: 'Moderation videos' },
-  { href: '/admin/stats',      icon: '📊', label: 'Statistiques'      },
-  { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },
-  { href: '/admin/reglages',   icon: '⚙️', label: 'Réglages Challenge' },
   { href: '/admin/mediatheque', icon: '🎵', label: 'Médiathèque' },
+  { href: '/admin/reglages',   icon: '⚙️', label: 'Réglages Challenge' },
+  { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },
+  { href: '/admin/stats',      icon: '📊', label: 'Statistiques'      },
   { href: '/admin/monitoring', icon: '📈', label: 'Monitoring' }, /*DKDK_MONITORING_NAV*/
 ];
 
