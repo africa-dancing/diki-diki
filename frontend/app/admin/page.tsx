@@ -29,6 +29,36 @@ const STATUS_META: Record<string,{label:string;color:string;bg:string}> = {
 
 function fmt(n: number) { return n.toLocaleString('fr-FR'); }
 
+/*DKDK_SANTE_WIDGET*/
+function SanteWidget(props: { token?: string; router: any }) {
+  const [bw, setBw] = useState<number | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(API + "/monitoring/stats", { headers: { Authorization: "Bearer " + props.token } })
+      .then(function(r){ return r.json(); })
+      .then(function(j){ if (alive && j && j.success) setBw((j.data && j.data.videos && j.data.videos.bandwidth_gb) || 0); })
+      .catch(function(){});
+    return function(){ alive = false; };
+  }, []);
+  const QUOTA = 250, ORANGE = 105, ROUGE = 150;
+  const val = bw || 0;
+  const pct = Math.min(100, Math.round((val / QUOTA) * 100));
+  let col = "#4ade80";
+  if (val >= ROUGE) col = "#ed070f"; else if (val >= ORANGE) col = "#FFAA00";
+  return (
+    <div onClick={() => props.router.push("/admin/monitoring")} style={{ background:"rgba(255,255,255,0.03)", border:"1px solid #1e1e2e", borderRadius:14, padding:"16px 18px", marginBottom:24, cursor:"pointer" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:8 }}>
+        <span style={{ fontSize:13, fontWeight:700, color:"#e0e0e0", fontFamily:"Syne,sans-serif" }}>Sante infra &mdash; Bande passante</span>
+        <span style={{ fontSize:12, fontWeight:700, color:col }}>{val.toLocaleString("fr-FR")} Go / {QUOTA} Go</span>
+      </div>
+      <div style={{ height:10, background:"#1e1e2e", borderRadius:5, overflow:"hidden" }}>
+        <div style={{ width:pct + "%", height:"100%", background:col, transition:"width .3s" }} />
+      </div>
+      <div style={{ fontSize:10, color:"#4a4a6a", marginTop:6 }}>{pct} % du quota &mdash; cliquer pour le detail</div>
+    </div>
+  );
+}
+
 function CreateModal({ onClose, onCreated, token }: { onClose:()=>void; onCreated:()=>void; token:string }) {
   const [form, setForm] = useState({
     title: '', discipline: 'danse', comp_type: 'duo',
@@ -304,7 +334,10 @@ export default function AdminPage() {
             ))}
           </div>
 
-          {/* Liens raccourcis */}
+          {/*DKDK_SANTE_USE*/}
+            <SanteWidget token={admin?.token} router={router} />
+
+            {/* Liens raccourcis */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:24 }}>
             {[
               { label:'🎬 Modération vidéos', desc:'Approuver ou rejeter les vidéos', href:'/admin/moderation', color:'#FFAA00' },
