@@ -11,6 +11,7 @@ const MENU = [
   { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },
   { href: '/admin/reglages',   icon: '⚙️', label: 'Réglages Challenge' },
   { href: '/admin/mediatheque', icon: '🎵', label: 'Médiathèque' },
+  { href: '/admin/monitoring', icon: '📈', label: 'Monitoring' }, /*DKDK_MONITORING_NAV*/
 ];
 
 export function AdminSidebar() {
