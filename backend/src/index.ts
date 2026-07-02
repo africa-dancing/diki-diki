@@ -24,6 +24,7 @@ import analyticsRouter                                  from './routes/analytics
 import bracketRouter                                    from './routes/bracket.routes';
 import musiqueRouter                                    from './routes/musique.routes';    // ✅ déplacé ici
 import settingsRouter                                   from './routes/settings.routes';
+import monitoringRouter                                 from './routes/monitoring.routes';  /*DKDK_MONITORING_MOUNT*/
 import { startBracketCron }                             from './cron/bracket.cron';        // ✅ déplacé ici
 import { errorHandler }                                 from './middleware/error.middleware';
 
@@ -62,7 +63,8 @@ app.use('/v1/notifications', notificationRouter);
 app.use('/v1/analytics',     analyticsRouter);
 app.use('/v1/brackets',      bracketRouter);
 app.use('/v1/musiques',      musiqueRouter);
-app.use('/v1/settings',      settingsRouter);      
+app.use('/v1/settings',      settingsRouter);
+app.use('/v1/monitoring',    monitoringRouter);  /*DKDK_MONITORING_MOUNT*/      
 app.use('/v1/education',     educationRouter);     // ✅ ici, après app = express()
 
 // ── Fallback ───────────────────────────────────────────────────────
