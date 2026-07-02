@@ -1,5 +1,5 @@
 ﻿import { supabase } from '../../config/supabase';
-const BUCKET = 'dkdk-videos';
+const BUCKET = 'pac-videos';
 const MAX_SIZE_MB = 500;
 const MAX_DURATION = 600;
 const ALLOWED_TYPES = ['video/mp4', 'video/quicktime'];
