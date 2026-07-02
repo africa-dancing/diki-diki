@@ -1235,25 +1235,40 @@ export default function WatchPage() {
               </div>
             )
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '40%', gap: 12, padding: '20px 10px', textAlign: 'center' }}>
-            <div style={{ fontSize: 32 }}>🔒</div>
-            <div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '0.95rem', color: '#fff', marginBottom: 6 }}>Compte requis</div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: 14 }}>
-                Connecte-toi pour voter (⭐) et liker (❤️) en envoyant des unités à tes candidats préférés.
+          {/*DKDK_VISITEUR_VOTE*/}
+          {challengeEnCours ? (
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+                <button onClick={() => setActiveTab('stars')} style={{ flex: 1, padding: '7px 2px', borderRadius: 7, border: '1px solid rgba(255,170,0,0.4)', background: activeTab === 'stars' ? 'linear-gradient(135deg,#FF6B00,#FFAA00)' : 'transparent', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}><span style={{ color: '#FF0000' }}>★</span> Voter</button>
+                <button onClick={() => setActiveTab('hearts')} style={{ flex: 1, padding: '7px 2px', borderRadius: 7, border: '1px solid rgba(255,80,80,0.4)', background: activeTab === 'hearts' ? 'linear-gradient(135deg,#FF6B00,#FFAA00)' : 'transparent', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}><span style={{ color: '#FF1493' }}>♥</span> Liker</button>
               </div>
+              {(() => {
+                var isStar = activeTab === 'stars';
+                var qty = isStar ? starsQty : heartsQty;
+                var setQty = isStar ? setStarsQty : setHeartsQty;
+                var unitF = isStar ? voteAmount : heartAmount;
+                return (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 8 }}>
+                      <button onClick={() => setQty(function(q){ return Math.max(1, q - 1); })} style={{ width: 30, height: 30, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 16, color: '#f0f0f0', cursor: 'pointer' }}>−</button>
+                      <div style={{ width: 70, textAlign: 'center', fontSize: 20, fontWeight: 800, color: isStar ? '#FFAA00' : '#ff6b6b', fontFamily: 'Syne, sans-serif', background: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 7, padding: '4px 0' }}>{qty}</div>
+                      <button onClick={() => setQty(function(q){ return q + 1; })} style={{ width: 30, height: 30, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 16, color: '#f0f0f0', cursor: 'pointer' }}>+</button>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: 8 }}>{qty} {isStar ? '★' : '♥'} = <b style={{ color: '#FFAA00' }}>{qty * unitF} F</b></div>
+                    <button onClick={isStar ? handleSendStars : handleSendHearts} style={{ width: '100%', padding: '10px', background: 'linear-gradient(135deg,rgba(126,3,128,0.85),rgb(237,7,15))', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>{isStar ? '★ Voter' : '♥ Liker'}</button>
+                  </>
+                );
+              })()}
+              <div style={{ fontSize: 10, color: '#4ade80', textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>✓ Pas besoin de compte — votez directement, paiement securise par Mobile Money.</div>
+              <div onClick={() => router.push('/auth/register')} style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 6, cursor: 'pointer', textDecoration: 'underline' }}>ou creez un compte gratuit</div>
             </div>
-            <button onClick={() => router.push('/auth/login')} style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 50, padding: '9px 18px', fontSize: 12, fontWeight: 700, color: '#000', cursor: 'pointer', width: '100%', fontFamily: 'DM Sans, sans-serif' }}>
-              Se connecter
-            </button>
-            <button onClick={() => router.push('/auth/register')} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 50, padding: '8px 18px', fontSize: 11, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', width: '100%', fontFamily: 'DM Sans, sans-serif' }}>
-              Créer un compte gratuit
-            </button>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(255,170,0,0.08)', border: '1px solid rgba(255,170,0,0.25)', borderRadius: 50, padding: '4px 12px', marginTop: 4 }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#FFAA00', display: 'inline-block' }}/>
-              <span style={{ fontSize: 9, color: '#FFAA00', fontWeight: 700, letterSpacing: '.06em' }}>COMPÉTITIONS EN COURS</span>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '20px 10px', textAlign: 'center' }}>
+              <div style={{ fontSize: 32 }}>🔒</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>Challenge en formation</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>Le vote ouvrira quand le groupe sera complet.</div>
             </div>
-          </div>
+          )}
           </>
         )}
       </div>
