@@ -1010,7 +1010,6 @@ export default function WatchPage() {
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => {
-                if (!isLoggedIn()) { requireLogin('Connectez-vous pour envoyer des cœurs à ce candidat.'); return; }
                 handleSendHearts();
               }}
               /*DKDK_LIKER_GRISE*/ style={{ width: 34, height: 34, borderRadius: '50%', background: liked ? 'rgba(255,80,80,0.2)' : 'rgba(15,15,25,0.9)', border: `1.5px solid ${liked ? '#ff4444' : 'rgba(255,255,255,0.18)'}`, color: '#fff', cursor: (!estEnCours || likeLoading) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !estEnCours ? 0.4 : (likeLoading ? 0.6 : 1) }}>
