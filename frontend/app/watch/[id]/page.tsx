@@ -1258,7 +1258,7 @@ export default function WatchPage() {
                   </>
                 );
               })()}
-              <div style={{ fontSize: 10, color: '#4ade80', textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>✓ Pas besoin de compte — votez directement, paiement securise par Mobile Money.</div>
+              <div style={{ fontSize: 11, color: '#4ade80', textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>✓ Pas besoin de compte — votez directement, paiement securise par Mobile Money.</div>
               <div onClick={() => router.push('/auth/register')} style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 6, cursor: 'pointer', textDecoration: 'underline' }}>ou creez un compte gratuit</div>
             </div>
           ) : (
