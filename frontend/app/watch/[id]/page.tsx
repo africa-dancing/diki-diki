@@ -463,7 +463,7 @@ export default function WatchPage() {
     const step = () => {
       if (!paused) {
         pos -= 1.5;
-        if (pos <= -track.scrollWidth) pos = band.clientWidth;
+        if (track.scrollWidth > 0 && pos <= -track.scrollWidth) pos = band.clientWidth; /*DKDK_MQ_GUARD*/
         track.style.transform = 'translateX(' + pos + 'px)';
       }
       raf = requestAnimationFrame(step);
