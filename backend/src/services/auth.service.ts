@@ -98,7 +98,7 @@ export async function registerUser(data: {
   const otp = generateOTP();
   await redis.setex(`otp:${phone}`, OTP_TTL, otp);
 
-  console.log(`[DEV] OTP pour ${phone}: ${otp}`);
+  if (process.env.NODE_ENV !== 'production') console.log(`[DEV] OTP pour ${phone}: ${otp}`); /*DKDK_OTP_GUARD*/
   try {
     await sendSMSOTP(phone, otp);
     console.log(`[AT] SMS envoyé avec succès à ${phone}`);
@@ -256,7 +256,7 @@ export async function oneTapSend(phone: string) {
   // Envoyer OTP
   const otp = generateOTP();
   await redis.setex(`otp:${phone}`, OTP_TTL, otp);
-  console.log(`[DEV] ONE-TAP OTP pour ${phone}: ${otp}`);
+  if (process.env.NODE_ENV !== 'production') console.log(`[DEV] ONE-TAP OTP pour ${phone}: ${otp}`); /*DKDK_OTP_GUARD*/
   try { await sendSMSOTP(phone, otp); } catch (e) { console.error('[AT] SMS one-tap failed:', e); }
 
   return { message: 'OTP_SENT', is_new: !existing };
