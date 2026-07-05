@@ -1345,7 +1345,7 @@ export default function WatchPage() {
               const _rangScore: Record<string, number> = {};
               _parScore.forEach((p: any, idx: number) => { if (p) _rangScore[p.participant_id] = idx + 1; });
               return _siegesArr.map((c: any, i: number) => {
-                if (!c) return (<div key={'libre-'+i} style={{ ...s.candidateCard, opacity:0.35, justifyContent:'center', cursor:'default' }}><span style={{ fontSize:11, color:'rgba(255,255,255,0.4)', fontStyle:'italic' }}>Siege {i+1} - libre</span></div>);
+                if (!c) { /*DKDK_SIEGE_PARTICIPER*/ const _libre = (<div key={'libre-'+i} onClick={!challengeEnCours ? (() => router.push('/challenges/' + (bracketData?.bracket?.id || ''))) : undefined} style={{ ...s.candidateCard, opacity: challengeEnCours ? 0.35 : 0.9, justifyContent:'center', cursor: challengeEnCours ? 'default' : 'pointer', border: challengeEnCours ? undefined : '1px dashed rgba(255,170,0,0.5)' }}><span style={{ fontSize:10, fontWeight:800, color: challengeEnCours ? 'rgba(255,255,255,0.4)' : '#FFAA00', fontStyle: challengeEnCours ? 'italic' : 'normal', textAlign:'center', padding:'0 4px', lineHeight:1.2 }}>{challengeEnCours ? 'Siege ' + (i+1) + ' - libre' : 'Siege libre, cliquez ici pour PARTICIPER !'}</span></div>); return _libre; }
                 const enLecture = c.participant_id === bracketData?.current_participant_id;
                 const elimine = !!c.eliminated_at;
                 const rank = _rangScore[c.participant_id] ?? 99;
@@ -1361,10 +1361,10 @@ export default function WatchPage() {
                 /*DKDK_MEDAILLE_BRONZE*/
                 const _estApresBronze = bracketData?.bracket?.max_participants === 16 && (bracketData?.active_round?.round === 5 || bracketData?.bracket?.status === 'done');
                 const _estTroisieme = _estApresBronze && bracketData?.bracket?.third_id === c.participant_id;
-                if (enLecture) return (<div key={c.participant_id} style={{ ...s.candidateCard, border:'2px solid #FFAA00', justifyContent:'center', cursor:'default' }}><div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}><span style={{ fontSize:9, fontWeight:800, letterSpacing:'.08em', color:'#FFAA00' }}>CANDIDAT EN LECTURE</span><span style={s.candidateName}>{c.name ?? 'Candidat'}</span></div></div>);
+                if (enLecture) return (<div key={c.participant_id} style={{ ...s.candidateCard, background: 'linear-gradient(135deg,rgb(74,4,76),rgb(120,10,20))', border:'2px solid #FFAA00', justifyContent:'center', cursor:'default' }}><div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}><span style={{ fontSize:9, fontWeight:800, letterSpacing:'.08em', color:'#FFAA00' }}>CANDIDAT EN LECTURE</span><span style={s.candidateName}>{c.name ?? 'Candidat'}</span></div></div>);
                 return (
                   <button key={c.participant_id}
-                    style={{ ...s.candidateCard, border: rank === 1 ? '2px solid #FFAA00' : s.candidateCard.border, opacity: elimine ? 0.4 : (_attente ? 0.5 : 1), cursor: elimine ? 'default' : 'pointer' }} /*DKDK_ELIM*/
+                    style={{ ...s.candidateCard, background: 'linear-gradient(135deg,rgb(74,4,76),rgb(120,10,20))', border: rank === 1 ? '2px solid #FFAA00' : s.candidateCard.border, opacity: elimine ? 0.4 : (_attente ? 0.5 : 1), cursor: elimine ? 'default' : 'pointer' }} /*DKDK_ELIM*/
                     onClick={() => { if (!elimine && c.video_id) router.push(`/watch/${c.video_id}`); }}>
                     {!_estRoundBronze && !_estTroisieme && (<span style={{ position: 'absolute', top: 6, left: 6, width: 24, height: 24, borderRadius: '50%', background: rankBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isPodium ? 13 : 11, fontWeight: 800, color: '#0a0a0f' }}>{medal}</span>)}
                     {_estTroisieme && (<span style={{ position: 'absolute', top: 6, left: 6, width: 24, height: 24, borderRadius: '50%', background: '#cd7f32', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#0a0a0f' }}>🥉</span>)}
@@ -1463,7 +1463,7 @@ const s: Record<string, React.CSSProperties> = {
   fixedFooter: { position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0e0e0e', borderTop: '0.5px solid rgba(255,255,255,0.07)', zIndex: 100, display: 'flex', flexDirection: 'column' },
   band: { display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 10, overflowX: 'auto', overflowY: 'hidden' as const, scrollbarWidth: 'none' as const, height: '100%', background: '#ffffff', padding: '0 12px', borderTop: '2px solid #FF8C00', borderBottom: '1px solid rgba(255,154,0,0.3)' },
   candidateCard: { display: 'flex', flexDirection: 'row' as const, alignItems: 'center', gap: 8, width: 'auto', height: 76, background: 'linear-gradient(180deg,#16161f,#0c0c12)' /*DKDK_CARTES_CENTRE*/, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14, padding: '8px 14px 8px 10px', cursor: 'pointer', flexShrink: 0, fontFamily: 'DM Sans, sans-serif', position: 'relative' as const } /*DKDK_C1B*/,
-  candidateAvatar: { width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#7e0380,#ed070f)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 18, overflow: 'hidden' as const, flexShrink: 0 },
+  candidateAvatar: { width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 800, fontSize: 18, overflow: 'hidden' as const, flexShrink: 0 },
   candidateName: { color: '#fff', fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' as const, maxWidth: 110, overflow: 'hidden' as const, textOverflow: 'ellipsis' as const, textAlign: 'left' as const },
   candidateNum: { color: '#FFD480', fontSize: 8, fontWeight: 700 },
   navBtn: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', flex: 1, height: '100%' },
