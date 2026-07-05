@@ -66,6 +66,7 @@ export default function SubmitPage() {
   const [selectedCategory,   setSelectedCategory]   = useState<Category | null>(null);
   const [selectedDiscipline, setSelectedDiscipline] = useState<Discipline | null>(null);
   const [selectedSubject,    setSelectedSubject]    = useState<Subject | null>(null);
+  const [autreInstrument, setAutreInstrument] = useState(''); /*DKDK_AUTRE_INSTR*/
   const [selectedType, setSelectedType] = useState<string>('C16');
   const [title,       setTitle]       = useState('');
   const [description, setDescription] = useState('');
@@ -348,7 +349,53 @@ export default function SubmitPage() {
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20 }}>Renseignez les détails de votre prestation</div>
 
             {/* Sujet */}
-            {subjects.length > 0 && (
+            {selectedDiscipline?.id === 'instrument' && ( /*DKDK_INSTR_SELECT*/
+              <div style={{ marginBottom: 16 }}>
+                <label style={lbl}>Sujet / Morceau <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
+                <select value={selectedSubject?.name || ''} onChange={(e) => {
+                  const v = e.target.value;
+                  if (!v) { setSelectedSubject(null); return; }
+                  if (v === '__autre__') { setSelectedSubject({ id: 'autre', name: autreInstrument || '', discipline_id: 'instrument' }); return; }
+                  setSelectedSubject({ id: v, name: v, discipline_id: 'instrument' });
+                }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13, fontFamily: 'DM Sans, sans-serif', outline: 'none', cursor: 'pointer' }}>
+                  <option value='' style={{ background: '#1a1a24', color: '#fff' }}>&mdash; Choisis ton instrument &mdash;</option>
+                  <optgroup label='🥁 Tambours et peaux' style={{ background: '#0d0d14', color: '#FFAA00', fontWeight: 800, fontSize: '13px' }}>
+                  <option value='Djembé' style={{ background: '#1a1a24', color: '#fff' }}>Djembé</option>
+                  <option value='Tama (tambour parlant)' style={{ background: '#1a1a24', color: '#fff' }}>Tama (tambour parlant)</option>
+                  <option value='Doundounba' style={{ background: '#1a1a24', color: '#fff' }}>Doundounba</option>
+                  <option value='Bendir' style={{ background: '#1a1a24', color: '#fff' }}>Bendir</option>
+                  <option value='Ngoma' style={{ background: '#1a1a24', color: '#fff' }}>Ngoma</option>
+                  <option value='Drums' style={{ background: '#1a1a24', color: '#fff' }}>Drums</option>
+                  <option value='Batterie' style={{ background: '#1a1a24', color: '#fff' }}>Batterie</option>
+                  </optgroup>
+                  <optgroup label='🎸 Cordes' style={{ background: '#0d0d14', color: '#FFAA00', fontWeight: 800, fontSize: '13px' }}>
+                  <option value='Kora' style={{ background: '#1a1a24', color: '#fff' }}>Kora</option>
+                  <option value='N’goni' style={{ background: '#1a1a24', color: '#fff' }}>N’goni</option>
+                  <option value='Guembri (ou sintir)' style={{ background: '#1a1a24', color: '#fff' }}>Guembri (ou sintir)</option>
+                  <option value='Bolon' style={{ background: '#1a1a24', color: '#fff' }}>Bolon</option>
+                  <option value='Imzad' style={{ background: '#1a1a24', color: '#fff' }}>Imzad</option>
+                  </optgroup>
+                  <optgroup label='🥄 Percussions solides' style={{ background: '#0d0d14', color: '#FFAA00', fontWeight: 800, fontSize: '13px' }}>
+                  <option value='Balafon' style={{ background: '#1a1a24', color: '#fff' }}>Balafon</option>
+                  <option value='Mbira / Kalimba / Sanza' style={{ background: '#1a1a24', color: '#fff' }}>Mbira / Kalimba / Sanza</option>
+                  <option value='Shekere' style={{ background: '#1a1a24', color: '#fff' }}>Shekere</option>
+                  <option value='Karkabou' style={{ background: '#1a1a24', color: '#fff' }}>Karkabou</option>
+                  <option value='Tambour-fente (ekwe)' style={{ background: '#1a1a24', color: '#fff' }}>Tambour-fente (ekwe)</option>
+                  </optgroup>
+                  <optgroup label='🎺 Vents' style={{ background: '#0d0d14', color: '#FFAA00', fontWeight: 800, fontSize: '13px' }}>
+                  <option value='Algaïta' style={{ background: '#1a1a24', color: '#fff' }}>Algaïta</option>
+                  <option value='Flûtes en bambou ou roseau' style={{ background: '#1a1a24', color: '#fff' }}>Flûtes en bambou ou roseau</option>
+                  <option value='Trompes et cors' style={{ background: '#1a1a24', color: '#fff' }}>Trompes et cors</option>
+                  </optgroup>
+                  <option value='__autre__' style={{ background: '#1a1a24', color: '#fff' }}>Autre&hellip;</option>
+                </select>
+                {selectedSubject?.id === 'autre' && (
+                  <input type='text' placeholder='Precise ton instrument' value={autreInstrument} onChange={(e) => { setAutreInstrument(e.target.value); setSelectedSubject({ id: 'autre', name: e.target.value, discipline_id: 'instrument' }); }} style={{ width: '100%', marginTop: 8, padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13, boxSizing: 'border-box' }} />
+                )}
+              </div>
+            )}
+
+            {subjects.length > 0 && selectedDiscipline?.id !== 'instrument' && (
               <div style={{ marginBottom: 16 }}>
                 <label style={lbl}>Sujet / Morceau <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
