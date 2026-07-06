@@ -1408,7 +1408,7 @@ export default function WatchPage() {
               <span style={s.navLabel}>Recharger</span>
             </button>
             <button onClick={handleAjouter} style={s.navBtn}>
-              <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#111', border: '2px solid #FFAA00', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#7e0380', border: '2px solid #FFAA00', display: 'flex', alignItems: 'center', justifyContent: 'center' }} /*DKDK_AJOUTER_VIOLET*/>
                 <span style={{ fontSize: 24, color: '#FFAA00', fontWeight: 700, lineHeight: 1 }}>+</span>
               </div>
               <span style={{ ...s.navLabel, color: '#FFAA00' }}>Ajouter</span>
@@ -1417,13 +1417,10 @@ export default function WatchPage() {
               <div style={s.navIconBox}><BilletIcon /></div>
               <span style={s.navLabel}>Retrait</span>
             </button>
-            <button onClick={() => router.push('/live')} style={s.navBtn}>
-              <div style={{ ...s.navIconBox, position: 'relative' as const }}>
-                <LiveIcon />
-                <span style={{ position: 'absolute' as const, top: 4, right: 4, width: 6, height: 6, borderRadius: '50%', background: '#ff3333', display: 'block' }} />
-              </div>
-              <span style={s.navLabel}>Live</span>
-            </button>
+            <button onClick={() => router.push('/compte')} style={s.navBtn} /*DKDK_NAV_COMPTE*/>
+                <div style={s.navIconBox}><UserIcon /></div>
+                <span style={s.navLabel}>Compte</span>
+              </button>
           </div>
         )}
       </div>
@@ -1467,8 +1464,8 @@ const s: Record<string, React.CSSProperties> = {
   candidateName: { color: '#fff', fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' as const, maxWidth: 110, overflow: 'hidden' as const, textOverflow: 'ellipsis' as const, textAlign: 'left' as const },
   candidateNum: { color: '#FFD480', fontSize: 8, fontWeight: 700 },
   navBtn: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', flex: 1, height: '100%' },
-  navIconBox: { width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,140,0,0.7)' },
-  navLabel: { fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: 0.4, fontFamily: 'DM Sans, sans-serif', color: 'rgba(255,255,255,0.4)' },
+  navIconBox: { width: 40, height: 40, borderRadius: 12, background: '#7e0380', border: '0.5px solid rgba(255,170,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFAA00' } /*DKDK_ICONBOX_AJOUTER*/,
+  navLabel: { fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: 0.4, fontFamily: 'DM Sans, sans-serif', color: '#FFAA00' } /*DKDK_LABELS_JAUNE*/,
 };
 
 function PlayIcon()    { return <svg width={14} height={14} viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21" /></svg>; }
@@ -1485,7 +1482,8 @@ function RemixIcon()   { return <svg width={20} height={20} viewBox="0 0 24 24" 
 function ShareIcon()   { return <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>; }
 function DownloadIcon(){ return <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>; }
 function SpinIcon()    { return <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><path d="M21 12a9 9 0 0 0-9-9" /></svg>; }
-function HomeIcon()    { return <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>; }
+function UserIcon()    { return <svg width={18} height={18} viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2} strokeLinecap='round'><circle cx='12' cy='8' r='4'/><path d='M4 21v-1a6 6 0 0 1 12 0v1'/></svg>; }
+  function HomeIcon()    { return <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>; }
 function RechargeIcon(){ return <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>; }
 function BilletIcon()  { return <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="6" width="22" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M1 10h2M21 10h2M1 14h2M21 14h2"/></svg>; }
 function LiveIcon()    { return <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>; }
