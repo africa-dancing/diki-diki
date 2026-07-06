@@ -138,12 +138,6 @@ export default function HomePage() {
         <span style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', color: '#000', fontSize: 12, padding: '5px 12px', borderRadius: 20, fontWeight: 800 }}>
           🎭 Loisirs & Divertissements
         </span>
-        <Link href="/challenges" style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 50, padding: '5px 14px', fontSize: 12, fontWeight: 800, color: '#000', textDecoration: 'none', display: 'inline-block' }}>
-          Explorer →
-        </Link>
-        <Link href="/education" style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', color: '#000', fontSize: 12, textDecoration: 'none', padding: '5px 12px', borderRadius: 20, fontWeight: 800 }}>
-          📚 Education & Savoirs
-        </Link>
       </div>
 
       {/* Hero */}
