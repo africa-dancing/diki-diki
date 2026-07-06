@@ -152,11 +152,14 @@ export default function Navbar() {
           }}>
             {[
               { href: '/home',          label: 'Accueil' },
-              { href: '/challenges',    label: 'Challenges' },
-              { href: '/mediatheque',   label: 'M\u00e9diath\u00e8que' },
-              { href: '/education',     label: 'Education & Savoirs' },
-              { href: '/faq',           label: 'Comment ça marche' },
-              { href: '/auth/register', label: "S'inscrire", hide: !!token },
+                { href: '/faq',           label: 'Comment ça marche' },
+                { href: '/compte',        label: 'Mon compte' },
+                { href: '/recharge',      label: 'Recharger' },
+                { href: '/retrait',       label: 'Retrait' },
+                { href: '/challenges',    label: 'Challenges' },
+                { href: '/mediatheque',   label: 'Médiathèque' },
+                { href: '/submit',        label: 'Ajouter une vidéo' },
+                { href: '/auth/register', label: "S'inscrire", hide: !!token },
             ].filter(l => !l.hide).map(l => (
               <Link
                 key={l.href} href={l.href}
