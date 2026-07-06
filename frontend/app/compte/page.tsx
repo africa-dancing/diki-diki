@@ -369,7 +369,7 @@ export default function ComptePage() {
       </div>
 
       <div style={{background:'rgba(8,8,15,0.8)',borderBottom:'1px solid rgb(7,7,7)',padding:'0 20px',display:'flex',gap:2,overflowX:'auto',scrollbarWidth:'none'}}>
-        {TABS.map(tab=>(<button key={tab.id} onClick={()=>setActiveTab(tab.id)} style={{display:'flex',alignItems:'center',gap:6,padding:'14px 16px',background:'none',border:'none',borderBottom:`2px solid ${activeTab===tab.id?'#FFAA00':'transparent'}`,color:activeTab===tab.id?'#FFAA00':'rgba(255,255,255,0.4)',fontSize:13,fontWeight:activeTab===tab.id?700:400,cursor:'pointer',whiteSpace:'nowrap',transition:'all .2s',fontFamily:'DM Sans,sans-serif'}}><span>{tab.emoji}</span><span>{tab.label}</span></button>))}
+        {TABS.map(tab=>{ /*DKDK_TAB_EDU_SOON*/ const _soon = tab.id==='education'; return (<button key={tab.id} onClick={()=>{ if(!_soon) setActiveTab(tab.id); }} disabled={_soon} style={{display:'flex',alignItems:'center',gap:6,padding:'14px 16px',background:'none',border:'none',borderBottom:`2px solid ${activeTab===tab.id?'#FFAA00':'transparent'}`,color:_soon?'rgba(255,255,255,0.25)':(activeTab===tab.id?'#FFAA00':'rgba(255,255,255,0.4)'),fontSize:13,fontWeight:activeTab===tab.id?700:400,cursor:_soon?'not-allowed':'pointer',whiteSpace:'nowrap',transition:'all .2s',fontFamily:'DM Sans,sans-serif'}}><span>{tab.emoji}</span><span>{tab.label}</span>{_soon && (<span style={{background:'rgba(255,170,0,0.15)',color:'#FFAA00',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:20,marginLeft:2}}>bientôt</span>)}</button>); })}
       </div>
 
       <div style={{maxWidth:660,margin:'0 auto',padding:'20px 16px'}}>
