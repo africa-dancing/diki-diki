@@ -153,13 +153,13 @@ export default function Navbar() {
             {[
               { href: '/home',          label: 'Accueil' },
                 { href: '/faq',           label: 'Comment ça marche' },
-                { href: '/compte',        label: 'Mon compte' },
-                { href: '/recharge',      label: 'Recharger' },
-                { href: '/retrait',       label: 'Retrait' },
-                { href: '/challenges',    label: 'Challenges' },
-                { href: '/mediatheque',   label: 'Médiathèque' },
-                { href: '/submit',        label: 'Ajouter une vidéo' },
                 { href: '/auth/register', label: "S'inscrire", hide: !!token },
+                { href: '/compte',        label: 'Mon compte', hide: !token },
+                { href: '/recharge',      label: 'Recharger', hide: !token },
+                { href: '/retrait',       label: 'Retrait', hide: !token },
+                { href: '/mediatheque',   label: 'Médiathèque' },
+                { href: '/submit',        label: 'Ajouter une vidéo', hide: !token },
+                { href: '/challenges',    label: 'Challenges' },
             ].filter(l => !l.hide).map(l => (
               <Link
                 key={l.href} href={l.href}
