@@ -192,23 +192,16 @@ export async function socialAuth(
 
   if (!user) {
     isNewUser = true;
+    /*DKDK_SOCIAL_ONETAP_RPC_FIX*/
     const { data: newUser, error } = await supabase
-      .from('users')
-      .insert({
-        name,
-        email,
-        phone:           null,
-        password:        null,
-        country:         null,
-        is_verified:     true,
-        role:            'user',
-        wallet:          0,
-        avatar_url:      avatarUrl,
-        social_provider: provider,
-        social_id:       socialId,
-        created_at:      new Date().toISOString(),
+      .rpc('register_user_complete', {
+        p_name:            name,
+        p_email:           email,
+        p_is_verified:     true,
+        p_avatar_url:      avatarUrl,
+        p_social_provider: provider,
+        p_social_id:       socialId,
       })
-      .select('id, email, phone, name, role, avatar_url, country, wallet, is_verified')
       .single();
 
     if (error) throw new Error('SOCIAL_AUTH_FAILED');
@@ -234,17 +227,13 @@ export async function oneTapSend(phone: string) {
   // Creer un compte implicite si inexistant
   if (!existing) {
     const suffix = Math.floor(1000 + Math.random() * 9000);
-    const { error } = await supabase.from('users').insert({
-      name:        `Fan_${suffix}`,
-      phone,
-      email:       null,
-      password:    null,
-      country:     null,
-      is_verified: true,
-      role:        'user',
-      wallet:      0,
-      created_at:  new Date().toISOString(),
-    });
+    /*DKDK_SOCIAL_ONETAP_RPC_FIX*/
+    const { error } = await supabase
+      .rpc('register_user_complete', {
+        p_name:        `Fan_${suffix}`,
+        p_phone:       phone,
+        p_is_verified: true,
+      });
     if (error) throw new Error('ACCOUNT_CREATION_FAILED');
   }
 
