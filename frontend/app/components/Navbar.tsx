@@ -12,6 +12,8 @@ const DISCIPLINES = [
   { label: 'Acapella',   emoji: '🎵', value: 'acapella' },
   { label: 'Humour',     emoji: '😂', value: 'humour' },
   { label: 'Poésie',     emoji: '✍️', value: 'poesie' },
+  { label: 'Conte',      emoji: '📖', value: 'conte' }, /*DKDK_DISCIPLINES_ADD*/
+  { label: "Histoires d'Afrique", emoji: '🌍', value: 'histoires-afrique' },
 ];
 
 export default function Navbar() {
