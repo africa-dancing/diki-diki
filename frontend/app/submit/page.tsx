@@ -607,29 +607,34 @@ export default function SubmitPage() {
         )}
       </div>
 
-      {/* ── Nav bas ── */}
+      {/* ── Nav bas ── */} {/*DKDK_SUBMIT_NAVBAR_STYLE_FIX*/}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(8,8,15,0.97)', borderTop: '1px solid rgba(255,170,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 8px 12px', zIndex: 100 }}>
-        {[{ label: 'Accueil', icon: '🏠', route: '/home' }, { label: 'Recharger', icon: '💳', route: '/recharge' }].map(item => (
+        {[{ label: 'Accueil', Icon: HomeIcon, route: '/home' }, { label: 'Recharger', Icon: RechargeIcon, route: '/recharge' }].map(item => (
           <button key={item.label} onClick={() => router.push(item.route)}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', flex: 1 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 11, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{item.icon}</div>
-            <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '.4px', fontFamily: 'DM Sans, sans-serif' }}>{item.label}</span>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#7e0380', border: '0.5px solid rgba(255,170,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFAA00' }}><item.Icon /></div>
+            <span style={{ fontSize: 9, fontWeight: 700, color: '#FFAA00', textTransform: 'uppercase', letterSpacing: '.4px', fontFamily: 'DM Sans, sans-serif' }}>{item.label}</span>
           </button>
         ))}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flex: 1, marginTop: -10 }}>
-          <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#111', border: '2px solid #FFAA00', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 26, color: '#FFAA00', fontWeight: 700, lineHeight: 1 }}>+</span>
+          <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#7e0380', border: '2px solid #FFAA00', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: 24, color: '#FFAA00', fontWeight: 700, lineHeight: 1 }}>+</span>
           </div>
           <span style={{ fontSize: 9, fontWeight: 700, color: '#FFAA00', textTransform: 'uppercase', letterSpacing: '.4px', fontFamily: 'DM Sans, sans-serif' }}>Ajouter</span>
         </div>
-        {[{ label: 'Retrait', icon: '💸', route: '/retrait' }, { label: 'Compte', icon: '👤', route: '/compte' }].map(item => (
+        {[{ label: 'Retrait', Icon: BilletIcon, route: '/retrait' }, { label: 'Compte', Icon: UserIcon, route: '/compte' }].map(item => (
           <button key={item.label} onClick={() => router.push(item.route)}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', flex: 1 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 11, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{item.icon}</div>
-            <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '.4px', fontFamily: 'DM Sans, sans-serif' }}>{item.label}</span>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#7e0380', border: '0.5px solid rgba(255,170,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFAA00' }}><item.Icon /></div>
+            <span style={{ fontSize: 9, fontWeight: 700, color: '#FFAA00', textTransform: 'uppercase', letterSpacing: '.4px', fontFamily: 'DM Sans, sans-serif' }}>{item.label}</span>
           </button>
         ))}
       </div>
     </div>
   );
 }
+
+function HomeIcon()    { return <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>; }
+function RechargeIcon(){ return <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>; }
+function BilletIcon()  { return <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="6" width="22" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M1 10h2M21 10h2M1 14h2M21 14h2"/></svg>; }
+function UserIcon()    { return <svg width={18} height={18} viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2} strokeLinecap='round'><circle cx='12' cy='8' r='4'/><path d='M4 21v-1a6 6 0 0 1 12 0v1'/></svg>; }
