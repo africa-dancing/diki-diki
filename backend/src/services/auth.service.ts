@@ -77,20 +77,15 @@ export async function registerUser(data: {
 
   const hashedPassword = await bcrypt.hash(password, 12);
 
+  /*DKDK_REGISTER_RPC_FIX*/
   const { data: user, error } = await supabase
-    .from('users')
-    .insert({
-      name,
-      email,
-      phone,
-      password:    hashedPassword,
-      country,
-      is_verified: false,
-      role:        'user',
-      wallet:      0,
-      created_at:  new Date().toISOString(),
+    .rpc('register_user_complete', {
+      p_name:          name,
+      p_email:         email,
+      p_phone:         phone,
+      p_password_hash: hashedPassword,
+      p_country:       country,
     })
-    .select('id, email, phone, name')
     .single();
 
   if (error) throw new Error('USER_CREATION_FAILED');
