@@ -115,9 +115,10 @@ export const getEarnings = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.userId;
   if (!userId) return res.status(401).json({ success: false, error: 'Non authentifié.' });
 
+  /*DKDK_EARNINGS_FIX*/
   const { data, error } = await supabase
-    .from('portefeuilles')
-    .select('solde, total_gagné, total_retiré, updated_at')
+    .from('wallets')
+    .select('solde:balance, total_gagné:total_credited, total_retiré:total_spent, updated_at')
     .eq('user_id', userId)
     .single();
 
