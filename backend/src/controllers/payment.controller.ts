@@ -111,6 +111,47 @@ export async function initiateVotePayment(req: Request, res: Response) {
 // ─── WEBHOOK FEDAPAY ─────────────────────────────────────────
 export async function webhook(req: Request, res: Response) { /*DKDK_WEBHOOK_VOTE*/
   try {
+    /*DKDK_WEBHOOK_PAYOUT*/
+    // ---- RETRAITS (payouts) : confirmation reussite / echec ----
+    // FedaPay rappelle ce webhook quand un virement sortant evolue.
+    // On ne fait que mettre a jour une etiquette de statut, jamais d'argent.
+    {
+      const _b: any = req.body || {};
+      // Nom de l'evenement (formes possibles selon FedaPay)
+      const _event = String(_b.name || _b.event || _b.type || '');
+      const _isPayoutEvent = _event.toLowerCase().indexOf('payout') !== -1;
+      // Identifiant du payout (forme selon FedaPay) et statut annonce
+      const _entity = _b.entity || _b.data || _b.object || _b.payout || {};
+      const _payoutId = _entity.id || _b.payout_id || _b.id || null;
+      const _rawStatus = String(_entity.status || _b.status || '').toLowerCase();
+      if (_isPayoutEvent && _payoutId) {
+        // Retrouver la transaction payout par son fedapay_id
+        const { data: _ptx } = await supabase
+          .from('transactions')
+          .select('id, type, status')
+          .eq('fedapay_id', String(_payoutId))
+          .eq('type', 'payout')
+          .single();
+        if (_ptx && _ptx.status !== 'success' && _ptx.status !== 'failed') {
+          // Statuts consideres comme reussite / echec (formes courantes)
+          const _ok = ['sent', 'approved', 'success', 'completed', 'done', 'paid'];
+          const _ko = ['failed', 'declined', 'canceled', 'cancelled', 'refused', 'error'];
+          let _newStatus: string | null = null;
+          if (_ok.indexOf(_rawStatus) !== -1) _newStatus = 'success';
+          else if (_ko.indexOf(_rawStatus) !== -1) _newStatus = 'failed';
+          if (_newStatus) {
+            await supabase
+              .from('transactions')
+              .update({ status: _newStatus })
+              .eq('id', _ptx.id);
+          }
+          // Statut FedaPay non reconnu -> on ne touche a rien (prudence).
+        }
+        // On repond OK et on s'arrete la pour un evenement de retrait.
+        return res.status(200).json({ received: true, payout: true });
+      }
+    }
+    // ---- Fin bloc retraits. En dessous : traitement de l'argent entrant. ----
     const { transaction_id, status } = req.body;
     if (status === 'approved') {
       const payment = await verifyPayment(transaction_id);
