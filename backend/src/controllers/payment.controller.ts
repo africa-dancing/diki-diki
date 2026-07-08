@@ -3,7 +3,20 @@ import { initiatePayment, verifyPayment, withdrawPayment } from '../services/pay
 import { supabase } from '../../config/supabase';
 
 const MIN_RETRAIT = 5000;
-const MAX_RETRAIT = 500000;
+const MAX_RETRAIT = 2000000;
+
+/*DKDK_PAYMENT_WALLET_FIX*/
+// Decoupe "name" (colonne reelle de public.users) en prenom/nom,
+// pour remplacer first_name/last_name qui n'existent pas.
+function splitName(fullName, fallbackFirst, fallbackLast) {
+  var fbFirst = fallbackFirst || 'User';
+  var fbLast  = fallbackLast  || 'DKDK';
+  if (!fullName || !fullName.trim()) return { firstName: fbFirst, lastName: fbLast };
+  var parts = fullName.trim().split(/\s+/);
+  var firstName = parts[0];
+  var lastName = parts.length > 1 ? parts.slice(1).join(' ') : fbLast;
+  return { firstName: firstName, lastName: lastName };
+}
 
 // ─── INITIER UN PAIEMENT (recharge) ─────────────────────────
 export async function initiate(req: Request, res: Response) {
@@ -20,18 +33,20 @@ export async function initiate(req: Request, res: Response) {
 
     const { data: user } = await supabase
       .from('users')
-      .select('email, first_name, last_name')
+      .select('email, name')
       .eq('id', userId)
       .single();
+
+    var _names = splitName(user?.name);
 
     const result = await initiatePayment({
       amount,
       phone,
-      operator: 'mtn',
+      operator,
       userId,
       userEmail: user?.email || 'user@dkdk.com',
-      firstName: user?.first_name || 'User',
-      lastName:  user?.last_name  || 'DKDK',
+      firstName: _names.firstName,
+      lastName:  _names.lastName,
     });
 
     return res.status(200).json({ success: true, ...result });
@@ -59,18 +74,19 @@ export async function initiateVotePayment(req: Request, res: Response) {
     const amount = (vote_type === 'heart' ? 200 : 100) * voteQty;
     const { data: user } = await supabase
       .from('users')
-      .select('email, first_name, last_name')
+      .select('email, name')
       .eq('id', userId)
       .single();
     /*DKDK_VOTE_OP_FIX*/
+    var _fanNames = splitName(user?.name, 'Fan', 'DKDK');
     const result = await initiatePayment({
       amount,
       phone,
       operator: 'mtn',
       userId,
       userEmail: user?.email || 'fan@dkdk.com',
-      firstName: user?.first_name || 'Fan',
-      lastName:  user?.last_name  || 'DKDK',
+      firstName: _fanNames.firstName,
+      lastName:  _fanNames.lastName,
     });
     const { error: txErr } = await supabase
       .from('transactions')
@@ -139,7 +155,7 @@ export async function withdraw(req: Request, res: Response) {
   try {
     const userId = (req as any).user.userId;
     const { amount, phone, operator } = req.body;
-
+    /*DKDK_WITHDRAW_V2*/
     // 1. Validation
     if (!amount || !phone || !operator) {
       return res.status(400).json({ error: 'MISSING_FIELDS' });
@@ -147,91 +163,87 @@ export async function withdraw(req: Request, res: Response) {
     if (amount < MIN_RETRAIT || amount > MAX_RETRAIT) {
       return res.status(400).json({
         error: 'INVALID_AMOUNT',
-        message: `Le montant doit être entre ${MIN_RETRAIT} et ${MAX_RETRAIT} F CFA`,
+        message: 'Le montant doit etre entre ' + MIN_RETRAIT + ' et ' + MAX_RETRAIT + ' F CFA',
       });
     }
-
-    // 2. Vérifier le solde
+    // 2. Recuperer le nom (pour FedaPay)
     const { data: user } = await supabase
       .from('users')
-      .select('wallet, first_name, last_name, email')
+      .select('name, email')
       .eq('id', userId)
       .single();
-
     if (!user) return res.status(404).json({ error: 'USER_NOT_FOUND' });
-
-    if ((user.wallet ?? 0) < amount) {
+    // 3. Solde retirable calcule depuis transactions (JAMAIS wallets.balance)
+    //    gains reels moins retraits deja engages (pending inclus = anti double-retrait)
+    const { data: gains } = await supabase
+      .from('transactions')
+      .select('amount')
+      .eq('user_id', userId)
+      .eq('type', 'bracket_win')
+      .eq('status', 'success');
+    const { data: retraits } = await supabase
+      .from('transactions')
+      .select('amount')
+      .eq('user_id', userId)
+      .eq('type', 'payout')
+      .in('status', ['pending', 'sent', 'success']);
+    const totalGains = (gains || []).reduce(function (s, t) { return s + (t.amount || 0); }, 0);
+    const totalRetraits = (retraits || []).reduce(function (s, t) { return s + (t.amount || 0); }, 0);
+    const soldeRetirable = totalGains - totalRetraits;
+    if (soldeRetirable < amount) {
       return res.status(400).json({
         error: 'INSUFFICIENT_BALANCE',
-        message: 'Solde insuffisant pour ce retrait',
+        message: 'Solde retirable insuffisant pour ce retrait',
       });
     }
-
-    // 3. Déduire le montant du wallet AVANT d'envoyer (évite double retrait)
-    const { error: debitError } = await supabase
-      .from('users')
-      .update({ wallet: (user.wallet ?? 0) - amount })
-      .eq('id', userId);
-
-    if (debitError) return res.status(500).json({ error: 'DEBIT_FAILED' });
-
-    // 4. Enregistrer la transaction en attente
+    // 4. Enregistrer la transaction payout en attente (on ne touche PAS au wallet)
     const { data: tx } = await supabase
       .from('transactions')
       .insert({
         user_id: userId,
         amount,
-        type:    'retrait',
+        type:    'payout',
         status:  'pending',
         operator,
         phone,
       })
       .select()
       .single();
-
     // 5. Lancer le payout FedaPay
     try {
+      var _wNames = splitName(user.name);
       const result = await withdrawPayment({
         amount,
         phone,
         operator,
         userId,
-        firstName: user.first_name || 'User',
-        lastName:  user.last_name  || 'DKDK',
+        firstName: _wNames.firstName,
+        lastName:  _wNames.lastName,
       });
-
-      // 6. Mettre à jour la transaction avec l'ID FedaPay
+      // 6. Mettre a jour la transaction avec l'ID FedaPay
       await supabase
         .from('transactions')
         .update({ fedapay_id: String(result.payoutId), status: 'sent' })
         .eq('id', tx?.id);
-
       return res.status(200).json({
         success:   true,
-        message:   'Retrait initié avec succès',
+        message:   'Retrait initie avec succes',
         netAmount: result.netAmount,
         frais:     result.frais,
         payoutId:  result.payoutId,
       });
-
     } catch (fedaErr: any) {
-      // Rembourser le wallet si FedaPay échoue
-      await supabase
-        .from('users')
-        .update({ wallet: user.wallet })
-        .eq('id', userId);
-
+      // FedaPay a echoue : transaction marquee failed.
+      // Un payout failed n'est PAS soustrait du solde -> gains redeviennent dispo.
       await supabase
         .from('transactions')
         .update({ status: 'failed' })
         .eq('id', tx?.id);
-
       return res.status(502).json({
         error:   'PAYOUT_FAILED',
-        message: 'Le virement a échoué. Votre solde a été restauré.',
+        message: 'Le virement a echoue. Vos gains restent disponibles.',
       });
     }
-
   } catch {
     return res.status(500).json({ error: 'WITHDRAW_FAILED' });
   }

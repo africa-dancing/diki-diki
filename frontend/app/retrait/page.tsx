@@ -63,7 +63,7 @@ export default function RetraitPage() {
 
     fetch(`${API}/users/balance`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setInitialBalance(d.balance ?? d.initial_balance ?? 0); })
+      .then(d => { if (d) setInitialBalance(d.data?.solde_retirable ?? 0) /*DKDK_RETRAIT_FIX*/; })
       .catch(() => {});
 
     fetch(`${API}/users/earnings`, { headers: { Authorization: `Bearer ${token}` } })
@@ -73,14 +73,14 @@ export default function RetraitPage() {
   }, [router]);
 
   const amountNum = parseInt(amount.replace(/\D/g, '')) || 0;
-  const isValid   = amountNum >= 1000 && amountNum <= initialBalance && (method === 'bank' ? !!holder && !!bankDetails : !!phone);
+  const isValid   = amountNum >= 5000 && amountNum <= initialBalance && amountNum <= 2000000 && (method === 'bank' ? !!holder && !!bankDetails : !!phone);
 
   const handleWithdraw = async () => {
     if (!isValid) return;
     if (!confirmed) { setConfirmed(true); return; } // double confirmation
     setLoading(true); setError('');
     try {
-      const res = await fetch(`${API}/payments/withdraw`, {
+      const res = await fetch(`${API}/payment/withdraw`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ amount: amountNum, method, phone: phone.trim(), holder: holder.trim(), bank_details: bankDetails.trim() }),
@@ -201,7 +201,7 @@ export default function RetraitPage() {
         </div>
 
         {/* Récapitulatif */}
-        {amountNum >= 1000 && amountNum <= initialBalance && (
+        {amountNum >= 5000 && amountNum <= initialBalance && (
           <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
             <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.5)', marginBottom:10, textTransform:'uppercase', letterSpacing:'.06em' }}>Récapitulatif</div>
             {[

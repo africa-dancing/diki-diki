@@ -150,7 +150,7 @@ export const getBalance = async (req: AuthRequest, res: Response) => {
     .select('amount')
     .eq('user_id', userId)
     .eq('type', 'payout')
-    .in('status', ['sent', 'success']);
+    .in('status', ['pending', 'sent', 'success']); /*DKDK_BALANCE_PENDING*/
   if (rErr) {
     return res.status(500).json({ success: false, error: 'Erreur lecture retraits.' });
   }
