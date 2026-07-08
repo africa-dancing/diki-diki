@@ -113,20 +113,22 @@ export const getPublicVideos = async (req: Request, res: Response) => {
 // ─── GET /v1/users/earnings — Montant encaissé ────────────────────────────────
 export const getEarnings = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.userId;
-  if (!userId) return res.status(401).json({ success: false, error: 'Non authentifié.' });
-
-  /*DKDK_EARNINGS_FIX*/
-  const { data, error } = await supabase
-    .from('wallets')
-    .select('solde:balance, total_gagné:total_credited, total_retiré:total_spent, updated_at')
+  if (!userId) return res.status(401).json({ success: false, error: 'Non authentifie.' });
+  /*DKDK_EARNINGS_V2*/
+  // Total gagne en tout : somme des gains reels (bracket_win success),
+  // montant deja net de commission. On NE lit PLUS wallets (argent de vote).
+  const { data: gains, error } = await supabase
+    .from('transactions')
+    .select('amount')
     .eq('user_id', userId)
-    .single();
-
-  if (error || !data) {
-    return res.status(404).json({ success: false, error: 'Portefeuille introuvable.' });
+    .eq('type', 'bracket_win')
+    .eq('status', 'success');
+  if (error) {
+    return res.status(500).json({ success: false, error: 'Erreur lecture gains.' });
   }
-
-  return res.status(200).json({ success: true, data });
+  const totalEarned = (gains || []).reduce(function (s, t) { return s + (t.amount || 0); }, 0);
+  // total_earned a la racine (le frontend lit d.total_earned) + copie dans data
+  return res.status(200).json({ success: true, total_earned: totalEarned, data: { total_earned: totalEarned } });
 };
 
 // GET /v1/users/balance - Solde retirable (calcule depuis transactions) /*DKDK_BALANCE_HDR*/
