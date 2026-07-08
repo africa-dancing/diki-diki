@@ -129,6 +129,44 @@ export const getEarnings = async (req: AuthRequest, res: Response) => {
   return res.status(200).json({ success: true, data });
 };
 
+// GET /v1/users/balance - Solde retirable (calcule depuis transactions) /*DKDK_BALANCE_HDR*/
+export const getBalance = async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) return res.status(401).json({ success: false, error: 'Non authentifie.' });
+  /*DKDK_BALANCE*/
+  // Gains reels gagnes en competition (bracket_win + success)
+  const { data: gains, error: gErr } = await supabase
+    .from('transactions')
+    .select('amount')
+    .eq('user_id', userId)
+    .eq('type', 'bracket_win')
+    .eq('status', 'success');
+  if (gErr) {
+    return res.status(500).json({ success: false, error: 'Erreur lecture gains.' });
+  }
+  // Retraits deja partis (payout : sent ou success)
+  const { data: retraits, error: rErr } = await supabase
+    .from('transactions')
+    .select('amount')
+    .eq('user_id', userId)
+    .eq('type', 'payout')
+    .in('status', ['sent', 'success']);
+  if (rErr) {
+    return res.status(500).json({ success: false, error: 'Erreur lecture retraits.' });
+  }
+  const totalGains = (gains || []).reduce(function (s, t) { return s + (t.amount || 0); }, 0);
+  const totalRetraits = (retraits || []).reduce(function (s, t) { return s + (t.amount || 0); }, 0);
+  const soldeRetirable = totalGains - totalRetraits;
+  return res.status(200).json({
+    success: true,
+    data: {
+      solde_retirable: soldeRetirable,
+      total_gagne: totalGains,
+      total_retire: totalRetraits,
+    },
+  });
+};
+
 // ─── GET /v1/users/privacy — Lire les préférences de confidentialité ──────────
 export const getPrivacy = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.userId;

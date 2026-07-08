@@ -61,6 +61,7 @@ const usersPublicRouter = UsersPublicRouter();
 
 // ⚠️ Routes fixes AVANT les routes dynamiques /:id
 usersPublicRouter.get('/earnings', requireAuth, usersCtrl.getEarnings);
+usersPublicRouter.get('/balance',  requireAuth, usersCtrl.getBalance); /*DKDK_BALANCE_ROUTE*/
 usersPublicRouter.get('/privacy',  requireAuth, usersCtrl.getPrivacy);
 usersPublicRouter.put('/privacy',  requireAuth, usersCtrl.updatePrivacy);
 
