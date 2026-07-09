@@ -111,44 +111,57 @@ export async function initiateVotePayment(req: Request, res: Response) {
 // ─── WEBHOOK FEDAPAY ─────────────────────────────────────────
 export async function webhook(req: Request, res: Response) { /*DKDK_WEBHOOK_VOTE*/
   try {
-    /*DKDK_WEBHOOK_PAYOUT*/
-    // ---- RETRAITS (payouts) : confirmation reussite / echec ----
-    // FedaPay rappelle ce webhook quand un virement sortant evolue.
+    /*DKDK_WEBHOOK_SIGLOG*/
+    // OBSERVATION signature FedaPay (ne bloque rien).
+    // But : voir le format REEL de la signature dans les logs Railway,
+    // pour coder la verification ensuite sans deviner.
+    try {
+      const _h: any = req.headers || {};
+      const _sig = _h['x-fedapay-signature'] || _h['X-FEDAPAY-SIGNATURE'] || null;
+      const _rawLen = (req as any).rawBody ? (req as any).rawBody.length : 0;
+      const _evName = (req.body && (req.body.name || req.body.event)) || '(inconnu)';
+      console.log('[FEDAPAY_WEBHOOK] event=' + _evName + ' | signature=' + (_sig ? String(_sig) : '(absente)') + ' | rawBodyLen=' + _rawLen);
+      // On journalise aussi la liste des en-tetes recus (noms uniquement) pour reference.
+      console.log('[FEDAPAY_WEBHOOK] headers=' + Object.keys(_h).join(','));
+    } catch (_logErr) {
+      // La journalisation ne doit jamais faire echouer le webhook.
+    }
+    /*DKDK_WEBHOOK_PAYOUT_V2*/
+    // ---- RETRAITS (payout) : confirmation reussite / echec ----
+    // FedaPay traite un retrait comme une transaction sortante.
+    // Evenements reels : transaction.transferred (reussi),
+    // transaction.declined / transaction.canceled (echoue).
     // On ne fait que mettre a jour une etiquette de statut, jamais d'argent.
     {
       const _b: any = req.body || {};
-      // Nom de l'evenement (formes possibles selon FedaPay)
-      const _event = String(_b.name || _b.event || _b.type || '');
-      const _isPayoutEvent = _event.toLowerCase().indexOf('payout') !== -1;
-      // Identifiant du payout (forme selon FedaPay) et statut annonce
-      const _entity = _b.entity || _b.data || _b.object || _b.payout || {};
-      const _payoutId = _entity.id || _b.payout_id || _b.id || null;
-      const _rawStatus = String(_entity.status || _b.status || '').toLowerCase();
-      if (_isPayoutEvent && _payoutId) {
-        // Retrouver la transaction payout par son fedapay_id
+      const _event = String(_b.name || _b.event || '').toLowerCase();
+      // Objet transaction FedaPay (formes possibles selon la charge utile)
+      const _obj = _b.entity || _b.object || _b.data || {};
+      const _fedaId = _obj.id || _b.transaction_id || _b.id || null;
+      // Est-ce un evenement de transaction qui nous interesse pour un retrait ?
+      const _isTransferred = _event.indexOf('transaction.transferred') !== -1;
+      const _isDeclined    = _event.indexOf('transaction.declined') !== -1
+                          || _event.indexOf('transaction.canceled') !== -1
+                          || _event.indexOf('transaction.cancelled') !== -1;
+      if ((_isTransferred || _isDeclined) && _fedaId) {
+        // Cherche UNIQUEMENT une transaction de type payout liee a cet id FedaPay.
         const { data: _ptx } = await supabase
           .from('transactions')
           .select('id, type, status')
-          .eq('fedapay_id', String(_payoutId))
+          .eq('fedapay_id', String(_fedaId))
           .eq('type', 'payout')
-          .single();
+          .maybeSingle();
+        // Si c'est bien un retrait a nous, on met a jour son statut.
         if (_ptx && _ptx.status !== 'success' && _ptx.status !== 'failed') {
-          // Statuts consideres comme reussite / echec (formes courantes)
-          const _ok = ['sent', 'approved', 'success', 'completed', 'done', 'paid'];
-          const _ko = ['failed', 'declined', 'canceled', 'cancelled', 'refused', 'error'];
-          let _newStatus: string | null = null;
-          if (_ok.indexOf(_rawStatus) !== -1) _newStatus = 'success';
-          else if (_ko.indexOf(_rawStatus) !== -1) _newStatus = 'failed';
-          if (_newStatus) {
-            await supabase
-              .from('transactions')
-              .update({ status: _newStatus })
-              .eq('id', _ptx.id);
-          }
-          // Statut FedaPay non reconnu -> on ne touche a rien (prudence).
+          const _newStatus = _isTransferred ? 'success' : 'failed';
+          await supabase
+            .from('transactions')
+            .update({ status: _newStatus })
+            .eq('id', _ptx.id);
+          return res.status(200).json({ received: true, payout: _newStatus });
         }
-        // On repond OK et on s'arrete la pour un evenement de retrait.
-        return res.status(200).json({ received: true, payout: true });
+        // Pas un retrait a nous (ou deja traite) : on NE s'arrete PAS,
+        // on laisse le bloc entrant ci-dessous traiter le cas echeant.
       }
     }
     // ---- Fin bloc retraits. En dessous : traitement de l'argent entrant. ----
