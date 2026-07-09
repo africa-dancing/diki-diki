@@ -37,7 +37,7 @@ const phoneSchema = z.object({
 export async function register(req: Request, res: Response) {
   try {
     const data   = registerSchema.parse(req.body);
-    const result = await authService.registerUser(data);
+    const result = await authService.registerUser(data as any);
     res.status(201).json(result);
   } catch (err: any) {
     if (err.name === 'ZodError')

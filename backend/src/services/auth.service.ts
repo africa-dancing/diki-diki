@@ -101,7 +101,7 @@ export async function registerUser(data: {
     console.error(`[AT] Erreur envoi SMS:`, err);
   }
 
-  return { userId: user.id, message: 'OTP_SENT' };
+  return { userId: (user as any).id, message: 'OTP_SENT' };
 }
 
 // ─── VERIFY OTP ───────────────────────────────────────────────
@@ -205,7 +205,7 @@ export async function socialAuth(
       .single();
 
     if (error) throw new Error('SOCIAL_AUTH_FAILED');
-    user = newUser;
+    user = newUser as any;
   }
 
   const jwtToken = jwt.sign(

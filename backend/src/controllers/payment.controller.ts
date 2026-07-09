@@ -8,7 +8,7 @@ const MAX_RETRAIT = 2000000;
 /*DKDK_PAYMENT_WALLET_FIX*/
 // Decoupe "name" (colonne reelle de public.users) en prenom/nom,
 // pour remplacer first_name/last_name qui n'existent pas.
-function splitName(fullName, fallbackFirst, fallbackLast) {
+function splitName(fullName?: string, fallbackFirst?: string, fallbackLast?: string) {
   var fbFirst = fallbackFirst || 'User';
   var fbLast  = fallbackLast  || 'DKDK';
   if (!fullName || !fullName.trim()) return { firstName: fbFirst, lastName: fbLast };

@@ -10,7 +10,7 @@ notificationRouter.get('/', requireAuth, async (req: AuthRequest, res: Response)
   const { data, error } = await supabase
     .from('notifications')
     .select('*')
-    .eq('user_id', req.user!.id)
+    .eq('user_id', req.user!.userId)
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -26,7 +26,7 @@ notificationRouter.put('/:id/read', requireAuth, async (req: AuthRequest, res: R
     .from('notifications')
     .update({ read: true })
     .eq('id', req.params.id)
-    .eq('user_id', req.user!.id);
+    .eq('user_id', req.user!.userId);
   res.json({ success: true });
 });
 
@@ -35,7 +35,7 @@ notificationRouter.put('/read-all', requireAuth, async (req: AuthRequest, res: R
   await supabase
     .from('notifications')
     .update({ read: true })
-    .eq('user_id', req.user!.id)
+    .eq('user_id', req.user!.userId)
     .eq('read', false);
   res.json({ success: true });
 });

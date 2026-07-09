@@ -42,7 +42,7 @@ videoRouter.get('/constraints', (_req: Request, res: Response) => {
   res.json(VIDEO_CONSTRAINTS);
 });
 
-videoRouter.post('/', requireAuth, async (req, res) => {
+videoRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { discipline, track_title, track_artist, track_genre, title, description } = req.body;
     if (!discipline) return res.status(400).json({ error: 'DISCIPLINE_REQUIRED' });
@@ -52,7 +52,7 @@ videoRouter.post('/', requireAuth, async (req, res) => {
       const mimeType = req.body.mime_type || 'video/mp4';
       const fileName = req.body.file_name || 'prestation.mp4';
       const video = await uploadVideo({
-        userId: req.user.userId, discipline,
+        userId: req.user!.userId, discipline,
         trackTitle: track_title, trackArtist: track_artist, trackGenre: track_genre,
         title, description, fileBuffer, fileName, mimeType, fileSizeMb,
         challengeType: req.body.challenge_type || 'C16',

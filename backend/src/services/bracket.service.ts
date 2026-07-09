@@ -275,7 +275,7 @@ async function checkRoundCompletion(bracketId: string) {
 
   // Finale terminée → distribuer la cagnotte
   if (currentRound === 4) {
-    await distributeCagnotte(bracket, duels[0]);
+    await distributeCagnotte(bracket, duels[0].winner_participant, null);
     return;
   }
 

@@ -16,13 +16,13 @@ groupRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   if (!contest_id || !name) {
     return res.status(400).json({ error: 'MISSING_FIELDS' });
   }
-  const group = await createGroup(contest_id, req.user!.id, name);
+  const group = await createGroup(contest_id, req.user!.userId, name);
   res.status(201).json({ success: true, group });
 });
 
 // POST /v1/groups/:id/join — Rejoindre un groupe
 groupRouter.post('/:id/join', requireAuth, async (req: AuthRequest, res: Response) => {
-  const member = await joinGroup(req.params.id, req.user!.id);
+  const member = await joinGroup(req.params.id, req.user!.userId);
   res.status(201).json({ success: true, member });
 });
 
@@ -30,7 +30,7 @@ groupRouter.post('/:id/join', requireAuth, async (req: AuthRequest, res: Respons
 groupRouter.put('/:id/video', requireAuth, async (req: AuthRequest, res: Response) => {
   const { video_id } = req.body;
   if (!video_id) return res.status(400).json({ error: 'VIDEO_ID_REQUIRED' });
-  const group = await submitGroupVideo(req.params.id, req.user!.id, video_id);
+  const group = await submitGroupVideo(req.params.id, req.user!.userId, video_id);
   res.json({ success: true, group });
 });
 
@@ -42,7 +42,7 @@ groupRouter.get('/ranking/:contestId', async (req, res) => {
 
 // GET /v1/groups/mine — Mes groupes
 groupRouter.get('/mine', requireAuth, async (req: AuthRequest, res: Response) => {
-  const groups = await getUserGroups(req.user!.id);
+  const groups = await getUserGroups(req.user!.userId);
   res.json({ groups });
 });
 
@@ -72,7 +72,7 @@ voteRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   if (contest.comp_type === 'duo') {
     if (!candidate_id) return res.status(400).json({ error: 'CANDIDATE_ID_REQUIRED' });
     const { data, error } = await supabase.rpc('cast_vote_duo', {
-      p_voter_id:     req.user!.id,
+      p_voter_id:     req.user!.userId,
       p_candidate_id: candidate_id,
       p_contest_id:   contest_id,
     });
@@ -81,7 +81,7 @@ voteRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   } else {
     if (!group_id) return res.status(400).json({ error: 'GROUP_ID_REQUIRED' });
     const { data, error } = await supabase.rpc('cast_vote_group', {
-      p_voter_id:   req.user!.id,
+      p_voter_id:   req.user!.userId,
       p_group_id:   group_id,
       p_contest_id: contest_id,
     });
@@ -97,7 +97,7 @@ voteRouter.get('/check/:contestId', requireAuth, async (req: AuthRequest, res: R
   const { data } = await supabase
     .from('votes')
     .select('id, candidate_id, group_id')
-    .eq('voter_id', req.user!.id)
+    .eq('voter_id', req.user!.userId)
     .eq('contest_id', req.params.contestId)
     .single();
   res.json({ voted: !!data, vote: data || null });
