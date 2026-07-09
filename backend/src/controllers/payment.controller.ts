@@ -233,7 +233,7 @@ export async function withdraw(req: Request, res: Response) {
       .from('transactions')
       .select('amount')
       .eq('user_id', userId)
-      .eq('type', 'bracket_win')
+      .in('type', ['bracket_win', 'soutien_gain'])
       .eq('status', 'success');
     const { data: retraits } = await supabase
       .from('transactions')

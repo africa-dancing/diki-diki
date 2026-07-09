@@ -121,7 +121,7 @@ export const getEarnings = async (req: AuthRequest, res: Response) => {
     .from('transactions')
     .select('amount')
     .eq('user_id', userId)
-    .eq('type', 'bracket_win')
+    .in('type', ['bracket_win', 'soutien_gain'])
     .eq('status', 'success');
   if (error) {
     return res.status(500).json({ success: false, error: 'Erreur lecture gains.' });
@@ -141,7 +141,7 @@ export const getBalance = async (req: AuthRequest, res: Response) => {
     .from('transactions')
     .select('amount')
     .eq('user_id', userId)
-    .eq('type', 'bracket_win')
+    .in('type', ['bracket_win', 'soutien_gain'])
     .eq('status', 'success');
   if (gErr) {
     return res.status(500).json({ success: false, error: 'Erreur lecture gains.' });
