@@ -1,5 +1,6 @@
 import './mobile.css';
 import BackgroundMusic from './components/BackgroundMusic';
+import SplashScreen from './components/SplashScreen'; /*DKDK_SPLASH_MOUNT*/
 import type { Metadata } from 'next';
 import { Syne, DM_Sans } from 'next/font/google';
 
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`${syne.variable} ${dmSans.variable}`}>
-      <body>{children}<BackgroundMusic /></body>
+      <body><SplashScreen />{children}<BackgroundMusic /></body>
     </html>
   );
 }
