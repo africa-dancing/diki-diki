@@ -14,6 +14,7 @@ const DISCIPLINES = [
   { label: 'Poésie',     emoji: '✍️', value: 'poesie' },
   { label: 'Conte',      emoji: '📖', value: 'conte' }, /*DKDK_DISCIPLINES_ADD*/
   { label: "Histoires d'Afrique", emoji: '🌍', value: 'histoires-afrique' },
+  { label: 'Evénements divers', emoji: '🎪', value: 'evenements-divers' }, /*DKDK_NAV_DISC*/
 ];
 
 export default function Navbar() {
@@ -89,12 +90,21 @@ export default function Navbar() {
             🔍
           </button>
 
-          <button
-            onClick={() => router.push(token ? '/compte' : '/auth/login')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#FFAA00', fontSize: 20 }}
-          >
-            👤
-          </button>
+          {token ? (
+            <button /*DKDK_NAV_SIGNUP*/
+              onClick={() => router.push('/compte')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#FFAA00', fontSize: 20 }}
+            >
+              👤
+            </button>
+          ) : (
+            <button /*DKDK_NAV_SIGNUP*/
+              onClick={() => router.push('/auth/register')}
+              style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', cursor: 'pointer', padding: '6px 12px', borderRadius: 20, color: '#000', fontSize: 12, fontWeight: 700, fontFamily: 'Syne, sans-serif', whiteSpace: 'nowrap' }}
+            >
+              S'inscrire
+            </button>
+          )}
 
           <button
             onClick={() => { setMenuOpen(o => !o); setSearchOpen(false); }}
@@ -155,6 +165,7 @@ export default function Navbar() {
             {[
               { href: '/home',          label: 'Accueil' },
                 { href: '/faq',           label: 'Comment ça marche' },
+                { href: '/contact',       label: 'Contact' }, /*DKDK_NAV_CONTACT*/
                 { href: '/auth/register', label: "S'inscrire", hide: !!token },
                 { href: '/compte',        label: 'Mon compte', hide: !token },
                 { href: '/recharge',      label: 'Recharger', hide: !token },

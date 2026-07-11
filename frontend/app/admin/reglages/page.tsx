@@ -17,6 +17,7 @@ const GROUPES: { titre: string; cles: string[] }[] = [
   { titre: '🎯 Objectifs par étape', cles: ['bracket_obj_huitieme', 'bracket_obj_quart', 'bracket_obj_demi', 'bracket_obj_finale'] },
   { titre: '⏱️ Délais', cles: ['bracket_egalite_jours', 'bracket_soumission_jours', 'bracket_relance_jours'] },
   { titre: '\u{1F3B5} Musique d ambiance', cles: ['ambiance_audio_url', 'ambiance_active', 'ambiance_pages_exclues'] },
+  { titre: '📞 Contactez le support', cles: ['contact_whatsapp', 'contact_email', 'contact_facebook', 'contact_instagram', 'contact_tiktok'] }, /*DKDK_CONTACT_SECTION*/
 ];
 
 export default function AdminReglagesPage() {
