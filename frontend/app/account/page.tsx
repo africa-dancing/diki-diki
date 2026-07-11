@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Navbar from '../components/Navbar';
 import TickerBand from '../components/TickerBand';
 import TranslateWidget from '../components/TranslateWidget';
 
@@ -122,24 +123,13 @@ export default function AccountPage() {
   return (
     <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f0', fontFamily:'DM Sans,sans-serif', paddingBottom:80 }}>
 
-      {/* Topbar */}
-      <div style={{ position:'sticky', top:0, zIndex:100, background:'rgba(8,8,15,0.95)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(255,170,0,0.1)', padding:'0 20px', height:54, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <Link href="/home" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:6 }}>
-          <span style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'1.05rem' }}>
-            <span style={{color:OR}}>Diki</span><span style={{color:'#fff',margin:'0 2px'}}>-</span><span style={{color:OR}}>Diki</span>
-          </span>
-          <span style={{ fontSize:'.42rem', fontWeight:700, color:'#fff', border:'1px solid rgba(255,255,255,.6)', borderRadius:3, padding:'1px 4px', letterSpacing:'.08em' }}>VISION</span>
-        </Link>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <TranslateWidget />
-          <Link href="/compte" style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#FF6B00,#FFD700)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, textDecoration:'none' }}>
-            👤
-          </Link>
-        </div>
-      </div>
+      {/* Header = Navbar de HOME */}
+      <Navbar /> {/*DKDK_ACCOUNT_UNIFORM*/}
+
+      
 
       {/* Header */}
-      <div style={{ background:'linear-gradient(180deg,rgba(255,170,0,0.05) 0%,transparent 100%)', borderBottom:'1px solid rgba(255,255,255,0.06)', padding:'20px' }}>
+      <div style={{ background:'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)' /*DKDK_HALO*/, borderBottom:'1px solid rgba(255,255,255,0.06)', padding:'20px' }}>
         <div style={{ maxWidth:680, margin:'0 auto' }}>
           <h1 style={{ fontFamily:'Syne,sans-serif', fontSize:20, fontWeight:800, color:'#fff', marginBottom:4 }}>⚙️ Paramètres du compte</h1>
           <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>Gérez vos informations de connexion et la sécurité de votre compte</div>
@@ -147,10 +137,10 @@ export default function AccountPage() {
       </div>
 
       {/* Onglets — boutons dégradé vert */}
-      <div style={{ background:'linear-gradient(135deg,#FFAA00,#FF6B00)', padding:'10px 20px', display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none' }}>
+      <div style={{ maxWidth:680, margin:'0 auto', padding:'16px 20px 0', display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none' }}>
         {TABS.map(t => (
           <button key={t.id} onClick={()=>{ setTab(t.id); setSuccess(''); setError(''); }}
-            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 18px', borderRadius:50, fontFamily:'DM Sans,sans-serif', fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' as const, border: tab===t.id ? '2px solid #fff' : '2px solid transparent', background: tab===t.id ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#16a34a,#15803d)', color:'#fff', boxShadow: tab===t.id ? '0 2px 10px rgba(34,197,94,0.4)' : 'none', transition:'all .2s' }}>
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:50, fontFamily:'DM Sans,sans-serif', fontSize:12, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' as const, border: tab===t.id ? '1px solid rgba(255,170,0,0.5)' : '1px solid rgba(255,255,255,0.1)', background: tab===t.id ? 'rgba(255,170,0,0.12)' : 'rgba(255,255,255,0.04)', color: tab===t.id ? OR : 'rgba(255,255,255,0.55)', transition:'all .2s' }}>
             {t.emoji} {t.label}
           </button>
         ))}
