@@ -264,7 +264,9 @@ export default function SubmitPage() {
         </button>
       </div>
 
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)' /*DKDK_HALO*/ }}>
+      {/*DKDK_HALO*/}
+        <div style={{ height: 200, marginTop: 56, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', marginBottom: -200, pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px' }}>
 
         {/* Stepper */}
         {step < 5 && (
