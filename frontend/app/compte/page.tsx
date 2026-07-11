@@ -1,4 +1,5 @@
 'use client';
+import Navbar from '../components/Navbar';
 import LogoDikiDiki from '../components/LogoDikiDiki';
 import './compte.css';
 import { useEffect, useState, useCallback } from 'react';
@@ -359,15 +360,7 @@ export default function ComptePage() {
 
   return (
     <div style={{minHeight:'100vh',background:'#0a0a0f',color:'#f0f0f0',fontFamily:'DM Sans,sans-serif',paddingBottom:60}}>
-      <div style={{position:'fixed',top:0,left:0,right:0,zIndex:200,background:'#0a0a0f' /*DKDK_HEADER_OPAQUE*/,borderBottom:'1px solid rgba(255,255,255,0.08)',padding:'0 20px 0 0',height:56,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-        <Link href="/home" style={{textDecoration:'none',display:'flex',alignItems:'center',gap:7}}><LogoDikiDiki width={130}/></Link>
-        <div style={{display:'flex',alignItems:'center',gap:10}}>
-          <TranslateWidget/>
-          <div style={{display:'flex',alignItems:'center',gap:6,background:'rgba(255,170,0,0.08)',border:'1px solid rgba(246,245,244,0.2)',borderRadius:20,padding:'5px 12px'}}><span style={{fontSize:13}}>💰</span><span style={{fontSize:13,fontWeight:700,color:'#FFAA00'}}>{balance.toLocaleString('fr-FR')} F</span></div>
-          <div onClick={()=>setActiveTab('dashboard')} style={{width:36,height:36,borderRadius:'50%',background:'linear-gradient(135deg,#FF6B00,#FFD700)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,cursor:'pointer',flexShrink:0}}>👤</div>
-        </div>
-      </div>
-
+      <Navbar /> {/*DKDK_COMPTE_NAVBAR*/}
       <div style={{background:'#0a0a0f',borderBottom:'1px solid rgb(7,7,7)',padding:'0 20px',display:'flex',gap:2,overflowX:'auto',scrollbarWidth:'none'}}>
         {TABS.map(tab=>{ /*DKDK_TAB_EDU_SOON*/ const _soon = tab.id==='education'; return (<button key={tab.id} onClick={()=>{ if(!_soon) setActiveTab(tab.id); }} disabled={_soon} style={{display:'flex',alignItems:'center',gap:6,padding:'14px 16px',background:'none',border:'none',borderBottom:`2px solid ${activeTab===tab.id?'#FFAA00':'transparent'}`,color:_soon?'rgba(255,255,255,0.25)':(activeTab===tab.id?'#FFAA00':'rgba(255,255,255,0.4)'),fontSize:13,fontWeight:activeTab===tab.id?700:400,cursor:_soon?'not-allowed':'pointer',whiteSpace:'nowrap',transition:'all .2s',fontFamily:'DM Sans,sans-serif'}}><span>{tab.emoji}</span><span>{tab.label}</span>{_soon && (<span style={{background:'rgba(255,170,0,0.15)',color:'#FFAA00',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:20,marginLeft:2}}>bientôt</span>)}</button>); })}<button onClick={()=>router.push('/home')} style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:6,padding:'14px 16px',background:'none',border:'none',color:'rgba(255,255,255,0.55)',fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',fontFamily:'DM Sans,sans-serif'}} /*DKDK_BTN_ACCUEIL*/>&#8592; &#127968; Accueil</button>
       </div>
