@@ -131,7 +131,9 @@ export default function RetraitPage() {
         </button>
       </div>
 
-      <div style={{ maxWidth:520, margin:'0 auto', padding:'24px 16px' }}>
+      {/*DKDK_HALO*/}
+        <div style={{ height: 200, marginTop: 56, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', marginBottom: -200, pointerEvents: 'none' }} />
+        <div style={{ maxWidth:520, margin:'0 auto', padding:'24px 16px' }}>
         <div style={{ background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', borderRadius:18, padding:'22px 20px', marginBottom:20, textAlign:'center' }}>
           <div style={{ fontSize:38, marginBottom:8 }}>💸</div>
           <div style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:20, color:'#fff', marginBottom:6 }}>Retirer mes gains</div>
