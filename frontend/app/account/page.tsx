@@ -130,7 +130,7 @@ export default function AccountPage() {
 
       {/* Header */}
       <div style={{ background:'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)' /*DKDK_HALO*/, borderBottom:'1px solid rgba(255,255,255,0.06)', padding:'20px' }}>
-        <div style={{ maxWidth:680, margin:'0 auto' }}>
+        <div style={{ maxWidth:680, margin:'0 auto', textAlign:'center' }}> {/*DKDK_CENTER_TITLE*/}
           <h1 style={{ fontFamily:'Syne,sans-serif', fontSize:20, fontWeight:800, color:'#fff', marginBottom:4 }}>⚙️ Paramètres du compte</h1>
           <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>Gérez vos informations de connexion et la sécurité de votre compte</div>
         </div>
