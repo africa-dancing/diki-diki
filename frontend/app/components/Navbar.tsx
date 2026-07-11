@@ -200,6 +200,11 @@ export default function Navbar() {
                 ⚙️ Admin
               </Link>
             )}
+            {token && (
+              <Link href="/account" onClick={() => setMenuOpen(false)} style={{ color: '#fff', fontSize: 14, fontWeight: 600, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid #1a1a1a', display: 'block' }} /*DKDK_NAV_ACCOUNT*/>
+                ⚙️ Paramètres du compte
+              </Link>
+            )}
             {token ? (
               <button
                 onClick={() => { localStorage.removeItem('dkdk_token'); window.location.href = '/home'; }}
