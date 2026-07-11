@@ -1,5 +1,6 @@
 // src/controllers/users.controller.ts
 import { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 import { supabase } from '../../config/supabase';
 import { z } from 'zod';
 
@@ -218,3 +219,66 @@ export const updatePrivacy = async (req: AuthRequest, res: Response) => {
 
   return res.status(200).json({ success: true, message: 'Confidentialité mise à jour.' });
 };
+
+// ─── Gestion du compte utilisateur (email / password / security) /*DKDK_ACCOUNT*/ ───
+
+// PUT /v1/users/email — Modifier l'adresse email
+export const updateEmail = async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) return res.status(401).json({ success: false, error: 'Non authentifie.' });
+  const email = (req.body?.email || '').trim().toLowerCase();
+  if (!email || !email.includes('@') || email.length < 5) {
+    return res.status(400).json({ success: false, error: 'Email invalide.' });
+  }
+  // Verifier que l'email n'est pas deja pris par un autre compte
+  const { data: existing } = await supabase
+    .from('users').select('id').eq('email', email).maybeSingle();
+  if (existing && existing.id !== userId) {
+    return res.status(409).json({ success: false, error: 'Cet email est deja utilise.' });
+  }
+  const { error } = await supabase.from('users').update({ email }).eq('id', userId);
+  if (error) return res.status(500).json({ success: false, error: 'Mise a jour echouee.' });
+  return res.json({ success: true, email });
+};
+
+// PUT /v1/users/password — Changer le mot de passe (verifie l'ancien)
+export const updatePassword = async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) return res.status(401).json({ success: false, error: 'Non authentifie.' });
+  const oldPassword = req.body?.old_password || '';
+  const newPassword = req.body?.new_password || '';
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ success: false, error: 'Ancien et nouveau mot de passe requis.' });
+  }
+  if (newPassword.length < 8) {
+    return res.status(400).json({ success: false, error: 'Le nouveau mot de passe doit faire au moins 8 caracteres.' });
+  }
+  // Recuperer le hash actuel
+  const { data: user, error: uErr } = await supabase
+    .from('users').select('password').eq('id', userId).single();
+  if (uErr || !user) return res.status(404).json({ success: false, error: 'Utilisateur introuvable.' });
+  // Verifier l'ancien mot de passe
+  const ok = await bcrypt.compare(oldPassword, user.password);
+  if (!ok) return res.status(403).json({ success: false, error: 'Mot de passe actuel incorrect.' });
+  // Hasher et enregistrer le nouveau
+  const hashed = await bcrypt.hash(newPassword, 12);
+  const { error } = await supabase.from('users').update({ password: hashed }).eq('id', userId);
+  if (error) return res.status(500).json({ success: false, error: 'Mise a jour echouee.' });
+  return res.json({ success: true });
+};
+
+// PUT /v1/users/security — Mettre a jour le telephone (et prefs si colonnes presentes)
+export const updateSecurity = async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) return res.status(401).json({ success: false, error: 'Non authentifie.' });
+  const phone = (req.body?.phone || '').trim();
+  const patch: any = {};
+  if (phone) patch.phone = phone;
+  if (Object.keys(patch).length === 0) {
+    return res.status(400).json({ success: false, error: 'Aucune donnee a mettre a jour.' });
+  }
+  const { error } = await supabase.from('users').update(patch).eq('id', userId);
+  if (error) return res.status(500).json({ success: false, error: 'Mise a jour echouee.' });
+  return res.json({ success: true });
+};
+

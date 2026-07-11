@@ -65,6 +65,9 @@ usersPublicRouter.get('/earnings', requireAuth, usersCtrl.getEarnings);
 usersPublicRouter.get('/balance',  requireAuth, usersCtrl.getBalance); /*DKDK_BALANCE_ROUTE*/
 usersPublicRouter.get('/privacy',  requireAuth, usersCtrl.getPrivacy);
 usersPublicRouter.put('/privacy',  requireAuth, usersCtrl.updatePrivacy);
+usersPublicRouter.put('/email',    requireAuth, usersCtrl.updateEmail);    /*DKDK_ACCOUNT_ROUTES*/
+usersPublicRouter.put('/password', requireAuth, usersCtrl.updatePassword);
+usersPublicRouter.put('/security', requireAuth, usersCtrl.updateSecurity);
 
 // Routes dynamiques
 usersPublicRouter.get('/:id/profile', usersCtrl.getPublicProfile);
