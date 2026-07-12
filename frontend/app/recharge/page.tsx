@@ -101,7 +101,7 @@ export default function RechargePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Erreur');
-      if (data.payment_url) { window.location.href = data.payment_url; return; }
+      if (data.paymentUrl || data.payment_url) { window.location.href = (data.paymentUrl || data.payment_url); return; } /*DKDK_PAYMENT_URL*/
       setSuccess(true);
       setRechargeUnits(u => u + units);
     } catch (e: any) { setError(e.message); }
