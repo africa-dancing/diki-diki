@@ -179,6 +179,59 @@ export async function webhook(req: Request, res: Response) { /*DKDK_WEBHOOK_VOTE
     } catch (_logErr) {
       // La journalisation ne doit jamais faire echouer le webhook.
     }
+    /*DKDK_SIG_ENFORCE*/
+    // ---- VERIFICATION STRICTE DE LA SIGNATURE FEDAPAY ----
+    // Formule confirmee par observation : HMAC-SHA256(secret, t + "." + rawBody)
+    // Un webhook mal signe est rejete AVANT tout traitement (aucun credit possible).
+    {
+      const _vSecret = process.env.FEDAPAY_WEBHOOK_SECRET || '';
+      if (!_vSecret) {
+        console.log('[DKDK_SIG] REFUS : FEDAPAY_WEBHOOK_SECRET absente');
+        return res.status(500).json({ error: 'WEBHOOK_SECRET_MISSING' });
+      }
+      const _vHeaders: any = req.headers || {};
+      const _vSigRaw = _vHeaders['x-fedapay-signature'] || _vHeaders['X-FEDAPAY-SIGNATURE'] || '';
+      const _vRaw = (req as any).rawBody ? String((req as any).rawBody) : '';
+      if (!_vSigRaw || !_vRaw) {
+        console.log('[DKDK_SIG] REFUS : signature ou corps brut manquant');
+        return res.status(401).json({ error: 'INVALID_SIGNATURE' });
+      }
+      // Decoupage de l en-tete : t=<timestamp>,s=<hmac>
+      let _vT = '';
+      let _vS = '';
+      const _vParts = String(_vSigRaw).split(',');
+      for (let _vi = 0; _vi < _vParts.length; _vi++) {
+        const _vkv = _vParts[_vi].trim();
+        if (_vkv.indexOf('t=') === 0) _vT = _vkv.substring(2);
+        if (_vkv.indexOf('s=') === 0) _vS = _vkv.substring(2);
+      }
+      if (!_vT || !_vS) {
+        console.log('[DKDK_SIG] REFUS : format de signature inattendu');
+        return res.status(401).json({ error: 'INVALID_SIGNATURE' });
+      }
+      // Anti-rejeu : tolerance de 5 minutes sur l horodatage.
+      const _vAge = Math.abs(Math.floor(Date.now() / 1000) - Number(_vT));
+      if (!Number.isFinite(_vAge) || _vAge > 300) {
+        console.log('[DKDK_SIG] REFUS : horodatage hors tolerance (age=' + _vAge + 's)');
+        return res.status(401).json({ error: 'SIGNATURE_EXPIRED' });
+      }
+      // Calcul HMAC et comparaison en temps constant.
+      const _vExpected = _dkdkCrypto.createHmac('sha256', _vSecret).update(_vT + '.' + _vRaw, 'utf8').digest('hex');
+      let _vOk = false;
+      try {
+        const _vBufA = Buffer.from(_vExpected, 'utf8');
+        const _vBufB = Buffer.from(_vS, 'utf8');
+        _vOk = _vBufA.length === _vBufB.length && _dkdkCrypto.timingSafeEqual(_vBufA, _vBufB);
+      } catch (_vCmpErr) {
+        _vOk = false;
+      }
+      if (!_vOk) {
+        console.log('[DKDK_SIG] REFUS : signature invalide');
+        return res.status(401).json({ error: 'INVALID_SIGNATURE' });
+      }
+      console.log('[DKDK_SIG] OK : signature valide');
+    }
+    // ---- Fin verification. Webhook authentifie. ----
     /*DKDK_WEBHOOK_PAYOUT_V2*/
     // ---- RETRAITS (payout) : confirmation reussite / echec ----
     // FedaPay traite un retrait comme une transaction sortante.
