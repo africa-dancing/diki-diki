@@ -256,10 +256,6 @@ export const updatePassword = async (req: AuthRequest, res: Response) => {
   // Recuperer le hash actuel
   const { data: user, error: uErr } = await supabase
     .from('users').select('password').eq('id', userId).single();
-  /*DKDK_DEBUG_PWD*/
-  console.log('[DBG_PWD] userId=' + JSON.stringify(userId) + ' | type=' + typeof userId);
-  console.log('[DBG_PWD] user=' + JSON.stringify(user));
-  console.log('[DBG_PWD] erreur=' + JSON.stringify(uErr));
   if (uErr || !user) return res.status(404).json({ success: false, error: 'Utilisateur introuvable.' });
   // Verifier l'ancien mot de passe
   const ok = await bcrypt.compare(oldPassword, user.password);
