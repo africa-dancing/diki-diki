@@ -1,3 +1,4 @@
+import * as _dkdkCrypto from 'crypto'; /*DKDK_SIG_OBSERVE*/
 import { Request, Response } from 'express';
 import { initiatePayment, verifyPayment, withdrawPayment } from '../services/payment.service';
 import { supabase } from '../../config/supabase';
@@ -137,6 +138,44 @@ export async function webhook(req: Request, res: Response) { /*DKDK_WEBHOOK_VOTE
       console.log('[FEDAPAY_WEBHOOK] event=' + _evName + ' | signature=' + (_sig ? String(_sig) : '(absente)') + ' | rawBodyLen=' + _rawLen);
       // On journalise aussi la liste des en-tetes recus (noms uniquement) pour reference.
       console.log('[FEDAPAY_WEBHOOK] headers=' + Object.keys(_h).join(','));
+
+      // ---- OBSERVATION HMAC : on teste 3 formules, on ne bloque rien. ----
+      try {
+        const _secret = process.env.FEDAPAY_WEBHOOK_SECRET || '';
+        const _raw = (req as any).rawBody ? String((req as any).rawBody) : '';
+        const _sigStr = _sig ? String(_sig) : '';
+        if (!_secret) {
+          console.log('[DKDK_SIG] FEDAPAY_WEBHOOK_SECRET absente de l environnement');
+        } else if (!_sigStr || !_raw) {
+          console.log('[DKDK_SIG] signature ou rawBody manquant (sig=' + (_sigStr ? 'oui' : 'non') + ', raw=' + _raw.length + ')');
+        } else {
+          // Decoupage de l en-tete : t=<timestamp>,s=<hmac>
+          let _t = '';
+          let _s = '';
+          const _parts = _sigStr.split(',');
+          for (let _i = 0; _i < _parts.length; _i++) {
+            const _kv = _parts[_i].trim();
+            if (_kv.indexOf('t=') === 0) _t = _kv.substring(2);
+            if (_kv.indexOf('s=') === 0) _s = _kv.substring(2);
+          }
+          function _hmac(payload: string) {
+            return _dkdkCrypto.createHmac('sha256', _secret).update(payload, 'utf8').digest('hex');
+          }
+          const _A = _hmac(_t + '.' + _raw);
+          const _B = _hmac(_raw);
+          const _C = _hmac(_t + _raw);
+          let _match = 'AUCUNE';
+          if (_s === _A) _match = 'A (t + . + rawBody)';
+          else if (_s === _B) _match = 'B (rawBody seul)';
+          else if (_s === _C) _match = 'C (t + rawBody)';
+          console.log('[DKDK_SIG] t=' + _t + ' | recue=' + _s.substring(0, 16) + '...');
+          console.log('[DKDK_SIG] A=' + _A.substring(0, 16) + '... B=' + _B.substring(0, 16) + '... C=' + _C.substring(0, 16) + '...');
+          console.log('[DKDK_SIG] >>> FORMULE CORRESPONDANTE : ' + _match);
+        }
+      } catch (_sigErr: any) {
+        console.log('[DKDK_SIG] erreur observation : ' + (_sigErr && _sigErr.message));
+      }
+      // ---- Fin observation. Le webhook continue normalement. ----
     } catch (_logErr) {
       // La journalisation ne doit jamais faire echouer le webhook.
     }
