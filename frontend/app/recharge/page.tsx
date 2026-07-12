@@ -97,7 +97,7 @@ export default function RechargePage() {
       const res = await fetch(`${API}/payments/initiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ amount, method, phone: phone.trim() }),
+        body: JSON.stringify({ amount, method, operator: method, phone: phone.trim() }), /*DKDK_OPERATOR_FIELD*/
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Erreur');
