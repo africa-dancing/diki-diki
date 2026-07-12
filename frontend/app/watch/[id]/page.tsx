@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LogoDikiDiki from '../../components/LogoDikiDiki';
+import { useAnalytics } from '../../hooks/useAnalytics'; /*DKDK_HEARTBEAT*/
 
 // ── TickerBand inline ─────────────────────────────────────────────
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
@@ -245,6 +246,7 @@ function LoginPopup({ message, onLogin, onClose }: { message: string; onLogin: (
 }
 
 export default function WatchPage() {
+  useAnalytics(); /*DKDK_HEARTBEAT*/
   const { id } = useParams<{ id: string }>();
   const router  = useRouter();
 

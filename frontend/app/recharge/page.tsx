@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LogoDikiDiki from '../components/LogoDikiDiki';
+import { useAnalytics } from '../hooks/useAnalytics'; /*DKDK_HEARTBEAT*/
 
 // ✅ Étoile rouge — identique au logo
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
@@ -52,6 +53,7 @@ const METHODS = [
 function fmt(n: number) { return n.toLocaleString('fr-FR'); }
 
 export default function RechargePage() {
+  useAnalytics(); /*DKDK_HEARTBEAT*/
   const router = useRouter();
   const [initialBalance, setInitialBalance] = useState(0);
   const [rechargeUnits,  setRechargeUnits]  = useState(0);

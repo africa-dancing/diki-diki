@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LogoDikiDiki from '../components/LogoDikiDiki';
+import { useAnalytics } from '../hooks/useAnalytics'; /*DKDK_HEARTBEAT*/
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/v1';
 
@@ -54,6 +55,7 @@ const STATIC_SUBJECTS: Record<string, Subject[]> = {
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
 
 export default function SubmitPage() {
+  useAnalytics(); /*DKDK_HEARTBEAT*/
   const router  = useRouter();
   const fileRef  = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import TickerBand from '../components/TickerBand';
 import TranslateWidget from '../components/TranslateWidget';
 import ParcoursSection from './ParcoursSection';/*DKDK_IMPORT_PARCOURS*/
+import { useAnalytics } from '../hooks/useAnalytics'; /*DKDK_HEARTBEAT*/
 
 // ✅ Étoile rouge — identique au logo
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
@@ -322,6 +323,7 @@ function FinancesSection({balance,totalEarned,router}:{balance:number;totalEarne
 }
 
 export default function ComptePage() {
+  useAnalytics(); /*DKDK_HEARTBEAT*/
   const router=useRouter();
   const [activeTab,setActiveTab]=useState<TabId>('dashboard');
   const [profile,setProfile]=useState<UserProfile|null>(null);
