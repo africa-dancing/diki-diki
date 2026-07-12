@@ -100,10 +100,24 @@ export default function RechargePage() {
         body: JSON.stringify({ amount, method, operator: method, phone: phone.trim() }), /*DKDK_OPERATOR_FIELD*/
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? 'Erreur');
+      /*DKDK_ERR_MSG*/
+      if (!res.ok) {
+        const _code = String(data.error || data.message || '');
+        const _msgs: Record<string, string> = {
+          MISSING_FIELDS:   'Informations incompletes. Verifie le montant et le numero.',
+          INVALID_AMOUNT:   'Montant invalide (entre 100 et 100 000 F CFA).',
+          PAYMENT_FAILED:   'Le service de paiement est indisponible. Reessaie dans un instant.',
+          TX_INSERT_FAILED: 'Erreur lors de l enregistrement. Aucun montant n a ete debite.',
+          TOKEN_INVALID:    'Ta session a expire. Reconnecte-toi.',
+          USER_NOT_FOUND:   'Compte introuvable. Reconnecte-toi.',
+        };
+        throw new Error(_msgs[_code] || ('Echec de la recharge' + (_code ? ' (' + _code + ')' : '') + '.'));
+      }
       if (data.paymentUrl || data.payment_url) { window.location.href = (data.paymentUrl || data.payment_url); return; } /*DKDK_PAYMENT_URL*/
-      setSuccess(true);
-      setRechargeUnits(u => u + units);
+      /*DKDK_NO_FAKE_SUCCESS*/
+      // Le backend renvoie TOUJOURS paymentUrl en cas de succes (redirection ci-dessus).
+      // Arriver ici signifie donc une anomalie : surtout ne pas annoncer un succes.
+      throw new Error('Reponse inattendue du serveur. Aucun montant n a ete debite.');
     } catch (e: any) { setError(e.message); }
     finally { setLoading(false); }
   };
