@@ -22,7 +22,7 @@ export default function AdminLoginPage() {
     const res = await login(email, password);
     setLoading(false);
     if (!res.success) { setError(res.error || 'Erreur.'); return; }
-    setStep('otp');
+    /*DKDK_ADMIN_SECURE*/ router.replace('/admin');
   }
 
   async function handleOTP(code: string[]) {

@@ -20,17 +20,11 @@ interface AdminAuthContext {
 
 const AdminAuth = createContext<AdminAuthContext | null>(null);
 
-// ✅ Comptes admin Diki-Diki
-const ADMIN_ACCOUNTS = [
-  { email: 'admin@dikidiki.com', password: 'Admin2026!', role: 'admin' as const },
-  { email: 'ifedeg@gmail.com', password: 'Admin2026!', role: 'admin' as const },
-];
+/*DKDK_ADMIN_SECURE*/ // Aucun mot de passe cote client : le backend valide.
 
 export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [admin,   setAdmin]   = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [pending, setPending] = useState<{ email: string; password: string; role: 'admin' | 'moderator' } | null>(null);
-  const [otp,     setOtp]     = useState('');
 
   useEffect(() => {
     const saved = sessionStorage.getItem('dkdk_admin');
@@ -41,53 +35,47 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function login(email: string, password: string) {
-    const account = ADMIN_ACCOUNTS.find(a => a.email === email && a.password === password);
-    if (!account) return { success: false, error: 'Email ou mot de passe incorrect.' };
-
-    // Générer OTP 4 chiffres
-    const code = String(Math.floor(1000 + Math.random() * 9000));
-    setOtp(code);
-    setPending({ email: account.email, password: account.password, role: account.role });
-
-    // Dev : console. Production : SMS via Africa's Talking
-    console.log(`\n🔐 [DIKI-DIKI ADMIN] Code OTP pour ${email} : ${code}\n`);
-
-    // TODO production : envoyer SMS via Africa's Talking
-    // await fetch(`${API}/admin/send-otp`, { method:'POST', body: JSON.stringify({ email, code }) });
-
-    return { success: true };
-  }
-
-  async function verifyOTP(code: string) {
-    if (!pending) return { success: false, error: 'Session expirée.' };
-    if (code !== otp) return { success: false, error: 'Code incorrect.' };
-
+    /*DKDK_ADMIN_SECURE*/
     try {
-      // Appel backend pour obtenir le JWT admin
-      const res = await fetch(`${API}/auth/login`, {
+      const res = await fetch(API + '/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: pending.email, password: pending.password }),
+        body: JSON.stringify({ identifier: email, password: password }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? 'Erreur backend');
+      if (!res.ok || !data.token) {
+        return { success: false, error: 'Email ou mot de passe incorrect.' };
+      }
+
+      // Le role est porte par le JWT : on le lit sans faire confiance au client.
+      let role = '';
+      try {
+        const payload = JSON.parse(atob(data.token.split('.')[1]));
+        role = payload.role || '';
+      } catch { role = ''; }
+
+      if (role !== 'admin' && role !== 'moderateur') {
+        return { success: false, error: 'Acces reserve aux administrateurs.' };
+      }
 
       const adminUser: AdminUser = {
-        email:    pending.email,
-        role:     pending.role,
+        email:    email,
+        role:     role === 'admin' ? 'admin' : 'moderator',
         verified: true,
         token:    data.token,
       };
       setAdmin(adminUser);
       sessionStorage.setItem('dkdk_admin', JSON.stringify(adminUser));
-      setPending(null);
-      setOtp('');
       return { success: true };
     } catch (e: any) {
-      return { success: false, error: e.message ?? 'Erreur de connexion.' };
+      return { success: false, error: 'Erreur de connexion.' };
     }
   }
 
+  // Conservee pour compatibilite : l'OTP admin sera rebranche cote backend.
+  async function verifyOTP(_code: string) {
+    return { success: true };
+  }
   function logout() {
     setAdmin(null);
     sessionStorage.removeItem('dkdk_admin');
