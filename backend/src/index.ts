@@ -51,6 +51,7 @@ app.get('/health', (_req, res) => {
 app.use('/v1/auth',          authRouter);
 app.use('/v1/contests',      contestRouter);
 app.use('/v1/payment',       paymentRouter);
+app.use('/v1/payments',      paymentRouter); /*DKDK_PAYMENTS_ALIAS*/
 app.use('/v1/votes',         voteRouter);
 app.use('/v1/videos',        videoRouter);
 app.use('/v1/wallet',        walletRouter);
