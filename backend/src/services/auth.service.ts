@@ -45,7 +45,12 @@ async function sendSMSOTP(phone: string, otp: string): Promise<void> {
       username,
       to:      phone,
       message: `[DkDk] Votre code de vérification : ${otp}. Valide 10 min.`,
-      from:    process.env.AT_SENDER || 'DikiDiki', /*DKDK_AT_SENDER*/
+/*DKDK_NO_SENDER*/
+      // Sender ID desactive : Africa's Talking repond InvalidSenderId tant que
+      // "DikiDiki" n est pas valide chez eux (Product Requests -> SMS Sender ID).
+      // Sans "from", AT utilise son expediteur par defaut et le SMS part.
+      // POUR REACTIVER : decommenter la ligne ci-dessous.
+      // from:    process.env.AT_SENDER || 'DikiDiki',
     }),
     {
       headers: {
