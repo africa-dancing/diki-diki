@@ -44,7 +44,7 @@ async function sendSMSOTP(phone: string, otp: string): Promise<void> {
     new URLSearchParams({
       username,
       to:      phone,
-      message: `[DkDk] Votre code de vérification : ${otp}. Valide 10 min.`,
+      message: `Diki-Diki : votre code de verification est ${otp}. Valide 10 min.`, /*DKDK_SMS_TEXT*/
 /*DKDK_NO_SENDER*/
       // Sender ID desactive : Africa's Talking repond InvalidSenderId tant que
       // "DikiDiki" n est pas valide chez eux (Product Requests -> SMS Sender ID).
