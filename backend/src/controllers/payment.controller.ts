@@ -49,6 +49,20 @@ export async function initiate(req: Request, res: Response) {
       lastName:  _names.lastName,
     });
 
+    /*DKDK_RECHARGE_TX*/
+    const { error: _rcErr } = await supabase
+      .from('transactions')
+      .insert({
+        user_id:    userId,
+        type:       'credit',
+        amount,
+        net_amount: amount,
+        phone,
+        operator,
+        ref:        String(result.transactionId),
+        status:     'pending',
+      });
+    if (_rcErr) return res.status(500).json({ error: 'TX_INSERT_FAILED', detail: _rcErr.message });
     return res.status(200).json({ success: true, ...result });
 
   } catch (err: any) {
@@ -165,8 +179,15 @@ export async function webhook(req: Request, res: Response) { /*DKDK_WEBHOOK_VOTE
       }
     }
     // ---- Fin bloc retraits. En dessous : traitement de l'argent entrant. ----
-    const { transaction_id, status } = req.body;
-    if (status === 'approved') {
+    /*DKDK_WEBHOOK_APPROVED*/
+    // FedaPay envoie { name: "transaction.approved", entity: { id: ... } }
+    // et NON { status, transaction_id }. Confirme par les logs Railway.
+    const _wb: any = req.body || {};
+    const _wEvent = String(_wb.name || _wb.event || '').toLowerCase();
+    const _wEntity: any = _wb.entity || _wb.object || _wb.data || {};
+    const transaction_id = String(_wEntity.id || _wb.transaction_id || _wb.id || '');
+    const _wIsApproved = _wEvent.indexOf('transaction.approved') !== -1;
+    if (_wIsApproved && transaction_id) {
       const payment = await verifyPayment(transaction_id);
       if (payment.approved) {
         const { data: tx } = await supabase
