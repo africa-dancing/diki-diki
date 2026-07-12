@@ -366,7 +366,7 @@ export default function ComptePage() {
       </div>
 
       {/*DKDK_HALO*/}
-      <div style={{ height: 200, marginTop: 56, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', marginBottom: -200, pointerEvents: 'none' }} />
+      <div style={{ height: 200, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', marginBottom: -200, pointerEvents: 'none' }} />
       <div style={{maxWidth:660,margin:'0 auto',padding:'20px 16px'}}>
         {activeTab==='dashboard'&&<DashboardSection profile={profile} balance={balance} votesEmis={votesEmis} totalEarned={totalEarned} videoCount={userVideos.length} onEditProfile={()=>setShowEdit(true)}/>}
         {activeTab==='videos'&&<MesVideosSection videos={userVideos} loading={videosLoading} contests={contests} router={router} onRefresh={()=>{const t=getToken();const d=t?decodeToken(t):null;if(d?.userId)fetchVideos(d.userId);}}/>}
