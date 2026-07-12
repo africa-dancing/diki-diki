@@ -39,7 +39,7 @@ async function sendSMSOTP(phone: string, otp: string): Promise<void> {
     ? 'https://api.sandbox.africastalking.com/version1/messaging'
     : 'https://api.africastalking.com/version1/messaging';
 
-  await axios.post(
+  const _atRes = await axios.post(
     baseURL,
     new URLSearchParams({
       username,
@@ -55,6 +55,31 @@ async function sendSMSOTP(phone: string, otp: string): Promise<void> {
       },
     },
   );
+
+  /*DKDK_AT_RESPONSE*/
+  // Africa's Talking repond 201 MEME quand il refuse le message.
+  // Le vrai statut est dans le corps de la reponse. On le lit.
+  const _atData: any = _atRes && _atRes.data ? _atRes.data : {};
+  console.log('[AT_RAW] ' + JSON.stringify(_atData));
+
+  const _recipients =
+    _atData.SMSMessageData && Array.isArray(_atData.SMSMessageData.Recipients)
+      ? _atData.SMSMessageData.Recipients
+      : [];
+
+  if (_recipients.length === 0) {
+    const _msg = (_atData.SMSMessageData && _atData.SMSMessageData.Message) || 'aucun destinataire accepte';
+    console.error('[AT] REFUS : ' + _msg);
+    throw new Error('SMS_REJECTED: ' + _msg);
+  }
+
+  const _first = _recipients[0] || {};
+  const _status = String(_first.status || '');
+  console.log('[AT] statut=' + _status + ' | cout=' + (_first.cost || '?') + ' | numero=' + (_first.number || '?'));
+
+  if (_status.toLowerCase() !== 'success') {
+    throw new Error('SMS_REJECTED: ' + _status);
+  }
 }
 
 // ─── REGISTER ────────────────────────────────────────────────
