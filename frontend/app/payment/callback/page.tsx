@@ -30,7 +30,7 @@ function CallbackInner() {
       try {
         const token = getToken();
         if (!token) { if (!annule) setPhase('ok'); return; }
-        const res = await fetch(API + '/users/balance', {
+        /*DKDK_VOTES_BALANCE*/ const res = await fetch(API + '/votes/balance', {
           headers: { Authorization: 'Bearer ' + token },
         });
         if (res.ok) {
