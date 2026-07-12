@@ -130,7 +130,7 @@ export default function ContactPage() {
         <p style={s.sub}>Notre équipe vous répond sous 24h ouvrables</p>
       </div>
 
-      <div style={s.divider} />
+      
 
       <div style={s.body}>
 
