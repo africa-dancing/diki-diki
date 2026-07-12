@@ -25,7 +25,8 @@ import bracketRouter                                    from './routes/bracket.r
 import musiqueRouter                                    from './routes/musique.routes';    // ✅ déplacé ici
 import settingsRouter                                   from './routes/settings.routes';
 import monitoringRouter                                 from './routes/monitoring.routes';  /*DKDK_MONITORING_MOUNT*/
-import { startBracketCron }                             from './cron/bracket.cron';        // ✅ déplacé ici
+import { startBracketCron }                             from './cron/bracket.cron';        // ✅ déplacé ici
+import { startAnalyticsCron }                           from './cron/analytics.cron';    /*DKDK_ANALYTICS_CRON*/
 import { errorHandler }                                 from './middleware/error.middleware';
 
 const app  = express();
@@ -78,7 +79,8 @@ app.listen(PORT, () => {
   console.log(`   PORT : ${PORT}`);
   console.log(`   ENV  : ${process.env.NODE_ENV}`);
   console.log(`   Docs : http://localhost:${PORT}/health\n`);
-  startBracketCron();       // ✅ ici, dans listen()
+  startBracketCron();       // ✅ ici, dans listen()
+  startAnalyticsCron();     /*DKDK_ANALYTICS_CRON*/
   // startNotificationCron();
 })
 
