@@ -1,52 +1,66 @@
-// backend/src/controllers/analytics.ts
+// backend/src/controllers/analytics.controller.ts
+/*DKDK_ANALYTICS_DB*/
+// Sessions actives : en memoire (fenetre 60s, volatilite sans consequence).
+// Pages vues       : persistees dans public.page_views.
 import { Request, Response } from 'express';
+import { supabase } from '../../config/supabase';
 
-// ── Sessions actives en mémoire (TTL 60s) ──────────────────────────
 interface Session {
-  sessionId: string;
-  page:      string;
-  country?:  string;
+  sessionId:  string;
+  page:       string;
+  country?:   string;
   userAgent?: string;
   isLoggedIn: boolean;
-  lastSeen:  number;
+  lastSeen:   number;
 }
 
 const sessions = new Map<string, Session>();
-const pageViews: { page: string; ts: number }[] = [];
-const hourlyVisits: number[] = new Array(24).fill(0);
 
-// Nettoyer les sessions expirées toutes les 30s
+// Nettoyage des sessions expirees toutes les 30s
 setInterval(() => {
   const now = Date.now();
-  for (const [id, session] of sessions.entries()) {
-    if (now - session.lastSeen > 60_000) sessions.delete(id);
+  for (const [id, s] of sessions.entries()) {
+    if (now - s.lastSeen > 60_000) sessions.delete(id);
   }
 }, 30_000);
 
-// ── Heartbeat — ping depuis le frontend ────────────────────────────
+// --- Heartbeat : ping depuis le frontend --------------------------
 export async function heartbeat(req: Request, res: Response) {
   try {
     const { sessionId, page = '/', isLoggedIn = false } = req.body;
     if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
 
-    const country = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? 'Inconnu';
+    const country = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? null;
     const userAgent = req.headers['user-agent'] ?? '';
 
+    const existante = sessions.get(sessionId);
+
+    // On enregistre une page vue UNIQUEMENT si :
+    //   - la session est nouvelle, OU
+    //   - elle a change de page
+    // Sinon un visiteur immobile creerait 2 lignes par minute.
+    const nouvelleVue = !existante || existante.page !== page;
+
     sessions.set(sessionId, {
-      sessionId, page, country, userAgent,
+      sessionId, page,
+      country: country ?? undefined,
+      userAgent,
       isLoggedIn: !!isLoggedIn,
       lastSeen: Date.now(),
     });
 
-    // Enregistrer la page vue
-    pageViews.push({ page, ts: Date.now() });
-    // Garder seulement les 24h
-    const cutoff = Date.now() - 24 * 3600_000;
-    while (pageViews.length > 0 && pageViews[0].ts < cutoff) pageViews.shift();
-
-    // Comptage horaire
-    const hour = new Date().getHours();
-    hourlyVisits[hour]++;
+    if (nouvelleVue) {
+      // Ecriture non bloquante : une erreur analytics ne doit jamais
+      // casser la navigation de l'utilisateur.
+      supabase.from('page_views').insert({
+        session_id:   String(sessionId),
+        page:         String(page),
+        is_logged_in: !!isLoggedIn,
+        country:      country,
+      }).then(function (r: any) {
+        if (r && r.error) console.error('[ANALYTICS] insert echoue :', r.error.message);
+      });
+    }
 
     return res.json({ ok: true, active: sessions.size });
   } catch (e) {
@@ -54,49 +68,74 @@ export async function heartbeat(req: Request, res: Response) {
   }
 }
 
-// ── Visiteurs actifs ────────────────────────────────────────────────
-export async function getActiveVisitors(req: Request, res: Response) {
+// --- Visiteurs actifs (memoire) -----------------------------------
+export async function getActiveVisitors(_req: Request, res: Response) {
   const now = Date.now();
-  const active = Array.from(sessions.values()).filter(s => now - s.lastSeen < 60_000);
+  const actifs = Array.from(sessions.values()).filter(s => now - s.lastSeen < 60_000);
 
-  // Pages les plus visitées
-  const pageCounts: Record<string, number> = {};
-  for (const s of active) {
-    pageCounts[s.page] = (pageCounts[s.page] ?? 0) + 1;
-  }
-  const topPages = Object.entries(pageCounts)
+  const compteur: Record<string, number> = {};
+  for (const s of actifs) compteur[s.page] = (compteur[s.page] ?? 0) + 1;
+
+  const topPages = Object.entries(compteur)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([page, count]) => ({ page, count }));
 
   return res.json({
-    total:       active.length,
-    logged_in:   active.filter(s => s.isLoggedIn).length,
-    visitors:    active.filter(s => !s.isLoggedIn).length,
-    top_pages:   topPages,
-    sessions:    active.map(s => ({ page: s.page, isLoggedIn: s.isLoggedIn, lastSeen: s.lastSeen })),
+    total:     actifs.length,
+    logged_in: actifs.filter(s => s.isLoggedIn).length,
+    visitors:  actifs.filter(s => !s.isLoggedIn).length,
+    top_pages: topPages,
+    sessions:  actifs.map(s => ({ page: s.page, isLoggedIn: s.isLoggedIn, lastSeen: s.lastSeen })),
   });
 }
 
-// ── Résumé analytique ───────────────────────────────────────────────
-export async function getSummary(req: Request, res: Response) {
-  const now    = Date.now();
-  const today  = new Date(); today.setHours(0, 0, 0, 0);
-  const todayTs = today.getTime();
+// --- Resume analytique (lu depuis la base) -------------------------
+export async function getSummary(_req: Request, res: Response) {
+  try {
+    const maintenant = new Date();
 
-  const viewsToday  = pageViews.filter(p => p.ts >= todayTs).length;
-  const viewsHour   = pageViews.filter(p => p.ts >= now - 3600_000).length;
+    const debutJour = new Date(maintenant);
+    debutJour.setHours(0, 0, 0, 0);
 
-  // Pics horaires
-  const peakHour    = hourlyVisits.indexOf(Math.max(...hourlyVisits));
-  const peakLabel   = `${peakHour}h00–${peakHour + 1}h00`;
+    const ilYaUneHeure = new Date(maintenant.getTime() - 3600_000);
 
-  return res.json({
-    views_today:    viewsToday,
-    views_hour:     viewsHour,
-    active_now:     sessions.size,
-    peak_hour:      peakLabel,
-    peak_visits:    Math.max(...hourlyVisits),
-    hourly_visits:  hourlyVisits,
-  });
+    // Toutes les vues du jour (on les compte et on les repartit par heure)
+    const { data: vues, error } = await supabase
+      .from('page_views')
+      .select('created_at')
+      .gte('created_at', debutJour.toISOString());
+
+    if (error) {
+      console.error('[ANALYTICS] lecture echouee :', error.message);
+      return res.status(500).json({ error: 'Lecture analytics echouee' });
+    }
+
+    const lignes = vues || [];
+
+    // Repartition horaire du JOUR (remise a zero chaque jour, contrairement
+    // a l'ancien compteur en memoire qui cumulait indefiniment).
+    const parHeure: number[] = new Array(24).fill(0);
+    let vuesDerniereHeure = 0;
+
+    for (const l of lignes) {
+      const d = new Date(l.created_at);
+      parHeure[d.getHours()]++;
+      if (d >= ilYaUneHeure) vuesDerniereHeure++;
+    }
+
+    const pic       = Math.max.apply(null, parHeure);
+    const heurePic  = parHeure.indexOf(pic);
+
+    return res.json({
+      views_today:   lignes.length,
+      views_hour:    vuesDerniereHeure,
+      active_now:    sessions.size,
+      peak_hour:     heurePic + 'h00-' + (heurePic + 1) + 'h00',
+      peak_visits:   pic,
+      hourly_visits: parHeure,
+    });
+  } catch (e) {
+    return res.status(500).json({ error: 'Internal error' });
+  }
 }
