@@ -45,7 +45,7 @@ async function sendSMSOTP(phone: string, otp: string): Promise<void> {
       username,
       to:      phone,
       message: `[DkDk] Votre code de vérification : ${otp}. Valide 10 min.`,
-      from:    'DkDk',
+      from:    process.env.AT_SENDER || 'DikiDiki', /*DKDK_AT_SENDER*/
     }),
     {
       headers: {
