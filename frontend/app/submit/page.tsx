@@ -34,8 +34,7 @@ const STATIC_DISCIPLINES: Record<string, Discipline[]> = {
   parole: [
     { id: 'chant',   name: 'Chant',   emoji: '🎤', category_id: 'parole', description: 'Performance vocale accompagn&eacute;e (instru, bande-son&hellip;)' },
     { id: 'poesie',  name: 'Poésie',  emoji: '📜', category_id: 'parole', description: 'Slam, d&eacute;clamation, vers' },
-    { id: 'conte',   name: 'Conte',   emoji: '📖', category_id: 'parole', description: 'R&eacute;cit, narration orale' }, /*DKDK_HISTOIRES_AFRIQUE_ADD*/
-    { id: 'histoires-afrique', name: "Histoires d'Afrique", emoji: '🌍', category_id: 'parole', description: 'R&eacute;cits historiques et l&eacute;gendes du continent' },
+    { id: 'conte',   name: 'Conte',   emoji: '📖', category_id: 'parole', description: 'R&eacute;cit, narration orale' },
   ],
 };
 
@@ -47,7 +46,6 @@ const STATIC_SUBJECTS: Record<string, Subject[]> = {
   humour:      [{ id: 'standup', name: 'Stand-up', discipline_id: 'humour' }, { id: 'sketch', name: 'Sketch', discipline_id: 'humour' }],
   poesie:      [{ id: 'slam', name: 'Slam', discipline_id: 'poesie' }, { id: 'classique', name: 'Classique', discipline_id: 'poesie' }],
   conte:       [{ id: 'traditionnel_c', name: 'Traditionnel', discipline_id: 'conte' }, { id: 'moderne', name: 'Moderne', discipline_id: 'conte' }],
-  'histoires-afrique': [],
   theatre:     [{ id: 'comedie', name: 'Comédie', discipline_id: 'theatre' }, { id: 'drame', name: 'Drame', discipline_id: 'theatre' }],
   composition: [],
 };
