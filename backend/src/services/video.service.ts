@@ -3,7 +3,7 @@ const BUCKET = 'pac-videos';
 const MAX_SIZE_MB = 500;
 const MAX_DURATION = 600;
 const ALLOWED_TYPES = ['video/mp4', 'video/quicktime'];
-export type Discipline = 'danse' | 'chant' | 'instrument' | 'acapella' | 'humour' | 'poesie';
+export type Discipline = 'danse' | 'chant' | 'instrument' | 'acapella' | 'humour' | 'poesie' | 'conte'; /*DKDK_DISC_TYPE*/
 export interface UploadVideoParams { userId: string; discipline: Discipline; trackTitle?: string; trackArtist?: string; trackGenre?: string; title?: string; description?: string; fileBuffer: Buffer; fileName: string; mimeType: string; fileSizeMb: number; challengeType?: string; }
 
 export async function uploadVideo(params: UploadVideoParams) {

@@ -24,12 +24,10 @@ const STATIC_DISCIPLINES: Record<string, Discipline[]> = {
   scene: [
     { id: 'danse',   name: 'Danse',   emoji: '💃', category_id: 'scene', description: 'Chor&eacute;graphie sur sc&egrave;ne, tous styles' },
     { id: 'humour',  name: 'Humour',  emoji: '😂', category_id: 'scene', description: 'Sketchs, imitations, humour' },
-    { id: 'theatre', name: 'Théâtre', emoji: '🎭', category_id: 'scene', description: 'Jeu d&apos;acteur, mise en sc&egrave;ne' },
   ],
   musique: [
     { id: 'instrument', name: 'Instrument', emoji: '🎸', category_id: 'musique', description: 'Jeu instrumental (guitare, piano, kora, percussion&hellip;)' },
     { id: 'acapella',   name: 'A cappella', emoji: '🎙️', category_id: 'musique', description: 'Chant sans aucun instrument, voix seule(s)' },
-    { id: 'composition',name: 'Composition',emoji: '🎵', category_id: 'musique', description: 'Cr&eacute;ation musicale originale' },
   ],
   parole: [
     { id: 'chant',   name: 'Chant',   emoji: '🎤', category_id: 'parole', description: 'Performance vocale accompagn&eacute;e (instru, bande-son&hellip;)' },
@@ -46,8 +44,6 @@ const STATIC_SUBJECTS: Record<string, Subject[]> = {
   humour:      [{ id: 'standup', name: 'Stand-up', discipline_id: 'humour' }, { id: 'sketch', name: 'Sketch', discipline_id: 'humour' }],
   poesie:      [{ id: 'slam', name: 'Slam', discipline_id: 'poesie' }, { id: 'classique', name: 'Classique', discipline_id: 'poesie' }],
   conte:       [{ id: 'traditionnel_c', name: 'Traditionnel', discipline_id: 'conte' }, { id: 'moderne', name: 'Moderne', discipline_id: 'conte' }],
-  theatre:     [{ id: 'comedie', name: 'Comédie', discipline_id: 'theatre' }, { id: 'drame', name: 'Drame', discipline_id: 'theatre' }],
-  composition: [],
 };
 
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
