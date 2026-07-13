@@ -13,7 +13,7 @@ interface AdminUser {
 interface AdminAuthContext {
   admin:     AdminUser | null;
   loading:   boolean;
-  login:     (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login:     (email: string, password: string) => Promise<{ success: boolean; error?: string; totp_required?: boolean }>;
   verifyOTP: (code: string) => Promise<{ success: boolean; error?: string }>;
   logout:    () => void;
 }
@@ -34,8 +34,11 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
+  // Session en attente : mot de passe valide, TOTP pas encore verifie.
+  const [pendingAuth, setPendingAuth] = useState<AdminUser | null>(null); /*DKDK_TOTP_FRONT*/
+
   async function login(email: string, password: string) {
-    /*DKDK_ADMIN_SECURE*/
+    /*DKDK_TOTP_FRONT*/
     try {
       const res = await fetch(API + '/auth/login', {
         method: 'POST',
@@ -47,7 +50,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: 'Email ou mot de passe incorrect.' };
       }
 
-      // Le role est porte par le JWT : on le lit sans faire confiance au client.
+      // Le role est porte par le JWT : on ne fait pas confiance au client.
       let role = '';
       try {
         const payload = JSON.parse(atob(data.token.split('.')[1]));
@@ -64,17 +67,65 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         verified: true,
         token:    data.token,
       };
-      setAdmin(adminUser);
-      sessionStorage.setItem('dkdk_admin', JSON.stringify(adminUser));
-      return { success: true };
+
+      // Ce compte exige-t-il un second facteur ?
+      let totpRequis = false;
+      try {
+        const st = await fetch(API + '/auth/totp/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const sd = await st.json();
+        totpRequis = !!sd.totp_enabled;
+      } catch {
+        // Si le statut est injoignable, on n'exige pas le TOTP :
+        // mieux vaut un acces mot de passe qu'un admin verrouille dehors.
+        totpRequis = false;
+      }
+
+      if (!totpRequis) {
+        // Pas de TOTP configure : session ouverte directement.
+        setAdmin(adminUser);
+        sessionStorage.setItem('dkdk_admin', JSON.stringify(adminUser));
+        return { success: true, totp_required: false };
+      }
+
+      // TOTP requis : on garde la session en attente, rien n'est stocke.
+      setPendingAuth(adminUser);
+      return { success: true, totp_required: true };
     } catch (e: any) {
       return { success: false, error: 'Erreur de connexion.' };
     }
   }
 
-  // Conservee pour compatibilite : l'OTP admin sera rebranche cote backend.
-  async function verifyOTP(_code: string) {
-    return { success: true };
+  // Verifie le code a 6 chiffres cote backend, puis ouvre la session.
+  async function verifyOTP(code: string) {
+    /*DKDK_TOTP_FRONT*/
+    if (!pendingAuth) return { success: false, error: 'Session expiree. Recommence.' };
+
+    try {
+      const res = await fetch(API + '/auth/totp/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + pendingAuth.token,
+        },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || 'Code incorrect.' };
+      }
+
+      setAdmin(pendingAuth);
+      sessionStorage.setItem('dkdk_admin', JSON.stringify(pendingAuth));
+      setPendingAuth(null);
+      return { success: true };
+    } catch {
+      return { success: false, error: 'Erreur de connexion.' };
+    }
   }
   function logout() {
     setAdmin(null);

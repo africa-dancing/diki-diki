@@ -11,7 +11,7 @@ export default function AdminLoginPage() {
   const [step,     setStep]     = useState<Step>('credentials');
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
-  const [otp,      setOtp]      = useState(['', '', '', '']);
+  const [otp,      setOtp]      = useState(['', '', '', '', '', '']); /*DKDK_TOTP_FRONT*/
   const [error,    setError]    = useState('');
   const [loading,  setLoading]  = useState(false);
   const [showPw,   setShowPw]   = useState(false);
@@ -22,7 +22,9 @@ export default function AdminLoginPage() {
     const res = await login(email, password);
     setLoading(false);
     if (!res.success) { setError(res.error || 'Erreur.'); return; }
-    /*DKDK_ADMIN_SECURE*/ router.replace('/admin');
+    /*DKDK_TOTP_FRONT*/
+    if (res.totp_required) { setStep('otp'); return; }
+    router.replace('/admin');
   }
 
   async function handleOTP(code: string[]) {
@@ -36,7 +38,7 @@ export default function AdminLoginPage() {
   function handleOtpInput(val: string, idx: number) {
     if (!/^\d?$/.test(val)) return;
     const next = [...otp]; next[idx] = val; setOtp(next);
-    if (val && idx < 3) document.getElementById(`otp-${idx + 1}`)?.focus();
+    if (val && idx < 5) document.getElementById(`otp-${idx + 1}`)?.focus();
     if (next.every(d => d)) setTimeout(() => handleOTP(next), 100);
   }
 
@@ -104,14 +106,14 @@ export default function AdminLoginPage() {
             <>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', fontFamily: 'Syne, sans-serif', marginBottom: 4 }}>Code de vérification</div>
               <div style={{ fontSize: 12, color: '#4a4a6a', marginBottom: 4 }}>Code OTP à 4 chiffres.</div>
-              <div style={{ fontSize: 11, color: '#2a2a4a', marginBottom: 20 }}>💻 Mode développement — voir la console VS Code</div>
+              <div style={{ fontSize: 11, color: '#6a6a8a', marginBottom: 20 }}>Code a 6 chiffres de votre application d'authentification</div>
 
               <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 20 }}>
                 {otp.map((d, i) => (
                   <input key={i} id={`otp-${i}`} type="tel" maxLength={1} value={d}
                     onChange={e => handleOtpInput(e.target.value, i)}
                     onKeyDown={e => handleKeyDown(e, i)}
-                    style={{ width: 56, height: 64, textAlign: 'center', fontSize: 24, fontWeight: 700, background: 'rgba(255,255,255,0.06)', borderRadius: 12, color: OR, outline: 'none', fontFamily: 'DM Sans, sans-serif', border: `1px solid ${d ? OR : 'rgba(255,255,255,0.1)'}` }} />
+                    style={{ width: 44, height: 56, textAlign: 'center', fontSize: 24, fontWeight: 700, background: 'rgba(255,255,255,0.06)', borderRadius: 12, color: OR, outline: 'none', fontFamily: 'DM Sans, sans-serif', border: `1px solid ${d ? OR : 'rgba(255,255,255,0.1)'}` }} />
                 ))}
               </div>
 
@@ -130,3 +132,4 @@ export default function AdminLoginPage() {
     </div>
   );
 }
+
