@@ -1,5 +1,9 @@
 ﻿import { supabase } from '../../config/supabase';
-const BUCKET = 'pac-videos';
+/*DKDK_R2*/
+import { r2, R2_BUCKET } from '../../config/r2';
+import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+// const BUCKET = 'pac-videos';  /*DKDK_R2*/ ancien bucket Supabase, conserve pour memoire
 const MAX_SIZE_MB = 500;
 const MAX_DURATION = 600;
 const ALLOWED_TYPES = ['video/mp4', 'video/quicktime'];
@@ -12,9 +16,26 @@ export async function uploadVideo(params: UploadVideoParams) {
   if (fileSizeMb > MAX_SIZE_MB) throw new Error('FILE_TOO_LARGE');
   const ext = fileName.split('.').pop();
   const storagePath = `${userId}/${Date.now()}_prestation.${ext}`;
-  const { error: uploadErr } = await supabase.storage.from(BUCKET).upload(storagePath, fileBuffer, { contentType: mimeType, upsert: false });
-  if (uploadErr) throw new Error('UPLOAD_FAILED');
-  const { data: signedUrl } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, 604800);
+  /*DKDK_R2*/ // Envoi vers Cloudflare R2 (egress gratuit)
+  try {
+    await r2.send(new PutObjectCommand({
+      Bucket:      R2_BUCKET,
+      Key:         storagePath,
+      Body:        fileBuffer,
+      ContentType: mimeType,
+    }));
+  } catch (e: any) {
+    console.error('[R2] upload echoue :', e?.message ?? e);
+    throw new Error('UPLOAD_FAILED');
+  }
+
+  // URL signee valable 7 jours (meme duree qu'avant).
+  const urlSignee = await getSignedUrl(
+    r2,
+    new GetObjectCommand({ Bucket: R2_BUCKET, Key: storagePath }),
+    { expiresIn: 604800 }
+  );
+  const signedUrl = { signedUrl: urlSignee };
   const { data: video, error: dbErr } = await supabase.from('videos').insert({ user_id: userId, discipline, track_title: trackTitle, track_artist: trackArtist, track_genre: trackGenre, title, description, storage_path: storagePath, storage_url: signedUrl?.signedUrl, file_size_mb: fileSizeMb, format: ext, status: 'pending', challenge_type: challengeType || 'C16' }).select().single();
   if (dbErr) throw dbErr;
   await notifyModerators(video.id, userId, discipline);
@@ -49,16 +70,30 @@ export async function getUserVideos(userId: string) {
 }
 
 export async function refreshVideoUrl(storagePath: string): Promise<string> {
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, 604800);
-  if (error || !data) throw new Error('URL_REFRESH_FAILED');
-  return data.signedUrl;
+  /*DKDK_R2*/
+  try {
+    return await getSignedUrl(
+      r2,
+      new GetObjectCommand({ Bucket: R2_BUCKET, Key: storagePath }),
+      { expiresIn: 604800 }
+    );
+  } catch (e: any) {
+    console.error('[R2] refresh echoue :', e?.message ?? e);
+    throw new Error('URL_REFRESH_FAILED');
+  }
 }
 
 export async function deleteVideo(videoId: string, userId: string, isAdmin = false) {
   const { data: video } = await supabase.from('videos').select('storage_path, user_id').eq('id', videoId).single();
   if (!video) throw new Error('VIDEO_NOT_FOUND');
   if (!isAdmin && video.user_id !== userId) throw new Error('FORBIDDEN');
-  await supabase.storage.from(BUCKET).remove([video.storage_path]);
+  /*DKDK_R2*/ // Suppression dans R2. Non bloquante : si le fichier
+  // n'existe plus, la ligne en base doit quand meme partir.
+  try {
+    await r2.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: video.storage_path }));
+  } catch (e: any) {
+    console.error('[R2] suppression echouee (non bloquant) :', e?.message ?? e);
+  }
   await supabase.from('videos').delete().eq('id', videoId);
   return { success: true };
 }
