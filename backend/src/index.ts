@@ -20,7 +20,8 @@ import {
 } from './routes/index.routes';
 import { videoRouter }                                  from './routes/video.routes';
 import { notificationRouter, startNotificationCron }   from './routes/notification.routes';
-import analyticsRouter                                  from './routes/analytics';
+import analyticsRouter                                  from './routes/analytics';
+import totpRouter                                        from './routes/totp.routes';       /*DKDK_TOTP*/
 import bracketRouter                                    from './routes/bracket.routes';
 import musiqueRouter                                    from './routes/musique.routes';    // ✅ déplacé ici
 import settingsRouter                                   from './routes/settings.routes';
@@ -63,6 +64,7 @@ app.use('/v1/categories',    categoryRouter);
 app.use('/v1/stats',         statsRouter);
 app.use('/v1/notifications', notificationRouter);
 app.use('/v1/analytics',     analyticsRouter);
+app.use('/v1/auth/totp', totpRouter);   /*DKDK_TOTP*/
 app.use('/v1/brackets',      bracketRouter);
 app.use('/v1/musiques',      musiqueRouter);
 app.use('/v1/settings',      settingsRouter);
