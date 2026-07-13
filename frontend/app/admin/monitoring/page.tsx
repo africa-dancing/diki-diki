@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { AdminGuard }   from '../../components/admin/AdminGuard';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
@@ -6,9 +6,9 @@ import { useState, useEffect } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR = '#FFAA00';
-const QUOTA_GB = 250;
-const SEUIL_ORANGE_GB = 105;
-const SEUIL_ROUGE_GB = 150;
+const QUOTA_GB = 5; /*DKDK_QUOTA_REEL*/
+const SEUIL_ORANGE_GB = 3;
+const SEUIL_ROUGE_GB = 4.5;
 
 function fmt(n: number) {
   return (n ?? 0).toLocaleString('fr-FR');
@@ -78,7 +78,7 @@ function MonitoringInner() {
               <div style={{ height:14, background:'#1e1e2e', borderRadius:7, overflow:'hidden' }}>
                 <div style={{ width:pct + '%', height:'100%', background:couleur, transition:'width .3s' }} />
               </div>
-              <div style={{ fontSize:11, color:'#4a4a6a', marginTop:6 }}>{pct} % du quota Supabase Pro. Alerte orange a {SEUIL_ORANGE_GB} Go, rouge a {SEUIL_ROUGE_GB} Go.</div>
+              <div style={{ fontSize:11, color:'#4a4a6a', marginTop:6 }}>{pct} % du quota Supabase Free. Alerte orange a {SEUIL_ORANGE_GB} Go, rouge a {SEUIL_ROUGE_GB} Go.</div>
             </div>
 
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))', gap:14 }}>

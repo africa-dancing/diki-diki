@@ -40,7 +40,28 @@ function SanteWidget(props: { token?: string; router: any }) {
       .catch(function(){});
     return function(){ alive = false; };
   }, []);
-  const QUOTA = 250, ORANGE = 105, ROUGE = 150;
+  /*DKDK_QUOTA_REEL*/
+  // Quota lu depuis settings (reglable dans /admin/reglages).
+  // Repli : les vraies limites du plan Supabase FREE (~5 Go Egress/mois),
+  // et NON les 250 Go du plan Pro qui etaient codes en dur ici.
+  const [QUOTA,  setQuota]  = useState(5);
+  const [ORANGE, setOrange] = useState(3);
+  const [ROUGE,  setRouge]  = useState(4.5);
+
+  useEffect(() => {
+    let vivant = true;
+    fetch(API + "/settings", { cache: "no-store" })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (!vivant || !j) return;
+        var s = j.data || j;
+        if (s.infra_quota_gb)  setQuota(parseFloat(s.infra_quota_gb));
+        if (s.infra_orange_gb) setOrange(parseFloat(s.infra_orange_gb));
+        if (s.infra_rouge_gb)  setRouge(parseFloat(s.infra_rouge_gb));
+      })
+      .catch(function(){});
+    return function(){ vivant = false; };
+  }, []);
   const val = bw || 0;
   const pct = Math.min(100, Math.round((val / QUOTA) * 100));
   let col = "#4ade80";
