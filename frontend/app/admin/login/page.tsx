@@ -64,7 +64,6 @@ export default function AdminLoginPage() {
           {step === 'credentials' && (
             <>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', fontFamily: 'Syne, sans-serif', marginBottom: 4 }}>Connexion administrateur</div>
-              <div style={{ fontSize: 12, color: '#4a4a6a', marginBottom: 20 }}>Un code OTP sera généré après vérification</div>
 
               <div style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.5px' }}>Email</div>
@@ -105,7 +104,6 @@ export default function AdminLoginPage() {
           {step === 'otp' && (
             <>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', fontFamily: 'Syne, sans-serif', marginBottom: 4 }}>Code de vérification</div>
-              <div style={{ fontSize: 12, color: '#4a4a6a', marginBottom: 4 }}>Code OTP à 4 chiffres.</div>
               <div style={{ fontSize: 11, color: '#6a6a8a', marginBottom: 20 }}>Code a 6 chiffres de votre application d'authentification</div>
 
               <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 20 }}>
