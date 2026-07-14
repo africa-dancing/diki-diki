@@ -66,6 +66,16 @@ export default function RechargePage() {
   const [success, setSuccess] = useState(false);
   const [error,   setError]   = useState('');
 
+  /*DKDK_VERIF_NUM*/
+  // Le SMS de verification coute 17 F. Il ne part donc PAS a
+  // l inscription, mais ici : au moment ou l utilisateur veut
+  // mettre de l argent. C est la seule fois ou les 17 F sont justifies.
+  const [besoinVerif, setBesoinVerif] = useState(false);
+  const [codeOtp,     setCodeOtp]     = useState('');
+  const [otpEnvoye,   setOtpEnvoye]   = useState(false);
+  const [verifMsg,    setVerifMsg]    = useState('');
+  const [verifLoad,   setVerifLoad]   = useState(false);
+
   useEffect(() => {
     const token = getToken();
     if (!token) { router.push('/auth/login'); return; }
@@ -91,6 +101,57 @@ export default function RechargePage() {
   const amount = customAmount ? parseInt(customAmount.replace(/\D/g, '')) || 0 : selectedAmount;
   /*DKDK_UNIT_CALC*/ const units  = Math.floor(amount / unitValue);
 
+  /*DKDK_VERIF_NUM*/
+  // Envoie le SMS de verification. C est le SEUL endroit de toute la
+  // plateforme ou les 17 F sont depenses : au moment ou l utilisateur
+  // veut mettre de l argent, donc quand ca en vaut la peine.
+  const envoyerCode = async () => {
+    if (!phone.trim()) { setVerifMsg('Renseigne ton numero ci-dessus.'); return; }
+    setVerifLoad(true); setVerifMsg('');
+    try {
+      const r = await fetch(`${API}/auth/resend-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim() }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'SEND_FAILED');
+      setOtpEnvoye(true);
+      setVerifMsg('Code envoye par SMS. Il est valable 10 minutes.');
+    } catch (e: any) {
+      setVerifMsg(e.message === 'USER_NOT_FOUND'
+        ? 'Ce numero ne correspond pas a ton compte.'
+        : 'Envoi impossible. Reessaie dans un instant.');
+    } finally { setVerifLoad(false); }
+  };
+
+  // Valide le code recu. Une fois passe, le compte est verifie
+  // definitivement : l utilisateur ne recevra plus jamais de SMS.
+  const validerCode = async () => {
+    if (codeOtp.length < 4) { setVerifMsg('Saisis le code recu.'); return; }
+    setVerifLoad(true); setVerifMsg('');
+    try {
+      const r = await fetch(`${API}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim(), otp: codeOtp }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'OTP_INVALID');
+      setBesoinVerif(false);
+      setOtpEnvoye(false);
+      setCodeOtp('');
+      setVerifMsg('');
+      setError('Numero verifie. Tu peux maintenant recharger.');
+    } catch (e: any) {
+      const msgs: Record<string, string> = {
+        OTP_EXPIRED: 'Code expire. Demande un nouveau code.',
+        OTP_INVALID: 'Code incorrect. Verifie et reessaie.',
+      };
+      setVerifMsg(msgs[e.message] || 'Verification impossible.');
+    } finally { setVerifLoad(false); }
+  };
+
   const handleRecharge = async () => {
     if (!amount || amount < 500) { setError('Montant minimum : 500 F CFA.'); return; }
     if (method !== 'card' && !phone.trim()) { setError('Numéro de téléphone requis.'); return; }
@@ -102,6 +163,15 @@ export default function RechargePage() {
         body: JSON.stringify({ amount, method, operator: method, phone: phone.trim() }), /*DKDK_OPERATOR_FIELD*/
       });
       const data = await res.json();
+      /*DKDK_VERIF_NUM*/
+      // Numero pas encore verifie : on affiche l encart plutot qu une erreur.
+      if (res.status === 403 && data.error === 'PHONE_NOT_VERIFIED') {
+        setBesoinVerif(true);
+        setError('');
+        setLoading(false);
+        return;
+      }
+
       /*DKDK_ERR_MSG*/
       if (!res.ok) {
         const _code = String(data.error || data.message || '');
@@ -289,6 +359,44 @@ export default function RechargePage() {
         )}
 
         {/* ── Erreur ── */}
+        {/*DKDK_VERIF_NUM*/}
+        {besoinVerif && (
+          <div style={{ background: 'rgba(255,170,0,0.07)', border: '1px solid rgba(255,170,0,0.3)', borderRadius: 14, padding: '18px 20px', marginBottom: 18 }}>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 15, color: '#FFAA00', marginBottom: 6 }}>
+              Verifie ton numero
+            </div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: 14 }}>
+              Avant de recharger, nous devons confirmer que ce numero est bien le tien.
+              Tu ne le feras qu une seule fois.
+            </div>
+
+            {!otpEnvoye ? (
+              <button onClick={envoyerCode} disabled={verifLoad}
+                style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 10, color: '#0a0a0f', fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 700, cursor: verifLoad ? 'wait' : 'pointer', opacity: verifLoad ? 0.6 : 1 }}>
+                {verifLoad ? 'Envoi...' : 'Recevoir le code par SMS'}
+              </button>
+            ) : (
+              <div>
+                <input value={codeOtp} onChange={e => setCodeOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="Code a 6 chiffres" inputMode="numeric" maxLength={6}
+                  style={{ width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, color: '#FFAA00', fontFamily: 'DM Sans, sans-serif', fontSize: 18, fontWeight: 700, letterSpacing: '0.2em', textAlign: 'center', outline: 'none', marginBottom: 10 }} />
+                <button onClick={validerCode} disabled={verifLoad}
+                  style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 10, color: '#0a0a0f', fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 700, cursor: verifLoad ? 'wait' : 'pointer', opacity: verifLoad ? 0.6 : 1 }}>
+                  {verifLoad ? 'Verification...' : 'Valider'}
+                </button>
+                <button onClick={envoyerCode} disabled={verifLoad}
+                  style={{ width: '100%', padding: '8px', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans, sans-serif', fontSize: 12, cursor: 'pointer', marginTop: 4 }}>
+                  Renvoyer le code
+                </button>
+              </div>
+            )}
+
+            {verifMsg && (
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 10, lineHeight: 1.5 }}>{verifMsg}</div>
+            )}
+          </div>
+        )}
+
         {error && (
           <div style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: 12, padding: '11px 14px', fontSize: 13, color: '#f87171', marginBottom: 20 }}>
             ⚠️ {error}
