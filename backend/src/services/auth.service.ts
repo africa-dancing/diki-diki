@@ -125,8 +125,13 @@ export async function registerUser(data: {
 
   if (process.env.NODE_ENV !== 'production') console.log(`[DEV] OTP pour ${phone}: ${otp}`); /*DKDK_OTP_GUARD*/
   try {
-    await sendSMSOTP(phone, otp);
-    console.log(`[AT] SMS envoyé avec succès à ${phone}`);
+    /*DKDK_SMS_DIFF*/ // SMS RETIRE de l inscription.
+  // Avant : 17 F par inscrit, meme pour un curieux qui ne revient pas.
+  // Maintenant : l OTP est genere et stocke, mais le SMS ne part QUE
+  // quand l utilisateur demande a verifier son numero (POST /auth/resend-otp),
+  // c est-a-dire au moment de recharger, voter ou soumettre une video.
+  // await sendSMSOTP(phone, otp);   <-- retire volontairement
+    console.log(`[DKDK] Aucun SMS envoye a l inscription (economie 17 F). Code : ${otp}`);
   } catch (err) {
     console.error(`[AT] Erreur envoi SMS:`, err);
   }
@@ -171,7 +176,11 @@ export async function loginUser(identifier: string, password: string) {
     .single();
 
   if (error || !user)    throw new Error('INVALID_CREDENTIALS');
-  if (!user.is_verified) throw new Error('ACCOUNT_NOT_VERIFIED');
+  /*DKDK_SMS_DIFF*/
+  // Un compte non verifie PEUT se connecter et regarder la plateforme.
+  // La verification est exigee plus loin, par requireVerified, sur les
+  // routes qui touchent a l argent.
+  // if (!user.is_verified) throw new Error('ACCOUNT_NOT_VERIFIED');
 
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) throw new Error('INVALID_CREDENTIALS');
@@ -314,3 +323,4 @@ export async function resendOTP(phone: string) {
 
   return { message: 'OTP_RESENT' };
 }
+

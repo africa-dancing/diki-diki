@@ -3,7 +3,7 @@
 // ============================================================
 import { Router, Request, Response } from 'express';
 import { supabase }  from '../../config/supabase';
-import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
+import { requireAuth, requireAdmin, AuthRequest, requireVerified } from '../middleware/auth.middleware';
 import { notifications } from '../services/notification.service';
 import { z } from 'zod';
 
@@ -29,9 +29,9 @@ import { Router as PaymentRouter } from 'express';
 import * as paymentCtrl from '../controllers/payment.controller';
 
 const paymentRouter = PaymentRouter();
-paymentRouter.post('/initiate', requireAuth, paymentCtrl.initiate);
-paymentRouter.post('/vote', requireAuth, paymentCtrl.initiateVotePayment); /*DKDK_VOTE_PAY_ROUTE*/
-paymentRouter.post('/withdraw', requireAuth, paymentCtrl.withdraw); /*DKDK_WITHDRAW_ROUTE*/
+paymentRouter.post('/initiate', requireAuth, requireVerified, paymentCtrl.initiate);
+paymentRouter.post('/vote', requireAuth, requireVerified, paymentCtrl.initiateVotePayment); /*DKDK_VOTE_PAY_ROUTE*/
+paymentRouter.post('/withdraw', requireAuth, requireVerified, paymentCtrl.withdraw); /*DKDK_WITHDRAW_ROUTE*/
 paymentRouter.post('/webhook',  paymentCtrl.webhook);
 export { paymentRouter };
 

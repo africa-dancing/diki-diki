@@ -7,7 +7,7 @@ import {
   addVoteToCagnotte,
 } from '../services/bracket.service';
 import { inscribeToArena, createArenaChallenge } from '../services/bracketArena.service';
-import { requireAuth, AuthRequest } from '../middleware/auth.middleware';
+import { requireAuth, AuthRequest, requireVerified } from '../middleware/auth.middleware';
 
 const bracketRouter = Router();
 
@@ -51,7 +51,7 @@ bracketRouter.post('/arena/inscribe', requireAuth, async (req: AuthRequest, res:
 });
 
 // Creation d'un challenge par un utilisateur (3 gardes + anti-doublon + 1er inscrit)
-bracketRouter.post('/arena/create', requireAuth, async (req: AuthRequest, res: Response) => {
+bracketRouter.post('/arena/create', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   try {
     const { video_id, categorie, discipline, style, track_id, mode } = req.body; /*DKDK_TRACK_MODE_ROUTE*/
     if (!video_id || !categorie || !discipline || !style)
@@ -66,7 +66,7 @@ bracketRouter.post('/arena/create', requireAuth, async (req: AuthRequest, res: R
 });
 
 // Vote a 100 F (RPC atomique : debit wallet + trace + compteurs + cagnottes)
-bracketRouter.post('/arena/vote', requireAuth, async (req: AuthRequest, res: Response) => {
+bracketRouter.post('/arena/vote', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   try {
     const { duel_id, participant_id } = req.body;
     if (!duel_id || !participant_id)
@@ -354,7 +354,7 @@ bracketRouter.get('/participant/:participantId/videos', /*DKDK_PARCOURS_PUBLIC*/
 });
 
 // Vote pool (plusieurs etoiles possibles) -> RPC vote_bracket_pool
-bracketRouter.post('/arena/vote-pool', requireAuth, async (req: AuthRequest, res: Response) => {
+bracketRouter.post('/arena/vote-pool', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   try {
     const { participant_id, qty, type } = req.body;
     if (!participant_id)
@@ -376,7 +376,7 @@ bracketRouter.post('/arena/vote-pool', requireAuth, async (req: AuthRequest, res
 
 // ===== ROUTE SOUTENIR (hors challenge, 10F/clic, 50/50) =====
 /*DKDK_SOUTENIR_ROUTE*/
-bracketRouter.post('/video/:videoId/soutenir', requireAuth, async (req: AuthRequest, res: Response) => {
+bracketRouter.post('/video/:videoId/soutenir', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   try {
     const supabase = getSupabase();
     const { videoId } = req.params;

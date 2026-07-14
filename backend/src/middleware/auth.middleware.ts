@@ -1,3 +1,4 @@
+import { supabase } from '../../config/supabase';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
@@ -32,3 +33,34 @@ export function requireAdmin(
   }
   next();
 }
+
+/*DKDK_SMS_DIFF*/
+// --- requireVerified ------------------------------------------------
+// Le SMS de verification coute 17 F. On ne l'envoie donc PAS a
+// l'inscription (un curieux qui ne revient jamais nous couterait 17 F),
+// mais au moment ou l'argent entre en jeu : recharge, vote, retrait,
+// soumission de video.
+//
+// A poser APRES requireAuth : il a besoin de req.user.userId.
+export async function requireVerified(req: AuthRequest, res: Response, next: NextFunction) {
+  const userId = req.user?.userId;
+  if (!userId) return res.status(401).json({ error: 'TOKEN_MISSING' });
+
+  const { data, error } = await supabase
+    .from('users')
+    .select('is_verified')
+    .eq('id', userId)
+    .single();
+
+  if (error || !data) return res.status(404).json({ error: 'USER_NOT_FOUND' });
+
+  if (!data.is_verified) {
+    return res.status(403).json({
+      error: 'PHONE_NOT_VERIFIED',
+      message: 'Verifie ton numero de telephone pour continuer.',
+    });
+  }
+
+  next();
+}
+

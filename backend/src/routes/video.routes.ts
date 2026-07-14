@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
+import { requireAuth, requireAdmin, AuthRequest, requireVerified } from '../middleware/auth.middleware';
 import {
   uploadVideo, moderateVideo, getPendingVideos, getVideosByStatus,
   getUserVideos, deleteVideo, VIDEO_CONSTRAINTS,
@@ -42,7 +42,7 @@ videoRouter.get('/constraints', (_req: Request, res: Response) => {
   res.json(VIDEO_CONSTRAINTS);
 });
 
-videoRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
+videoRouter.post('/', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   try {
     const { discipline, track_title, track_artist, track_genre, title, description } = req.body;
     if (!discipline) return res.status(400).json({ error: 'DISCIPLINE_REQUIRED' });
@@ -65,7 +65,7 @@ videoRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   }
 });
 
-videoRouter.post('/upload', requireAuth, async (req: AuthRequest, res: Response) => {
+videoRouter.post('/upload', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   const { discipline, track_title, track_artist, track_genre, title, description } = req.body;
   if (!discipline) return res.status(400).json({ error: 'DISCIPLINE_REQUIRED' });
   if (!req.body.file_base64) return res.status(400).json({ error: 'FILE_REQUIRED' });
