@@ -54,19 +54,19 @@ export async function getVideosByStatus(status?: string) {
   if (status && ['pending','approved','rejected'].includes(status)) query = query.eq('status', status);
   const { data, error } = await query;
   if (error) throw error;
-  return data || [];
+  return await signerVideos(data || []); /*DKDK_SIGN_READ*/
 }
 
 export async function getPendingVideos() {
   const { data, error } = await supabase.from('videos').select('*').eq('status', 'pending').order('created_at', { ascending: true });
   if (error) throw error;
-  return data || [];
+  return await signerVideos(data || []); /*DKDK_SIGN_READ*/
 }
 
 export async function getUserVideos(userId: string) {
   const { data, error } = await supabase.from('videos').select('*').eq('user_id', userId).order('created_at', { ascending: false });
   if (error) throw error;
-  return data || [];
+  return await signerVideos(data || []); /*DKDK_SIGN_READ*/
 }
 
 export async function refreshVideoUrl(storagePath: string): Promise<string> {
@@ -118,6 +118,41 @@ async function notifyModerators(videoId: string, userId: string, discipline: Dis
   await supabase.from('notifications').insert(mods.map(mod => ({ user_id: mod.id, type: 'video_pending', title: 'Nouvelle video', message: `Video de ${discipline} en attente`, data: { video_id: videoId, submitter_id: userId, discipline } })));
 }
 
+/*DKDK_SIGN_READ*/
+// --- Signature a la lecture ---------------------------------------
+// Une URL signee R2 expire au bout de 7 jours. Plutot que de la stocker
+// et d'esperer qu'un cron la renouvelle, on en fabrique une NEUVE a
+// chaque lecture. Une URL ne peut donc jamais etre perimee.
+
+// Signe UNE video. Ne touche pas aux videos sans storage_path.
+export async function signerVideo(video: any): Promise<any> {
+  if (!video || !video.storage_path) return video;
+
+  // Securite : si storage_path est une URL (ancien mode 'lien externe'),
+  // on la laisse telle quelle : ce n'est pas un fichier R2.
+  if (/^https?:\/\//i.test(video.storage_path)) return video;
+
+  try {
+    const url = await getSignedUrl(
+      r2,
+      new GetObjectCommand({ Bucket: R2_BUCKET, Key: video.storage_path }),
+      { expiresIn: 604800 }
+    );
+    return Object.assign({}, video, { storage_url: url });
+  } catch (e: any) {
+    // Une signature ratee ne doit pas faire disparaitre la video :
+    // on renvoie l'objet tel quel plutot que de casser toute la page.
+    console.error('[R2] signature echouee pour ' + video.storage_path + ' :', e?.message ?? e);
+    return video;
+  }
+}
+
+// Signe un TABLEAU de videos, en parallele.
+export async function signerVideos(videos: any[]): Promise<any[]> {
+  if (!videos || videos.length === 0) return videos || [];
+  return await Promise.all(videos.map(signerVideo));
+}
+
 export const VIDEO_CONSTRAINTS = { maxSizeMb: MAX_SIZE_MB, maxDuration: MAX_DURATION, allowedTypes: ALLOWED_TYPES, allowedFormats: ['MP4', 'MOV'], minResolution: '480p' };
 
 // ── Récupérer une vidéo par ID (sans filtre statut — le RLS gère) ──
@@ -128,7 +163,7 @@ export async function getVideoById(videoId: string) {
     .eq('id', videoId)
     .single();
   if (error || !data) throw new Error('VIDEO_NOT_FOUND');
-  return data;
+  return await signerVideo(data); /*DKDK_SIGN_READ*/
 }
 
 export async function addComment(videoId: string, userId: string, content: string) {
@@ -175,7 +210,9 @@ export async function getApprovedVideos() {
     .in('id', ids)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return (data || []).map((v: any) => ({ ...v, challenge_state: stateByVideo[v.id] || 'waiting' }));
+  /*DKDK_SIGN_READ*/
+  const avecEtat = (data || []).map((v: any) => ({ ...v, challenge_state: stateByVideo[v.id] || 'waiting' }));
+  return await signerVideos(avecEtat);
 }
 
 export async function getCommentsByVideoId(videoId: string) {
