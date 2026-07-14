@@ -5,3 +5,24 @@
 *.node
 
 backend/dist/
+
+# DKDK_SCRIPTS_JETABLES
+# Scripts d edition, sorties de terminal et notes de session.
+# Le slash initial = RACINE UNIQUEMENT : ne touche pas a frontend/next.config.js
+/*.js
+/*.txt
+/*.html
+/*.tsx
+/*.md
+!/README.md
+
+# Scripts d edition deposes dans backend/ (pas backend/src/)
+backend/*.js
+
+# Sauvegardes et caches
+*.bak
+*.tsbuildinfo
+
+# NOTE : les fichiers .sql ne sont volontairement PAS ignores.
+# Ils contiennent les RPC (vote_bracket_pool, credit_wallet, soutenir_video)
+# qui n existent nulle part ailleurs que dans le cloud Supabase.
