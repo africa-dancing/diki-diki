@@ -61,6 +61,8 @@ export default function SubmitPage() {
   const [categories,  setCategories]  = useState<Category[]>([]);
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
   const [subjects,    setSubjects]    = useState<Subject[]>([]);
+  /*DKDK_SPORT_EPREUVES*/
+  const [sportEpreuves, setSportEpreuves] = useState<any[]>([]);
 
   const [selectedCategory,   setSelectedCategory]   = useState<Category | null>(null);
   const [selectedDiscipline, setSelectedDiscipline] = useState<Discipline | null>(null);
@@ -94,6 +96,33 @@ export default function SubmitPage() {
   /* ── Disciplines statiques ── */
   useEffect(() => {
     if (!selectedCategory) return;
+    /*DKDK_SPORT_LOAD*/
+    if (selectedCategory.id === 'sport') {
+      // Charge les epreuves sport depuis l'API, derive les sports uniques
+      (async () => {
+        try {
+          const r = await fetch(API + '/sport/epreuves');
+          const j = await r.json();
+          const eps: any[] = (j && j.success) ? (j.data || []) : [];
+          setSportEpreuves(eps);
+          // Derive la liste des sports (1 discipline par sport unique)
+          const vus: Record<string, boolean> = {};
+          const discs: Discipline[] = [];
+          eps.forEach((e) => {
+            if (!vus[e.sport_slug]) {
+              vus[e.sport_slug] = true;
+              discs.push({ id: e.sport_slug, name: e.sport, emoji: e.emoji || '🏅', category_id: 'sport' });
+            }
+          });
+          setDisciplines(discs);
+        } catch (e) {
+          setDisciplines([]);
+        }
+      })();
+      setSelectedDiscipline(null);
+      setSubjects([]); setSelectedSubject(null);
+      return;
+    }
     setDisciplines(STATIC_DISCIPLINES[selectedCategory.id] ?? []);
     setSelectedDiscipline(null);
     setSubjects([]); setSelectedSubject(null);
