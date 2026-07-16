@@ -26,6 +26,7 @@ import bracketRouter                                    from './routes/bracket.r
 import musiqueRouter                                    from './routes/musique.routes';    // ✅ déplacé ici
 import settingsRouter                                   from './routes/settings.routes';
 import monitoringRouter                                 from './routes/monitoring.routes';  /*DKDK_MONITORING_MOUNT*/
+import sportRouter               from './routes/sport.routes';  /*DKDK_SPORT_IMPORT*/
 import { startBracketCron }                             from './cron/bracket.cron';        // ✅ déplacé ici
 import { startAnalyticsCron }                           from './cron/analytics.cron';    /*DKDK_ANALYTICS_CRON*/
 import { errorHandler }                                 from './middleware/error.middleware';
@@ -68,7 +69,8 @@ app.use('/v1/auth/totp', totpRouter);   /*DKDK_TOTP*/
 app.use('/v1/brackets',      bracketRouter);
 app.use('/v1/musiques',      musiqueRouter);
 app.use('/v1/settings',      settingsRouter);
-app.use('/v1/monitoring',    monitoringRouter);  /*DKDK_MONITORING_MOUNT*/      
+app.use('/v1/monitoring',    monitoringRouter);
+app.use('/v1/sport',         sportRouter);  /*DKDK_SPORT_MOUNT*/  /*DKDK_MONITORING_MOUNT*/      
 app.use('/v1/education',     educationRouter);     // ✅ ici, après app = express()
 
 // ── Fallback ───────────────────────────────────────────────────────
