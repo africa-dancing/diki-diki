@@ -37,7 +37,7 @@ const PORT = process.env.PORT || 4000;
 // ── Middleware ─────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://podiumarenachallenge.com', 'https://diki-diki.vercel.app', /^https:\/\/diki-diki.*\.vercel\.app$/],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://podiumarenachallenge.com', 'https://diki-diki.vercel.app', 'https://diki-diki.com', 'https://www.diki-diki.com', /^https:\/\/diki-diki.*\.vercel\.app$/],
   credentials: true,
 }));
 app.use(rateLimit({ windowMs: 60 * 1000, max: 100 }));
