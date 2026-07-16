@@ -24,5 +24,23 @@ monitoringRouter.get('/stats', requireAuth, requireAdmin, async (_req: Request, 
   }
 });
 
+
+/*DKDK_SOLVABILITE*/
+// GET /v1/monitoring/solvabilite?caisse=X
+// Passif de la plateforme (du aux utilisateurs) vs caisse FedaPay saisie.
+monitoringRouter.get('/solvabilite', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    // La caisse FedaPay ne vit pas en base : elle est saisie via ?caisse=
+    var raw = req.query.caisse;
+    var caisse = parseFloat(String(raw));
+    if (!isFinite(caisse) || caisse < 0) caisse = 0;
+    const { data, error } = await getSupabase().rpc('get_solvabilite', { p_caisse_fedapay: caisse });
+    if (error) throw error;
+    res.json({ success: true, data });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 export default monitoringRouter;
 
