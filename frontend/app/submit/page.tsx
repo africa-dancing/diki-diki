@@ -18,6 +18,7 @@ const STATIC_CATEGORIES: Category[] = [
   { id: 'scene',   name: 'Arts de la scène', emoji: '🎭' },
   { id: 'musique', name: 'Musique',           emoji: '🎵' },
   { id: 'parole',  name: 'Arts de la parole', emoji: '🎤' },
+  { id: 'sport',   name: 'Sport',            emoji: '🥋' },
 ];
 
 const STATIC_DISCIPLINES: Record<string, Discipline[]> = {
@@ -295,7 +296,7 @@ export default function SubmitPage() {
           <div style={cardStyle}>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 4, fontFamily: 'Syne, sans-serif' }}>Choisissez une catégorie</div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20 }}>Dans quelle famille entre votre prestation ?</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
               {categories.length === 0 ? (
                 <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 24, color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>⏳ Chargement…</div>
               ) : categories.map(cat => (
