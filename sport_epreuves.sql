@@ -1,46 +1,48 @@
 -- ============================================================
--- TABLE : sport_epreuves
+-- TABLE : sport_epreuves  (structure FINALE, 19 lignes)
 -- Epreuves sportives editables (categorie "Sport" de /submit).
--- Structure plate : 1 ligne = 1 choix final (sport + epreuve + niveau).
 --
--- Le regroupement en bracket se fait sur sport_slug (ex: 'football').
--- La colonne 'regle' peut etre vide (katas) : a remplir depuis l'admin.
+-- Colonnes de choix (liste deroulante generee cote /submit) :
+--   choix_type = 'simple' -> kata 1..N          (Kata simple)
+--   choix_type = 'plage'  -> 1a2, 1a3.. 1aN      (Enchainements)
+--   choix_type = NULL     -> pas de deroulant    (foot/basket)
+--   choix_max  = borne (10 pour les katas)
 --
--- A EXECUTER DANS L'EDITEUR SQL DE SUPABASE.
--- Idempotent : la table n'est creee que si absente ;
--- les INSERT sont proteges par un garde-fou (voir plus bas).
+-- Le regroupement en bracket se fait sur sport_slug.
+-- Les regles peuvent etre vides (a completer via l'admin).
+--
+-- A EXECUTER DANS L'EDITEUR SQL DE SUPABASE (rejeu si redeploiement DB).
+-- Idempotent : table creee si absente, INSERT protege (table vide).
 -- ============================================================
 
 -- ---- 1) Creation de la table ----
 CREATE TABLE IF NOT EXISTS public.sport_epreuves (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  sport       text        NOT NULL,          -- affichage : "Football", "Karate"
+  sport       text        NOT NULL,          -- "Football", "Karate"...
   sport_slug  text        NOT NULL,          -- regroupement bracket : "football"
-  epreuve     text        NOT NULL,          -- "Jonglages", "Katas", "Dunks"
-  niveau      integer,                        -- 1,2,3... ou NULL si pas de palier
-  libelle     text        NOT NULL,          -- ce qui s'affiche : "Jonglages - Niveau 1"
+  epreuve     text        NOT NULL,          -- "Jonglages", "Kata simple", "Enchainements"...
+  niveau      integer,                        -- foot/basket : palier ; katas : NULL
+  libelle     text        NOT NULL,          -- affichage
   regle       text,                           -- regle complete (peut etre vide)
   emoji       text        DEFAULT '',
-  ordre       integer     DEFAULT 0,          -- ordre d'affichage
-  actif       boolean     DEFAULT true,       -- masquer sans supprimer
+  ordre       integer     DEFAULT 0,
+  actif       boolean     DEFAULT true,
+  choix_type  text,                           -- 'simple' | 'plage' | NULL
+  choix_max   integer,                        -- borne du deroulant (ex: 10)
   created_at  timestamptz DEFAULT now()
 );
 
--- Index pour retrouver vite les epreuves d'un sport
 CREATE INDEX IF NOT EXISTS idx_sport_epreuves_slug
   ON public.sport_epreuves (sport_slug);
 CREATE INDEX IF NOT EXISTS idx_sport_epreuves_actif
   ON public.sport_epreuves (actif);
 
--- ---- 2) Insertion des epreuves ----
--- Garde-fou anti-doublon : on n'insere QUE si la table est vide.
--- Ainsi, relancer le script ne cree pas de doublons.
+-- ---- 2) Insertion (garde-fou : uniquement si table vide) ----
 DO $$
 BEGIN
   IF (SELECT COUNT(*) FROM public.sport_epreuves) = 0 THEN
 
-    -- ===== FOOTBALL (emoji ballon) =====
-    -- Epreuve : Jonglages par serie, 3 niveaux
+    -- ===== FOOTBALL : Jonglages, 3 niveaux (choix_type NULL) =====
     INSERT INTO public.sport_epreuves (sport, sport_slug, epreuve, niveau, libelle, regle, emoji, ordre) VALUES
     ('Football','football','Jonglages',1,'Jonglages - Niveau 1',
      '3 fois 3 series de jonglages avec une relance entre chaque serie + un enchainement de renvoi dans le but.','⚽',10),
@@ -49,31 +51,21 @@ BEGIN
     ('Football','football','Jonglages',3,'Jonglages - Niveau 3',
      '10 fois 3 series de jonglages avec une relance entre chaque serie + un enchainement de renvoi dans le but.','⚽',12);
 
-    -- ===== BASKET =====
-    -- Epreuve 1 : Lancers francs, 3 niveaux
+    -- ===== BASKET : Lancers francs (3 niveaux) + Dunks =====
     INSERT INTO public.sport_epreuves (sport, sport_slug, epreuve, niveau, libelle, regle, emoji, ordre) VALUES
-    ('Basket','basket','Lancers francs',1,'Lancers francs - Niveau 1',
-     '5 lancers successifs enchaines sans faute.','🏀',20),
-    ('Basket','basket','Lancers francs',2,'Lancers francs - Niveau 2',
-     '10 lancers successifs enchaines sans faute.','🏀',21),
-    ('Basket','basket','Lancers francs',3,'Lancers francs - Niveau 3',
-     '20 lancers successifs enchaines sans faute.','🏀',22),
-    -- Epreuve 2 : Dunks, sans niveau
-    ('Basket','basket','Dunks',NULL,'Dunks',
-     'Un enchainement de figures suivi d''un dunk final.','🏀',23);
+    ('Basket','basket','Lancers francs',1,'Lancers francs - Niveau 1','5 lancers successifs enchaines sans faute.','🏀',20),
+    ('Basket','basket','Lancers francs',2,'Lancers francs - Niveau 2','10 lancers successifs enchaines sans faute.','🏀',21),
+    ('Basket','basket','Lancers francs',3,'Lancers francs - Niveau 3','20 lancers successifs enchaines sans faute.','🏀',22),
+    ('Basket','basket','Dunks',NULL,'Dunks','Un enchainement de figures suivi d''un dunk final.','🏀',23);
 
-    -- ===== ARTS MARTIAUX : Katas, 10 niveaux chacun, regle VIDE =====
-    -- Regles a completer depuis l'admin. Libelle suffit pour le flux.
-    INSERT INTO public.sport_epreuves (sport, sport_slug, epreuve, niveau, libelle, regle, emoji, ordre)
+    -- ===== ARTS MARTIAUX : 6 sports x 2 epreuves (Kata simple + Enchainements) =====
+    -- choix_type simple/plage, choix_max 10, regle vide (a completer via admin)
+    INSERT INTO public.sport_epreuves
+      (sport, sport_slug, epreuve, niveau, libelle, regle, emoji, ordre, choix_type, choix_max)
     SELECT
-      arts.sport,
-      arts.slug,
-      'Katas',
-      lvl.n,
-      'Katas - Niveau ' || lvl.n,
-      NULL,                                   -- regle vide
-      '🥋',
-      arts.base_ordre + lvl.n
+      arts.sport, arts.slug, ep.nom, NULL,
+      arts.sport || ' - ' || ep.nom, NULL, '🥋',
+      arts.base_ordre + ep.rang, ep.ctype, 10
     FROM (VALUES
       ('Taekwondo','taekwondo', 30),
       ('Karate',   'karate',    50),
@@ -82,7 +74,10 @@ BEGIN
       ('Taichi',   'taichi',   110),
       ('Wushu',    'wushu',    130)
     ) AS arts(sport, slug, base_ordre)
-    CROSS JOIN (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10)) AS lvl(n);
+    CROSS JOIN (VALUES
+      ('Kata simple',   'simple', 1),
+      ('Enchaînements', 'plage',  2)
+    ) AS ep(nom, ctype, rang);
 
     RAISE NOTICE 'Insertion terminee : % lignes',
       (SELECT COUNT(*) FROM public.sport_epreuves);
