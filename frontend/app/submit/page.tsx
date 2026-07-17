@@ -63,6 +63,8 @@ export default function SubmitPage() {
   const [subjects,    setSubjects]    = useState<Subject[]>([]);
   /*DKDK_SPORT_EPREUVES*/
   const [sportEpreuves, setSportEpreuves] = useState<any[]>([]);
+  /*DKDK_SPORT_EPREUVE_CHOISIE*/
+  const [sportEpreuveChoisie, setSportEpreuveChoisie] = useState<any | null>(null);
 
   const [selectedCategory,   setSelectedCategory]   = useState<Category | null>(null);
   const [selectedDiscipline, setSelectedDiscipline] = useState<Discipline | null>(null);
@@ -425,7 +427,63 @@ export default function SubmitPage() {
               </div>
             )}
 
-            {subjects.length > 0 && selectedDiscipline?.id !== 'instrument' && (
+            {/*DKDK_SPORT_DETAIL*/}
+                {selectedDiscipline?.category_id === 'sport' && (() => {
+                  // epreuves de ce sport (ordonnees)
+                  const eps = sportEpreuves.filter((e) => e.sport_slug === selectedDiscipline?.id);
+                  const ec = sportEpreuveChoisie;
+                  // options du 2e selecteur selon choix_type
+                  let opts: string[] = [];
+                  if (ec && ec.choix_type === 'simple') {
+                    for (let i = 1; i <= (ec.choix_max || 10); i++) opts.push('Kata ' + i);
+                  } else if (ec && ec.choix_type === 'plage') {
+                    for (let i = 2; i <= (ec.choix_max || 10); i++) opts.push('1 a ' + i);
+                  }
+                  return (
+                    <div style={{ marginBottom: 16 }}>
+                      <label style={lbl}>Epreuve</label>
+                      <select value={ec?.id || ''} onChange={(e) => {
+                        const found = eps.find((x) => x.id === e.target.value) || null;
+                        setSportEpreuveChoisie(found);
+                        // reset du choix numero
+                        if (!found) { setSelectedSubject(null); return; }
+                        // si pas de deroulant (foot/basket), l'epreuve EST le choix final
+                        if (!found.choix_type) {
+                          setSelectedSubject({ id: found.id, name: found.libelle, discipline_id: selectedDiscipline!.id });
+                        } else {
+                          setSelectedSubject(null);
+                        }
+                      }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13, fontFamily: 'DM Sans, sans-serif', outline: 'none', cursor: 'pointer' }}>
+                        <option value='' style={{ background: '#1a1a24', color: '#fff' }}>&mdash; Choisis l&apos;epreuve &mdash;</option>
+                        {eps.map((e) => (
+                          <option key={e.id} value={e.id} style={{ background: '#1a1a24', color: '#fff' }}>{e.libelle}</option>
+                        ))}
+                      </select>
+
+                      {ec && ec.regle ? (
+                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 8, lineHeight: 1.5 }}>{ec.regle}</div>
+                      ) : null}
+
+                      {opts.length > 0 && (
+                        <div style={{ marginTop: 12 }}>
+                          <label style={lbl}>{ec.choix_type === 'plage' ? 'Enchainement' : 'Numero du kata'}</label>
+                          <select value={selectedSubject?.name || ''} onChange={(e) => {
+                            const v = e.target.value;
+                            if (!v) { setSelectedSubject(null); return; }
+                            setSelectedSubject({ id: ec.id + ':' + v, name: v, discipline_id: selectedDiscipline!.id });
+                          }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13, fontFamily: 'DM Sans, sans-serif', outline: 'none', cursor: 'pointer' }}>
+                            <option value='' style={{ background: '#1a1a24', color: '#fff' }}>&mdash; Choisis &mdash;</option>
+                            {opts.map((o) => (
+                              <option key={o} value={o} style={{ background: '#1a1a24', color: '#fff' }}>{o}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {subjects.length > 0 && selectedDiscipline?.id !== 'instrument' && (
               <div style={{ marginBottom: 16 }}>
                 <label style={lbl}>Sujet / Morceau <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -473,7 +531,8 @@ export default function SubmitPage() {
               </div>
             </div>
 
-            <div style={{ marginBottom: 12 }}>
+            {/*DKDK_HIDE_MUSIC_FIELDS*/ selectedDiscipline?.category_id !== 'sport' && (<>
+                <div style={{ marginBottom: 12 }}>
               <label style={lbl}>Titre de la piste <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
               <input style={inp} type="text" placeholder="Ex : Afrobeat Battle" value={trackTitle} onChange={e => setTrackTitle(e.target.value)} />
             </div>
@@ -482,6 +541,7 @@ export default function SubmitPage() {
               <label style={lbl}>Artiste / Groupe <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
               <input style={inp} type="text" placeholder="Ex : DJ Kossi" value={trackArtist} onChange={e => setTrackArtist(e.target.value)} />
             </div>
+                </>)}
 
             <div style={{ marginBottom: 12 }}>
               <label style={lbl}>Titre de la vidéo <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
@@ -510,7 +570,12 @@ export default function SubmitPage() {
               <span style={{ fontSize: 11, color: OR, fontWeight: 600 }}>{selectedDiscipline?.emoji} {selectedDiscipline?.name}</span>
               {selectedSubject && <>
                 <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>→</span>
-                <span style={{ fontSize: 11, color: OR, fontWeight: 600 }}>🎵 {selectedSubject.name}</span>
+                {/*DKDK_RECAP_SPORT*/}
+                    <span style={{ fontSize: 11, color: OR, fontWeight: 600 }}>
+                      {selectedDiscipline?.category_id === 'sport'
+                        ? (selectedDiscipline?.emoji || '🏅') + ' ' + (sportEpreuveChoisie?.epreuve ? sportEpreuveChoisie.epreuve + ' · ' : '') + selectedSubject.name
+                        : '🎵 ' + selectedSubject.name}
+                    </span>
               </>}
             </div>
 
