@@ -44,7 +44,7 @@ videoRouter.get('/constraints', (_req: Request, res: Response) => {
 
 videoRouter.post('/', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   try {
-    const { discipline, track_title, track_artist, track_genre, title, description } = req.body;
+    const { discipline, track_title, track_artist, track_genre, title, description, bracket_key } = req.body;
     if (!discipline) return res.status(400).json({ error: 'DISCIPLINE_REQUIRED' });
     if (req.body.file_base64) {
       const fileBuffer = Buffer.from(req.body.file_base64, 'base64');
@@ -55,7 +55,7 @@ videoRouter.post('/', requireAuth, requireVerified, async (req: AuthRequest, res
         userId: req.user!.userId, discipline,
         trackTitle: track_title, trackArtist: track_artist, trackGenre: track_genre,
         title, description, fileBuffer, fileName, mimeType, fileSizeMb,
-        challengeType: req.body.challenge_type || 'C16',
+        challengeType: req.body.challenge_type || 'C16', bracketKey: bracket_key, /*DKDK_BRACKET_KEY*/
       });
       return res.status(201).json({ success: true, video, message: 'Video soumise avec succes. Validation sous 24-48h.' });
     }
@@ -66,7 +66,7 @@ videoRouter.post('/', requireAuth, requireVerified, async (req: AuthRequest, res
 });
 
 videoRouter.post('/upload', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
-  const { discipline, track_title, track_artist, track_genre, title, description } = req.body;
+  const { discipline, track_title, track_artist, track_genre, title, description, bracket_key } = req.body;
   if (!discipline) return res.status(400).json({ error: 'DISCIPLINE_REQUIRED' });
   if (!req.body.file_base64) return res.status(400).json({ error: 'FILE_REQUIRED' });
   const fileBuffer = Buffer.from(req.body.file_base64, 'base64');
@@ -77,7 +77,7 @@ videoRouter.post('/upload', requireAuth, requireVerified, async (req: AuthReques
     userId: req.user!.userId, discipline,
     trackTitle: track_title, trackArtist: track_artist, trackGenre: track_genre,
     title, description, fileBuffer, fileName, mimeType, fileSizeMb,
-    challengeType: req.body.challenge_type || 'C16',
+    challengeType: req.body.challenge_type || 'C16', bracketKey: bracket_key, /*DKDK_BRACKET_KEY*/
   });
   res.status(201).json({ success: true, video, message: 'Vidéo soumise avec succès. Validation sous 24–48h.' });
 });

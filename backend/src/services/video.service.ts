@@ -7,11 +7,11 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 const MAX_SIZE_MB = 500;
 const MAX_DURATION = 600;
 const ALLOWED_TYPES = ['video/mp4', 'video/quicktime'];
-export type Discipline = 'danse' | 'chant' | 'instrument' | 'acapella' | 'humour' | 'poesie' | 'conte'; /*DKDK_DISC_TYPE*/
-export interface UploadVideoParams { userId: string; discipline: Discipline; trackTitle?: string; trackArtist?: string; trackGenre?: string; title?: string; description?: string; fileBuffer: Buffer; fileName: string; mimeType: string; fileSizeMb: number; challengeType?: string; }
+export type Discipline = 'danse' | 'chant' | 'instrument' | 'acapella' | 'humour' | 'poesie' | 'conte' | 'sport'; /*DKDK_DISC_TYPE*/
+export interface UploadVideoParams { userId: string; discipline: Discipline; trackTitle?: string; trackArtist?: string; trackGenre?: string; title?: string; description?: string; fileBuffer: Buffer; fileName: string; mimeType: string; fileSizeMb: number; challengeType?: string; bracketKey?: string; /*DKDK_BRACKET_KEY*/ }
 
 export async function uploadVideo(params: UploadVideoParams) {
-  const { userId, discipline, trackTitle, trackArtist, trackGenre, title, description, fileBuffer, fileName, mimeType, fileSizeMb, challengeType } = params;
+  const { userId, discipline, trackTitle, trackArtist, trackGenre, title, description, fileBuffer, fileName, mimeType, fileSizeMb, challengeType, bracketKey } = params;
   if (!ALLOWED_TYPES.includes(mimeType)) throw new Error('INVALID_FORMAT');
   if (fileSizeMb > MAX_SIZE_MB) throw new Error('FILE_TOO_LARGE');
   const ext = fileName.split('.').pop();
@@ -36,7 +36,7 @@ export async function uploadVideo(params: UploadVideoParams) {
     { expiresIn: 604800 }
   );
   const signedUrl = { signedUrl: urlSignee };
-  const { data: video, error: dbErr } = await supabase.from('videos').insert({ user_id: userId, discipline, track_title: trackTitle, track_artist: trackArtist, track_genre: trackGenre, title, description, storage_path: storagePath, storage_url: signedUrl?.signedUrl, file_size_mb: fileSizeMb, format: ext, status: 'pending', challenge_type: challengeType || 'C16' }).select().single();
+  const { data: video, error: dbErr } = await supabase.from('videos').insert({ user_id: userId, discipline, track_title: trackTitle, track_artist: trackArtist, track_genre: trackGenre, title, description, storage_path: storagePath, storage_url: signedUrl?.signedUrl, file_size_mb: fileSizeMb, format: ext, status: 'pending', challenge_type: challengeType || 'C16', bracket_key: bracketKey || null /*DKDK_BRACKET_KEY*/ }).select().single();
   if (dbErr) throw dbErr;
   await notifyModerators(video.id, userId, discipline);
   return video;
@@ -98,14 +98,14 @@ export async function deleteVideo(videoId: string, userId: string, isAdmin = fal
   return { success: true };
 }
 
-export interface CreateVideoFromUrlParams { userId: string; discipline: string; trackTitle?: string; trackArtist?: string; trackGenre?: string; title?: string; description?: string; videoUrl: string; challengeType?: string; }
+export interface CreateVideoFromUrlParams { userId: string; discipline: string; trackTitle?: string; trackArtist?: string; trackGenre?: string; title?: string; description?: string; videoUrl: string; challengeType?: string; bracketKey?: string; /*DKDK_BRACKET_KEY*/ }
 
 export async function createVideoFromUrl(params: CreateVideoFromUrlParams) {
-  const { userId, discipline, trackTitle, trackArtist, trackGenre, title, description, videoUrl, challengeType } = params;
+  const { userId, discipline, trackTitle, trackArtist, trackGenre, title, description, videoUrl, challengeType, bracketKey } = params;
   if (!videoUrl || !/^https?:\/\//i.test(videoUrl)) throw new Error('INVALID_URL');
   const { data: video, error: dbErr } = await supabase.from('videos').insert({
     user_id: userId, discipline, track_title: trackTitle, track_artist: trackArtist, track_genre: trackGenre,
-    title, description, storage_url: videoUrl, storage_path: videoUrl, status: 'pending', challenge_type: challengeType || 'C16'
+    title, description, storage_url: videoUrl, storage_path: videoUrl, status: 'pending', challenge_type: challengeType || 'C16', bracket_key: bracketKey || null /*DKDK_BRACKET_KEY*/
   }).select().single();
   if (dbErr) { console.log('[createVideoFromUrl] ERREUR INSERT', JSON.stringify(dbErr)); throw dbErr; }
   try { await notifyModerators(video.id, userId, discipline as Discipline); } catch (e) { console.log('[createVideoFromUrl] notifyModerators a echoue (non bloquant):', e.message); }
