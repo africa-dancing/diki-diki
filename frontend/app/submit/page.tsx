@@ -199,6 +199,26 @@ export default function SubmitPage() {
         track_artist: trackArtist.trim(),
       };
 
+      /*DKDK_SPORT_DISCIPLINE_COMPOSITE*/
+      // Pour le sport, discipline = slug compose (sport-epreuve-numero)
+      // afin de regrouper les brackets par choix precis. Les autres disciplines
+      // gardent leur discipline simple (deja calculee ci-dessus).
+      if (selectedDiscipline?.category_id === 'sport') {
+        const slug = (s: string) => (s || '')
+          .toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // enleve les accents
+          .replace(/[^a-z0-9]+/g, '-')                          // non-alphanum -> tiret
+          .replace(/^-+|-+$/g, '');                             // trim tirets
+        const parts = [selectedDiscipline?.id];                 // ex: 'karate'
+        if (sportEpreuveChoisie?.epreuve) parts.push(slug(sportEpreuveChoisie.epreuve));
+        if (selectedSubject?.name)        parts.push(slug(selectedSubject.name));
+        payload.discipline = 'sport'; /*DKDK_BRACKET_KEY*/
+        payload.bracket_key = parts.filter(Boolean).join('-'); /*DKDK_BRACKET_KEY*/
+        // on conserve le vrai nom du sport pour reference/affichage admin
+        payload.sport_name = selectedDiscipline?.name;
+        payload.sport_epreuve = sportEpreuveChoisie?.epreuve || null;
+      }
+
       if (uploadMode === 'url') {
         payload.video_url = videoUrl.trim();
       } else if (file) {
