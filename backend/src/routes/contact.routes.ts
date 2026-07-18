@@ -27,7 +27,7 @@ contactRouter.post('/', async (req: Request, res: Response) => {
     if (dbErr) throw dbErr;
 
     // 2) Alerte e-mail (non bloquante : si le SMTP tombe, le message reste en base)
-    let envoye = false;
+    res.status(201).json({ success: true }); /*DKDK_CONTACT_ASYNC*/
     try {
       const transporter = nodemailer.createTransport({
         host:   process.env.SMTP_HOST,
@@ -42,13 +42,13 @@ contactRouter.post('/', async (req: Request, res: Response) => {
         subject: `[Contact] ${sujet} - ${nom}`,
         text:    `Nom : ${nom}\nEmail : ${email}\nSujet : ${sujet}\n\n${message}`,
       });
-      envoye = true;
+
       await supabase.from('contact_messages').update({ email_envoye: true }).eq('id', msg.id);
     } catch (e: any) {
       console.error('[CONTACT] envoi e-mail echoue (non bloquant):', e?.message ?? e);
     }
 
-    return res.status(201).json({ success: true, email_envoye: envoye });
+    return;
   } catch (e: any) {
     console.error('[CONTACT] erreur:', e?.message ?? e);
     return res.status(500).json({ error: 'CONTACT_FAILED' });
