@@ -210,7 +210,7 @@ export default function SubmitPage() {
           .replace(/[^a-z0-9]+/g, '-')                          // non-alphanum -> tiret
           .replace(/^-+|-+$/g, '');                             // trim tirets
         const parts = [selectedDiscipline?.id];                 // ex: 'karate'
-        if (sportEpreuveChoisie?.epreuve) parts.push(slug(sportEpreuveChoisie.epreuve));
+        // (retire) l'epreuve n'entre plus dans le bracket_key : sport + choix suffit /*DKDK_BK_CLEAN*/
         if (selectedSubject?.name)        parts.push(slug(selectedSubject.name));
         payload.discipline = 'sport'; /*DKDK_BRACKET_KEY*/
         payload.bracket_key = parts.filter(Boolean).join('-'); /*DKDK_BRACKET_KEY*/
@@ -454,7 +454,9 @@ export default function SubmitPage() {
                   const ec = sportEpreuveChoisie;
                   // options du 2e selecteur selon choix_type
                   let opts: string[] = [];
-                  if (ec && ec.choix_type === 'simple') {
+                  if (ec && ec.choix_liste) { /*DKDK_CHOIX_LISTE*/
+                    opts = String(ec.choix_liste).split(',').map((s: string) => s.trim()).filter(Boolean);
+                  } else if (ec && ec.choix_type === 'simple') {
                     for (let i = 1; i <= (ec.choix_max || 10); i++) opts.push('Kata ' + i);
                   } else if (ec && ec.choix_type === 'plage') {
                     for (let i = 2; i <= (ec.choix_max || 10); i++) opts.push('1 a ' + i);
@@ -486,7 +488,7 @@ export default function SubmitPage() {
 
                       {opts.length > 0 && (
                         <div style={{ marginTop: 12 }}>
-                          <label style={lbl}>{ec.choix_type === 'plage' ? 'Enchainement' : 'Numero du kata'}</label>
+                          <label style={lbl}>{ec.choix_liste ? 'Forme' : (ec.choix_type === 'plage' ? 'Enchainement' : 'Numero')} /*DKDK_LABEL_FORME*/</label>
                           <select value={selectedSubject?.name || ''} onChange={(e) => {
                             const v = e.target.value;
                             if (!v) { setSelectedSubject(null); return; }
