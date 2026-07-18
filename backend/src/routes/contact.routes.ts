@@ -29,25 +29,33 @@ contactRouter.post('/', async (req: Request, res: Response) => {
     // 2) Alerte e-mail (non bloquante : si le SMTP tombe, le message reste en base)
     res.status(201).json({ success: true }); /*DKDK_CONTACT_ASYNC*/
     try {
-      const transporter = nodemailer.createTransport(<any>{ /*DKDK_SMTP_CAST*/
-        host:   process.env.SMTP_HOST,
-        port:   Number(process.env.SMTP_PORT || 465),
-        secure: Number(process.env.SMTP_PORT || 465) === 465, /*DKDK_SMTP_587*/
-        family: 4, /*DKDK_SMTP_IPV4*/
-        auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-      });
-      await transporter.sendMail({
-        from:    `"Diki-Diki Contact" <${process.env.SMTP_USER}>`,
-        to:      process.env.CONTACT_TO || process.env.SMTP_USER,
-        replyTo: email,
+      /*DKDK_RESEND*/
+      const envoyerEmail = async (payload: any) => {
+        const r = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!r.ok) {
+          throw new Error('Resend ' + r.status + ' ' + (await r.text()));
+        }
+      };
+
+      await envoyerEmail({
+        from: `Diki-Diki Contact <support@diki-diki.com>`,
+        to: [process.env.CONTACT_TO || 'support@diki-diki.com'],
+        reply_to: email,
         subject: `[Contact] ${sujet} - ${nom}`,
-        text:    `Nom : ${nom}\nEmail : ${email}\nSujet : ${sujet}\n\n${message}`,
+        text: `Nom : ${nom}\nEmail : ${email}\nSujet : ${sujet}\n\n${message}`,
       });
 
       // Accuse de reception au visiteur /*DKDK_CONTACT_ACK*/
-      await transporter.sendMail({
-        from: `"Diki-Diki" <${process.env.SMTP_USER}>`,
-        to: email,
+      await envoyerEmail({
+        from: `Diki-Diki <support@diki-diki.com>`,
+        to: [email],
         subject: 'Nous avons bien recu votre message - Diki-Diki',
         text: `Bonjour ${nom},\n\nNous avons bien recu votre message concernant "${sujet}".\nNotre equipe vous repondra sous 24h ouvrables.\n\nRappel de votre message :\n${message}\n\n--\nL'equipe Diki-Diki\nsupport@diki-diki.com`,
       });
