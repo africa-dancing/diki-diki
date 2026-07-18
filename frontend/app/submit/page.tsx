@@ -593,7 +593,7 @@ export default function SubmitPage() {
                 {/*DKDK_RECAP_SPORT*/}
                     <span style={{ fontSize: 11, color: OR, fontWeight: 600 }}>
                       {selectedDiscipline?.category_id === 'sport'
-                        ? (selectedDiscipline?.emoji || '🏅') + ' ' + (sportEpreuveChoisie?.epreuve ? sportEpreuveChoisie.epreuve + ' · ' : '') + selectedSubject.name
+                        ? (selectedDiscipline?.emoji || '🏅') + ' ' + (sportEpreuveChoisie?.libelle ? sportEpreuveChoisie.libelle + ' · ' : '') + selectedSubject.name /*DKDK_RECAP_LIBELLE*/
                         : '🎵 ' + selectedSubject.name}
                     </span>
               </>}
