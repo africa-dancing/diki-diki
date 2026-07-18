@@ -29,10 +29,11 @@ contactRouter.post('/', async (req: Request, res: Response) => {
     // 2) Alerte e-mail (non bloquante : si le SMTP tombe, le message reste en base)
     res.status(201).json({ success: true }); /*DKDK_CONTACT_ASYNC*/
     try {
-      const transporter = nodemailer.createTransport({
+      const transporter = nodemailer.createTransport(<any>{ /*DKDK_SMTP_CAST*/
         host:   process.env.SMTP_HOST,
         port:   Number(process.env.SMTP_PORT || 465),
         secure: true,
+        family: 4, /*DKDK_SMTP_IPV4*/
         auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
       });
       await transporter.sendMail({
