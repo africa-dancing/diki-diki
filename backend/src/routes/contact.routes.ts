@@ -32,7 +32,7 @@ contactRouter.post('/', async (req: Request, res: Response) => {
       const transporter = nodemailer.createTransport(<any>{ /*DKDK_SMTP_CAST*/
         host:   process.env.SMTP_HOST,
         port:   Number(process.env.SMTP_PORT || 465),
-        secure: true,
+        secure: Number(process.env.SMTP_PORT || 465) === 465, /*DKDK_SMTP_587*/
         family: 4, /*DKDK_SMTP_IPV4*/
         auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
       });
