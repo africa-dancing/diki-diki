@@ -43,6 +43,14 @@ contactRouter.post('/', async (req: Request, res: Response) => {
         text:    `Nom : ${nom}\nEmail : ${email}\nSujet : ${sujet}\n\n${message}`,
       });
 
+      // Accuse de reception au visiteur /*DKDK_CONTACT_ACK*/
+      await transporter.sendMail({
+        from: `"Diki-Diki" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: 'Nous avons bien recu votre message - Diki-Diki',
+        text: `Bonjour ${nom},\n\nNous avons bien recu votre message concernant "${sujet}".\nNotre equipe vous repondra sous 24h ouvrables.\n\nRappel de votre message :\n${message}\n\n--\nL'equipe Diki-Diki\nsupport@diki-diki.com`,
+      });
+
       await supabase.from('contact_messages').update({ email_envoye: true }).eq('id', msg.id);
     } catch (e: any) {
       console.error('[CONTACT] envoi e-mail echoue (non bloquant):', e?.message ?? e);
