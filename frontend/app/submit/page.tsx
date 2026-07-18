@@ -457,7 +457,7 @@ export default function SubmitPage() {
                   if (ec && ec.choix_liste) { /*DKDK_CHOIX_LISTE*/
                     opts = String(ec.choix_liste).split(',').map((s: string) => s.trim()).filter(Boolean);
                   } else if (ec && ec.choix_type === 'simple') {
-                    for (let i = 1; i <= (ec.choix_max || 10); i++) opts.push('Kata ' + i);
+                    for (let i = 1; i <= (ec.choix_max || 10); i++) opts.push('Forme ' + i); /*DKDK_FALLBACK_FORME*/
                   } else if (ec && ec.choix_type === 'plage') {
                     for (let i = 2; i <= (ec.choix_max || 10); i++) opts.push('1 a ' + i);
                   }
