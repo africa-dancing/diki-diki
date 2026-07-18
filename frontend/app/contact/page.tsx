@@ -112,7 +112,14 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1200));
+    try { /*DKDK_CONTACT_SUBMIT*/
+      const r = await fetch(`${API}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!r.ok) { alert("L'envoi a echoue. Merci de reessayer."); setLoading(false); return; }
+    } catch { alert("L'envoi a echoue. Merci de reessayer."); setLoading(false); return; }
     setSent(true);
     setLoading(false);
   };
