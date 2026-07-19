@@ -32,7 +32,7 @@ bracketRouter.get('/', async (req: Request, res: Response) => {
 // ===== ROUTES ARENA v2 (cahier des charges v2) =====
 
 // Inscription a un challenge (user extrait du token)
-bracketRouter.post('/arena/inscribe', requireAuth, async (req: AuthRequest, res: Response) => {
+bracketRouter.post('/arena/inscribe', requireAuth, requireVerified, /*DKDK_INSCRIBE_VERIF*/ async (req: AuthRequest, res: Response) => {
   try {
     const { bracket_id, video_id } = req.body;
     if (!bracket_id || !video_id)
@@ -238,7 +238,7 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
 /*DKDK_VIDEO_ROUND*/
 
 // Soumettre une video pour le round actif
-bracketRouter.post('/participant/:participantId/video', requireAuth, async (req: AuthRequest, res: Response) => {
+bracketRouter.post('/participant/:participantId/video', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   try {
     const supabase = getSupabase();
     const { participantId } = req.params;
