@@ -48,13 +48,13 @@ export async function requireVerified(req: AuthRequest, res: Response, next: Nex
 
   const { data, error } = await supabase
     .from('users')
-    .select('is_verified')
+    .select('phone_verified') /*DKDK_REQ_PHONE*/
     .eq('id', userId)
     .single();
 
   if (error || !data) return res.status(404).json({ error: 'USER_NOT_FOUND' });
 
-  if (!data.is_verified) {
+  if (!data.phone_verified) {
     return res.status(403).json({
       error: 'PHONE_NOT_VERIFIED',
       message: 'Verifie ton numero de telephone pour continuer.',
