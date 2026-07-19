@@ -3,6 +3,7 @@
 // ============================================================
 import { Router }       from 'express';
 import * as authCtrl    from '../controllers/auth.controller';
+import { requireAuth }  from '../middleware/auth.middleware';
 
 export const authRouter = Router();
 
@@ -26,3 +27,9 @@ authRouter.post('/login',       authCtrl.login);
 
 // POST /v1/auth/social      → connexion Google ou Facebook
 authRouter.post('/social',      authCtrl.socialAuth);
+
+// POST /v1/auth/phone/attach  -> enregistrer un numero sur SON compte (envoi OTP)
+// POST /v1/auth/phone/confirm -> valider le code -> numero attache + verifie
+/*DKDK_ATTACH_PHONE_ROUTES*/
+authRouter.post('/phone/attach',  requireAuth, authCtrl.attachPhoneSend);
+authRouter.post('/phone/confirm', requireAuth, authCtrl.attachPhoneVerify);

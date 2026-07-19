@@ -326,3 +326,35 @@ export async function resendOTP(phone: string) {
   return { message: 'OTP_RESENT' };
 }
 
+
+/*DKDK_ATTACH_PHONE*/
+// --- Attacher un numero a un compte existant -------------------------
+// Necessaire pour les comptes crees via Google/Facebook, qui n ont aucun
+// telephone. Le numero n est ecrit en base QU APRES validation du code,
+// pour empecher qu un tiers squatte le numero de quelqu un d autre.
+export async function attachPhoneSend(userId: string, phone: string) {
+  const { data: existant } = await supabase
+    .from('users').select('id').eq('phone', phone).maybeSingle();
+  if (existant && existant.id !== userId) throw new Error('PHONE_ALREADY_USED');
+
+  const otp = generateOTP();
+  await redis.setex(`attach:${userId}`, OTP_TTL, `${phone}|${otp}`);
+  await sendSMSOTP(phone, otp);
+  return { message: 'OTP_SENT' };
+}
+
+export async function attachPhoneVerify(userId: string, otp: string) {
+  const stored = await redis.get<string>(`attach:${userId}`);
+  if (!stored) throw new Error('OTP_EXPIRED');
+  const [phone, code] = String(stored).split('|');
+  if (String(code) !== String(otp)) throw new Error('OTP_INVALID');
+
+  const { error } = await supabase
+    .from('users')
+    .update({ phone, is_verified: true, phone_verified: true })
+    .eq('id', userId);
+  if (error) throw new Error(error.code === '23505' ? 'PHONE_ALREADY_USED' : 'ATTACH_FAILED');
+
+  await redis.del(`attach:${userId}`);
+  return { message: 'PHONE_VERIFIED', phone };
+}

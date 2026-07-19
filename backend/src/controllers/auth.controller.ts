@@ -118,3 +118,31 @@ export async function oneTapVerify(req: Request, res: Response) {
     res.status(400).json({ error: err.message || 'ONETAP_VERIFY_FAILED' });
   }
 }
+
+/*DKDK_ATTACH_PHONE_CTRL*/
+export async function attachPhoneSend(req: any, res: Response) {
+  try {
+    const { phone } = phoneSchema.parse(req.body);
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ error: 'TOKEN_MISSING' });
+    const result = await authService.attachPhoneSend(userId, phone);
+    res.json(result);
+  } catch (err: any) {
+    if (err.name === 'ZodError')
+      return res.status(400).json({ error: 'VALIDATION_ERROR' });
+    res.status(400).json({ error: err.message || 'ATTACH_SEND_FAILED' });
+  }
+}
+
+export async function attachPhoneVerify(req: any, res: Response) {
+  try {
+    const otp = String(req.body?.otp || '');
+    if (otp.length !== 6) return res.status(400).json({ error: 'VALIDATION_ERROR' });
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ error: 'TOKEN_MISSING' });
+    const result = await authService.attachPhoneVerify(userId, otp);
+    res.json(result);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || 'ATTACH_VERIFY_FAILED' });
+  }
+}
