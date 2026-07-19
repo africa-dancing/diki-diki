@@ -147,7 +147,7 @@ export async function verifyOTP(phone: string, otp: string) {
 
   const { data: user, error } = await supabase
     .from('users')
-    .update({ is_verified: true })
+    .update({ is_verified: true, phone_verified: true }) /*DKDK_PHONE_VERIFIED*/
     .eq('phone', phone)
     .select('id, email, phone, name, role, avatar_url, country, wallet')
     .single();
@@ -299,6 +299,8 @@ export async function oneTapVerify(phone: string, otp: string) {
     .single();
 
   if (error || !user) throw new Error('USER_NOT_FOUND');
+
+  await supabase.from('users').update({ is_verified: true, phone_verified: true }).eq('id', user.id); /*DKDK_PHONE_VERIFIED2*/
 
   await redis.del(`otp:${phone}`);
 
