@@ -109,9 +109,9 @@ export default function RechargePage() {
     if (!phone.trim()) { setVerifMsg('Renseigne ton numero ci-dessus.'); return; }
     setVerifLoad(true); setVerifMsg('');
     try {
-      const r = await fetch(`${API}/auth/resend-otp`, {
+      const r = await fetch(`${API}/auth/phone/attach`, { /*DKDK_ATTACH_FRONT*/
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ phone: phone.trim() }),
       });
       const d = await r.json();
@@ -131,10 +131,10 @@ export default function RechargePage() {
     if (codeOtp.length < 4) { setVerifMsg('Saisis le code recu.'); return; }
     setVerifLoad(true); setVerifMsg('');
     try {
-      const r = await fetch(`${API}/auth/verify-otp`, {
+      const r = await fetch(`${API}/auth/phone/confirm`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.trim(), otp: codeOtp }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ otp: codeOtp }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'OTP_INVALID');
