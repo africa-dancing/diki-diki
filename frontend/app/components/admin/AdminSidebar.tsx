@@ -12,6 +12,7 @@ const MENU = [
   { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },
   { href: '/admin/stats',      icon: '📊', label: 'Statistiques'      },
   { href: '/admin/monitoring', icon: '📈', label: 'Monitoring' }, /*DKDK_MONITORING_NAV*/
+  { href: '/admin/sport',      icon: '🥋', label: 'Sport' }, /*DKDK_SPORT_NAV*/
 ];
 
 export function AdminSidebar() {
