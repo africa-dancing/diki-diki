@@ -179,5 +179,73 @@ categoryRouter.delete('/disciplines/subjects/:id', requireAuth, requireAdmin, as
   } catch { res.status(500).json({ error: 'SUBJECT_DELETE_FAILED' }); }
 });
 
+/*DKDK_TAXO_ROUTES*/
+// --- Categories : creation et suppression (admin) ---
+categoryRouter.post('/', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const { data, error } = await supabase.from('categories').insert({
+      name: req.body.name, emoji: req.body.emoji ?? null,
+      description: req.body.description ?? null, ordre: req.body.ordre ?? 0,
+    }).select();
+    if (error) throw error;
+    res.json(data[0]);
+  } catch { res.status(500).json({ error: 'CATEGORY_CREATE_FAILED' }); }
+});
+categoryRouter.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await supabase.from('categories').delete().eq('id', req.params.id);
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'CATEGORY_DELETE_FAILED' }); }
+});
+
+// --- Champs dynamiques d'une discipline ---
+categoryRouter.get('/disciplines/:id/champs', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('discipline_champs').select('*').eq('discipline_id', req.params.id).order('ordre');
+    if (error) throw error;
+    res.json(data || []);
+  } catch { res.status(500).json({ error: 'CHAMPS_FETCH_FAILED' }); }
+});
+categoryRouter.post('/disciplines/:id/champs', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const { data, error } = await supabase.from('discipline_champs').insert({
+      discipline_id: req.params.id, ordre: req.body.ordre, titre: req.body.titre,
+      type: req.body.type, obligatoire: req.body.obligatoire ?? false,
+    }).select();
+    if (error) throw error;
+    res.json(data[0]);
+  } catch { res.status(500).json({ error: 'CHAMP_CREATE_FAILED' }); }
+});
+categoryRouter.delete('/champs/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await supabase.from('discipline_champs').delete().eq('id', req.params.id);
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'CHAMP_DELETE_FAILED' }); }
+});
+
+// --- Choix d'un champ de type liste ---
+categoryRouter.get('/champs/:id/choix', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('discipline_choix').select('*').eq('champ_id', req.params.id).eq('actif', true).order('ordre');
+    if (error) throw error;
+    res.json(data || []);
+  } catch { res.status(500).json({ error: 'CHOIX_FETCH_FAILED' }); }
+});
+categoryRouter.post('/champs/:id/choix', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const { data, error } = await supabase.from('discipline_choix').insert({
+      champ_id: req.params.id, valeur: req.body.valeur, ordre: req.body.ordre ?? 0,
+    }).select();
+    if (error) throw error;
+    res.json(data[0]);
+  } catch { res.status(500).json({ error: 'CHOIX_CREATE_FAILED' }); }
+});
+categoryRouter.delete('/choix/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await supabase.from('discipline_choix').delete().eq('id', req.params.id);
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'CHOIX_DELETE_FAILED' }); }
+});
+
 export { categoryRouter };
 export { statsRouter };
