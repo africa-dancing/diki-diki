@@ -9,10 +9,10 @@ const MENU = [
   { href: '/admin/moderation', icon: '🎬', label: 'Moderation videos' },
   { href: '/admin/mediatheque', icon: '🎵', label: 'Médiathèque' },
   { href: '/admin/reglages',   icon: '⚙️', label: 'Réglages Challenge' },
+  { href: '/admin/sport',      icon: '🥋', label: 'Sport' }, /*DKDK_SPORT_NAV*/
   { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },
   { href: '/admin/stats',      icon: '📊', label: 'Statistiques'      },
   { href: '/admin/monitoring', icon: '📈', label: 'Monitoring' }, /*DKDK_MONITORING_NAV*/
-  { href: '/admin/sport',      icon: '🥋', label: 'Sport' }, /*DKDK_SPORT_NAV*/
 ];
 
 export function AdminSidebar() {
