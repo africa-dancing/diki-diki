@@ -10,6 +10,7 @@ const MENU = [
   { href: '/admin/mediatheque', icon: '🎵', label: 'Médiathèque' },
   { href: '/admin/reglages',   icon: '⚙️', label: 'Réglages Challenge' },
   { href: '/admin/sport',      icon: '🥋', label: 'Sport' }, /*DKDK_SPORT_NAV*/
+  { href: '/admin/taxonomie',  icon: '🗂', label: 'Taxonomie' }, /*DKDK_TAXO_NAV*/
   { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },
   { href: '/admin/stats',      icon: '📊', label: 'Statistiques'      },
   { href: '/admin/monitoring', icon: '📈', label: 'Monitoring' }, /*DKDK_MONITORING_NAV*/
