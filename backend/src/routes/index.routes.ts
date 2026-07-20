@@ -149,7 +149,7 @@ categoryRouter.get('/disciplines/:id/subjects', async (req, res) => {
   } catch { res.status(500).json({ error: 'SUBJECTS_FETCH_FAILED' }); }
 });
 
-categoryRouter.post('/disciplines', requireAuth, async (req: any, res) => {
+categoryRouter.post('/disciplines', requireAuth, requireAdmin, /*DKDK_CATEG_ADMIN*/ async (req: any, res) => {
   try {
     const { data, error } = await supabase.from('disciplines').insert(req.body).select();
     if (error) throw error;
@@ -157,14 +157,14 @@ categoryRouter.post('/disciplines', requireAuth, async (req: any, res) => {
   } catch { res.status(500).json({ error: 'DISCIPLINE_CREATE_FAILED' }); }
 });
 
-categoryRouter.delete('/disciplines/:id', requireAuth, async (req, res) => {
+categoryRouter.delete('/disciplines/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     await supabase.from('disciplines').delete().eq('id', req.params.id);
     res.json({ success: true });
   } catch { res.status(500).json({ error: 'DISCIPLINE_DELETE_FAILED' }); }
 });
 
-categoryRouter.post('/disciplines/subjects', requireAuth, async (req: any, res) => {
+categoryRouter.post('/disciplines/subjects', requireAuth, requireAdmin, async (req: any, res) => {
   try {
     const { data, error } = await supabase.from('subjects').insert(req.body).select();
     if (error) throw error;
@@ -172,7 +172,7 @@ categoryRouter.post('/disciplines/subjects', requireAuth, async (req: any, res) 
   } catch { res.status(500).json({ error: 'SUBJECT_CREATE_FAILED' }); }
 });
 
-categoryRouter.delete('/disciplines/subjects/:id', requireAuth, async (req, res) => {
+categoryRouter.delete('/disciplines/subjects/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     await supabase.from('subjects').delete().eq('id', req.params.id);
     res.json({ success: true });
