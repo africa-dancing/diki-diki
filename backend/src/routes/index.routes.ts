@@ -206,6 +206,17 @@ categoryRouter.get('/disciplines/:id/champs', async (req, res) => {
     res.json(data || []);
   } catch { res.status(500).json({ error: 'CHAMPS_FETCH_FAILED' }); }
 });
+// --- Champs par slug de discipline (public, pour /submit) --- /*DKDK_CHAMPS_BY_SLUG*/
+categoryRouter.get('/disciplines/by-slug/:slug/champs', async (req, res) => {
+  try {
+    const { data: discs, error: dErr } = await supabase.from('disciplines').select('id').eq('slug', req.params.slug).limit(1);
+    if (dErr) throw dErr;
+    if (!discs || discs.length === 0) return res.json([]);
+    const { data, error } = await supabase.from('discipline_champs').select('*').eq('discipline_id', discs[0].id).order('ordre');
+    if (error) throw error;
+    res.json(data || []);
+  } catch { res.status(500).json({ error: 'CHAMPS_BY_SLUG_FETCH_FAILED' }); }
+});
 categoryRouter.post('/disciplines/:id/champs', requireAuth, requireAdmin, async (req: any, res) => {
   try {
     const { data, error } = await supabase.from('discipline_champs').insert({
