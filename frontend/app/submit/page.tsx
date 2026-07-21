@@ -215,12 +215,18 @@ export default function SubmitPage() {
     try {
       const interval = setInterval(() => setProgress(p => Math.min(p + 8, 90)), 400);
 
+      const champSubject = champs
+        .filter((c: any) => c.type === 'liste' || c.type === 'musique')
+        .map((c: any) => champValues[c.id])
+        .filter(Boolean)
+        .join(' - ');
+      const effectiveSubject = champs.length > 0 ? (champSubject || undefined) : (selectedSubject?.name || undefined);
       const payload: any = {
         status: 'draft', // ← enregistré en brouillon, pas encore soumis
         challenge_type: selectedType,
-        title: title.trim() || `${selectedDiscipline?.name} — ${selectedSubject?.name || 'Prestation'}`,
+        title: title.trim() || `${selectedDiscipline?.name} — ${effectiveSubject || 'Prestation'}`,
         discipline: selectedDiscipline?.name?.toLowerCase(),
-        subject: selectedSubject?.name,
+        subject: effectiveSubject,
         category: selectedCategory?.name,
         description: description.trim(),
         track_title: trackTitle.trim(),
@@ -533,7 +539,7 @@ export default function SubmitPage() {
                   );
                 })()}
 
-                {subjects.length > 0 && selectedDiscipline?.id !== 'instrument' && (
+                {subjects.length > 0 && champs.length === 0 && selectedDiscipline?.id !== 'instrument' && (
               <div style={{ marginBottom: 16 }}>
                 <label style={lbl}>Sujet / Morceau <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
