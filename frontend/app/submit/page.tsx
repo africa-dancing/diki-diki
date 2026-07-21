@@ -586,9 +586,9 @@ export default function SubmitPage() {
                 <label style={lbl}>{c.titre}{c.obligatoire ? ' *' : ''}</label>
                 {c.type === 'liste' ? (
                   <select style={inp} value={champValues[c.id] || ''} onChange={e => setChampValues(v => ({ ...v, [c.id]: e.target.value }))}>
-                    <option value="">Choisir...</option>
+                    <option value="" style={{ color: '#000', background: '#fff' }}>Choisir...</option>
                     {(champChoix[c.id] || []).map((ch: any) => (
-                      <option key={ch.id} value={ch.valeur}>{ch.valeur}</option>
+                      <option key={ch.id} value={ch.valeur} style={{ color: '#000', background: '#fff' }}>{ch.valeur}</option>
                     ))}
                   </select>
                 ) : c.type === 'texte' ? (
