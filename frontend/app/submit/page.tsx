@@ -75,6 +75,34 @@ export default function SubmitPage() {
   const [description, setDescription] = useState('');
   const [trackTitle,  setTrackTitle]  = useState('');
   const [trackArtist, setTrackArtist] = useState('');
+  const [champs, setChamps] = useState<any[]>([]); /*DKDK_CHAMPS_STATE*/
+  const [champChoix, setChampChoix] = useState<Record<string, any[]>>({});
+  const [champValues, setChampValues] = useState<Record<string, string>>({});
+  /*DKDK_CHAMPS_LOAD*/
+  useEffect(() => {
+    setChamps([]); setChampChoix({}); setChampValues({});
+    const slug = selectedDiscipline?.id;
+    if (!slug) return;
+    (async () => {
+      try {
+        const r = await fetch(API + '/categories/disciplines/by-slug/' + slug + '/champs');
+        const list = await r.json();
+        const arr = Array.isArray(list) ? list : [];
+        setChamps(arr);
+        const cx: Record<string, any[]> = {};
+        for (const c of arr) {
+          if (c.type === 'liste') {
+            try {
+              const rc = await fetch(API + '/categories/champs/' + c.id + '/choix');
+              const cj = await rc.json();
+              cx[c.id] = Array.isArray(cj) ? cj : [];
+            } catch { cx[c.id] = []; }
+          }
+        }
+        setChampChoix(cx);
+      } catch { setChamps([]); }
+    })();
+  }, [selectedDiscipline]);
 
   const [uploadMode, setUploadMode] = useState<UploadMode>('file');
   const [videoUrl,   setVideoUrl]   = useState('');
@@ -553,6 +581,23 @@ export default function SubmitPage() {
               </div>
             </div>
 
+            {/*DKDK_CHAMPS_RENDER*/ champs.length > 0 && champs.map((c: any) => (
+              <div key={c.id} style={{ marginBottom: 12 }}>
+                <label style={lbl}>{c.titre}{c.obligatoire ? ' *' : ''}</label>
+                {c.type === 'liste' ? (
+                  <select style={inp} value={champValues[c.id] || ''} onChange={e => setChampValues(v => ({ ...v, [c.id]: e.target.value }))}>
+                    <option value="">Choisir...</option>
+                    {(champChoix[c.id] || []).map((ch: any) => (
+                      <option key={ch.id} value={ch.valeur}>{ch.valeur}</option>
+                    ))}
+                  </select>
+                ) : c.type === 'texte' ? (
+                  <input style={inp} type="text" value={champValues[c.id] || ''} onChange={e => setChampValues(v => ({ ...v, [c.id]: e.target.value }))} />
+                ) : (
+                  <input style={inp} type="text" placeholder="Recherche a venir" disabled />
+                )}
+              </div>
+            ))}
             {/*DKDK_HIDE_MUSIC_FIELDS*/ selectedDiscipline?.category_id !== 'sport' && (<>
                 <div style={{ marginBottom: 12 }}>
               <label style={lbl}>Titre de la piste <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
