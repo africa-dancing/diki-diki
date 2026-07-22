@@ -435,7 +435,7 @@ export default function SubmitPage() {
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20 }}>Renseignez les détails de votre prestation</div>
 
             {/* Sujet */}
-            {selectedDiscipline?.id === 'instrument' && ( /*DKDK_INSTR_SELECT*/
+            {selectedDiscipline?.id === 'instrument' && champs.length === 0 && ( /*DKDK_INSTR_SELECT*/
               <div style={{ marginBottom: 16 }}>
                 <label style={lbl}>Sujet / Morceau <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
                 <select value={selectedSubject?.name || ''} onChange={(e) => {
