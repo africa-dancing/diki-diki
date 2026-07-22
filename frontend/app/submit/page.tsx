@@ -653,7 +653,7 @@ export default function SubmitPage() {
                     <span style={{ fontSize: 11, color: OR, fontWeight: 600 }}>
                       {selectedDiscipline?.category_id === 'sport'
                         ? (selectedDiscipline?.emoji || '🏅') + ' ' + (sportEpreuveChoisie?.libelle ? sportEpreuveChoisie.libelle + ' · ' : '') + selectedSubject.name /*DKDK_RECAP_LIBELLE*/
-                        : recapSubject}
+                        : (selectedDiscipline?.emoji ? selectedDiscipline.emoji + ' ' : '') + recapSubject}
                     </span>
               </>}
             </div>
@@ -750,7 +750,7 @@ export default function SubmitPage() {
             <div style={{ fontSize: 13, color: 'rgba(74,222,128,0.65)', lineHeight: 1.8, marginBottom: 8 }}>
               {selectedCategory?.emoji} {selectedCategory?.name}
               {selectedDiscipline && <> → {selectedDiscipline.emoji} {selectedDiscipline.name}</>}
-              {recapSubject && <> → {recapSubject}</>}
+              {recapSubject && <> → {selectedDiscipline?.emoji} {recapSubject}</>}
             </div>
 
             {/* Rappel du flux */}
