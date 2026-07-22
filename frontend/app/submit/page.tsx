@@ -226,6 +226,10 @@ export default function SubmitPage() {
         .map((c: any) => champValues[c.id])
         .filter(Boolean)
         .join(' - ');
+      const champDetails = champs
+        .map((c: any) => (champValues[c.id] ? c.titre + ': ' + champValues[c.id] : ''))
+        .filter(Boolean)
+        .join(' | '); /*DKDK_CHAMP_DETAILS*/
       const effectiveSubject = champs.length > 0 ? (champSubject || undefined) : (selectedSubject?.name || undefined);
       const payload: any = {
         status: 'draft', // ← enregistré en brouillon, pas encore soumis
@@ -237,6 +241,7 @@ export default function SubmitPage() {
         description: description.trim(),
         track_title: trackTitle.trim(),
         track_artist: trackArtist.trim(),
+        track_genre: champDetails || undefined,
       };
 
       /*DKDK_SPORT_DISCIPLINE_COMPOSITE*/
