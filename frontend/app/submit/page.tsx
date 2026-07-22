@@ -78,6 +78,12 @@ export default function SubmitPage() {
   const [champs, setChamps] = useState<any[]>([]); /*DKDK_CHAMPS_STATE*/
   const [champChoix, setChampChoix] = useState<Record<string, any[]>>({});
   const [champValues, setChampValues] = useState<Record<string, string>>({});
+  const champRecap = champs
+    .filter((c: any) => c.type === 'liste' || c.type === 'musique')
+    .map((c: any) => champValues[c.id])
+    .filter(Boolean)
+    .join(' - '); /*DKDK_RECAP_DYN*/
+  const recapSubject = champs.length > 0 ? champRecap : (selectedSubject?.name || '');
   /*DKDK_CHAMPS_LOAD*/
   useEffect(() => {
     setChamps([]); setChampChoix({}); setChampValues({});
@@ -641,13 +647,13 @@ export default function SubmitPage() {
               <span style={{ fontSize: 11, color: OR, fontWeight: 600 }}>{selectedCategory?.emoji} {selectedCategory?.name}</span>
               <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>→</span>
               <span style={{ fontSize: 11, color: OR, fontWeight: 600 }}>{selectedDiscipline?.emoji} {selectedDiscipline?.name}</span>
-              {selectedSubject && <>
+              {recapSubject && <>
                 <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>→</span>
                 {/*DKDK_RECAP_SPORT*/}
                     <span style={{ fontSize: 11, color: OR, fontWeight: 600 }}>
                       {selectedDiscipline?.category_id === 'sport'
                         ? (selectedDiscipline?.emoji || '🏅') + ' ' + (sportEpreuveChoisie?.libelle ? sportEpreuveChoisie.libelle + ' · ' : '') + selectedSubject.name /*DKDK_RECAP_LIBELLE*/
-                        : '🎵 ' + selectedSubject.name}
+                        : '🎵 ' + recapSubject}
                     </span>
               </>}
             </div>
@@ -744,7 +750,7 @@ export default function SubmitPage() {
             <div style={{ fontSize: 13, color: 'rgba(74,222,128,0.65)', lineHeight: 1.8, marginBottom: 8 }}>
               {selectedCategory?.emoji} {selectedCategory?.name}
               {selectedDiscipline && <> → {selectedDiscipline.emoji} {selectedDiscipline.name}</>}
-              {selectedSubject && <> → 🎵 {selectedSubject.name}</>}
+              {recapSubject && <> → 🎵 {recapSubject}</>}
             </div>
 
             {/* Rappel du flux */}
