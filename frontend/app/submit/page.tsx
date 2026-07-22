@@ -614,7 +614,7 @@ export default function SubmitPage() {
                 )}
               </div>
             ))}
-            {/*DKDK_HIDE_MUSIC_FIELDS*/ selectedDiscipline?.category_id !== 'sport' && (<>
+            {/*DKDK_HIDE_MUSIC_FIELDS*/ ['chant','danse','instrument','acapella'].includes(selectedDiscipline?.id || '') && (<>
                 <div style={{ marginBottom: 12 }}>
               <label style={lbl}>Titre de la piste <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
               <input style={inp} type="text" placeholder="Ex : Afrobeat Battle" value={trackTitle} onChange={e => setTrackTitle(e.target.value)} />
