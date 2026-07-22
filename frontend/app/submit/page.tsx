@@ -78,6 +78,19 @@ export default function SubmitPage() {
   const [champs, setChamps] = useState<any[]>([]); /*DKDK_CHAMPS_STATE*/
   const [champChoix, setChampChoix] = useState<Record<string, any[]>>({});
   const [champValues, setChampValues] = useState<Record<string, string>>({});
+  const [musiques, setMusiques] = useState<any[]>([]); /*DKDK_MUSIQUES*/
+  const [musiqueFiltre, setMusiqueFiltre] = useState('');
+  useEffect(() => {
+    if (!champs.some((c: any) => c.type === 'musique')) return;
+    if (musiques.length > 0) return;
+    (async () => {
+      try {
+        const r = await fetch(API + '/musiques');
+        const j = await r.json();
+        setMusiques((j && j.success) ? (j.data || []) : []);
+      } catch { setMusiques([]); }
+    })();
+  }, [champs]);
   const champRecap = champs
     .map((c: any) => champValues[c.id])
     .filter(Boolean)
@@ -610,7 +623,15 @@ export default function SubmitPage() {
                 ) : c.type === 'texte' ? (
                   <input style={inp} type="text" value={champValues[c.id] || ''} onChange={e => setChampValues(v => ({ ...v, [c.id]: e.target.value }))} />
                 ) : (
-                  <input style={inp} type="text" placeholder="Recherche a venir" disabled />
+                  <>
+                    <input style={inp} type="text" placeholder="Rechercher un titre..." value={musiqueFiltre} onChange={e => setMusiqueFiltre(e.target.value)} />
+                    <select style={{ ...inp, marginTop: 6 }} value={champValues[c.id] || ''} onChange={e => setChampValues(v => ({ ...v, [c.id]: e.target.value }))}>
+                      <option value="" style={{ color: '#000', background: '#fff' }}>Choisir...</option>
+                      {musiques.filter((m: any) => { const q = musiqueFiltre.toLowerCase(); return !q || String(m.titre || '').toLowerCase().includes(q) || String(m.artiste || '').toLowerCase().includes(q); }).map((m: any) => (
+                        <option key={m.id} value={m.titre} style={{ color: '#000', background: '#fff' }}>{m.titre}{m.artiste ? ' - ' + m.artiste : ''}</option>
+                      ))}
+                    </select>
+                  </>
                 )}
               </div>
             ))}
