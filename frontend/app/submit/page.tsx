@@ -79,7 +79,6 @@ export default function SubmitPage() {
   const [champChoix, setChampChoix] = useState<Record<string, any[]>>({});
   const [champValues, setChampValues] = useState<Record<string, string>>({});
   const champRecap = champs
-    .filter((c: any) => c.type === 'liste' || c.type === 'musique')
     .map((c: any) => champValues[c.id])
     .filter(Boolean)
     .join(' - '); /*DKDK_RECAP_DYN*/
