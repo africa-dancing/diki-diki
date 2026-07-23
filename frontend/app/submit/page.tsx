@@ -158,6 +158,7 @@ export default function SubmitPage() {
   const champRecap = champs
     .map((c: any) => champValues[c.id])
     .filter(Boolean)
+    .map((v: string) => String(v).split(' (')[0].trim())
     .join(' - '); /*DKDK_RECAP_DYN*/
   const recapSubject = champs.length > 0 ? champRecap : (selectedSubject?.name || '');
   /*DKDK_CHAMPS_LOAD*/
