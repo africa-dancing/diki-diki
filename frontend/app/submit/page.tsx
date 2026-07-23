@@ -84,6 +84,7 @@ export default function SubmitPage() {
   const [musiqueNouvArtiste, setMusiqueNouvArtiste] = useState('');
   const [musiqueMsg, setMusiqueMsg] = useState('');
   const [musiqueBusy, setMusiqueBusy] = useState(false);
+  const [musiqueOpen, setMusiqueOpen] = useState(false); /*DKDK_MUSIQUE_FOLD*/
   const [musiqueRech, setMusiqueRech] = useState(''); /*DKDK_MUSIQUE_LOOKUP*/
   const [musiqueLookupBusy, setMusiqueLookupBusy] = useState(false);
   const [musiqueMeta, setMusiqueMeta] = useState<any>({});
@@ -695,6 +696,10 @@ export default function SubmitPage() {
                       ))}
                     </select>
                     <div style={{ marginTop: 8 }}>
+                      <span onClick={() => setMusiqueOpen(o => !o)} style={{ fontSize: 12, color: OR, textDecoration: 'underline', cursor: 'pointer' }}>{musiqueOpen ? "Masquer l'ajout" : "Mon morceau n'est pas dans la liste"}</span>
+                    </div>
+                    {musiqueOpen && (
+                    <div style={{ marginTop: 8 }}>
                       <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 4 }}>Morceau absent de la liste ? Ajoutez-le :</div>
                       <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
                         <input style={inp} type="text" placeholder="Rechercher (MusicBrainz)..." value={musiqueRech} onChange={e => setMusiqueRech(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') lookupMusiqueBib(); }} />
@@ -704,12 +709,12 @@ export default function SubmitPage() {
                       <input style={{ ...inp, marginTop: 6 }} type="text" placeholder="Artiste" value={musiqueNouvArtiste} onChange={e => setMusiqueNouvArtiste(e.target.value)} />
                       <button type="button" disabled={musiqueBusy} style={{ ...inp, marginTop: 6, cursor: 'pointer', color: OR, fontWeight: 700 }} onClick={() => ajouterMusique(c.id)}>{musiqueBusy ? 'Ajout...' : '+ Ajouter a la bibliotheque'}</button>
                       {musiqueMsg && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>{musiqueMsg}</div>}
-                    </div>
+                    </div>)}
                   </>
                 )}
               </div>
             ))}
-            {/*DKDK_HIDE_MUSIC_FIELDS*/ ['chant','danse','instrument','acapella'].includes(selectedDiscipline?.id || '') && (<>
+            {/*DKDK_HIDE_MUSIC_FIELDS*/ ['chant','danse','instrument','acapella'].includes(selectedDiscipline?.id || '') && !champs.some((c: any) => c.type === 'musique') && (<>
                 <div style={{ marginBottom: 12 }}>
               <label style={lbl}>Titre de la piste <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
               <input style={inp} type="text" placeholder="Ex : Afrobeat Battle" value={trackTitle} onChange={e => setTrackTitle(e.target.value)} />
