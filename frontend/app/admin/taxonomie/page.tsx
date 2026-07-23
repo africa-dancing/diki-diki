@@ -9,7 +9,7 @@ const OR  = '#FFAA00';
 
 interface Categorie  { id: string; name: string; emoji: string | null; ordre: number | null; }
 interface Discipline { id: string; name: string; emoji: string | null; }
-interface Champ      { id: string; ordre: number; titre: string; type: string; obligatoire: boolean; }
+interface Champ      { id: string; ordre: number; titre: string; type: string; obligatoire: boolean; actif?: boolean; }
 interface Choix      { id: string; valeur: string; ordre: number; actif: boolean; }
 
 const carte: any = { background: '#0d0d14', border: '1px solid #1e1e2e', borderRadius: 12, padding: 16, marginBottom: 16 };
@@ -62,12 +62,12 @@ function TaxonomieInner() {
   };
   const chargerChamps = async (id: string) => {
     setDiscSel(id); setChampSel(''); setChoix([]);
-    try { setChamps(liste(await (await fetch(API + '/categories/disciplines/' + id + '/champs')).json())); }
+    try { setChamps(liste(await (await fetch(API + '/categories/disciplines/' + id + '/champs?all=1')).json())); }
     catch { msg('Erreur reseau.', false); }
   };
   const chargerChoix = async (id: string) => {
     setChampSel(id);
-    try { setChoix(liste(await (await fetch(API + '/categories/champs/' + id + '/choix')).json())); }
+    try { setChoix(liste(await (await fetch(API + '/categories/champs/' + id + '/choix?all=1')).json())); }
     catch { msg('Erreur reseau.', false); }
   };
 
@@ -117,6 +117,17 @@ function TaxonomieInner() {
     const r = await fetch(API + '/categories/champs/' + champSel + '/choix', { method: 'POST', headers: tok(), body: JSON.stringify({ valeur: nChoix.trim(), ordre: choix.length }) });
     if (!r.ok) return msg('Ajout impossible (doublon ?).', false);
     setNChoix(''); msg('Choix ajoute.'); chargerChoix(champSel);
+  };
+  /*DKDK_ADMIN_RESTORE*/
+  const restaurerChamp = async (id: string) => {
+    const r = await fetch(API + '/categories/champs/' + id + '/restore', { method: 'POST', headers: tok() });
+    if (!r.ok) return msg('Restauration impossible.', false);
+    msg('Detail restaure.'); chargerChamps(discSel);
+  };
+  const restaurerChoix = async (id: string) => {
+    const r = await fetch(API + '/categories/choix/' + id + '/restore', { method: 'POST', headers: tok() });
+    if (!r.ok) return msg('Restauration impossible.', false);
+    msg('Choix restaure.'); chargerChoix(champSel);
   };
   /*DKDK_ADMIN_MOVE*/
   const deplacerChamp = async (id: string, direction: string) => {
@@ -206,12 +217,14 @@ function TaxonomieInner() {
             {!discSel && <div style={{ color: '#8a8aa8', fontSize: 13 }}>Choisis une discipline.</div>}
             {champs.map(c => (
               <div key={c.id} style={ligneStyle(c.id === champSel)} onClick={() => chargerChoix(c.id)}>
-                <span>{c.ordre}. {c.titre} <span style={{ color: '#8a8aa8', fontSize: 12 }}>({c.type})</span></span>
+                <span style={{ opacity: c.actif === false ? 0.4 : 1 }}>{c.ordre}. {c.titre} <span style={{ color: '#8a8aa8', fontSize: 12 }}>({c.type}{c.actif === false ? ', desactive' : ''})</span></span>
                 <span style={{ display: 'flex', gap: 4 }}>
                   <button style={btnSup} onClick={e => { e.stopPropagation(); deplacerChamp(c.id, 'up'); }}>Haut</button>
                   <button style={btnSup} onClick={e => { e.stopPropagation(); deplacerChamp(c.id, 'down'); }}>Bas</button>
                   <button style={btnSup} onClick={e => { e.stopPropagation(); renommerChamp(c.id, c.titre); }}>Renommer</button>
-                <button style={btnSup} onClick={e => { e.stopPropagation(); supprimerChamp(c.id); }}>Suppr.</button>
+                {c.actif === false
+                  ? <button style={btnSup} onClick={e => { e.stopPropagation(); restaurerChamp(c.id); }}>Restaurer</button>
+                  : <button style={btnSup} onClick={e => { e.stopPropagation(); supprimerChamp(c.id); }}>Suppr.</button>}
                 </span>
               </div>
             ))}
@@ -244,12 +257,14 @@ function TaxonomieInner() {
               <>
                 {choix.map(v => (
                   <div key={v.id} style={ligneStyle(false)}>
-                    <span>{v.valeur}</span>
+                    <span style={{ opacity: v.actif === false ? 0.4 : 1 }}>{v.valeur}{v.actif === false ? ' (desactive)' : ''}</span>
                     <span style={{ display: 'flex', gap: 4 }}>
                       <button style={btnSup} onClick={() => deplacerChoix(v.id, 'up')}>Haut</button>
                       <button style={btnSup} onClick={() => deplacerChoix(v.id, 'down')}>Bas</button>
                       <button style={btnSup} onClick={() => renommerChoix(v.id, v.valeur)}>Renommer</button>
-                    <button style={btnSup} onClick={() => supprimerChoix(v.id)}>Suppr.</button>
+                    {v.actif === false
+                      ? <button style={btnSup} onClick={() => restaurerChoix(v.id)}>Restaurer</button>
+                      : <button style={btnSup} onClick={() => supprimerChoix(v.id)}>Suppr.</button>}
                     </span>
                   </div>
                 ))}
