@@ -675,7 +675,7 @@ export default function SubmitPage() {
               </div>
             </div>
 
-            {/*DKDK_CHAMPS_RENDER*/ champs.length > 0 && champs.map((c: any) => (
+            {/*DKDK_CHAMPS_RENDER*/ /*DKDK_LISTE_VIDE*/ champs.length > 0 && champs.filter((c: any) => !(c.type === 'liste' && Array.isArray(champChoix[c.id]) && champChoix[c.id].length === 0)).map((c: any) => (
               <div key={c.id} style={{ marginBottom: 12 }}>
                 <label style={lbl}>{c.titre}{c.obligatoire ? ' *' : ''}</label>
                 {c.type === 'liste' ? (
