@@ -22,6 +22,7 @@ interface Video {
   storage_url?: string; created_at: string;
   user?: { name?: string; country?: string; id?: string };
   status: string; rejection_reason?: string;
+  pre_marque?: string;
 }
 
 function fmt(n: number) { return n.toLocaleString('fr-FR'); }
@@ -97,6 +98,18 @@ export default function AdminModerationPage() {
       showMsg(`Video de ${name} supprimee`);
     } catch { showMsg('Erreur lors de la suppression.', 'error'); }
   }
+
+  const premarquer = async (id: string, couleur: string | null) => { /*DKDK_PREMARQUE_UI*/
+    try {
+      const res = await fetch(API + '/videos/' + id + '/premarque', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + admin?.token },
+        body: JSON.stringify({ couleur }),
+      });
+      if (!res.ok) throw new Error();
+      setVideos(vs => vs.map(v => v.id === id ? { ...v, pre_marque: couleur ?? undefined } : v));
+    } catch { setMsgType('error'); setMessage('Pre-marquage impossible.'); }
+  };
 
   const pending  = videos.filter(v => v.status === 'pending').length;
   const approved = videos.filter(v => v.status === 'approved').length;
@@ -184,6 +197,24 @@ export default function AdminModerationPage() {
                       <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: st.bg, color: st.color, border: `1px solid ${st.border}`, flexShrink: 0 }}>
                         {st.label}
                       </span>
+
+                      {/* Pre-marquage */}
+                      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                        <button onClick={() => premarquer(v.id, v.pre_marque === 'orange' ? null : 'orange')}
+                          style={{ padding: '5px 10px', fontSize: 11, fontWeight: 700, borderRadius: 8, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                            background: (v.pre_marque === 'orange' ? '#FFAA0033' : 'rgba(255,255,255,0.05)'),
+                            border: (v.pre_marque === 'orange' ? '1px solid #FFAA00' : '1px solid rgba(255,255,255,0.1)'),
+                            color: (v.pre_marque === 'orange' ? '#FFAA00' : 'rgba(255,255,255,0.45)') }}>
+                          Orange
+                        </button>
+                        <button onClick={() => premarquer(v.id, v.pre_marque === 'bleu' ? null : 'bleu')}
+                          style={{ padding: '5px 10px', fontSize: 11, fontWeight: 700, borderRadius: 8, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                            background: (v.pre_marque === 'bleu' ? '#38bdf833' : 'rgba(255,255,255,0.05)'),
+                            border: (v.pre_marque === 'bleu' ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.1)'),
+                            color: (v.pre_marque === 'bleu' ? '#38bdf8' : 'rgba(255,255,255,0.45)') }}>
+                          Bleu
+                        </button>
+                      </div>
 
                       {/* Actions */}
                       {v.status === 'pending' && (
