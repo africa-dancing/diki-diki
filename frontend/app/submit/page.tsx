@@ -80,16 +80,55 @@ export default function SubmitPage() {
   const [champValues, setChampValues] = useState<Record<string, string>>({});
   const [musiques, setMusiques] = useState<any[]>([]); /*DKDK_MUSIQUES*/
   const [musiqueFiltre, setMusiqueFiltre] = useState('');
+  const [musiqueNouvTitre, setMusiqueNouvTitre] = useState(''); /*DKDK_MUSIQUE_ADD*/
+  const [musiqueNouvArtiste, setMusiqueNouvArtiste] = useState('');
+  const [musiqueMsg, setMusiqueMsg] = useState('');
+  const [musiqueBusy, setMusiqueBusy] = useState(false);
+  const chargerMusiques = async () => {
+    try {
+      const r = await fetch(API + '/musiques');
+      const j = await r.json();
+      const approuves = (j && j.success) ? (j.data || []) : [];
+      let miens: any[] = [];
+      const tk = getToken();
+      if (tk) {
+        try {
+          const rm = await fetch(API + '/musiques/mine', { headers: { Authorization: 'Bearer ' + tk } });
+          const jm = await rm.json();
+          miens = (jm && jm.success) ? (jm.data || []) : [];
+        } catch {}
+      }
+      setMusiques([...miens, ...approuves]);
+    } catch { setMusiques([]); }
+  };
+  const ajouterMusique = async (champId: string) => {
+    const t = musiqueNouvTitre.trim();
+    const a = musiqueNouvArtiste.trim();
+    if (!t || !a) { setMusiqueMsg('Titre et artiste obligatoires.'); return; }
+    const existe = musiques.find((m: any) => String(m.titre || '').trim().toLowerCase() === t.toLowerCase() && String(m.artiste || '').trim().toLowerCase() === a.toLowerCase());
+    if (existe) {
+      setChampValues(v => ({ ...v, [champId]: existe.titre }));
+      setMusiqueNouvTitre(''); setMusiqueNouvArtiste('');
+      setMusiqueMsg('Ce morceau est deja dans la bibliotheque : il a ete selectionne.');
+      return;
+    }
+    setMusiqueBusy(true); setMusiqueMsg('');
+    try {
+      const tk = getToken();
+      const r = await fetch(API + '/musiques', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tk }, body: JSON.stringify({ titre: t, artiste: a }) });
+      const j = await r.json();
+      if (!j || !j.success) { setMusiqueMsg((j && j.error) ? j.error : 'Ajout impossible.'); setMusiqueBusy(false); return; }
+      await chargerMusiques();
+      setChampValues(v => ({ ...v, [champId]: t }));
+      setMusiqueNouvTitre(''); setMusiqueNouvArtiste('');
+      setMusiqueMsg('Morceau ajoute et selectionne.');
+    } catch { setMusiqueMsg('Ajout impossible.'); }
+    setMusiqueBusy(false);
+  };
   useEffect(() => {
     if (!champs.some((c: any) => c.type === 'musique')) return;
     if (musiques.length > 0) return;
-    (async () => {
-      try {
-        const r = await fetch(API + '/musiques');
-        const j = await r.json();
-        setMusiques((j && j.success) ? (j.data || []) : []);
-      } catch { setMusiques([]); }
-    })();
+    chargerMusiques();
   }, [champs]);
   const champRecap = champs
     .map((c: any) => champValues[c.id])
@@ -631,6 +670,13 @@ export default function SubmitPage() {
                         <option key={m.id} value={m.titre} style={{ color: '#000', background: '#fff' }}>{m.titre}{m.artiste ? ' - ' + m.artiste : ''}</option>
                       ))}
                     </select>
+                    <div style={{ marginTop: 8 }}>
+                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 4 }}>Morceau absent de la liste ? Ajoutez-le :</div>
+                      <input style={inp} type="text" placeholder="Titre" value={musiqueNouvTitre} onChange={e => setMusiqueNouvTitre(e.target.value)} />
+                      <input style={{ ...inp, marginTop: 6 }} type="text" placeholder="Artiste" value={musiqueNouvArtiste} onChange={e => setMusiqueNouvArtiste(e.target.value)} />
+                      <button type="button" disabled={musiqueBusy} style={{ ...inp, marginTop: 6, cursor: 'pointer', color: OR, fontWeight: 700 }} onClick={() => ajouterMusique(c.id)}>{musiqueBusy ? 'Ajout...' : '+ Ajouter a la bibliotheque'}</button>
+                      {musiqueMsg && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>{musiqueMsg}</div>}
+                    </div>
                   </>
                 )}
               </div>
