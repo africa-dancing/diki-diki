@@ -201,7 +201,9 @@ categoryRouter.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
 // --- Champs dynamiques d'une discipline ---
 categoryRouter.get('/disciplines/:id/champs', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('discipline_champs').select('*').eq('discipline_id', req.params.id).order('ordre');
+    let q = supabase.from('discipline_champs').select('*').eq('discipline_id', req.params.id); /*DKDK_SOFT_DELETE*/
+    if (req.query.all !== '1') q = q.eq('actif', true);
+    const { data, error } = await q.order('ordre');
     if (error) throw error;
     res.json(data || []);
   } catch { res.status(500).json({ error: 'CHAMPS_FETCH_FAILED' }); }
@@ -212,7 +214,7 @@ categoryRouter.get('/disciplines/by-slug/:slug/champs', async (req, res) => {
     const { data: discs, error: dErr } = await supabase.from('disciplines').select('id').eq('slug', req.params.slug).limit(1);
     if (dErr) throw dErr;
     if (!discs || discs.length === 0) return res.json([]);
-    const { data, error } = await supabase.from('discipline_champs').select('*').eq('discipline_id', discs[0].id).order('ordre');
+    const { data, error } = await supabase.from('discipline_champs').select('*').eq('discipline_id', discs[0].id).eq('actif', true).order('ordre');
     if (error) throw error;
     res.json(data || []);
   } catch { res.status(500).json({ error: 'CHAMPS_BY_SLUG_FETCH_FAILED' }); }
@@ -229,7 +231,7 @@ categoryRouter.post('/disciplines/:id/champs', requireAuth, requireAdmin, async 
 });
 categoryRouter.delete('/champs/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
-    await supabase.from('discipline_champs').delete().eq('id', req.params.id);
+    await supabase.from('discipline_champs').update({ actif: false }).eq('id', req.params.id);
     res.json({ success: true });
   } catch { res.status(500).json({ error: 'CHAMP_DELETE_FAILED' }); }
 });
@@ -237,7 +239,9 @@ categoryRouter.delete('/champs/:id', requireAuth, requireAdmin, async (req, res)
 // --- Choix d'un champ de type liste ---
 categoryRouter.get('/champs/:id/choix', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('discipline_choix').select('*').eq('champ_id', req.params.id).eq('actif', true).order('ordre');
+    let q = supabase.from('discipline_choix').select('*').eq('champ_id', req.params.id);
+    if (req.query.all !== '1') q = q.eq('actif', true);
+    const { data, error } = await q.order('ordre');
     if (error) throw error;
     res.json(data || []);
   } catch { res.status(500).json({ error: 'CHOIX_FETCH_FAILED' }); }
@@ -253,7 +257,7 @@ categoryRouter.post('/champs/:id/choix', requireAuth, requireAdmin, async (req: 
 });
 categoryRouter.delete('/choix/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
-    await supabase.from('discipline_choix').delete().eq('id', req.params.id);
+    await supabase.from('discipline_choix').update({ actif: false }).eq('id', req.params.id);
     res.json({ success: true });
   } catch { res.status(500).json({ error: 'CHOIX_DELETE_FAILED' }); }
 });
@@ -312,6 +316,22 @@ categoryRouter.post('/choix/:id/move', requireAuth, requireAdmin, async (req: an
     await supabase.from('discipline_choix').update({ ordre: v.ordre }).eq('id', cur.id);
     res.json({ success: true, moved: true });
   } catch { res.status(500).json({ error: 'CHOIX_MOVE_FAILED' }); }
+});
+
+// --- Restaurer un element desactive (admin) ---
+categoryRouter.post('/champs/:id/restore', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { error } = await supabase.from('discipline_champs').update({ actif: true }).eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'CHAMP_RESTORE_FAILED' }); }
+});
+categoryRouter.post('/choix/:id/restore', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { error } = await supabase.from('discipline_choix').update({ actif: true }).eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'CHOIX_RESTORE_FAILED' }); }
 });
 
 export { categoryRouter };
