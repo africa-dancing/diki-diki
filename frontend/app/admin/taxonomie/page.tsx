@@ -118,6 +118,31 @@ function TaxonomieInner() {
     if (!r.ok) return msg('Ajout impossible (doublon ?).', false);
     setNChoix(''); msg('Choix ajoute.'); chargerChoix(champSel);
   };
+  /*DKDK_ADMIN_MOVE*/
+  const deplacerChamp = async (id: string, direction: string) => {
+    const r = await fetch(API + '/categories/champs/' + id + '/move', { method: 'POST', headers: tok(), body: JSON.stringify({ direction }) });
+    if (!r.ok) return msg('Deplacement impossible.', false);
+    chargerChamps(discSel);
+  };
+  const renommerChamp = async (id: string, actuel: string) => {
+    const t = prompt('Nouveau titre du detail :', actuel);
+    if (!t || !t.trim()) return;
+    const r = await fetch(API + '/categories/champs/' + id, { method: 'PATCH', headers: tok(), body: JSON.stringify({ titre: t.trim() }) });
+    if (!r.ok) return msg('Renommage impossible.', false);
+    msg('Detail renomme.'); chargerChamps(discSel);
+  };
+  const deplacerChoix = async (id: string, direction: string) => {
+    const r = await fetch(API + '/categories/choix/' + id + '/move', { method: 'POST', headers: tok(), body: JSON.stringify({ direction }) });
+    if (!r.ok) return msg('Deplacement impossible.', false);
+    chargerChoix(champSel);
+  };
+  const renommerChoix = async (id: string, actuel: string) => {
+    const v = prompt('Nouvelle valeur :', actuel);
+    if (!v || !v.trim()) return;
+    const r = await fetch(API + '/categories/choix/' + id, { method: 'PATCH', headers: tok(), body: JSON.stringify({ valeur: v.trim() }) });
+    if (!r.ok) return msg('Renommage impossible.', false);
+    msg('Choix renomme.'); chargerChoix(champSel);
+  };
   const supprimerChoix = async (id: string) => {
     const r = await fetch(API + '/categories/choix/' + id, { method: 'DELETE', headers: tok() });
     if (!r.ok) return msg('Suppression impossible.', false);
@@ -182,7 +207,12 @@ function TaxonomieInner() {
             {champs.map(c => (
               <div key={c.id} style={ligneStyle(c.id === champSel)} onClick={() => chargerChoix(c.id)}>
                 <span>{c.ordre}. {c.titre} <span style={{ color: '#8a8aa8', fontSize: 12 }}>({c.type})</span></span>
+                <span style={{ display: 'flex', gap: 4 }}>
+                  <button style={btnSup} onClick={e => { e.stopPropagation(); deplacerChamp(c.id, 'up'); }}>Haut</button>
+                  <button style={btnSup} onClick={e => { e.stopPropagation(); deplacerChamp(c.id, 'down'); }}>Bas</button>
+                  <button style={btnSup} onClick={e => { e.stopPropagation(); renommerChamp(c.id, c.titre); }}>Renommer</button>
                 <button style={btnSup} onClick={e => { e.stopPropagation(); supprimerChamp(c.id); }}>Suppr.</button>
+                </span>
               </div>
             ))}
             {discSel && (
@@ -193,7 +223,7 @@ function TaxonomieInner() {
                   <option value="musique">Mediatheque</option>
                   <option value="texte">Texte libre</option>
                 </select>
-                <input style={{ ...champ, width: 54 }} placeholder="1-3" value={nChamp.ordre} onChange={e => setNChamp({ ...nChamp, ordre: e.target.value })} />
+                <input style={{ ...champ, width: 54 }} placeholder="1-9" value={nChamp.ordre} onChange={e => setNChamp({ ...nChamp, ordre: e.target.value })} />
                 <button style={btn} onClick={ajouterChamp}>Ajouter</button>
                 <div style={{ color: '#8a8aa8', fontSize: 12, marginTop: 8 }}>
                   Liste et Mediatheque separent les brackets. Texte libre est informatif.
@@ -215,7 +245,12 @@ function TaxonomieInner() {
                 {choix.map(v => (
                   <div key={v.id} style={ligneStyle(false)}>
                     <span>{v.valeur}</span>
+                    <span style={{ display: 'flex', gap: 4 }}>
+                      <button style={btnSup} onClick={() => deplacerChoix(v.id, 'up')}>Haut</button>
+                      <button style={btnSup} onClick={() => deplacerChoix(v.id, 'down')}>Bas</button>
+                      <button style={btnSup} onClick={() => renommerChoix(v.id, v.valeur)}>Renommer</button>
                     <button style={btnSup} onClick={() => supprimerChoix(v.id)}>Suppr.</button>
+                    </span>
                   </div>
                 ))}
                 <div style={{ marginTop: 12 }}>
