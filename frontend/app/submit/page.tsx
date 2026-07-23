@@ -161,6 +161,8 @@ export default function SubmitPage() {
     .map((v: string) => String(v).split(' (')[0].trim())
     .join(' - '); /*DKDK_RECAP_DYN*/
   const recapSubject = champs.length > 0 ? champRecap : (selectedSubject?.name || '');
+  const aChoixAutre = Object.values(champChoix).some((l: any) => Array.isArray(l) && l.some((x: any) => String(x.valeur || '').trim().toLowerCase() === 'autre')); /*DKDK_TEXTE_AUTRE*/
+  const autreChoisi = Object.values(champValues).some((v: any) => String(v || '').trim().toLowerCase() === 'autre');
   /*DKDK_CHAMPS_LOAD*/
   useEffect(() => {
     setChamps([]); setChampChoix({}); setChampValues({});
@@ -675,7 +677,7 @@ export default function SubmitPage() {
               </div>
             </div>
 
-            {/*DKDK_CHAMPS_RENDER*/ /*DKDK_LISTE_VIDE*/ champs.length > 0 && champs.filter((c: any) => !(c.type === 'liste' && Array.isArray(champChoix[c.id]) && champChoix[c.id].length === 0)).map((c: any) => (
+            {/*DKDK_CHAMPS_RENDER*/ /*DKDK_LISTE_VIDE*/ champs.length > 0 && champs.filter((c: any) => !(c.type === 'liste' && Array.isArray(champChoix[c.id]) && champChoix[c.id].length === 0) && !(c.type === 'texte' && aChoixAutre && !autreChoisi)).map((c: any) => (
               <div key={c.id} style={{ marginBottom: 12 }}>
                 <label style={lbl}>{c.titre}{c.obligatoire ? ' *' : ''}</label>
                 {c.type === 'liste' ? (
