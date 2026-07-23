@@ -258,5 +258,61 @@ categoryRouter.delete('/choix/:id', requireAuth, requireAdmin, async (req, res) 
   } catch { res.status(500).json({ error: 'CHOIX_DELETE_FAILED' }); }
 });
 
+// --- Renommer et deplacer (admin) --- /*DKDK_TAXO_MOVE*/
+categoryRouter.patch('/champs/:id', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const maj: any = {};
+    if (typeof req.body.titre === 'string') maj.titre = req.body.titre.trim();
+    if (typeof req.body.obligatoire === 'boolean') maj.obligatoire = req.body.obligatoire;
+    if (Object.keys(maj).length === 0) return res.status(400).json({ error: 'RIEN_A_MODIFIER' });
+    const { error } = await supabase.from('discipline_champs').update(maj).eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'CHAMP_UPDATE_FAILED' }); }
+});
+categoryRouter.patch('/choix/:id', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    if (typeof req.body.valeur !== 'string' || !req.body.valeur.trim()) return res.status(400).json({ error: 'VALEUR_REQUISE' });
+    const { error } = await supabase.from('discipline_choix').update({ valeur: req.body.valeur.trim() }).eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: 'CHOIX_UPDATE_FAILED' }); }
+});
+categoryRouter.post('/champs/:id/move', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const haut = req.body.direction === 'up';
+    const { data: cur, error: e1 } = await supabase.from('discipline_champs').select('id, discipline_id, ordre').eq('id', req.params.id).single();
+    if (e1 || !cur) throw new Error('NOT_FOUND');
+    const base = supabase.from('discipline_champs').select('id, ordre').eq('discipline_id', cur.discipline_id);
+    const { data: vois, error: e2 } = haut
+      ? await base.lt('ordre', cur.ordre).order('ordre', { ascending: false }).limit(1)
+      : await base.gt('ordre', cur.ordre).order('ordre', { ascending: true }).limit(1);
+    if (e2) throw e2;
+    if (!vois || vois.length === 0) return res.json({ success: true, moved: false });
+    const v: any = vois[0];
+    await supabase.from('discipline_champs').update({ ordre: 9 }).eq('id', cur.id);
+    await supabase.from('discipline_champs').update({ ordre: cur.ordre }).eq('id', v.id);
+    await supabase.from('discipline_champs').update({ ordre: v.ordre }).eq('id', cur.id);
+    res.json({ success: true, moved: true });
+  } catch { res.status(500).json({ error: 'CHAMP_MOVE_FAILED' }); }
+});
+categoryRouter.post('/choix/:id/move', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const haut = req.body.direction === 'up';
+    const { data: cur, error: e1 } = await supabase.from('discipline_choix').select('id, champ_id, ordre').eq('id', req.params.id).single();
+    if (e1 || !cur) throw new Error('NOT_FOUND');
+    const base = supabase.from('discipline_choix').select('id, ordre').eq('champ_id', cur.champ_id);
+    const { data: vois, error: e2 } = haut
+      ? await base.lt('ordre', cur.ordre).order('ordre', { ascending: false }).limit(1)
+      : await base.gt('ordre', cur.ordre).order('ordre', { ascending: true }).limit(1);
+    if (e2) throw e2;
+    if (!vois || vois.length === 0) return res.json({ success: true, moved: false });
+    const v: any = vois[0];
+    await supabase.from('discipline_choix').update({ ordre: cur.ordre }).eq('id', v.id);
+    await supabase.from('discipline_choix').update({ ordre: v.ordre }).eq('id', cur.id);
+    res.json({ success: true, moved: true });
+  } catch { res.status(500).json({ error: 'CHOIX_MOVE_FAILED' }); }
+});
+
 export { categoryRouter };
 export { statsRouter };
