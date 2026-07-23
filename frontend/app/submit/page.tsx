@@ -84,6 +84,29 @@ export default function SubmitPage() {
   const [musiqueNouvArtiste, setMusiqueNouvArtiste] = useState('');
   const [musiqueMsg, setMusiqueMsg] = useState('');
   const [musiqueBusy, setMusiqueBusy] = useState(false);
+  const [musiqueRech, setMusiqueRech] = useState(''); /*DKDK_MUSIQUE_LOOKUP*/
+  const [musiqueLookupBusy, setMusiqueLookupBusy] = useState(false);
+  const [musiqueMeta, setMusiqueMeta] = useState<any>({});
+  const lookupMusiqueBib = async () => {
+    const q = musiqueRech.trim();
+    if (!q) return;
+    setMusiqueLookupBusy(true); setMusiqueMsg('');
+    try {
+      const tk = getToken();
+      const r = await fetch(API + '/musiques/lookup?q=' + encodeURIComponent(q), { headers: { Authorization: 'Bearer ' + tk } });
+      const j = await r.json();
+      if (!j || !j.success) { setMusiqueMsg((j && j.error) ? j.error : 'Recherche impossible.'); }
+      else if (!j.data) { setMusiqueMsg('Aucun resultat : saisissez le titre et l artiste a la main.'); }
+      else {
+        const d = j.data;
+        if (d.titre) setMusiqueNouvTitre(d.titre);
+        if (d.artiste) setMusiqueNouvArtiste(d.artiste);
+        setMusiqueMeta({ album: d.album || null, duree_sec: d.duree_sec || null, pays_origine: d.pays_origine || null, continent: d.continent || null, source: 'musicbrainz' });
+        setMusiqueMsg('Champs pre-remplis. Verifiez puis ajoutez.');
+      }
+    } catch { setMusiqueMsg('Recherche impossible.'); }
+    setMusiqueLookupBusy(false);
+  };
   const chargerMusiques = async () => {
     try {
       const r = await fetch(API + '/musiques');
@@ -115,10 +138,11 @@ export default function SubmitPage() {
     setMusiqueBusy(true); setMusiqueMsg('');
     try {
       const tk = getToken();
-      const r = await fetch(API + '/musiques', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tk }, body: JSON.stringify({ titre: t, artiste: a }) });
+      const r = await fetch(API + '/musiques', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tk }, body: JSON.stringify({ titre: t, artiste: a, ...musiqueMeta }) });
       const j = await r.json();
       if (!j || !j.success) { setMusiqueMsg((j && j.error) ? j.error : 'Ajout impossible.'); setMusiqueBusy(false); return; }
       await chargerMusiques();
+      setMusiqueMeta({}); setMusiqueRech('');
       setChampValues(v => ({ ...v, [champId]: t }));
       setMusiqueNouvTitre(''); setMusiqueNouvArtiste('');
       setMusiqueMsg('Morceau ajoute et selectionne.');
@@ -672,6 +696,10 @@ export default function SubmitPage() {
                     </select>
                     <div style={{ marginTop: 8 }}>
                       <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 4 }}>Morceau absent de la liste ? Ajoutez-le :</div>
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                        <input style={inp} type="text" placeholder="Rechercher (MusicBrainz)..." value={musiqueRech} onChange={e => setMusiqueRech(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') lookupMusiqueBib(); }} />
+                        <button type="button" disabled={musiqueLookupBusy} style={{ ...inp, width: 130, cursor: 'pointer', color: OR, fontWeight: 700 }} onClick={lookupMusiqueBib}>{musiqueLookupBusy ? '...' : 'Rechercher'}</button>
+                      </div>
                       <input style={inp} type="text" placeholder="Titre" value={musiqueNouvTitre} onChange={e => setMusiqueNouvTitre(e.target.value)} />
                       <input style={{ ...inp, marginTop: 6 }} type="text" placeholder="Artiste" value={musiqueNouvArtiste} onChange={e => setMusiqueNouvArtiste(e.target.value)} />
                       <button type="button" disabled={musiqueBusy} style={{ ...inp, marginTop: 6, cursor: 'pointer', color: OR, fontWeight: 700 }} onClick={() => ajouterMusique(c.id)}>{musiqueBusy ? 'Ajout...' : '+ Ajouter a la bibliotheque'}</button>
