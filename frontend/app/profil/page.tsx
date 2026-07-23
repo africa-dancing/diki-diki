@@ -142,7 +142,7 @@ export default function ProfilPage() {
               {profile.bio && <div style={{fontSize:12,color:'rgba(255,255,255,0.4)',lineHeight:1.6,marginBottom:8}}>{profile.bio}</div>}
               {/* Badges disciplines */}
               <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                {[...new Set(videos.map(v=>v.discipline).filter(Boolean))].map(d=>(
+                {Array.from(new Set(videos.map(v=>v.discipline).filter(Boolean))).map(d=>(
                   <span key={d} style={{background:'rgba(255,170,0,0.1)',border:'1px solid rgba(255,170,0,0.25)',color:OR,borderRadius:20,padding:'2px 10px',fontSize:11,fontWeight:600}}>
                     {DISC_EMOJI[d??'']??'🎭'} {DISC_FR[d??'']??d}
                   </span>

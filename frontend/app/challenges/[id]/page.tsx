@@ -425,7 +425,7 @@ export default function BracketPage() {
 
         {/* ✅ Règles — affichees seulement si lance */}
         {bracket.status === 'in_progress' && (
-        <div style={{ background:'rgba(7,6,6,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'14px 18px', marginBottom:20, fontSize:12, color:'rgba(255,255,255,0.75)', lineHeight:1.6, lineHeight:1.8 }}>
+        <div style={{ background:'rgba(7,6,6,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'14px 18px', marginBottom:20, fontSize:12, color:'rgba(255,255,255,0.75)', lineHeight:1.8 }}>
           📋 <strong style={{color:'rgba(255,255,255,0.6)'}}>Règles :</strong> Le plus voté <StarRed /> passe au tour suivant · Chaque étape se termine à l'objectif de cagnotte atteint · Égalité = mini-défi de <strong style={{color:OR}}>3 jours</strong> · Le champion remporte 75% de la cagnotte nette, le finaliste 25%
         </div>
         )}

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import LogoDikiDiki from '../../../components/LogoDikiDiki';
 
 const OR  = '#FFAA00';
 const OR2 = '#FF6B00';

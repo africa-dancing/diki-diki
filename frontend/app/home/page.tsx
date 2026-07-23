@@ -12,7 +12,7 @@ const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
 interface Video {
   id: string; title: string; description?: string; storage_url?: string;
   discipline?: string; track_title?: string; track_artist?: string; track_genre?: string;
-  views?: number; vote_count?: number; created_at: string;
+  views?: number; vote_count?: number; created_at: string; challenge_state?: string;
   user?: { name?: string; id?: string };
 }
 
