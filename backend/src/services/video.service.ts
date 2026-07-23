@@ -42,6 +42,13 @@ export async function uploadVideo(params: UploadVideoParams) {
   return video;
 }
 
+// Pre-marquage par la moderation : orange = pose probleme, bleu = bonne, null = efface /*DKDK_PREMARQUE*/
+export async function preMarquerVideo(videoId: string, couleur: string | null) {
+  const { data, error } = await supabase.from('videos').update({ pre_marque: couleur }).eq('id', videoId).select('id, pre_marque').single();
+  if (error) throw error;
+  return data;
+}
+
 export async function moderateVideo(videoId: string, moderatorId: string, decision: 'approved' | 'rejected', reason?: string) {
   const { data: video, error } = await supabase.from('videos').update({ status: decision, reviewed_by: moderatorId, reviewed_at: new Date().toISOString(), rejection_reason: reason || null, updated_at: new Date().toISOString() }).eq('id', videoId).select('*').single();
   if (error) throw error;

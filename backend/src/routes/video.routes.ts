@@ -6,6 +6,7 @@ import {
   getVideoById, getApprovedVideos,
   addComment, getCommentsByVideoId,
   getCandidatesByVideoId,
+  preMarquerVideo,
   getVideoStats,
 } from '../services/video.service';
 
@@ -132,6 +133,16 @@ videoRouter.post('/:id/comments', requireAuth, async (req: AuthRequest, res: Res
     const status = msg === 'VIDEO_NOT_FOUND' ? 404 : msg === 'CONTENT_TOO_LONG' ? 400 : 500;
     res.status(status).json({ error: msg });
   }
+});
+
+// Pre-marquage (aucune decision prise a ce stade) /*DKDK_PREMARQUE*/
+videoRouter.put('/:id/premarque', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { couleur } = req.body;
+    if (couleur !== null && !['orange', 'bleu'].includes(couleur)) return res.status(400).json({ error: 'INVALID_COULEUR' });
+    const video = await preMarquerVideo(req.params.id, couleur);
+    res.json({ success: true, video });
+  } catch { res.status(500).json({ error: 'PREMARQUE_FAILED' }); }
 });
 
 videoRouter.put('/:id/moderate', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
