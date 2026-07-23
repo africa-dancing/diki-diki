@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
-import { lookupMusique, submitMusique, submitMusiqueAdmin, listMusiques, listAllMusiquesAdmin, deleteMusiqueAdmin } from '../services/musique.service';
+import { lookupMusique, submitMusique, submitMusiqueAdmin, listMusiques, listMyPendingMusiques, listAllMusiquesAdmin, deleteMusiqueAdmin } from '../services/musique.service';
 
 const musiqueRouter = Router();
 
@@ -12,6 +12,16 @@ musiqueRouter.get('/lookup', requireAuth, async (req: AuthRequest, res: Response
     const result = await lookupMusique(q);
     if (!result) return res.json({ success: true, data: null });
     res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// Morceaux en attente soumis par l'utilisateur connecte /*DKDK_MUSIQUES_MINE*/
+musiqueRouter.get('/mine', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const data = await listMyPendingMusiques(req.user!.userId);
+    res.json({ success: true, data });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
   }

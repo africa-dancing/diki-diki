@@ -82,6 +82,13 @@ export async function submitMusique(params: {
   return { id: data.id };
 }
 
+// Morceaux en attente d'un utilisateur (visibles par lui seul) /*DKDK_MINE*/
+export async function listMyPendingMusiques(userId: string) {
+  const { data, error } = await supabase.from('musiques').select('*').eq('submitted_by', userId).eq('status', 'pending').order('created_at', { ascending: false });
+  if (error) throw new Error('Erreur lors de la lecture des morceaux en attente.');
+  return data || [];
+}
+
 /*DKDK_SUBMIT_ADMIN*/
 // Enregistre un morceau ajoute par l'admin (source=admin, status=approved directement)
 export async function submitMusiqueAdmin(params: {
