@@ -334,6 +334,8 @@ export default function BracketPage() {
     } catch { alert('Erreur reseau. Reessaie.'); }
   };
 
+  const [mesVideos, setMesVideos] = useState<any[]>([]); /*DKDK_CHOIX_VIDEO*/
+  const [panneauOuvert, setPanneauOuvert] = useState(false);
   const handleInscribe = async () => {
     const token = getToken();
     if (!token) { router.push('/auth/login'); return; }
@@ -345,7 +347,17 @@ export default function BracketPage() {
         alert('Tu dois avoir au moins une video approuvee pour participer.');
         return;
       }
-      const video_id = approved[0].id;
+      setMesVideos(approved);
+      setPanneauOuvert(true);
+    } catch {
+      alert('Erreur reseau. Reessaie.');
+    }
+  };
+
+  const inscrireAvec = async (video_id: string) => {
+    const token = getToken();
+    if (!token) { router.push('/auth/login'); return; }
+    try {
       const res = await fetch(`${API}/brackets/arena/inscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -461,6 +473,18 @@ export default function BracketPage() {
                 <div style={{ height:'100%', width:pct+'%', background:'linear-gradient(90deg,#FF6B00,#FFD700)', transition:'width 0.4s' }} />
               </div>
               <button onClick={handleInscribe} style={{ width:'100%', padding:'14px', borderRadius:14, fontSize:15, fontWeight:800, fontFamily:'Syne,sans-serif', cursor:'pointer', border:'none', background:'linear-gradient(135deg,#FF6B00,#FFD700)', color:'#000' }}>Je participe</button>
+              {panneauOuvert && (
+                <div style={{ marginTop:16, textAlign:'left' }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.75)', marginBottom:8 }}>Choisis la video a engager :</div>
+                  {mesVideos.map((v: any) => (
+                    <div key={v.id} onClick={() => inscrireAvec(v.id)} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', marginBottom:6, borderRadius:12, cursor:'pointer', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)' }}>
+                      <span style={{ flex:1, fontSize:13, color:'#fff' }}>{v.title || 'Sans titre'}</span>
+                      <span style={{ fontSize:11, color:OR, fontWeight:700 }}>Engager</span>
+                    </div>
+                  ))}
+                  <div onClick={() => setPanneauOuvert(false)} style={{ fontSize:12, color:'rgba(255,255,255,0.45)', cursor:'pointer', marginTop:8 }}>Annuler</div>
+                </div>
+              )}
             </div>
           );
         })()}
