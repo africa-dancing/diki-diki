@@ -9,6 +9,7 @@ const MENU = [
   { href: '/admin/moderation', icon: '🎬', label: 'Moderation videos' },
   { href: '/admin/mediatheque', icon: '🎵', label: 'Médiathèque' },
   { href: '/admin/reglages',   icon: '⚙️', label: 'Réglages Challenge' },
+  { href: '/admin/formats',    icon: '🏆', label: 'Formats de challenge' }, /*DKDK_FORMATS_NAV*/
   { href: '/admin/sport',      icon: '🥋', label: 'Sport' }, /*DKDK_SPORT_NAV*/
   { href: '/admin/taxonomie',  icon: '🗂', label: 'Taxonomie' }, /*DKDK_TAXO_NAV*/
   { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },
