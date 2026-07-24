@@ -15,6 +15,7 @@ import {
   paymentRouter,
   videosPublicRouter,
   categoryRouter,
+  formatRouter,
   usersPublicRouter,
   tickerRouter,
 } from './routes/index.routes';
@@ -63,6 +64,7 @@ app.use('/v1/users',         usersPublicRouter);
 app.use('/v1/users',         userRouter);
 app.use('/v1/ticker',        tickerRouter);
 app.use('/v1/categories',    categoryRouter);
+app.use('/v1/challenge-formats', formatRouter);
 app.use('/v1/stats',         statsRouter);
 app.use('/v1/notifications', notificationRouter);
 app.use('/v1/analytics',     analyticsRouter);

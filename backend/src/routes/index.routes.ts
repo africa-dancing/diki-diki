@@ -334,5 +334,32 @@ categoryRouter.post('/choix/:id/restore', requireAuth, requireAdmin, async (req,
   } catch { res.status(500).json({ error: 'CHOIX_RESTORE_FAILED' }); }
 });
 
+// --- Formats de challenge (admin) --- /*DKDK_FORMATS_ROUTES*/
+const formatRouter = CatRouter();
+
+formatRouter.get('/', async (req, res) => {
+  try {
+    let q = supabase.from('challenge_formats').select('*');
+    if (req.query.all !== '1') q = q.eq('actif', true);
+    const { data, error } = await q.order('ordre');
+    if (error) throw error;
+    res.json(data || []);
+  } catch { res.status(500).json({ error: 'FORMATS_FETCH_FAILED' }); }
+});
+
+formatRouter.patch('/:id', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const patch: any = {};
+    if (req.body.libelle !== undefined)        patch.libelle = req.body.libelle;
+    if (req.body.objectif_etape !== undefined) patch.objectif_etape = req.body.objectif_etape;
+    if (req.body.actif !== undefined)          patch.actif = req.body.actif;
+    const { data, error } = await supabase.from('challenge_formats').update(patch).eq('id', req.params.id).select();
+    if (error) throw error;
+    res.json(data[0]);
+  } catch { res.status(500).json({ error: 'FORMAT_UPDATE_FAILED' }); }
+});
+
+export { formatRouter };
+
 export { categoryRouter };
 export { statsRouter };
