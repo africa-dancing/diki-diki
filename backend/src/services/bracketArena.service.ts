@@ -129,6 +129,36 @@ export async function launchBracket(bracket: any) {
 }
 
 // 3. Creation d'un challenge par un utilisateur
+// Calcul unique de la cle de regroupement (chemin B) — utilise par creation ET verification /*DKDK_KEY_SHARED*/
+export function computeBracketKey(
+  discipline: string,
+  modeVal: string,
+  trackId: string | null | undefined,
+  formatCode: string,
+  champsValeurs?: { choix_id: string }[]
+): string {
+  const cv = Array.isArray(champsValeurs) ? champsValeurs : [];
+  const choixIds = cv.map(x => x.choix_id).filter(Boolean).sort();
+  return [discipline, modeVal, trackId || 'null', formatCode, ...choixIds].join('|');
+}
+
+// Verifie si un challenge ouvert existe deja pour cette combinaison (chemin B) /*DKDK_CHECK_FN*/
+export async function checkArenaChallenge(params: {
+  discipline: string; mode?: string; track_id?: string; format_code: string;
+  champs_valeurs?: { choix_id: string }[];
+}): Promise<{ exists: boolean; bracket_id: string | null }> {
+  const { discipline, mode, track_id, format_code, champs_valeurs } = params;
+  if (!discipline || !format_code) return { exists: false, bracket_id: null };
+  const modeVal = mode || 'normal';
+  const bracketKey = computeBracketKey(discipline, modeVal, track_id, format_code, champs_valeurs);
+  const { data } = await supabase
+    .from('brackets').select('id')
+    .eq('bracket_key', bracketKey)
+    .in('status', ['open', 'waiting_candidates'])
+    .limit(1).maybeSingle();
+  return { exists: !!data, bracket_id: data?.id ?? null };
+}
+
 export async function createArenaChallenge(params: {
   user_id: string; video_id: string;
   categorie: string; discipline: string; style: string;
@@ -150,10 +180,9 @@ export async function createArenaChallenge(params: {
   if (!fmt.actif) throw new Error('Ce format de challenge est desactive.');
   const maxParticipants = fmt.nb_candidats;
 
-  // Cle composite qui separe les challenges (chemin B) /*DKDK_CHEMIN_B_BACK*/
+  // Cle composite (chemin B) via fonction partagee /*DKDK_CHEMIN_B_BACK*/
   const cv = Array.isArray(champs_valeurs) ? champs_valeurs : [];
-  const choixIds = cv.map(x => x.choix_id).filter(Boolean).sort();
-  const bracketKey = [discipline, modeVal, track_id || 'null', fmt.code, ...choixIds].join('|');
+  const bracketKey = computeBracketKey(discipline, modeVal, track_id, fmt.code, cv);
 
   const { data: u, error: uErr } = await supabase
     .from('users').select('is_verified').eq('id', user_id).single();

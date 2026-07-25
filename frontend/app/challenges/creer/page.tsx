@@ -26,6 +26,7 @@ export default function CreerChallengePage() {
   const [disciplineId, setDisciplineId] = useState('');
   const [champs, setChamps] = useState<any[]>([]);
   const [champsValeurs, setChampsValeurs] = useState<Record<string, string>>({});
+  const [existeDeja, setExisteDeja] = useState(false); /*DKDK_CREER_REJOINDRE*/
   const [discipline, setDiscipline] = useState('');
   const [style, setStyle] = useState('');
   const [videoId, setVideoId] = useState('');
@@ -74,6 +75,21 @@ export default function CreerChallengePage() {
       })
       .catch(() => {});
   }, [router]);
+
+  /*DKDK_CREER_REJOINDRE*/
+  useEffect(() => {
+    if (!formatCode || !disciplineId) { setExisteDeja(false); return; }
+    const champs_valeurs = champs.map((ch: any) => ({ choix_id: champsValeurs[ch.id] })).filter((x: any) => x.choix_id);
+    const t = getToken();
+    fetch(`${API}/brackets/arena/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
+      body: JSON.stringify({ discipline, mode, track_id: mode === 'normal' ? (trackId || undefined) : undefined, format_code: formatCode, champs_valeurs }),
+    })
+      .then(r => r.json())
+      .then((d: any) => setExisteDeja(!!(d?.data?.exists)))
+      .catch(() => setExisteDeja(false));
+  }, [formatCode, disciplineId, discipline, mode, trackId, champs, champsValeurs]);
 
   /*DKDK_CHEMIN_B_CHAMPS*/
   const choisirDiscipline = async (id: string, nom: string) => {
@@ -213,7 +229,7 @@ export default function CreerChallengePage() {
         {msg && <div style={{ color: '#FF6B6B', fontSize: 13, marginBottom: 16, textAlign: 'center' }}>{msg}</div>}
 
         <button onClick={submit} disabled={submitting} style={{ width: '100%', padding: '14px', borderRadius: 14, fontSize: 15, fontWeight: 800, fontFamily: 'Syne,sans-serif', cursor: submitting ? 'wait' : 'pointer', border: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', opacity: submitting ? 0.6 : 1 }}>
-          {submitting ? 'Création...' : 'Lancer le challenge'}
+          {submitting ? 'En cours...' : (existeDeja ? 'Rejoindre le challenge' : 'Créer le challenge')}
         </button>
 
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 16, lineHeight: 1.6, textAlign: 'center' }}>

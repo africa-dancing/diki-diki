@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 /*DKDK_DEAD_ROUTES_REMOVED*/ // 3 routes non authentifiees supprimees ; checkAndAdvanceRounds reste appele par src/cron/bracket.cron.ts
-import { inscribeToArena, createArenaChallenge } from '../services/bracketArena.service';
+import { inscribeToArena, createArenaChallenge, checkArenaChallenge } from '../services/bracketArena.service';
 import { requireAuth, AuthRequest, requireVerified } from '../middleware/auth.middleware';
 
 const bracketRouter = Router();
@@ -55,6 +55,17 @@ bracketRouter.post('/arena/create', requireAuth, requireVerified, async (req: Au
     const result = await createArenaChallenge({
       user_id: req.user!.userId, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs,
     });
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// Verifier si un challenge existe deja pour la combinaison (Creer vs Rejoindre) /*DKDK_ROUTE_CHECK*/
+bracketRouter.post('/arena/check', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { discipline, mode, track_id, format_code, champs_valeurs } = req.body;
+    const result = await checkArenaChallenge({ discipline, mode, track_id, format_code, champs_valeurs });
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
