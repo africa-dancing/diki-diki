@@ -40,37 +40,44 @@ export interface StageConfig {
 }
 
 export function getStageConfig(maxParticipants: number, round: number): StageConfig | null {
-  // Tables de progression par type. La valeur = nb gardés à l'issue du round.
-  // isFinale quand le round produit le champion. isBronzeMatch = round special (C16 R4).
-  const M: Record<number, {
-    totalRounds: number;
-    keep: Record<number, number>;
-    finaleRound: number;
-    bronzeMatchRound?: number;
-    freezeThirdRound?: number;
-  }> = {
-    2:  { totalRounds: 1, keep: {},                 finaleRound: 1 },
-    4:  { totalRounds: 2, keep: { 1: 2 },           finaleRound: 2 },
-    8:  { totalRounds: 3, keep: { 1: 4, 2: 2 },     finaleRound: 3 },
-    12: { totalRounds: 4, keep: { 1: 6, 2: 3, 3: 2 }, finaleRound: 4, freezeThirdRound: 3 },
-    16: { totalRounds: 5, keep: { 1: 8, 2: 4, 3: 2 }, finaleRound: 5, bronzeMatchRound: 4 },
-  };
+  /*DKDK_STAGECONFIG_V2 — elimination par lots : on elimine N/R candidats par round*/
+  const N = maxParticipants;
+  const R = totalRoundsFor(N);
+  if (R < 1) return null;
+  if (round < 1 || round > R) return null;
 
-  const cfg = M[maxParticipants];
-  if (!cfg) return null;
-  if (round < 1 || round > cfg.totalRounds) return null;
+  // Survivants a l'issue de chaque round : N - round * (N / R). Le dernier round laisse N/R = la finale.
+  const parLot = N / R;                 // N est garanti divisible par R (verifie a la creation)
+  const survivantsApres = (r: number) => N - r * parLot;
+
+  const isFinale = round === R;
+  const keep = isFinale ? 0 : survivantsApres(round);
 
   return {
-    keep: cfg.keep[round] ?? 0,
-    isFinale: round === cfg.finaleRound,
-    isBronzeMatch: round === cfg.bronzeMatchRound,
-    splitToBronze: cfg.bronzeMatchRound != null && round === cfg.bronzeMatchRound - 1,
-    freezeThird: round === cfg.freezeThirdRound,
-    totalRounds: cfg.totalRounds,
+    keep,
+    isFinale,
+    isBronzeMatch: false,
+    splitToBronze: false,
+    freezeThird: false,
+    totalRounds: R,
   };
 }
 
-// ── 1. Inscrire un candidat ────────────────────────────────────────
+// Nombre de rounds d'un format = nb d'etapes. Pour l'instant deduit de N par la meme regle
+// que les formats definis (N/R entier). Le vrai nb_etapes vient de challenge_formats et sera
+// injecte par l'appelant ; ici on garde une table de secours coherente avec les 6 formats.
+function totalRoundsFor(N: number): number {
+  const R: Record<number, number> = { 2: 1, 4: 2, 6: 3, 8: 4, 12: 4, 16: 4 };
+  return R[N] ?? 0;
+}
+
+// Nombre de laureats (payes) selon le nombre de candidats.
+export function nbLaureats(N: number): number {
+  if (N < 4) return 1;
+  if (N <= 8) return 2;
+  return 3;
+}
+
 export async function inscribeCandidatToBracket(params: {
   track_id: string;
   user_id: string;
@@ -335,41 +342,41 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
   /*DKDK_DISTRIB_BYTYPE*/
   // Lire tous les pourcentages depuis settings (modifiables sans toucher au code)
   const { data: rows } = await supabase.from('settings').select('key, value')
-    .in('key', ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct', 'bracket_troisieme_pct', 'bracket_c8_champion_pct', 'bracket_c8_second_pct', 'bracket_c4_champion_pct']);
+    .in('key', ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct', 'bracket_troisieme_pct', 'bracket_c8_champion_pct', 'bracket_c8_second_pct', 'bracket_c4_champion_pct', 'bracket_vote_amount', 'bracket_heart_amount', 'bracket_elimine_pct']);
   const cfg: Record<string, number> = {};
   (rows || []).forEach((r: any) => { cfg[r.key] = parseInt(r.value, 10); });
   const commissionPct = (cfg.bracket_commission_pct ?? 50) / 100;
 
-  // Repartition selon le type (max_participants) — nb de laureats variable
+  /*DKDK_DISTRIB_V2 — plateforme 50%, primes eliminees (20% de leur montant capte), podium sur le reste*/
   const maxP = bracket.max_participants ?? 16;
+  const laureats = nbLaureats(maxP);
+
   let champPct: number, secondPct: number, troisiemePct: number;
-  if (maxP <= 4) {
-    // C2 / C4 : 1 laureat (100% par defaut, reglable)
-    champPct = (cfg.bracket_c4_champion_pct ?? 100) / 100;
-    secondPct = 0; troisiemePct = 0;
-  } else if (maxP <= 8) {
-    // C8 : 2 laureats (65/35 par defaut, reglable)
-    champPct = (cfg.bracket_c8_champion_pct ?? 65) / 100;
+  if (laureats === 1) { champPct = 1; secondPct = 0; troisiemePct = 0; }
+  else if (laureats === 2) {
+    champPct  = (cfg.bracket_c8_champion_pct ?? 65) / 100;
     secondPct = (cfg.bracket_c8_second_pct ?? 35) / 100;
     troisiemePct = 0;
   } else {
-    // C12 / C16 : 3 laureats (60/25/15)
     champPct     = (cfg.bracket_champion_pct ?? 60) / 100;
     secondPct    = (cfg.bracket_second_pct ?? 25) / 100;
     troisiemePct = (cfg.bracket_troisieme_pct ?? 15) / 100;
   }
 
-  // Cagnotte nette apres commission plateforme
+  const voteAmount  = cfg.bracket_vote_amount  ?? 100;
+  const heartAmount = cfg.bracket_heart_amount ?? 200;
+  const elimPct     = (cfg.bracket_elimine_pct ?? 20) / 100;
+
   const net = Math.floor(totalCag * (1 - commissionPct));
   const gainChampion  = Math.floor(net * champPct);
   const gainSecond    = Math.floor(net * secondPct);
   const gainTroisieme = Math.floor(net * troisiemePct);
 
-  // Recuperer le 3e fige en demi-finale
   const { data: bRow } = await supabase.from('brackets').select('third_id').eq('id', bracketId).single();
   const thirdId = bRow?.third_id ?? null;
 
-  // Helper : crediter un participant + tracer + notifier
+  const podiumIds = new Set([championId, secondId, thirdId].filter(Boolean));
+
   const payer = async (participantId: string | null, gain: number, rang: string) => {
     if (!participantId || gain <= 0) return;
     const { data: p } = await supabase.from('bracket_participants').select('user_id').eq('id', participantId).single();
@@ -384,11 +391,11 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
       metadata: { bracket_id: bracketId, rang, total_cagnotte: totalCag },
       created_at: new Date().toISOString(),
     });
-    if (txErr) console.error('🔴 [DISTRIB] Echec trace transaction pour', p.user_id, ':', txErr.message);
+    if (txErr) console.error('[DISTRIB] Echec trace transaction pour', p.user_id, ':', txErr.message);
     await supabase.from('notifications').insert({
       user_id: p.user_id,
       type: 'win',
-      title: `Podium : ${rang} !`,
+      title: `${rang} !`,
       message: `Felicitations ! Tu remportes ${gain.toLocaleString('fr-FR')} F CFA (${rang}).`,
       read: false,
       created_at: new Date().toISOString(),
@@ -398,6 +405,21 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
   await payer(championId, gainChampion, '1ere place');
   await payer(secondId, gainSecond, '2e place');
   await payer(thirdId, gainTroisieme, '3e place');
+
+  const { data: elimines } = await supabase
+    .from('bracket_participants')
+    .select('id, stars_count, hearts_count')
+    .eq('bracket_id', bracketId)
+    .not('eliminated_at', 'is', null);
+  let totalPrimes = 0;
+  for (const e of (elimines || [])) {
+    if (podiumIds.has(e.id)) continue;
+    const capte = (e.stars_count ?? 0) * voteAmount + (e.hearts_count ?? 0) * heartAmount;
+    const prime = Math.floor(capte * elimPct);
+    if (prime > 0) { await payer(e.id, prime, 'Prime de participation'); totalPrimes += prime; }
+  }
+
+  console.log(`[DISTRIB] Bracket ${bracketId} : net=${net}, champ=${gainChampion}, 2e=${gainSecond}, 3e=${gainTroisieme}, primes=${totalPrimes}`);
 
   // Fermer le bracket (podium en participant_id, convention unifiee)
   await supabase.from('brackets').update({
