@@ -49,11 +49,11 @@ bracketRouter.post('/arena/inscribe', requireAuth, requireVerified, /*DKDK_INSCR
 // Creation d'un challenge par un utilisateur (3 gardes + anti-doublon + 1er inscrit)
 bracketRouter.post('/arena/create', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   try {
-    const { video_id, categorie, discipline, style, track_id, mode, format_code } = req.body; /*DKDK_FORMAT_ROUTE*/
-    if (!video_id || !categorie || !discipline || !style || !format_code)
-      return res.status(400).json({ success: false, error: 'Champs manquants (video, categorie, discipline, style, format).' });
+    const { video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs } = req.body; /*DKDK_ROUTE_B*/
+    if (!video_id || !categorie || !discipline || !format_code)
+      return res.status(400).json({ success: false, error: 'Champs manquants (video, categorie, discipline, format).' });
     const result = await createArenaChallenge({
-      user_id: req.user!.userId, video_id, categorie, discipline, style, track_id, mode, format_code,
+      user_id: req.user!.userId, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs,
     });
     res.json({ success: true, data: result });
   } catch (err: any) {

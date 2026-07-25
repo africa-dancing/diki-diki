@@ -21,6 +21,11 @@ export default function CreerChallengePage() {
   const [trackId, setTrackId] = useState('');
   const [formats, setFormats] = useState<any[]>([]); /*DKDK_FORMAT_UI*/
   const [formatCode, setFormatCode] = useState('');
+  /*DKDK_CHEMIN_B*/
+  const [disciplines, setDisciplines] = useState<any[]>([]);
+  const [disciplineId, setDisciplineId] = useState('');
+  const [champs, setChamps] = useState<any[]>([]);
+  const [champsValeurs, setChampsValeurs] = useState<Record<string, string>>({});
   const [discipline, setDiscipline] = useState('');
   const [style, setStyle] = useState('');
   const [videoId, setVideoId] = useState('');
@@ -34,6 +39,8 @@ export default function CreerChallengePage() {
     const params = new URLSearchParams(window.location.search);
     const preTrack = params.get('track');
     if (preTrack) { setMode('normal'); setTrackId(preTrack); }
+    const preVideo = params.get('video'); /*DKDK_PRE_VIDEO*/
+    if (preVideo) setVideoId(preVideo);
     fetch(`${API}/videos/my`, { headers: { Authorization: `Bearer ${t}` } })
       .then(r => r.json())
       .then((d: any) => {
@@ -51,11 +58,50 @@ export default function CreerChallengePage() {
       .then(r => r.json())
       .then((d: any) => { setFormats(Array.isArray(d) ? d : (d.data ?? [])); })
       .catch(() => {});
+    /*DKDK_CHEMIN_B_LOAD*/
+    fetch(`${API}/categories`)
+      .then(r => r.json())
+      .then((cats: any) => {
+        const list = Array.isArray(cats) ? cats : (cats?.data ?? []);
+        const loisirs = list.find((c: any) => (c.name || '').toLowerCase() === 'loisirs');
+        if (!loisirs) return;
+        return fetch(`${API}/categories/${loisirs.id}/disciplines`)
+          .then(r => r.json())
+          .then((ds: any) => {
+            const arr = Array.isArray(ds) ? ds : (ds?.data ?? []);
+            setDisciplines(arr.filter((d: any) => (d.name || '').toLowerCase() !== 'sport'));
+          });
+      })
+      .catch(() => {});
   }, [router]);
+
+  /*DKDK_CHEMIN_B_CHAMPS*/
+  const choisirDiscipline = async (id: string, nom: string) => {
+    setDisciplineId(id);
+    setDiscipline(nom);
+    setChamps([]);
+    setChampsValeurs({});
+    if (!id) return;
+    try {
+      const cr = await fetch(`${API}/categories/disciplines/${id}/champs`);
+      const cj = await cr.json();
+      const listeChamps = (Array.isArray(cj) ? cj : (cj?.data ?? [])).filter((c: any) => c.type === 'liste');
+      // charger les choix de chaque champ liste
+      const enrichis = await Promise.all(listeChamps.map(async (ch: any) => {
+        const rr = await fetch(`${API}/categories/champs/${ch.id}/choix`);
+        const rj = await rr.json();
+        const choix = (Array.isArray(rj) ? rj : (rj?.data ?? []));
+        return { ...ch, choix };
+      }));
+      setChamps(enrichis);
+    } catch { /* silencieux */ }
+  };
 
   const submit = async () => {
     setMsg('');
-    if (!categorie || !formatCode || !discipline.trim() || !style.trim() || !videoId) {
+    /*DKDK_SUBMIT_B*/
+    const champsRequis = champs.length > 0 && champs.some((ch: any) => !champsValeurs[ch.id]);
+    if (!disciplineId || !formatCode || champsRequis || !videoId) {
       setMsg('Remplis tous les champs et choisis une video.'); return;
     }
     setSubmitting(true);
@@ -64,7 +110,26 @@ export default function CreerChallengePage() {
       const res = await fetch(`${API}/brackets/arena/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
-        body: JSON.stringify({ video_id: videoId, categorie, format_code: formatCode, discipline: discipline.trim(), style: style.trim(), mode, track_id: mode === 'normal' ? (trackId || undefined) : undefined }),
+        body: JSON.stringify((() => {
+          // Construire la liste des valeurs de champs choisies (avec titre + texte pour l'affichage)
+          const champs_valeurs = champs.map((ch: any) => {
+            const choixId = champsValeurs[ch.id];
+            const cx = (ch.choix || []).find((c: any) => c.id === choixId);
+            return { champ_id: ch.id, champ_titre: ch.titre, choix_id: choixId, valeur: cx ? cx.valeur : '' };
+          }).filter((x: any) => x.valeur);
+          // style de compat = concatenation des valeurs (pour le backend actuel)
+          const styleCompat = champs_valeurs.map((x: any) => x.valeur).join(' / ');
+          return {
+            video_id: videoId,
+            categorie: 'Loisirs',
+            format_code: formatCode,
+            discipline: discipline.trim(),
+            style: styleCompat,
+            champs_valeurs,
+            mode,
+            track_id: mode === 'normal' ? (trackId || undefined) : undefined,
+          };
+        })()),
       });
       const data = await res.json();
       if (!data.success) { setMsg(data.error || 'Erreur.'); setSubmitting(false); return; }
@@ -97,12 +162,7 @@ export default function CreerChallengePage() {
             <button key={m.val} onClick={() => setMode(m.val)} style={{ flex: 1, minWidth: 120, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: mode === m.val ? `1px solid ${OR}` : '1px solid rgba(255,255,255,0.15)', background: mode === m.val ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'rgba(255,255,255,0.05)', color: mode === m.val ? '#000' : 'rgba(255,255,255,0.6)' }}>{m.label}</button>
           ))}
         </div>
-        <label style={labelStyle}>Catégorie</label>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-          {CATEGORIES.map(c => (
-            <button key={c} onClick={() => setCategorie(c)} style={{ flex: 1, minWidth: 120, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: categorie === c ? `1px solid ${OR}` : '1px solid rgba(255,255,255,0.15)', background: categorie === c ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'rgba(255,255,255,0.05)', color: categorie === c ? '#000' : 'rgba(255,255,255,0.6)' }}>{c}</button>
-          ))}
-        </div>
+        {/*DKDK_CATEG_REMOVED — categorie toujours Loisirs, plus de selecteur*/}
 
         <label style={labelStyle}>Format du challenge</label>
         <select style={inputStyle} value={formatCode} onChange={e => setFormatCode(e.target.value)}>
@@ -112,9 +172,13 @@ export default function CreerChallengePage() {
 
         <label style={labelStyle}>Discipline</label>
         {/*DKDK_DISCIPLINE_SELECT*/}
-        <select style={inputStyle} value={discipline} onChange={e => setDiscipline(e.target.value)}>
+        {/*DKDK_DISC_DYN*/}
+        <select style={inputStyle} value={disciplineId} onChange={e => {
+          const opt = disciplines.find((d: any) => d.id === e.target.value);
+          choisirDiscipline(e.target.value, opt ? opt.name : '');
+        }}>
           <option value='' style={{ background: '#1a1a1f' }}>-- Choisir une discipline --</option>
-          {DISCIPLINES.map(d => <option key={d} value={d} style={{ background: '#1a1a1f' }}>{d}</option>)}
+          {disciplines.map((d: any) => <option key={d.id} value={d.id} style={{ background: '#1a1a1f' }}>{d.name}</option>)}
         </select>
 
         {mode === 'normal' && (
@@ -126,8 +190,16 @@ export default function CreerChallengePage() {
             </select>
           </>
         )}
-        <label style={labelStyle}>Style</label>
-        <input style={inputStyle} value={style} onChange={e => setStyle(e.target.value)} placeholder='Ex : Ndombolo, Afrobeats...' />
+        {/*DKDK_CHAMPS_DYN*/}
+        {champs.map((ch: any) => (
+          <div key={ch.id}>
+            <label style={labelStyle}>{ch.titre}</label>
+            <select style={inputStyle} value={champsValeurs[ch.id] || ''} onChange={e => setChampsValeurs({ ...champsValeurs, [ch.id]: e.target.value })}>
+              <option value='' style={{ background: '#1a1a1f' }}>-- Choisir --</option>
+              {(ch.choix || []).map((cx: any) => <option key={cx.id} value={cx.id} style={{ background: '#1a1a1f' }}>{cx.valeur}</option>)}
+            </select>
+          </div>
+        ))}
 
         <label style={labelStyle}>Ta vidéo (approuvée)</label>
         {videos.length === 0 ? (

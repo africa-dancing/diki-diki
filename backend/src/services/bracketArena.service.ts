@@ -134,8 +134,9 @@ export async function createArenaChallenge(params: {
   categorie: string; discipline: string; style: string;
   track_id?: string; mode?: string; /*DKDK_TRACK_MODE*/
   format_code: string; /*DKDK_FORMAT_CREATION*/
+  champs_valeurs?: { champ_id: string; champ_titre: string; choix_id: string; valeur: string }[]; /*DKDK_CHEMIN_B_BACK*/
 }) {
-  const { user_id, video_id, categorie, discipline, style, track_id, mode, format_code } = params;
+  const { user_id, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs } = params;
   const modeVal = mode || 'normal';
 
   // Charger et valider le format choisi (obligatoire) /*DKDK_FORMAT_CREATION*/
@@ -148,6 +149,11 @@ export async function createArenaChallenge(params: {
   if (fErr || !fmt) throw new Error('Format de challenge inconnu.');
   if (!fmt.actif) throw new Error('Ce format de challenge est desactive.');
   const maxParticipants = fmt.nb_candidats;
+
+  // Cle composite qui separe les challenges (chemin B) /*DKDK_CHEMIN_B_BACK*/
+  const cv = Array.isArray(champs_valeurs) ? champs_valeurs : [];
+  const choixIds = cv.map(x => x.choix_id).filter(Boolean).sort();
+  const bracketKey = [discipline, modeVal, track_id || 'null', fmt.code, ...choixIds].join('|');
 
   const { data: u, error: uErr } = await supabase
     .from('users').select('is_verified').eq('id', user_id).single();
@@ -165,8 +171,7 @@ export async function createArenaChallenge(params: {
 
   const { data: dup } = await supabase
     .from('brackets').select('id')
-    .eq('categorie', categorie).eq('discipline', discipline).eq('style', style)
-    .eq('mode', modeVal).eq('track_id', track_id || null).eq('code', fmt.code)
+    .eq('bracket_key', bracketKey) /*DKDK_CHEMIN_B_BACK*/
     .in('status', ['open', 'waiting_candidates'])
     .limit(1).maybeSingle();
 
@@ -180,12 +185,19 @@ export async function createArenaChallenge(params: {
         categorie, discipline, style,
         track_id: track_id || null, mode: modeVal,
         type: 'libre', status: 'waiting_candidates', code: fmt.code,
+        bracket_key: bracketKey, /*DKDK_CHEMIN_B_BACK*/
         max_participants: maxParticipants, current_round: 1,
         total_cagnotte: 0, commission_pct: 0.5,
         created_at: new Date().toISOString(),
       }).select('id').single();
     if (cErr || !created) throw new Error('Erreur lors de la creation du challenge.');
     bracketId = created.id;
+    // Enregistrer les valeurs de champs pour l'affichage propre /*DKDK_CHEMIN_B_BACK*/
+    if (cv.length > 0) {
+      await supabase.from('bracket_champs_valeurs').insert(
+        cv.map(x => ({ bracket_id: bracketId, champ_id: x.champ_id, champ_titre: x.champ_titre, choix_id: x.choix_id, valeur: x.valeur }))
+      );
+    }
   }
 
   const result = await inscribeToArena({ bracket_id: bracketId, user_id, video_id });

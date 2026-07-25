@@ -274,7 +274,7 @@ function MesVideosSection({videos,loading,contests,onRefresh,router}:{videos:Use
                     {v.vote_count!==undefined&&v.vote_count>0&&<> · <StarRed /> {v.vote_count}</>}
                   </div>
                   {v.status==='rejected'&&v.rejection_reason&&<div style={{background:'rgba(248,113,113,0.07)',border:'1px solid rgba(248,113,113,0.18)',borderRadius:8,padding:'6px 10px',fontSize:11,color:'#f87171',marginBottom:8}}>Motif : {v.rejection_reason}</div>}
-                  {v.status==='approved'&&<div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button onClick={()=>router.push(`/watch/${v.id}`)} style={sm('rgba(255,255,255,0.6)','transparent','rgba(255,255,255,0.15)')}>▶ Regarder</button><button onClick={()=>setInsId(v.id)} style={sm('#FFAA00','rgba(255,170,0,0.1)','rgba(255,170,0,0.3)')}>🏆 Inscrire en compétition</button></div>}
+                  {v.status==='approved'&&<div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button onClick={()=>router.push(`/watch/${v.id}`)} style={sm('rgba(255,255,255,0.6)','transparent','rgba(255,255,255,0.15)')}>▶ Regarder</button><button onClick={()=>router.push('/challenges/creer?video='+v.id)} style={sm('#FFAA00','rgba(255,170,0,0.1)','rgba(255,170,0,0.3)')}>🏆 Engager dans un challenge</button> /*DKDK_ENGAGER*/</div>}
                 </div>
               </div>
             </div>
