@@ -461,6 +461,32 @@ async function closeStage(bracket: any, round: any) {
   if (!aliveAll || aliveAll.length === 0) return;
   const alive = aliveAll;
 
+  /*DKDK_OBJECTIF_GATE — une etape ne se cloture pas tant que l'objectif d'argent n'est pas atteint*/
+  {
+    // Objectif du format (relie par nb de candidats = max_participants)
+    const { data: fmt } = await supabase
+      .from('challenge_formats')
+      .select('objectif_etape')
+      .eq('nb_candidats', bracket.max_participants)
+      .limit(1)
+      .maybeSingle();
+    const objectif = fmt?.objectif_etape ?? 0;
+
+    // Montant reellement collecte sur ce round
+    const { data: rnd } = await supabase
+      .from('bracket_rounds')
+      .select('montant_collecte')
+      .eq('bracket_id', bracketId)
+      .eq('round', currentRound)
+      .maybeSingle();
+    const collecte = rnd?.montant_collecte ?? 0;
+
+    if (objectif > 0 && collecte < objectif) {
+      console.log(`[CLOSE] Objectif non atteint bracket ${bracketId} round ${currentRound} : ${collecte}/${objectif} -> etape maintenue ouverte`);
+      return;
+    }
+  }
+
   /*DKDK_CLOSESTAGE_BRANCHED*/
   // ── Config dynamique selon le type (max_participants) ──
   const stage = getStageConfig(bracket.max_participants, currentRound);
