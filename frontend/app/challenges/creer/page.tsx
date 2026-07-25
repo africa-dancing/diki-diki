@@ -19,6 +19,8 @@ export default function CreerChallengePage() {
   const [mode, setMode] = useState('normal'); /*DKDK_MODE*/
   const [musiques, setMusiques] = useState<any[]>([]); /*DKDK_MUSIQUE_SELECT*/
   const [trackId, setTrackId] = useState('');
+  const [formats, setFormats] = useState<any[]>([]); /*DKDK_FORMAT_UI*/
+  const [formatCode, setFormatCode] = useState('');
   const [discipline, setDiscipline] = useState('');
   const [style, setStyle] = useState('');
   const [videoId, setVideoId] = useState('');
@@ -45,11 +47,15 @@ export default function CreerChallengePage() {
       .then(r => r.json())
       .then((d: any) => { setMusiques(d.data ?? []); })
       .catch(() => {});
+    fetch(`${API}/challenge-formats`)
+      .then(r => r.json())
+      .then((d: any) => { setFormats(Array.isArray(d) ? d : (d.data ?? [])); })
+      .catch(() => {});
   }, [router]);
 
   const submit = async () => {
     setMsg('');
-    if (!categorie || !discipline.trim() || !style.trim() || !videoId) {
+    if (!categorie || !formatCode || !discipline.trim() || !style.trim() || !videoId) {
       setMsg('Remplis tous les champs et choisis une video.'); return;
     }
     setSubmitting(true);
@@ -58,7 +64,7 @@ export default function CreerChallengePage() {
       const res = await fetch(`${API}/brackets/arena/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
-        body: JSON.stringify({ video_id: videoId, categorie, discipline: discipline.trim(), style: style.trim(), mode, track_id: mode === 'normal' ? (trackId || undefined) : undefined }),
+        body: JSON.stringify({ video_id: videoId, categorie, format_code: formatCode, discipline: discipline.trim(), style: style.trim(), mode, track_id: mode === 'normal' ? (trackId || undefined) : undefined }),
       });
       const data = await res.json();
       if (!data.success) { setMsg(data.error || 'Erreur.'); setSubmitting(false); return; }
@@ -97,6 +103,12 @@ export default function CreerChallengePage() {
             <button key={c} onClick={() => setCategorie(c)} style={{ flex: 1, minWidth: 120, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: categorie === c ? `1px solid ${OR}` : '1px solid rgba(255,255,255,0.15)', background: categorie === c ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'rgba(255,255,255,0.05)', color: categorie === c ? '#000' : 'rgba(255,255,255,0.6)' }}>{c}</button>
           ))}
         </div>
+
+        <label style={labelStyle}>Format du challenge</label>
+        <select style={inputStyle} value={formatCode} onChange={e => setFormatCode(e.target.value)}>
+          <option value='' style={{ background: '#1a1a1f' }}>-- Choisir un format --</option>
+          {formats.map((ff: any) => <option key={ff.code} value={ff.code} style={{ background: '#1a1a1f' }}>{ff.libelle}</option>)}
+        </select>
 
         <label style={labelStyle}>Discipline</label>
         {/*DKDK_DISCIPLINE_SELECT*/}

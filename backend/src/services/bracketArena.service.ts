@@ -133,9 +133,21 @@ export async function createArenaChallenge(params: {
   user_id: string; video_id: string;
   categorie: string; discipline: string; style: string;
   track_id?: string; mode?: string; /*DKDK_TRACK_MODE*/
+  format_code: string; /*DKDK_FORMAT_CREATION*/
 }) {
-  const { user_id, video_id, categorie, discipline, style, track_id, mode } = params;
+  const { user_id, video_id, categorie, discipline, style, track_id, mode, format_code } = params;
   const modeVal = mode || 'normal';
+
+  // Charger et valider le format choisi (obligatoire) /*DKDK_FORMAT_CREATION*/
+  if (!format_code) throw new Error('Le format du challenge est obligatoire.');
+  const { data: fmt, error: fErr } = await supabase
+    .from('challenge_formats')
+    .select('code, nb_candidats, actif')
+    .eq('code', format_code)
+    .maybeSingle();
+  if (fErr || !fmt) throw new Error('Format de challenge inconnu.');
+  if (!fmt.actif) throw new Error('Ce format de challenge est desactive.');
+  const maxParticipants = fmt.nb_candidats;
 
   const { data: u, error: uErr } = await supabase
     .from('users').select('is_verified').eq('id', user_id).single();
@@ -154,7 +166,7 @@ export async function createArenaChallenge(params: {
   const { data: dup } = await supabase
     .from('brackets').select('id')
     .eq('categorie', categorie).eq('discipline', discipline).eq('style', style)
-    .eq('mode', modeVal)
+    .eq('mode', modeVal).eq('track_id', track_id || null).eq('code', fmt.code)
     .in('status', ['open', 'waiting_candidates'])
     .limit(1).maybeSingle();
 
@@ -167,8 +179,8 @@ export async function createArenaChallenge(params: {
         title: style + ' - ' + discipline,
         categorie, discipline, style,
         track_id: track_id || null, mode: modeVal,
-        type: 'libre', status: 'waiting_candidates',
-        max_participants: 16, current_round: 1,
+        type: 'libre', status: 'waiting_candidates', code: fmt.code,
+        max_participants: maxParticipants, current_round: 1,
         total_cagnotte: 0, commission_pct: 0.5,
         created_at: new Date().toISOString(),
       }).select('id').single();
