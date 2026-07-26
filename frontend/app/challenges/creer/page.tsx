@@ -27,6 +27,7 @@ export default function CreerChallengePage() {
   const [champs, setChamps] = useState<any[]>([]);
   const [champsValeurs, setChampsValeurs] = useState<Record<string, string>>({});
   const [existeDeja, setExisteDeja] = useState(false); /*DKDK_CREER_REJOINDRE*/
+  const [autreTexte, setAutreTexte] = useState<Record<string, string>>({}); /*DKDK_AUTRE_UI*/
   const [discipline, setDiscipline] = useState('');
   const [style, setStyle] = useState('');
   const [videoId, setVideoId] = useState('');
@@ -115,6 +116,27 @@ export default function CreerChallengePage() {
 
   const submit = async () => {
     setMsg('');
+    /*DKDK_AUTRE_UI — resoudre les choix "Autre" vers un vrai choix_id (existant ou cree)*/
+    for (const ch of champs) {
+      const cxSel = (ch.choix || []).find((c: any) => c.id === champsValeurs[ch.id]);
+      if (cxSel && (cxSel.valeur || '').toLowerCase() === 'autre') {
+        const txt = (autreTexte[ch.id] || '').trim();
+        if (!txt) { setMsg('Precise ta valeur pour ' + ch.titre + '.'); return; }
+        try {
+          const t = getToken();
+          const rr = await fetch(`${API}/categories/champs/${ch.id}/choix-ou-existant`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
+            body: JSON.stringify({ valeur: txt }),
+          });
+          const rj = await rr.json();
+          if (!rj?.id) { setMsg('Impossible d enregistrer ' + txt + '.'); return; }
+          // remplacer le choix "Autre" par le vrai choix, et l'ajouter a la liste locale pour l'affichage
+          champsValeurs[ch.id] = rj.id;
+          if (!(ch.choix || []).some((c: any) => c.id === rj.id)) ch.choix.push({ id: rj.id, valeur: rj.valeur });
+        } catch { setMsg('Erreur reseau lors de l enregistrement du choix.'); return; }
+      }
+    }
     /*DKDK_SUBMIT_B*/
     const champsRequis = champs.length > 0 && champs.some((ch: any) => !champsValeurs[ch.id]);
     if (!disciplineId || !formatCode || champsRequis || !videoId) {
@@ -197,7 +219,8 @@ export default function CreerChallengePage() {
           {disciplines.map((d: any) => <option key={d.id} value={d.id} style={{ background: '#1a1a1f' }}>{d.name}</option>)}
         </select>
 
-        {mode === 'normal' && (
+        {/*DKDK_MUSIQUE_COND — musique seulement si la discipline utilise un morceau*/}
+        {mode === 'normal' && (disciplines.find((d: any) => d.id === disciplineId)?.avec_musique) && (
           <>
             <label style={labelStyle}>Musique imposee</label>
             <select style={inputStyle} value={trackId} onChange={e => setTrackId(e.target.value)}>
@@ -214,6 +237,14 @@ export default function CreerChallengePage() {
               <option value='' style={{ background: '#1a1a1f' }}>-- Choisir --</option>
               {(ch.choix || []).map((cx: any) => <option key={cx.id} value={cx.id} style={{ background: '#1a1a1f' }}>{cx.valeur}</option>)}
             </select>
+            {/*DKDK_AUTRE_UI*/}
+            {(() => {
+              const cxSel = (ch.choix || []).find((c: any) => c.id === champsValeurs[ch.id]);
+              const estAutre = cxSel && (cxSel.valeur || '').toLowerCase() === 'autre';
+              return estAutre ? (
+                <input style={inputStyle} value={autreTexte[ch.id] || ''} onChange={e => setAutreTexte({ ...autreTexte, [ch.id]: e.target.value })} placeholder={'Precise ' + (ch.titre || '').toLowerCase()} />
+              ) : null;
+            })()}
           </div>
         ))}
 

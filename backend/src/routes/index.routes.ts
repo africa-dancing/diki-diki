@@ -255,6 +255,26 @@ categoryRouter.post('/champs/:id/choix', requireAuth, requireAdmin, async (req: 
     res.json(data[0]);
   } catch { res.status(500).json({ error: 'CHOIX_CREATE_FAILED' }); }
 });
+// Chercher un choix existant (casse/accents ignores) ou le creer (propose par un candidat) /*DKDK_CHOIX_OU_EXISTANT*/
+categoryRouter.post('/champs/:id/choix-ou-existant', requireAuth, async (req: any, res) => {
+  try {
+    const brut = String(req.body.valeur || '').trim();
+    if (!brut) return res.status(400).json({ error: 'VALEUR_VIDE' });
+    const norm = (v) => v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+    const cible = norm(brut);
+    const { data: existants } = await supabase
+      .from('discipline_choix').select('id, valeur')
+      .eq('champ_id', req.params.id).eq('actif', true);
+    const match = (existants || []).find((c) => norm(c.valeur) === cible);
+    if (match) return res.json({ id: match.id, valeur: match.valeur, created: false });
+    const { data: cree, error } = await supabase.from('discipline_choix').insert({
+      champ_id: req.params.id, valeur: brut, ordre: 999, origine: 'candidat',
+    }).select();
+    if (error) throw error;
+    res.json({ id: cree[0].id, valeur: cree[0].valeur, created: true });
+  } catch { res.status(500).json({ error: 'CHOIX_OU_EXISTANT_FAILED' }); }
+});
+
 categoryRouter.delete('/choix/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     await supabase.from('discipline_choix').update({ actif: false }).eq('id', req.params.id);
