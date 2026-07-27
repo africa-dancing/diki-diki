@@ -66,9 +66,17 @@ export async function submitMusique(params: {
   user_id: string; artiste: string; titre: string; album?: string;
   duree_sec?: number; pays_origine?: string; continent?: string;
   danse?: string; style?: string; cover_url?: string; source?: string;
+  auto_approve?: boolean; /*DKDK_AUTO_APPROVE*/
 }) {
   const { user_id, artiste, titre } = params;
   if (!artiste?.trim() || !titre?.trim()) throw new Error('Artiste et titre obligatoires.');
+  /*DKDK_MUSIQUE_DEDUP — eviter les doublons : chercher un morceau existant (casse/accents ignores)*/
+  {
+    const norm = (v: string) => v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+    const { data: existants } = await supabase.from('musiques').select('id, artiste, titre');
+    const found = (existants || []).find((m: any) => norm(m.artiste) === norm(artiste) && norm(m.titre) === norm(titre));
+    if (found) return { id: found.id };
+  }
   const { data, error } = await supabase.from('musiques').insert({
     artiste: artiste.trim(), titre: titre.trim(),
     album: params.album || null, duree_sec: params.duree_sec || null,
@@ -76,7 +84,7 @@ export async function submitMusique(params: {
     danse: params.danse || null, style: params.style || null,
     cover_url: params.cover_url || null,
     source: params.source === 'musicbrainz' ? 'musicbrainz' : 'manuel',
-    submitted_by: user_id, status: 'pending',
+    submitted_by: user_id, status: params.auto_approve ? 'approved' : 'pending', /*DKDK_AUTO_APPROVE*/
   }).select('id').single();
   if (error) throw new Error('Erreur lors de l enregistrement du morceau.');
   return { id: data.id };

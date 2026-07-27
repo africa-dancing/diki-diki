@@ -28,6 +28,8 @@ export default function CreerChallengePage() {
   const [champsValeurs, setChampsValeurs] = useState<Record<string, string>>({});
   const [existeDeja, setExisteDeja] = useState(false); /*DKDK_CREER_REJOINDRE*/
   const [autreTexte, setAutreTexte] = useState<Record<string, string>>({}); /*DKDK_AUTRE_UI*/
+  const [nouvMorceauArtiste, setNouvMorceauArtiste] = useState(''); /*DKDK_NOUVEAU_MORCEAU*/
+  const [nouvMorceauTitre, setNouvMorceauTitre] = useState('');
   const [discipline, setDiscipline] = useState('');
   const [style, setStyle] = useState('');
   const [videoId, setVideoId] = useState('');
@@ -116,6 +118,23 @@ export default function CreerChallengePage() {
 
   const submit = async () => {
     setMsg('');
+    /*DKDK_NOUVEAU_MORCEAU — creer le morceau si le candidat en ajoute un*/
+    if (trackId === '__nouveau__') {
+      const art = nouvMorceauArtiste.trim();
+      const tit = nouvMorceauTitre.trim();
+      if (!art || !tit) { setMsg('Renseigne l artiste et le titre du morceau.'); return; }
+      try {
+        const t = getToken();
+        const rm = await fetch(`${API}/musiques`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
+          body: JSON.stringify({ artiste: art, titre: tit, source: 'manuel' }),
+        });
+        const jm = await rm.json();
+        if (!jm?.data?.id) { setMsg('Impossible d enregistrer le morceau.'); return; }
+        setTrackId(jm.data.id);
+      } catch { setMsg('Erreur reseau lors de l enregistrement du morceau.'); return; }
+    }
     /*DKDK_AUTRE_UI — resoudre les choix "Autre" vers un vrai choix_id (existant ou cree)*/
     for (const ch of champs) {
       const cxSel = (ch.choix || []).find((c: any) => c.id === champsValeurs[ch.id]);
@@ -226,7 +245,15 @@ export default function CreerChallengePage() {
             <select style={inputStyle} value={trackId} onChange={e => setTrackId(e.target.value)}>
               <option value='' style={{ background: '#1a1a1f' }}>-- Choisir une musique --</option>
               {musiques.map((m: any) => <option key={m.id} value={m.id} style={{ background: '#1a1a1f' }}>{m.titre} - {m.artiste}</option>)}
+              <option value='__nouveau__' style={{ background: '#1a1a1f' }}>+ Mon morceau n'est pas dans la liste</option>
             </select>
+            {/*DKDK_NOUVEAU_MORCEAU*/}
+            {trackId === '__nouveau__' && (
+              <div style={{ marginTop: 8 }}>
+                <input style={inputStyle} value={nouvMorceauArtiste} onChange={e => setNouvMorceauArtiste(e.target.value)} placeholder='Artiste du morceau' />
+                <input style={inputStyle} value={nouvMorceauTitre} onChange={e => setNouvMorceauTitre(e.target.value)} placeholder='Titre du morceau' />
+              </div>
+            )}
           </>
         )}
         {/*DKDK_CHAMPS_DYN*/}

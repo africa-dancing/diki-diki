@@ -34,6 +34,7 @@ musiqueRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => 
     const result = await submitMusique({
       user_id: req.user!.userId,
       artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url, source,
+      auto_approve: true, /*DKDK_ROUTE_AUTO_APPROVE*/
     });
     res.json({ success: true, data: result });
   } catch (err: any) {

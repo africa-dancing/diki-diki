@@ -2,9 +2,9 @@ import './mobile.css';
 import BackgroundMusic from './components/BackgroundMusic';
 import SplashScreen from './components/SplashScreen'; /*DKDK_SPLASH_MOUNT*/
 import type { Metadata } from 'next';
-import { Syne, DM_Sans } from 'next/font/google';
+import { Inter, DM_Sans } from 'next/font/google'; /*DKDK_POLICE_INTER*/
 
-const syne = Syne({
+const syne = Inter({
   subsets: ['latin'],
   variable: '--font-syne',
   weight: ['400', '600', '700', '800'],
