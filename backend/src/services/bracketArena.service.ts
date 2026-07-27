@@ -146,9 +146,10 @@ export function computeBracketKey(
 export async function checkArenaChallenge(params: {
   discipline: string; mode?: string; track_id?: string; format_code: string;
   champs_valeurs?: { choix_id: string }[];
-}): Promise<{ exists: boolean; bracket_id: string | null }> {
-  const { discipline, mode, track_id, format_code, champs_valeurs } = params;
-  if (!discipline || !format_code) return { exists: false, bracket_id: null };
+  video_id?: string; /*DKDK_CHECK_PAIEMENT*/
+}): Promise<{ exists: boolean; bracket_id: string | null; paiement_requis: boolean; montant: number }> {
+  const { discipline, mode, track_id, format_code, champs_valeurs, video_id } = params;
+  if (!discipline || !format_code) return { exists: false, bracket_id: null, paiement_requis: false, montant: 0 };
   const modeVal = mode || 'normal';
   const bracketKey = computeBracketKey(discipline, modeVal, track_id, format_code, champs_valeurs);
   const { data } = await supabase
@@ -156,7 +157,22 @@ export async function checkArenaChallenge(params: {
     .eq('bracket_key', bracketKey)
     .in('status', ['open', 'waiting_candidates'])
     .limit(1).maybeSingle();
-  return { exists: !!data, bracket_id: data?.id ?? null };
+
+  /*DKDK_CHECK_PAIEMENT — la video est-elle deja engagee dans un autre challenge ?*/
+  let paiement_requis = false;
+  let montant = 0;
+  if (video_id) {
+    const { count: dejaEngagee } = await supabase
+      .from('bracket_participants').select('*', { count: 'exact', head: true })
+      .eq('video_id', video_id);
+    if ((dejaEngagee ?? 0) > 0) {
+      const { data: setting } = await supabase
+        .from('settings').select('value').eq('key', 'inscription_multiple_amount').maybeSingle();
+      montant = parseInt(setting?.value ?? '0', 10) || 0;
+      paiement_requis = montant > 0;
+    }
+  }
+  return { exists: !!data, bracket_id: data?.id ?? null, paiement_requis, montant };
 }
 
 export async function createArenaChallenge(params: {

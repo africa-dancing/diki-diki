@@ -64,8 +64,8 @@ bracketRouter.post('/arena/create', requireAuth, requireVerified, async (req: Au
 // Verifier si un challenge existe deja pour la combinaison (Creer vs Rejoindre) /*DKDK_ROUTE_CHECK*/
 bracketRouter.post('/arena/check', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { discipline, mode, track_id, format_code, champs_valeurs } = req.body;
-    const result = await checkArenaChallenge({ discipline, mode, track_id, format_code, champs_valeurs });
+    const { discipline, mode, track_id, format_code, champs_valeurs, video_id } = req.body; /*DKDK_CHECK_VIDEO*/
+    const result = await checkArenaChallenge({ discipline, mode, track_id, format_code, champs_valeurs, video_id });
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
