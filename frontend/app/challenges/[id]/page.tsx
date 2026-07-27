@@ -354,17 +354,26 @@ export default function BracketPage() {
     }
   };
 
-  const inscrireAvec = async (video_id: string) => {
+  const inscrireAvec = async (video_id: string, paiement_confirme?: boolean) => { /*DKDK_PARTICIPE_PAIEMENT*/
     const token = getToken();
     if (!token) { router.push('/auth/login'); return; }
     try {
       const res = await fetch(`${API}/brackets/arena/inscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ bracket_id: params?.id, video_id }),
+        body: JSON.stringify({ bracket_id: params?.id, video_id, paiement_confirme }),
       });
       const data = await res.json();
-      if (!data.success) { alert(data.error || 'Erreur lors de l inscription.'); return; }
+      if (!data.success) {
+        const err = String(data.error || '');
+        if (err.startsWith('PAIEMENT_REQUIS:')) {
+          const montant = parseInt(err.split(':')[1], 10) || 0;
+          const ok = window.confirm('Cette video est deja engagee dans un autre challenge. L\'inscrire ici coute ' + montant.toLocaleString('fr-FR') + ' F, debites de ton solde. Confirmer ?');
+          if (ok) { await inscrireAvec(video_id, true); }
+          return;
+        }
+        alert(err || 'Erreur lors de l inscription.'); return;
+      }
       alert('Inscription reussie !');
       window.location.reload();
     } catch {
