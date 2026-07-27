@@ -25,8 +25,9 @@ async function getSetting(key: string, fallback: number): Promise<number> {
 // 1. Inscription directe a un bracket (nouveau modele)
 export async function inscribeToArena(params: {
   bracket_id: string; user_id: string; video_id: string;
+  paiement_confirme?: boolean; /*DKDK_INSCRIPTION_PAYANTE*/
 }) {
-  const { bracket_id, user_id, video_id } = params;
+  const { bracket_id, user_id, video_id, paiement_confirme } = params;
 
   const { data: bracket, error: bErr } = await supabase
     .from('brackets').select('*').eq('id', bracket_id)
@@ -43,10 +44,56 @@ export async function inscribeToArena(params: {
     .eq('bracket_id', bracket_id).eq('user_id', user_id).single();
   if (existing) throw new Error('Tu es deja inscrit a ce challenge.');
 
+  /*DKDK_INSCRIPTION_PAYANTE — la video est-elle deja engagee ailleurs ? si oui, payant*/
+  let fraisPreleves = 0;
+  const { count: dejaEngagee } = await supabase
+    .from('bracket_participants').select('*', { count: 'exact', head: true })
+    .eq('video_id', video_id);
+  if ((dejaEngagee ?? 0) > 0) {
+    const { data: setting } = await supabase
+      .from('settings').select('value').eq('key', 'inscription_multiple_amount').maybeSingle();
+    const montant = parseInt(setting?.value ?? '0', 10) || 0;
+    if (montant > 0) {
+      if (!paiement_confirme) throw new Error('PAIEMENT_REQUIS:' + montant);
+      // Lire le solde (meme mecanique que les votes : colonne balance)
+      const { data: wal, error: walErr } = await supabase
+        .from('wallets').select('balance, total_spent').eq('user_id', user_id).single();
+      if (walErr || !wal) throw new Error('Portefeuille introuvable.');
+      if ((wal.balance ?? 0) < montant) throw new Error('Solde insuffisant pour l inscription payante. Recharge ton compte.');
+      // Debiter (regle d'or : debit d'abord, remboursement si l'inscription echoue plus bas)
+      const { error: debErr } = await supabase
+        .from('wallets')
+        .update({ balance: wal.balance - montant, total_spent: (wal.total_spent ?? 0) + montant, updated_at: new Date().toISOString() })
+        .eq('user_id', user_id);
+      if (debErr) throw new Error('Echec du debit pour l inscription.');
+      // Tracer en RECETTE plateforme (type dedie, PAS la cagnotte)
+      await supabase.from('transactions').insert({
+        user_id, type: 'inscription_fee', amount: montant, net_amount: montant,
+        status: 'completed', metadata: { bracket_id, video_id },
+      });
+      fraisPreleves = montant;
+    }
+  }
+
   const { error: insErr } = await supabase.from('bracket_participants').insert({
     bracket_id, user_id, video_id, registered_at: new Date().toISOString(),
   });
-  if (insErr) throw new Error('Erreur lors de l inscription.');
+  if (insErr) {
+    /*DKDK_INSCRIPTION_PAYANTE — remboursement si l'inscription echoue apres debit*/
+    if (fraisPreleves > 0) {
+      const { data: w2 } = await supabase.from('wallets').select('balance, total_spent').eq('user_id', user_id).single();
+      if (w2) {
+        await supabase.from('wallets')
+          .update({ balance: (w2.balance ?? 0) + fraisPreleves, total_spent: Math.max(0, (w2.total_spent ?? 0) - fraisPreleves), updated_at: new Date().toISOString() })
+          .eq('user_id', user_id);
+      }
+      await supabase.from('transactions').insert({
+        user_id, type: 'inscription_fee_refund', amount: fraisPreleves, net_amount: fraisPreleves,
+        status: 'completed', metadata: { bracket_id, video_id, raison: 'inscription_echouee' },
+      });
+    }
+    throw new Error('Erreur lors de l inscription.');
+  }
 
   const { count } = await supabase
     .from('bracket_participants').select('*', { count: 'exact', head: true })
