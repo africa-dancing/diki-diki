@@ -27,6 +27,8 @@ export default function CreerChallengePage() {
   const [champs, setChamps] = useState<any[]>([]);
   const [champsValeurs, setChampsValeurs] = useState<Record<string, string>>({});
   const [existeDeja, setExisteDeja] = useState(false); /*DKDK_CREER_REJOINDRE*/
+  const [paiementRequis, setPaiementRequis] = useState(false); /*DKDK_PAIEMENT_UI*/
+  const [montantInscription, setMontantInscription] = useState(0);
   const [autreTexte, setAutreTexte] = useState<Record<string, string>>({}); /*DKDK_AUTRE_UI*/
   const [nouvMorceauArtiste, setNouvMorceauArtiste] = useState(''); /*DKDK_NOUVEAU_MORCEAU*/
   const [nouvMorceauTitre, setNouvMorceauTitre] = useState('');
@@ -87,12 +89,16 @@ export default function CreerChallengePage() {
     fetch(`${API}/brackets/arena/check`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
-      body: JSON.stringify({ discipline, mode, track_id: mode === 'normal' ? (trackId || undefined) : undefined, format_code: formatCode, champs_valeurs }),
+      body: JSON.stringify({ discipline, mode, track_id: mode === 'normal' ? (trackId || undefined) : undefined, format_code: formatCode, champs_valeurs, video_id: videoId }), /*DKDK_PAIEMENT_UI*/
     })
       .then(r => r.json())
-      .then((d: any) => setExisteDeja(!!(d?.data?.exists)))
-      .catch(() => setExisteDeja(false));
-  }, [formatCode, disciplineId, discipline, mode, trackId, champs, champsValeurs]);
+      .then((d: any) => {
+        setExisteDeja(!!(d?.data?.exists));
+        setPaiementRequis(!!(d?.data?.paiement_requis));
+        setMontantInscription(d?.data?.montant ?? 0);
+      })
+      .catch(() => { setExisteDeja(false); setPaiementRequis(false); });
+  }, [formatCode, disciplineId, discipline, mode, trackId, champs, champsValeurs, videoId]);
 
   /*DKDK_CHEMIN_B_CHAMPS*/
   const choisirDiscipline = async (id: string, nom: string) => {
@@ -118,6 +124,11 @@ export default function CreerChallengePage() {
 
   const submit = async () => {
     setMsg('');
+    /*DKDK_PAIEMENT_UI2 — confirmation B avant debit*/
+    if (paiementRequis && videoId) {
+      const ok = window.confirm('Cette vidéo est déjà engagée ailleurs. L\'inscrire dans ce challenge coûte ' + montantInscription.toLocaleString('fr-FR') + ' F, débités de ton solde. Confirmer ?');
+      if (!ok) return;
+    }
     /*DKDK_NOUVEAU_MORCEAU — creer le morceau si le candidat en ajoute un*/
     if (trackId === '__nouveau__') {
       const art = nouvMorceauArtiste.trim();
@@ -177,6 +188,7 @@ export default function CreerChallengePage() {
           // style de compat = concatenation des valeurs (pour le backend actuel)
           const styleCompat = champs_valeurs.map((x: any) => x.valeur).join(' / ');
           return {
+            paiement_confirme: paiementRequis, /*DKDK_PAIEMENT_UI2*/
             video_id: videoId,
             categorie: 'Loisirs',
             format_code: formatCode,
@@ -284,6 +296,12 @@ export default function CreerChallengePage() {
           </select>
         )}
 
+        {/*DKDK_PAIEMENT_UI2 — message A : video deja engagee ailleurs*/}
+        {paiementRequis && videoId && (
+          <div style={{ color: '#FFAA00', fontSize: 13, marginBottom: 16, textAlign: 'center', border: '1px solid rgba(255,170,0,0.35)', borderRadius: 10, padding: '10px', background: 'rgba(255,170,0,0.08)' }}>
+            ⚠️ Cette vidéo est déjà engagée dans un autre challenge — l'inscrire ici coûte {montantInscription.toLocaleString('fr-FR')} F.
+          </div>
+        )}
         {msg && <div style={{ color: '#FF6B6B', fontSize: 13, marginBottom: 16, textAlign: 'center' }}>{msg}</div>}
 
         <button onClick={submit} disabled={submitting} style={{ width: '100%', padding: '14px', borderRadius: 14, fontSize: 15, fontWeight: 800, fontFamily: 'Syne,sans-serif', cursor: submitting ? 'wait' : 'pointer', border: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', opacity: submitting ? 0.6 : 1 }}>
