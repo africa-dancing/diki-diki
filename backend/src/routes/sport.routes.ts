@@ -42,6 +42,30 @@ sportRouter.get('/admin/epreuves', requireAuth, requireAdmin, async (_req: AuthR
   }
 });
 
+// POST /v1/sport/admin/epreuves - ajouter une epreuve (admin) /*DKDK_SPORT_AJOUT*/
+sportRouter.post('/admin/epreuves', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const b = req.body || {};
+    if (!b.sport || !b.sport_slug || !b.epreuve || !b.libelle) {
+      return res.status(400).json({ success: false, error: 'sport, sport_slug, epreuve et libelle sont obligatoires.' });
+    }
+    const ligne: any = {
+      sport: b.sport, sport_slug: b.sport_slug, epreuve: b.epreuve, libelle: b.libelle,
+      niveau: b.niveau ?? null, regle: b.regle ?? null, emoji: b.emoji ?? '',
+      ordre: b.ordre ?? 0, actif: b.actif ?? true,
+    };
+    const { data, error } = await getSupabase()
+      .from('sport_epreuves')
+      .insert(ligne)
+      .select()
+      .single();
+    if (error) throw error;
+    res.json({ success: true, data });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // PUT /v1/sport/admin/epreuves/:id - modifier une epreuve (admin)
 // Champs modifiables : sport, sport_slug, epreuve, niveau, libelle, regle, emoji, ordre, actif
 sportRouter.put('/admin/epreuves/:id', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {

@@ -27,6 +27,37 @@ function AdminSportInner() {
   const [eOrdre, setEOrdre]     = useState('');
   const [eActif, setEActif]     = useState(true);
   const [saving, setSaving]     = useState(false);
+  const [nSport, setNSport]       = useState(''); /*DKDK_SPORT_FORM_AJOUT*/
+  const [nEpreuve, setNEpreuve]   = useState('');
+  const [nLibelle, setNLibelle]   = useState('');
+  const [nRegle, setNRegle]       = useState('');
+  const [nNiveau, setNNiveau]     = useState('');
+  const [nOrdre, setNOrdre]       = useState('');
+  const [ajoutBusy, setAjoutBusy] = useState(false);
+  const slugify = (v: string) => v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const ajouterEpreuve = async () => {
+    if (!nSport.trim() || !nEpreuve.trim() || !nLibelle.trim()) { setErreur('Sport, epreuve et libelle sont obligatoires.'); return; }
+    setAjoutBusy(true); setInfo(''); setErreur('');
+    try {
+      const body: any = {
+        sport: nSport.trim(), sport_slug: slugify(nSport), epreuve: nEpreuve.trim(), libelle: nLibelle.trim(),
+        regle: nRegle.trim() || null,
+        niveau: nNiveau.trim() ? parseInt(nNiveau, 10) : null,
+        ordre: nOrdre.trim() ? parseInt(nOrdre, 10) : 0,
+      };
+      const r = await fetch(API + '/sport/admin/epreuves', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + admin?.token },
+        body: JSON.stringify(body),
+      });
+      const j = await r.json();
+      if (!j.success) { setErreur(j.error || 'Ajout echoue.'); return; }
+      setInfo('Epreuve ajoutee.');
+      setNSport(''); setNEpreuve(''); setNLibelle(''); setNRegle(''); setNNiveau(''); setNOrdre('');
+      charger();
+    } catch (e) { setErreur('Erreur reseau.'); }
+    finally { setAjoutBusy(false); }
+  };
 
   const charger = async () => {
     setLoad(true); setErreur('');
@@ -118,6 +149,22 @@ function AdminSportInner() {
         <button onClick={charger} disabled={loading} style={{ marginBottom:16, padding:'8px 16px', borderRadius:8, border:'1px solid #1e1e2e', background:'#0d0d14', color:OR, fontWeight:600, fontSize:13, cursor:'pointer' }}>
           {loading ? 'Chargement...' : 'Rafraichir'}
         </button>
+
+        {/*DKDK_SPORT_FORM_AJOUT*/}
+        <div style={{ background:'#0d0d14', border:'1px solid #1e1e2e', borderRadius:10, padding:'16px', marginBottom:20 }}>
+          <div style={{ fontSize:15, fontWeight:700, color:OR, marginBottom:12, fontFamily:'Syne, sans-serif' }}>+ Ajouter une epreuve</div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
+            <div><label style={lbl}>Sport *</label><input style={inp} value={nSport} onChange={(e) => setNSport(e.target.value)} placeholder='Ex : Football' /></div>
+            <div><label style={lbl}>Epreuve *</label><input style={inp} value={nEpreuve} onChange={(e) => setNEpreuve(e.target.value)} placeholder='Ex : Jonglages' /></div>
+          </div>
+          <div style={{ marginBottom:10 }}><label style={lbl}>Libelle *</label><input style={inp} value={nLibelle} onChange={(e) => setNLibelle(e.target.value)} placeholder='Ex : Jonglages - Niveau 1' /></div>
+          <div style={{ marginBottom:10 }}><label style={lbl}>Regle (optionnel)</label><textarea style={{ ...inp, minHeight:60, resize:'vertical', fontFamily:'inherit' }} value={nRegle} onChange={(e) => setNRegle(e.target.value)} placeholder='Decris la regle...' /></div>
+          <div style={{ display:'flex', gap:12, alignItems:'flex-end', flexWrap:'wrap' }}>
+            <div style={{ width:120 }}><label style={lbl}>Niveau</label><input style={inp} type='number' value={nNiveau} onChange={(e) => setNNiveau(e.target.value)} /></div>
+            <div style={{ width:120 }}><label style={lbl}>Ordre</label><input style={inp} type='number' value={nOrdre} onChange={(e) => setNOrdre(e.target.value)} /></div>
+            <button onClick={ajouterEpreuve} disabled={ajoutBusy} style={{ padding:'9px 18px', borderRadius:8, border:'none', background:OR, color:'#000', fontWeight:700, fontSize:13, cursor:'pointer' }}>{ajoutBusy ? 'Ajout...' : 'Ajouter'}</button>
+          </div>
+        </div>
 
         {info ? <div style={{ color:'#4ade80', marginBottom:12, fontSize:14 }}>{info}</div> : null}
         {erreur ? <div style={{ color:'#ed070f', marginBottom:12, fontSize:14 }}>{erreur}</div> : null}
