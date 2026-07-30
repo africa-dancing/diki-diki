@@ -228,8 +228,9 @@ export async function createArenaChallenge(params: {
   track_id?: string; mode?: string; /*DKDK_TRACK_MODE*/
   format_code: string; /*DKDK_FORMAT_CREATION*/
   champs_valeurs?: { champ_id: string; champ_titre: string; choix_id: string; valeur: string }[]; /*DKDK_CHEMIN_B_BACK*/
+  paiement_confirme?: boolean; /*DKDK_FIX_PAIEMENT_CREATE*/
 }) {
-  const { user_id, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs } = params;
+  const { user_id, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs, paiement_confirme } = params;
   const modeVal = mode || 'normal';
 
   // Charger et valider le format choisi (obligatoire) /*DKDK_FORMAT_CREATION*/
@@ -292,6 +293,6 @@ export async function createArenaChallenge(params: {
     }
   }
 
-  const result = await inscribeToArena({ bracket_id: bracketId, user_id, video_id });
+  const result = await inscribeToArena({ bracket_id: bracketId, user_id, video_id, paiement_confirme }); /*DKDK_FIX_PAIEMENT_CREATE*/
   return { created: !dup, bracket_id: bracketId, participants: result.participants };
 }
