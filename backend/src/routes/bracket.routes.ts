@@ -61,6 +61,27 @@ bracketRouter.post('/arena/create', requireAuth, requireVerified, async (req: Au
   }
 });
 
+// Supprimer un challenge NON DEMARRE (admin) /*DKDK_DELETE_BRACKET*/
+bracketRouter.delete('/arena/:id', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    if (req.user?.role !== 'admin') return res.status(403).json({ success: false, error: 'Reserve a l administrateur.' });
+    const sb = getSupabase();
+    const { data: bracket, error: bErr } = await sb
+      .from('brackets').select('id, status').eq('id', req.params.id).single();
+    if (bErr || !bracket) return res.status(404).json({ success: false, error: 'Challenge introuvable.' });
+    // Securite : on ne supprime QUE les challenges non demarres
+    if (bracket.status !== 'waiting_candidates') {
+      return res.status(400).json({ success: false, error: 'Seuls les challenges non demarres (inscriptions ouvertes) peuvent etre supprimes.' });
+    }
+    // Les tables liees sont toutes en CASCADE : le DELETE du bracket nettoie tout
+    const { error: delErr } = await sb.from('brackets').delete().eq('id', req.params.id);
+    if (delErr) throw delErr;
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Verifier si un challenge existe deja pour la combinaison (Creer vs Rejoindre) /*DKDK_ROUTE_CHECK*/
 bracketRouter.post('/arena/check', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
