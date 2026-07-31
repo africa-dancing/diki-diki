@@ -138,8 +138,8 @@ export default function HomePage() {
       </div>
 
       {/* Titre sous la barre, pleine largeur, une seule ligne */}
-      <div style={{ padding: '6px 12px 4px', textAlign: 'center', background: '#0a0a0f' }}>
-        <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.7rem,4.2vw,1.9rem)', lineHeight: 1.1, margin: 0, whiteSpace: 'nowrap', background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+      <div style={{ padding: '6px 12px 4px', textAlign: 'center', background: '#0a0a0f', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+        <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.7rem,3.6vw,1.9rem)', display: 'inline-block', maxWidth: '100%', lineHeight: 1.1, margin: 0, whiteSpace: 'nowrap', background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
           Podium Challenges{' '}
           <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Arena</span>
         </h1>
