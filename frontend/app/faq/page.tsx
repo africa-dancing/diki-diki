@@ -122,12 +122,6 @@ export default function FAQPage() {
     <div style={s.page}>
       <Navbar />{/*DKDK_FAQ_NAVBAR_USE*/}
       {/*DKDK_FAQ_HERO*/}
-      <div style={{ padding: '72px 24px 10px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
-        <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.75rem,3vw,1.9rem)', lineHeight: 1.1, marginBottom: 8, whiteSpace: 'nowrap', background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Podium Challenges{' '}
-          <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Arena</span>
-        </h1>
-      </div>
 
       <div style={s.hero}>
         <div style={s.badge}>Aide</div>
