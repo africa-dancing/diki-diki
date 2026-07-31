@@ -1398,33 +1398,6 @@ export default function WatchPage() {
 
         <TickerBand />
 
-        {/* Nav bas — connectés uniquement */}
-        {loggedIn && (
-          <div style={{ height: NAV_H, background: 'rgba(8,8,15,0.95)', borderTop: '1px solid rgba(255,170,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0 8px' }}>
-            <button onClick={() => router.push('/home')} style={s.navBtn}>
-              <div style={s.navIconBox}><HomeIcon /></div>
-              <span style={s.navLabel}>Accueil</span>
-            </button>
-            <button onClick={() => router.push('/recharge')} style={s.navBtn}>
-              <div style={s.navIconBox}><RechargeIcon /></div>
-              <span style={s.navLabel}>Recharger</span>
-            </button>
-            <button onClick={handleAjouter} style={s.navBtn}>
-              <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#7e0380', border: '2px solid #FFAA00', display: 'flex', alignItems: 'center', justifyContent: 'center' }} /*DKDK_AJOUTER_VIOLET*/>
-                <span style={{ fontSize: 24, color: '#FFAA00', fontWeight: 700, lineHeight: 1 }}>+</span>
-              </div>
-              <span style={{ ...s.navLabel, color: '#FFAA00' }}>Ajouter</span>
-            </button>
-            <button onClick={() => router.push('/retrait')} style={s.navBtn}>
-              <div style={s.navIconBox}><BilletIcon /></div>
-              <span style={s.navLabel}>Retrait</span>
-            </button>
-            <button onClick={() => router.push('/compte')} style={s.navBtn} /*DKDK_NAV_COMPTE*/>
-                <div style={s.navIconBox}><UserIcon /></div>
-                <span style={s.navLabel}>Compte</span>
-              </button>
-          </div>
-        )}
       </div>
     </div>
   );
