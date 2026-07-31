@@ -79,7 +79,8 @@ export default function Navbar() {
         </Link>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <TranslateWidget />
+          <span className="dkdk-lang-desktop"><TranslateWidget /></span>
+          <style>{`@media (max-width: 640px){.dkdk-lang-desktop{display:none !important;}}`}</style>
 
           <button
             onClick={() => { setSearchOpen(o => !o); setMenuOpen(false); }}
