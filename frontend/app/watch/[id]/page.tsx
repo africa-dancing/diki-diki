@@ -1396,7 +1396,7 @@ export default function WatchPage() {
 
 const s: Record<string, React.CSSProperties> = {
   page: { minHeight: '100vh', background: '#ffffff', color: '#f0f0f0', /*DKDK_NOSCROLL*/ fontFamily: 'DM Sans, sans-serif', position: 'relative', overflow: 'hidden', height: '100vh' },
-  fixedHeader: { position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(8,8,15,0.95)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,170,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px 0 0', zIndex: 100 },
+  fixedHeader: { position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(8,8,15,0.95)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,170,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0 0 0', zIndex: 100 },
   logoInline: { display: 'inline-flex', alignItems: 'center' },
   logoDiki: { color: '#FFAA00', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20 },
   logoDash: { color: '#fff', fontFamily: 'Syne, sans-serif', fontWeight: 300, fontSize: 20, margin: '0 2px' },
