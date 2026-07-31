@@ -138,7 +138,7 @@ export default function HomePage() {
       </div>
 
       {/* Hero */}
-      <div style={{ padding: '44px 24px 44px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,rgba(126,3,128,0.85) 0%,rgba(126,3,128,0.35) 45%,transparent 72%)', textAlign: 'center' }}>
+      <div style={{ padding: '44px 24px 44px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
       </div>
 
       {/* Grille vidéos */}
