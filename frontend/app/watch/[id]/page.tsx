@@ -894,7 +894,7 @@ export default function WatchPage() {
             </button>
           )}
           {loggedIn && (
-            <button onClick={() => router.push('/compte')} style={{ width:68, height:68, borderRadius:'50%', background:'#7e0380', border:'3px solid #FF8A00', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', lineHeight:1, cursor:'pointer', flexShrink:0 }} /*DKDK_TOPBAR_UNITES*/>
+            <button onClick={() => router.push('/compte')} style={{ width:60, height:60, borderRadius:'50%', background:'#7e0380', border:'3px solid #FF8A00', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', lineHeight:1, cursor:'pointer', flexShrink:0 }} /*DKDK_TOPBAR_UNITES*/>
               <span style={{ fontSize:20, fontWeight:700, color:'#fff', fontFamily:'Syne, sans-serif' }}>{rechargeUnits}</span>
               <span style={{ fontSize:10, color:'rgba(255,255,255,0.85)', fontFamily:'DM Sans, sans-serif', marginTop:2 }}>unites</span>
             </button>
