@@ -182,11 +182,11 @@ export function computeBracketKey(
   modeVal: string,
   trackId: string | null | undefined,
   formatCode: string,
-  champsValeurs?: { choix_id: string }[]
+  champsValeurs?: { choix_id: string }[], modele: string = 'parcours', niveau: number = 1
 ): string {
   const cv = Array.isArray(champsValeurs) ? champsValeurs : [];
   const choixIds = cv.map(x => x.choix_id).filter(Boolean).sort();
-  return [discipline, modeVal, trackId || 'null', formatCode, ...choixIds].join('|');
+  return [modele, String(niveau), discipline, modeVal, trackId || 'null', formatCode, ...choixIds].join('|');
 }
 
 // Verifie si un challenge ouvert existe deja pour cette combinaison (chemin B) /*DKDK_CHECK_FN*/
