@@ -887,16 +887,6 @@ export default function WatchPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <TranslateWidget />
-          {/* Affichage Compte Voter & Soutenir si connecté */}
-          {loggedIn && wallet !== null && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,170,0,0.08)', border: '1px solid rgba(255,170,0,0.25)', borderRadius: 20, padding: '5px 12px' }}>
-              <span>🏅</span>
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#FFAA00', fontFamily: 'Syne, sans-serif' }}>{rechargeUnits} unités</span>
-                <span style={{ fontSize: 9, color: 'rgba(255,170,0,0.6)', fontFamily: 'DM Sans, sans-serif' }}>Compte Voter & Soutenir</span>
-              </div>
-            </div>
-          )}
           {/*DKDK_TOPBAR_VISITEUR*/}
           {!loggedIn && (
             <button onClick={() => router.push('/auth/register')} style={{ background:'linear-gradient(135deg,#FF6B00,#FFAA00)', color:'#fff', border:'none', borderRadius:20, padding:'7px 16px', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'DM Sans, sans-serif', whiteSpace:'nowrap', flexShrink:0 }}>
@@ -904,8 +894,9 @@ export default function WatchPage() {
             </button>
           )}
           {loggedIn && (
-            <button onClick={() => router.push('/compte')} style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#FF6B00,#FFD700)', border:'none', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, cursor:'pointer', flexShrink:0 }}>
-              👤
+            <button onClick={() => router.push('/compte')} style={{ width:68, height:68, borderRadius:'50%', background:'#7e0380', border:'3px solid #FF8A00', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', lineHeight:1, cursor:'pointer', flexShrink:0 }} /*DKDK_TOPBAR_UNITES*/>
+              <span style={{ fontSize:20, fontWeight:700, color:'#fff', fontFamily:'Syne, sans-serif' }}>{rechargeUnits}</span>
+              <span style={{ fontSize:10, color:'rgba(255,255,255,0.85)', fontFamily:'DM Sans, sans-serif', marginTop:2 }}>unites</span>
             </button>
           )}
         </div>
