@@ -132,10 +132,6 @@ export default function HomePage() {
     <>
       <Navbar />
 
-      {/* Badge categorie */}
-      <div style={{ padding: '16px', display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
-        {/*DKDK_HOME_BTN*/}
-      </div>
 
       {/* Hero */}
       <div style={{ padding: '0 24px 44px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
