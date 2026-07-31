@@ -17,6 +17,8 @@ export default function CreerChallengePage() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [categorie, setCategorie] = useState('');
   const [mode, setMode] = useState('normal'); /*DKDK_MODE*/
+  const [modele, setModele] = useState('parcours'); /*DKDK_MODELE*/
+  const [niveau, setNiveau] = useState(1); /*DKDK_NIVEAU*/
   const [musiques, setMusiques] = useState<any[]>([]); /*DKDK_MUSIQUE_SELECT*/
   const [trackId, setTrackId] = useState('');
   const [formats, setFormats] = useState<any[]>([]); /*DKDK_FORMAT_UI*/
@@ -233,6 +235,20 @@ export default function CreerChallengePage() {
         </div>
         {/*DKDK_CATEG_REMOVED — categorie toujours Loisirs, plus de selecteur*/}
 
+        <label style={labelStyle}>Modèle de challenge</label>
+        <select style={inputStyle} value={modele} onChange={e => { setModele(e.target.value); if (e.target.value === 'parcours') setNiveau(1); }}>
+          <option value='parcours' style={{ background: '#1a1a1f' }}>Parcours d'étapes</option>
+          <option value='bloc' style={{ background: '#1a1a1f' }}>Bloc groupé</option>
+        </select>
+        {modele === 'bloc' && (<>
+        <label style={labelStyle}>Niveau (nombre de vidéos)</label>
+        <select style={inputStyle} value={niveau} onChange={e => setNiveau(parseInt(e.target.value, 10))}>
+          <option value={1} style={{ background: '#1a1a1f' }}>Niveau 1 — 1 vidéo</option>
+          <option value={2} style={{ background: '#1a1a1f' }}>Niveau 2 — 2 vidéos</option>
+          <option value={3} style={{ background: '#1a1a1f' }}>Niveau 3 — 3 vidéos</option>
+          <option value={4} style={{ background: '#1a1a1f' }}>Niveau 4 — 4 vidéos</option>
+        </select>
+        </>)}
         <label style={labelStyle}>Format du challenge</label>
         <select style={inputStyle} value={formatCode} onChange={e => setFormatCode(e.target.value)}>
           <option value='' style={{ background: '#1a1a1f' }}>-- Choisir un format --</option>
