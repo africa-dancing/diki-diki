@@ -87,9 +87,8 @@ export default function TranslateWidget() {
 
   return (
     <div style={{ position: 'relative', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-      <button onClick={() => setOpen(o => !o)} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:20, padding:'6px 12px', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontSize:12, fontFamily:'DM Sans, sans-serif', fontWeight:700, height:34 }}>
-        <Flag iso={current.iso} size={20} />
-        <span style={{ fontSize: 12 }}>{current.label}</span>
+      <button onClick={() => setOpen(o => !o)} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:20, padding:'6px 10px', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontSize:12, fontFamily:'DM Sans, sans-serif', fontWeight:700, height:34 }}>
+        <Flag iso={current.iso} size={22} />
         <span style={{ fontSize:8, opacity:0.5 }}>▾</span>
       </button>
 
