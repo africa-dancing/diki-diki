@@ -295,7 +295,7 @@ export default function CreerChallengePage() {
             <select style={inputStyle} value={trackId} onChange={e => setTrackId(e.target.value)}>
               <option value='' style={{ background: '#1a1a1f' }}>-- Choisir une musique --</option>
               {musiques.map((m: any) => <option key={m.id} value={m.id} style={{ background: '#1a1a1f' }}>{m.titre} - {m.artiste}</option>)}
-              <option value='__nouveau__' style={{ background: '#1a1a1f' }}>+ Mon morceau n'est pas dans la liste</option>
+              <option value='__nouveau__' style={{ background: '#1a1a1f', color: '#e11d8f' }}>+ Mon morceau n'est pas dans la liste</option>
             </select>
             {/*DKDK_NOUVEAU_MORCEAU*/}
             {trackId === '__nouveau__' && (
