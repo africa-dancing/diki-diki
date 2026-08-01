@@ -48,7 +48,7 @@ export default function ChallengesListPage() {
             Les Challenges
           </h1>
           <div style={{ fontSize:12, color:'#fff', lineHeight:1.6 }}>
-            {/*DKDK_BANDEAU*/}Podium Challenges {'\u00E0'} {'\u00E9'}limination progressive par lot {'\u00B7'} 6 types de formats diff{'\u00E9'}rents {'\u00B7'} toute participation m{'\u00E9'}rite un encouragement
+            {/*DKDK_BANDEAU*/}Podium Challenges {'\u00B7'} Parcours d{'\u2019'}{'\u00E9'}tapes ({'\u00E9'}limination progressive) ou Bloc group{'\u00E9'} (classement final) {'\u00B7'} 6 formats {'\u00B7'} toute participation m{'\u00E9'}rite un encouragement
           </div>
         </div>
 
