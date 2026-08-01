@@ -191,6 +191,13 @@ export default function CreerChallengePage() {
     if (!disciplineId || !formatCode || champsRequis || !videoId) {
       setMsg('Remplis tous les champs et choisis une video.'); return;
     }
+    /*DKDK_ETAPE4 — validation du bloc de videos*/
+    const _bloc = (modele === 'bloc' && niveau > 1) ? blocVideos.slice(0, niveau - 1) : [];
+    if (modele === 'bloc' && niveau > 1) {
+      if (_bloc.length < niveau - 1 || _bloc.some(x => !x)) { setMsg('Choisis les ' + niveau + ' videos du bloc.'); return; }
+      const _all = [videoId, ..._bloc];
+      if (new Set(_all).size !== _all.length) { setMsg('Les videos du bloc doivent etre differentes.'); return; }
+    }
     setSubmitting(true);
     try {
       const t = getToken();
@@ -216,6 +223,9 @@ export default function CreerChallengePage() {
             champs_valeurs,
             mode,
             track_id: mode === 'normal' ? (trackId || undefined) : undefined,
+            modele, /*DKDK_ETAPE4*/
+            niveau,
+            video_ids: (modele === 'bloc' && niveau > 1) ? [videoId, ...blocVideos.slice(0, niveau - 1)] : [videoId],
           };
         })()),
       });

@@ -229,8 +229,9 @@ export async function createArenaChallenge(params: {
   format_code: string; /*DKDK_FORMAT_CREATION*/
   champs_valeurs?: { champ_id: string; champ_titre: string; choix_id: string; valeur: string }[]; /*DKDK_CHEMIN_B_BACK*/
   paiement_confirme?: boolean; /*DKDK_FIX_PAIEMENT_CREATE*/
+  modele?: string; niveau?: number; video_ids?: string[]; /*DKDK_ETAPE4_SVC*/
 }) {
-  const { user_id, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs, paiement_confirme } = params;
+  const { user_id, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs, paiement_confirme, modele, niveau, video_ids } = params;
   const modeVal = mode || 'normal';
 
   // Charger et valider le format choisi (obligatoire) /*DKDK_FORMAT_CREATION*/
