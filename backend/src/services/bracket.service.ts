@@ -335,7 +335,7 @@ async function checkRoundCompletion(bracketId: string) {
 }
 
 // ── 7. Distribuer la cagnotte ──────────────────────────────────────
-async function distributeCagnotte(bracket: any, championId: string, secondId: string | null) {
+async function distributeCagnotte(bracket: any, championId: string, secondId: string | null, forceLaureats?: number) {
   const bracketId = bracket.id;
   const totalCag  = bracket.total_cagnotte || 0;
 
@@ -349,7 +349,7 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
 
   /*DKDK_DISTRIB_V2 — plateforme 50%, primes eliminees (20% de leur montant capte), podium sur le reste*/
   const maxP = bracket.max_participants ?? 16;
-  const laureats = nbLaureats(maxP);
+  const laureats = (forceLaureats && forceLaureats >= 1 && forceLaureats <= 3) ? forceLaureats : nbLaureats(maxP); /*DKDK_FORCE_LAUREATS*/
 
   let champPct: number, secondPct: number, troisiemePct: number;
   if (laureats === 1) { champPct = 1; secondPct = 0; troisiemePct = 0; }
