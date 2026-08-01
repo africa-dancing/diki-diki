@@ -383,7 +383,7 @@ formatRouter.patch('/:id', requireAuth, requireAdmin, async (req: any, res) => {
 const blocObjectifsRouter = CatRouter();
 blocObjectifsRouter.get('/', async (_req, res) => {
   try {
-    const { data, error } = await supabase.from('bloc_objectifs').select('*').order('format_code').order('niveau');
+    const { data, error } = await supabase.from('bloc_objectifs').select('*').order('niveau').order('format_code');
     if (error) throw error;
     res.json(data || []);
   } catch { res.status(500).json({ error: 'BLOC_OBJECTIFS_FETCH_FAILED' }); }
