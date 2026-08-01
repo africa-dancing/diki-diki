@@ -229,6 +229,20 @@ export async function checkAndAdvanceRounds() {
       await closeStage(bracket, round);
     }
   }
+
+  // Bloc groupe : objectif unique atteint -> decompte final /*DKDK_DECLENCHEUR_BLOC*/
+  const { data: blocs } = await supabase
+    .from('brackets')
+    .select('*')
+    .eq('modele', 'bloc')
+    .eq('status', 'in_progress');
+  for (const b of (blocs || [])) {
+    const obj = b.objectif_bloc || 0;
+    if (obj > 0 && (b.total_cagnotte || 0) >= obj) {
+      try { await decompteBlocGroupe(b); }
+      catch (e) { console.error('[DECOMPTE BLOC] echec bracket ' + b.id, e); }
+    }
+  }
 }
 
 // ── 5. Résoudre un duel ────────────────────────────────────────────
