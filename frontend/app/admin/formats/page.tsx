@@ -137,11 +137,91 @@ function FormatsInner() {
             </tbody>
           </table>
         </div>
+        <BlocObjectifs />
       </div>
     </div>
   );
 }
 
+function BlocObjectifs() {
+  const { admin } = useAdminAuth();
+  const tok = () => ({ Authorization: 'Bearer ' + admin?.token, 'Content-Type': 'application/json' });
+  const [rows, setRows] = useState<any[]>([]);
+  const [editId, setEditId] = useState<string>('');
+  const [eObj, setEObj] = useState('');
+  const [eGag, setEGag] = useState('');
+  const [info, setInfo] = useState('');
+  const [erreur, setErreur] = useState('');
+  const bmsg = (t: string, ok = true) => { ok ? setInfo(t) : setErreur(t); setTimeout(() => { setInfo(''); setErreur(''); }, 3500); };
+  const fmtn = (n: number) => Number(n).toLocaleString('fr-FR');
+  const cand = (c: string) => parseInt(c.replace('C',''), 10) || 0;
+  const charger = async () => {
+    try { const j = await (await fetch(API + '/bloc-objectifs')).json(); setRows(Array.isArray(j) ? j : (j?.data ?? [])); }
+    catch { bmsg('Chargement impossible', false); }
+  };
+  useEffect(() => { charger(); }, []);
+  const ouvrir = (r: any) => { setEditId(r.id); setEObj(String(r.objectif)); setEGag(String(r.nb_gagnants)); };
+  const annuler = () => { setEditId(''); setEObj(''); setEGag(''); };
+  const enregistrer = async (r: any) => {
+    const obj = Number(eObj); const gag = Number(eGag);
+    if (!Number.isFinite(obj) || obj < 0) return bmsg('Objectif invalide', false);
+    if (!Number.isInteger(gag) || gag < 1 || gag > 3) return bmsg('Gagnants: 1 a 3', false);
+    if (gag >= cand(r.format_code)) return bmsg('Trop de gagnants pour ce format', false);
+    try {
+      const rp = await fetch(API + '/bloc-objectifs/' + r.id, { method: 'PATCH', headers: tok(), body: JSON.stringify({ objectif: obj, nb_gagnants: gag }) });
+      if (!rp.ok) throw new Error();
+      annuler(); await charger(); bmsg('Objectif mis a jour');
+    } catch { bmsg('Echec de la mise a jour', false); }
+  };
+  return (
+    <div style={carte}>
+      <div style={titre}>Objectifs Bloc groupe (format x niveau)</div>
+      {info   && <div style={{ fontSize: 12, color: OR, marginBottom: 8 }}>{info}</div>}
+      {erreur && <div style={{ fontSize: 12, color: '#ff4d4d', marginBottom: 8 }}>{erreur}</div>}
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid #23232f' }}>
+            <th style={thStyle}>Format</th>
+            <th style={thStyle}>Niveau</th>
+            <th style={thStyle}>Objectif</th>
+            <th style={thStyle}>Gagnants</th>
+            <th style={thStyle}>Elimines</th>
+            <th style={thStyle}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.id} style={{ borderBottom: '1px solid #16161f' }}>
+              <td style={{ ...cell, fontWeight: 700, color: OR }}>{r.format_code}</td>
+              <td style={cellMut}>Niveau {r.niveau}</td>
+              {editId === r.id ? (
+                <td style={cell}><input style={{ ...champ, width: 120 }} value={eObj} onChange={(e) => setEObj(e.target.value)} inputMode="numeric" /></td>
+              ) : (
+                <td style={cell}>{fmtn(r.objectif)} F</td>
+              )}
+              {editId === r.id ? (
+                <td style={cell}><input style={{ ...champ, width: 50 }} value={eGag} onChange={(e) => setEGag(e.target.value)} inputMode="numeric" /></td>
+              ) : (
+                <td style={cell}>{r.nb_gagnants}</td>
+              )}
+              <td style={cellMut}>{cand(r.format_code) - (editId === r.id ? (Number(eGag) || 0) : r.nb_gagnants)}</td>
+              <td style={cell}>
+                {editId === r.id ? (
+                  <span>
+                    <button style={{ ...btn, padding: '5px 10px', marginRight: 6 }} onClick={() => enregistrer(r)}>OK</button>
+                    <span onClick={annuler} style={{ cursor: 'pointer', fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Annuler</span>
+                  </span>
+                ) : (
+                  <span onClick={() => ouvrir(r)} style={{ cursor: 'pointer', fontSize: 12, color: OR }}>Modifier</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 export default function AdminFormatsPage() {
   return <AdminGuard><FormatsInner /></AdminGuard>;
 }
