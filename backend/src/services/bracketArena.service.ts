@@ -244,6 +244,11 @@ export async function createArenaChallenge(params: {
   if (fErr || !fmt) throw new Error('Format de challenge inconnu.');
   if (!fmt.actif) throw new Error('Ce format de challenge est desactive.');
   const maxParticipants = fmt.nb_candidats;
+  let objectifBloc = 0; /*DKDK_ETAPE4_OBJCALC*/
+  if ((modele || 'parcours') === 'bloc') {
+    const { data: bo } = await supabase.from('bloc_objectifs').select('objectif').eq('format_code', fmt.code).eq('niveau', niveau || 1).maybeSingle();
+    objectifBloc = bo?.objectif || 0;
+  }
 
   // Cle composite (chemin B) via fonction partagee /*DKDK_CHEMIN_B_BACK*/
   const cv = Array.isArray(champs_valeurs) ? champs_valeurs : [];
@@ -281,6 +286,7 @@ export async function createArenaChallenge(params: {
         type: 'libre', status: 'waiting_candidates', code: fmt.code,
         bracket_key: bracketKey, /*DKDK_CHEMIN_B_BACK*/
         modele: modele || 'parcours', niveau: niveau || 1, /*DKDK_ETAPE4_INSERT*/
+        objectif_bloc: objectifBloc, /*DKDK_ETAPE4_OBJECTIF*/
         max_participants: maxParticipants, current_round: 1,
         total_cagnotte: 0, commission_pct: 0.5,
         created_at: new Date().toISOString(),
