@@ -73,6 +73,7 @@ function TickerBand() {
   const posRef   = useRef(0);
   const rafRef   = useRef(0);
   const pausedRef = useRef(false);
+
   useEffect(() => {
     fetch(`${API_URL}/ticker`).then(r=>r.ok?r.json():null).then(d=>{ if(d?.messages?.length) setMsgs(d.messages.map((m: any)=>m.message??m)); }).catch(()=>{});
   }, []);
@@ -251,6 +252,7 @@ export default function WatchPage() {
   const router  = useRouter();
 
   const [video, setVideo]                   = useState<Video | null>(null);
+  const [isMobile, setIsMobile] = useState(false); /*DKDK_ISMOBILE*/
   const [competitionVideos, setCompetitionVideos] = useState<Video[]>([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentVideo, setCurrentVideo]     = useState<Video | null>(null);
@@ -788,7 +790,7 @@ export default function WatchPage() {
   const closeAll = () => { setShowShareMenu(false); setShowEmojiPicker(false); };
 
   const playerH      = `calc(100vh - ${PLAYER_TOP}px - ${FOOTER_H}px - 5px)`;
-  const playerLeft   = expanded ? '8px' : `calc((50% + ${PLAYER_MAX_W / 2 + BTN_COL_W / 2 + 4}px) / 2)`;
+  const playerLeft   = expanded ? '8px' : (isMobile ? '50%' : `calc((50% + ${PLAYER_MAX_W / 2 + BTN_COL_W / 2 + 4}px) / 2)`);
   const playerTransf = expanded ? 'none' : 'translateX(-50%)';
   const playerW      = expanded ? BTN_COL_LEFT : '100%';
   const playerMaxW   = expanded ? 'none' : `${PLAYER_MAX_W}px`;
