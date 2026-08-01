@@ -274,7 +274,7 @@ export default function CreerChallengePage() {
         <label style={labelStyle}>Format du challenge</label>
         <select style={inputStyle} value={formatCode} onChange={e => setFormatCode(e.target.value)}>
           <option value='' style={{ background: '#1a1a1f' }}>-- Choisir un format --</option>
-          {formats.filter((ff: any) => !(modele === 'bloc' && niveau === 1 && ['C2','C4','C6'].includes(ff.code))).map((ff: any) => <option key={ff.code} value={ff.code} style={{ background: '#1a1a1f' }}>{ff.libelle}</option>)}
+          {formats.filter((ff: any) => !(modele === 'bloc' && niveau === 1 && ff.code === 'C2')).map((ff: any) => <option key={ff.code} value={ff.code} style={{ background: '#1a1a1f' }}>{ff.libelle}</option>)}
         </select>
 
         <label style={labelStyle}>Discipline</label>
