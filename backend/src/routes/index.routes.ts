@@ -379,6 +379,27 @@ formatRouter.patch('/:id', requireAuth, requireAdmin, async (req: any, res) => {
   } catch { res.status(500).json({ error: 'FORMAT_UPDATE_FAILED' }); }
 });
 
+
+const blocObjectifsRouter = CatRouter();
+blocObjectifsRouter.get('/', async (_req, res) => {
+  try {
+    const { data, error } = await supabase.from('bloc_objectifs').select('*').order('format_code').order('niveau');
+    if (error) throw error;
+    res.json(data || []);
+  } catch { res.status(500).json({ error: 'BLOC_OBJECTIFS_FETCH_FAILED' }); }
+});
+blocObjectifsRouter.patch('/:id', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const patch: any = {};
+    if (req.body.objectif !== undefined)    patch.objectif = req.body.objectif;
+    if (req.body.nb_gagnants !== undefined) patch.nb_gagnants = req.body.nb_gagnants;
+    const { data, error } = await supabase.from('bloc_objectifs').update(patch).eq('id', req.params.id).select();
+    if (error) throw error;
+    res.json(data[0]);
+  } catch { res.status(500).json({ error: 'BLOC_OBJECTIF_UPDATE_FAILED' }); }
+});
+export { blocObjectifsRouter };
+
 export { formatRouter };
 
 export { categoryRouter };
