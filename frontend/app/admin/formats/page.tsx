@@ -183,6 +183,7 @@ function BlocObjectifs() {
           <tr style={{ borderBottom: '1px solid #23232f' }}>
             <th style={thStyle}>Format</th>
             <th style={thStyle}>Niveau</th>
+            <th style={thStyle}>Videos</th>{/*DKDK_COL_VIDEOS*/}
             <th style={thStyle}>Objectif</th>
             <th style={thStyle}>Gagnants</th>
             <th style={thStyle}>Elimines</th>
@@ -194,6 +195,7 @@ function BlocObjectifs() {
             <tr key={r.id} style={{ borderBottom: '1px solid #16161f' }}>
               <td style={{ ...cell, fontWeight: 700, color: OR }}>{r.format_code}</td>
               <td style={cellMut}>Niveau {r.niveau}</td>
+              <td style={cellMut}>{r.niveau} video{r.niveau > 1 ? 's' : ''}</td>
               {editId === r.id ? (
                 <td style={cell}><input style={{ ...champ, width: 120 }} value={eObj} onChange={(e) => setEObj(e.target.value)} inputMode="numeric" /></td>
               ) : (
