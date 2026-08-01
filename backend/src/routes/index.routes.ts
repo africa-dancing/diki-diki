@@ -383,9 +383,10 @@ formatRouter.patch('/:id', requireAuth, requireAdmin, async (req: any, res) => {
 const blocObjectifsRouter = CatRouter();
 blocObjectifsRouter.get('/', async (_req, res) => {
   try {
-    const { data, error } = await supabase.from('bloc_objectifs').select('*').order('niveau').order('format_code');
+    const { data, error } = await supabase.from('bloc_objectifs').select('*');
     if (error) throw error;
-    res.json(data || []);
+    const ordonne = (data || []).sort((x: any, y: any) => (parseInt(x.format_code.replace('C',''),10) - parseInt(y.format_code.replace('C',''),10)) || (x.niveau - y.niveau));
+    res.json(ordonne);
   } catch { res.status(500).json({ error: 'BLOC_OBJECTIFS_FETCH_FAILED' }); }
 });
 blocObjectifsRouter.patch('/:id', requireAuth, requireAdmin, async (req: any, res) => {
