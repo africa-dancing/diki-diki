@@ -19,6 +19,7 @@ export default function CreerChallengePage() {
   const [mode, setMode] = useState('normal'); /*DKDK_MODE*/
   const [modele, setModele] = useState('parcours'); /*DKDK_MODELE*/
   const [niveau, setNiveau] = useState(1); /*DKDK_NIVEAU*/
+  const [blocVideos, setBlocVideos] = useState<string[]>([]); /*DKDK_BLOC_VIDEOS*/
   const [musiques, setMusiques] = useState<any[]>([]); /*DKDK_MUSIQUE_SELECT*/
   const [trackId, setTrackId] = useState('');
   const [formats, setFormats] = useState<any[]>([]); /*DKDK_FORMAT_UI*/
@@ -126,6 +127,22 @@ export default function CreerChallengePage() {
 
   const submit = async () => {
     setMsg('');
+        {modele === 'bloc' && niveau > 1 && videos.length > 0 && (
+          <>
+            {Array.from({ length: niveau - 1 }).map((_, i) => {
+              const dejaPris = [videoId, ...blocVideos.filter((_, j) => j !== i)];
+              return (
+                <div key={i}>
+                  <label style={labelStyle}>Vidéo {i + 2} du bloc</label>
+                  <select style={inputStyle} value={blocVideos[i] || ''} onChange={e => { const nv = [...blocVideos]; nv[i] = e.target.value; setBlocVideos(nv); }}>
+                    <option value='' style={{ background: '#1a1a1f' }}>-- Choisir une vidéo --</option>
+                    {videos.filter(v => !dejaPris.includes(v.id)).map(v => <option key={v.id} value={v.id} style={{ background: '#1a1a1f' }}>{v.title || v.id.slice(0, 8)}</option>)}
+                  </select>
+                </div>
+              );
+            })}
+          </>
+        )}
     /*DKDK_PAIEMENT_UI2 — confirmation B avant debit*/
     if (paiementRequis && videoId) {
       const ok = window.confirm('Cette vidéo est déjà engagée ailleurs. L\'inscrire dans ce challenge coûte ' + montantInscription.toLocaleString('fr-FR') + ' F, débités de ton solde. Confirmer ?');
