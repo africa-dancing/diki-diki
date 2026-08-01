@@ -280,6 +280,7 @@ export async function createArenaChallenge(params: {
         track_id: track_id || null, mode: modeVal,
         type: 'libre', status: 'waiting_candidates', code: fmt.code,
         bracket_key: bracketKey, /*DKDK_CHEMIN_B_BACK*/
+        modele: modele || 'parcours', niveau: niveau || 1, /*DKDK_ETAPE4_INSERT*/
         max_participants: maxParticipants, current_round: 1,
         total_cagnotte: 0, commission_pct: 0.5,
         created_at: new Date().toISOString(),
@@ -295,5 +296,17 @@ export async function createArenaChallenge(params: {
   }
 
   const result = await inscribeToArena({ bracket_id: bracketId, user_id, video_id, paiement_confirme }); /*DKDK_FIX_PAIEMENT_CREATE*/
+  /*DKDK_ETAPE4_BLOCVIDS — enregistrer les videos supplementaires du bloc*/
+  if (Array.isArray(video_ids) && video_ids.length > 1) {
+    const { data: part } = await supabase.from('bracket_participants')
+      .select('id').eq('bracket_id', bracketId).eq('user_id', user_id).maybeSingle();
+    if (part) {
+      const extra = video_ids.filter((v, idx) => v && idx > 0).map((v, idx) => ({
+        participant_id: part.id, round_number: idx + 2, video_id: v,
+      }));
+      if (extra.length) await supabase.from('bracket_participant_videos')
+        .upsert(extra, { onConflict: 'participant_id,round_number' });
+    }
+  }
   return { created: !dup, bracket_id: bracketId, participants: result.participants };
 }
