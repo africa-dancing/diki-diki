@@ -432,6 +432,39 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
   console.log(`[DISTRIB] Bracket ${bracketId} : net=${net}, champ=${gainChampion}, 2e=${gainSecond}, 3e=${gainTroisieme}`);
 }
 
+// Decompte final unique du Bloc groupe : classement -> podium -> primes, une passe /*DKDK_DECOMPTE_BLOC*/
+export async function decompteBlocGroupe(bracket: any) {
+  const bracketId = bracket.id;
+  // 1) Classer les participants par score total (le plus haut d'abord)
+  const { data: parts } = await supabase.from('bracket_participants')
+    .select('id, score, stars_count, hearts_count')
+    .eq('bracket_id', bracketId)
+    .order('score', { ascending: false });
+  if (!parts || parts.length === 0) { console.log('[DECOMPTE BLOC] aucun participant, bracket ' + bracketId); return; }
+  const championId = parts[0].id;
+  const secondId   = parts[1]?.id ?? null;
+  const troisiemeId = parts[2]?.id ?? null;
+  // 2) Podium sur le bracket
+  await supabase.from('brackets').update({ winner_id: championId, second_id: secondId, third_id: troisiemeId }).eq('id', bracketId);
+  // 3) Marquer tous les autres comme elimines (pour leur prime) sauf le podium reel
+  const podium = [championId, secondId, troisiemeId].filter(Boolean);
+  const nowIso = new Date().toISOString();
+  for (const p of parts) {
+    if (!podium.includes(p.id)) {
+      await supabase.from('bracket_participants').update({ eliminated_at: nowIso }).eq('id', p.id);
+    }
+  }
+  // 4) Passer le bracket en in_progress pour que distributeCagnotte paie, puis repartir
+  await supabase.from('brackets').update({ status: 'in_progress' }).eq('id', bracketId);
+  const { data: bfull } = await supabase.from('brackets').select('*').eq('id', bracketId).single();
+  // 5) Nombre de gagnants regle dans l'admin (bloc_objectifs), selon format x niveau
+  const { data: bo } = await supabase.from('bloc_objectifs').select('nb_gagnants')
+    .eq('format_code', bfull.code).eq('niveau', bfull.niveau || 1).maybeSingle();
+  const forceLaureats = bo?.nb_gagnants || undefined;
+  await distributeCagnotte(bfull, championId, secondId, forceLaureats);
+  console.log('[DECOMPTE BLOC] bracket ' + bracketId + ' cloture, ' + parts.length + ' participants, gagnants=' + (forceLaureats ?? 'auto'));
+}
+
 // ── 8. Notifier les participants d'un duel ─────────────────────────
 async function notifyDuelParticipants(duel: any, title: string, message: string) {
   const { data: partA } = await supabase.from('bracket_participants').select('user_id').eq('id', duel.participant_a).single();
