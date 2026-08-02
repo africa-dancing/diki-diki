@@ -94,7 +94,7 @@ export default function ChallengesListPage() {
 
                 <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:12 }}>
                   {tags.map(t => (
-                    <span key={t as string} style={{ fontSize:10, padding:'3px 10px', borderRadius:20, background:'rgba(237,7,15,0.15)', border:'1px solid rgba(237,7,15,0.3)', color:'#fff', textTransform:'capitalize' as const }}>{t}</span>
+                    <span key={t as string} style={{ fontSize:10, padding:'3px 10px', borderRadius:20, background:'#FF0000', border:'none', color:'#fff', textTransform:'capitalize' as const }}>{t}</span>
                   ))}
                 </div>
 
