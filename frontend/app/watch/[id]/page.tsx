@@ -912,7 +912,9 @@ export default function WatchPage() {
 
       {/* ── LECTEUR ── */}
       <div
-        style={{ position: 'fixed', top: PLAYER_TOP, left: playerLeft, transform: playerTransf, width: playerW, maxWidth: playerMaxW, height: playerH, borderRadius: playerRadius, overflow: 'hidden', background: '#000', cursor: 'pointer', zIndex: 50, transition: 'all 0.35s cubic-bezier(.4,0,.2,1)' }}
+        style={ isMobile
+          ? { position: 'relative', width: '98vw', maxWidth: '98vw', margin: '8px auto 0', aspectRatio: '9 / 16', height: 'auto', borderRadius: playerRadius, overflow: 'hidden', background: '#000', cursor: 'pointer', zIndex: 1 } /*DKDK_PLAYER_STATIC_MOBILE*/
+          : { position: 'fixed', top: PLAYER_TOP, left: playerLeft, transform: playerTransf, width: playerW, maxWidth: playerMaxW, height: playerH, borderRadius: playerRadius, overflow: 'hidden', background: '#000', cursor: 'pointer', zIndex: 50, transition: 'all 0.35s cubic-bezier(.4,0,.2,1)' } }
         onMouseMove={resetTimer} onClick={estEnAttente ? undefined : togglePlay}
       >
         {/*DKDK_WAITING_OVERLAY*/}
@@ -976,7 +978,9 @@ export default function WatchPage() {
 
       {/* ── BANDE BOUTONS FIXE ── */}
       <div
-        style={{ position: 'fixed', top: PLAYER_TOP, left: BTN_COL_LEFT, width: BTN_COL_W, height: playerH, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, zIndex: 55, background: 'rgba(8,8,20,0.65)', borderLeft: '1px solid rgba(255,255,255,0.04)', padding: '0 6px' }}
+        style={ isMobile
+          ? { position: 'relative', width: '98vw', margin: '6px auto 0', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: 8, zIndex: 2, background: 'transparent', padding: '4px 6px', flexWrap: 'wrap' } /*DKDK_BTNCOL_MOBILE*/
+          : { position: 'fixed', top: PLAYER_TOP, left: BTN_COL_LEFT, width: BTN_COL_W, height: playerH, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, zIndex: 55, background: 'rgba(8,8,20,0.65)', borderLeft: '1px solid rgba(255,255,255,0.04)', padding: '0 6px' } }
         onClick={e => e.stopPropagation()}
       >
         {/* S'ABONNER — visiteurs */}
@@ -1323,7 +1327,7 @@ export default function WatchPage() {
       </div>
 
       {/* ── FOOTER ── */}
-      <div style={{ ...s.fixedFooter, height: FOOTER_H }}>
+      <div style={ isMobile ? { ...s.fixedFooter, position: 'static', height: 'auto', width: '100%' } : { ...s.fixedFooter, height: FOOTER_H } } /*DKDK_FOOTER_STATIC_MOBILE*/>
         <div style={{ height: BAND_H, overflow: 'hidden' }}>
         {/*DKDK_SIEGES_CALC*/}
         {(() => {
