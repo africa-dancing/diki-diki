@@ -1330,8 +1330,8 @@ export default function WatchPage() {
           return null;
         })()}
           <style>{`@keyframes dkdkMarquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } } .dkdk-marquee-track:hover { animation-play-state: paused; }`}</style>
-          <div ref={bandRef} style={{ ...s.band, overflowX: 'hidden' }} /*DKDK_MARQUEE_WRAP*/>
-            <div ref={bandTrackRef} className="dkdk-marquee-track" style={{ display: 'flex', alignItems: 'center', gap: 10, width: 'max-content', willChange: 'transform' }} /*DKDK_TRACK_JS*/>
+          <div ref={bandRef} style={ isMobile ? { ...s.band, overflowX: 'auto', maxWidth: '100vw', padding: '0 8px' } : { ...s.band, overflowX: 'hidden' } } /*DKDK_MARQUEE_WRAP DKDK_BAND_MOBILE*/>
+            <div ref={bandTrackRef} className={isMobile ? '' : 'dkdk-marquee-track'} style={{ display: 'flex', alignItems: 'center', gap: 10, width: 'max-content', willChange: 'transform' }} /*DKDK_TRACK_JS*/>
             <span style={{ fontSize: 14, flexShrink: 0, marginRight: 4 }}>🏆</span>
             {/* DKDK_BANDE_EXCLURE — cartes verticales, sans le candidat en lecture */}
             {(() => {
