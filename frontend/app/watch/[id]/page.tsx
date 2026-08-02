@@ -827,7 +827,7 @@ export default function WatchPage() {
   );
 
   return (
-    <div style={{ ...s.page, paddingTop: HEADER_H, paddingBottom: FOOTER_H }} onClick={closeAll}>
+    <div style={ isMobile ? { ...s.page, paddingTop: HEADER_H, paddingBottom: 0, height: 'auto', minHeight: '100vh', overflow: 'visible' } : { ...s.page, paddingTop: HEADER_H, paddingBottom: FOOTER_H } } onClick={closeAll} /*DKDK_PAGE_SCROLL_MOBILE*/>
 
       {showLoginPopup && (
         <LoginPopup
