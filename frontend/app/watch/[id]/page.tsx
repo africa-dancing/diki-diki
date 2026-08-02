@@ -798,8 +798,8 @@ export default function WatchPage() {
   const playerH      = `calc(100vh - ${PLAYER_TOP}px - ${FOOTER_H}px - 5px)`;
   const playerLeft   = expanded ? '8px' : (isMobile ? '50%' : `calc((50% + ${PLAYER_MAX_W / 2 + BTN_COL_W / 2 + 4}px) / 2)`);
   const playerTransf = expanded ? 'none' : 'translateX(-50%)';
-  const playerW      = expanded ? BTN_COL_LEFT : '100%';
-  const playerMaxW   = expanded ? 'none' : `${PLAYER_MAX_W}px`;
+  const playerW      = expanded ? BTN_COL_LEFT : (isMobile ? '98vw' : '100%'); /*DKDK_PLAYER_W_MOBILE*/
+  const playerMaxW   = expanded ? 'none' : (isMobile ? 'none' : `${PLAYER_MAX_W}px`); /*DKDK_PLAYER_MAXW_MOBILE*/
   const playerRadius = expanded ? '0px' : '16px';
 
   const displayVideo = currentVideo ?? video;
