@@ -253,6 +253,12 @@ export default function WatchPage() {
 
   const [video, setVideo]                   = useState<Video | null>(null);
   const [isMobile, setIsMobile] = useState(false); /*DKDK_ISMOBILE*/
+  useEffect(() => { /*DKDK_ISMOBILE_EFFECT*/
+    const _ck = () => setIsMobile(window.innerWidth <= 640);
+    _ck();
+    window.addEventListener('resize', _ck);
+    return () => window.removeEventListener('resize', _ck);
+  }, []);
   const [competitionVideos, setCompetitionVideos] = useState<Video[]>([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentVideo, setCurrentVideo]     = useState<Video | null>(null);
