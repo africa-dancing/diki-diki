@@ -1045,7 +1045,9 @@ export default function WatchPage() {
 
       {/* ── PANEL DROIT : CLAVIERS NUMÉRIQUES ou INVITE VISITEUR ── */}
       <div
-        style={{ position: 'fixed', top: PLAYER_TOP, left: HERO_LEFT, right: 8, height: `calc(${playerH} - 18px)`, overflowY: 'hidden', zIndex: 49, /*DKDK_PANEL_H*/ padding: '8px 10px', display: 'flex', flexDirection: 'column', background: '#0a0a0f', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' }}
+        style={ isMobile
+          ? { position: 'static', width: '100%', maxWidth: 480, margin: '12px auto 0', height: 'auto', zIndex: 49, padding: '10px 12px', display: 'flex', flexDirection: 'column', background: '#0a0a0f', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' } /*DKDK_PANEL_MOBILE*/
+          : { position: 'fixed', top: PLAYER_TOP, left: HERO_LEFT, right: 8, height: `calc(${playerH} - 18px)`, overflowY: 'hidden', zIndex: 49, /*DKDK_PANEL_H*/ padding: '8px 10px', display: 'flex', flexDirection: 'column', background: '#0a0a0f', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' } }
         onClick={e => e.stopPropagation()}
       >
         {loggedIn ? (
