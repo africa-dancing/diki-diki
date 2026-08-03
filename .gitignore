@@ -26,3 +26,9 @@ backend/*.js
 # NOTE : les fichiers .sql ne sont volontairement PAS ignores.
 # Ils contiennent les RPC (vote_bracket_pool, credit_wallet, soutenir_video)
 # qui n existent nulle part ailleurs que dans le cloud Supabase.
+
+# Fichiers de travail Diki-Diki (jamais committes)
+*.patchbak*
+dkdk_*.js
+fix_bracketkey.js
+DK-DK-CONTEXTE-*.md
