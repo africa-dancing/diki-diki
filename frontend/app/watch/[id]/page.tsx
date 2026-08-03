@@ -833,7 +833,7 @@ export default function WatchPage() {
   );
 
   return (
-    <div style={ isMobile ? { ...s.page, paddingTop: HEADER_H, paddingBottom: 0, height: 'auto', minHeight: '100vh', overflow: 'visible' } : { ...s.page, paddingTop: HEADER_H, paddingBottom: FOOTER_H } } onClick={closeAll} /*DKDK_PAGE_SCROLL_MOBILE*/>
+    <div style={ isMobile ? { ...s.page, paddingTop: HEADER_H, paddingBottom: 24, height: 'auto', minHeight: 'auto', maxHeight: 'none', overflow: 'visible', overflowY: 'visible', position: 'static' } : { ...s.page, paddingTop: HEADER_H, paddingBottom: FOOTER_H } } onClick={closeAll} /*DKDK_PAGE_SCROLL_MOBILE*/>
 
       {showLoginPopup && (
         <LoginPopup
@@ -913,7 +913,7 @@ export default function WatchPage() {
       {/* ── LECTEUR ── */}
       <div
         style={ isMobile
-          ? { position: 'relative', width: '98vw', maxWidth: '98vw', margin: '8px auto 0', aspectRatio: '9 / 16', height: 'auto', borderRadius: playerRadius, overflow: 'hidden', background: '#000', cursor: 'pointer', zIndex: 1 } /*DKDK_PLAYER_STATIC_MOBILE*/
+          ? { position: 'relative', width: 'auto', maxWidth: '98vw', height: '60vh', aspectRatio: '9 / 16', margin: '8px auto 0', borderRadius: playerRadius, overflow: 'hidden', background: '#000', cursor: 'pointer', zIndex: 1 } /*DKDK_PLAYER_STATIC_MOBILE*/
           : { position: 'fixed', top: PLAYER_TOP, left: playerLeft, transform: playerTransf, width: playerW, maxWidth: playerMaxW, height: playerH, borderRadius: playerRadius, overflow: 'hidden', background: '#000', cursor: 'pointer', zIndex: 50, transition: 'all 0.35s cubic-bezier(.4,0,.2,1)' } }
         onMouseMove={resetTimer} onClick={estEnAttente ? undefined : togglePlay}
       >
@@ -1147,6 +1147,37 @@ export default function WatchPage() {
 
               {/* Onglets */}
               {/*DKDK_FUSION_LIGNE*/}
+              {/*DKDK_PALIERS_MOBILE : nouveau pave a paliers, mobile uniquement*/}
+              {isMobile && (() => {
+                const paliers = [1, 2, 5, 10];
+                const isStar = activeTab === 'stars';
+                const onSend = isStar ? handleSendStars : handleSendHearts;
+                const setQty = isStar ? setStarsQty : setHeartsQty;
+                const votePalier = (u) => { setQty(u); setTimeout(() => onSend(), 0); };
+                return (
+                  <div style={{ background:'#FF0000', borderRadius:12, padding:11, marginBottom:6 }}>
+                    <div style={{ display:'flex', gap:5, marginBottom:9 }}>
+                      <button onClick={() => setActiveTab('stars')} style={{ flex:1, background: isStar ? '#FF8A00' : '#2b2b2b', color: isStar ? '#000' : '#fff', fontSize:12, textAlign:'center', borderRadius:6, padding:'7px 0', fontWeight:700, border:'none', cursor:'pointer', fontFamily:'DM Sans, sans-serif' }}>&#9733; Voter</button>
+                      <button onClick={() => setActiveTab('hearts')} style={{ flex:1, background: !isStar ? '#FF8A00' : '#2b2b2b', color: !isStar ? '#000' : '#fff', fontSize:12, textAlign:'center', borderRadius:6, padding:'7px 0', fontWeight:700, border:'none', cursor:'pointer', fontFamily:'DM Sans, sans-serif' }}>&#9829; Liker</button>
+                    </div>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                      {paliers.map(u => (
+                        <button key={u} onClick={() => votePalier(u)} disabled={voteLoading || likeLoading} style={{ background:'#2b2b2b', border:'none', borderRadius:8, padding:'9px 4px', textAlign:'center', cursor:'pointer', fontFamily:'DM Sans, sans-serif' }}>
+                          <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{u * (isStar ? voteAmount : heartAmount)} F</div>
+                          <div style={{ fontSize:9, color:'#fff' }}>{u} unit&eacute;{u > 1 ? 's' : ''}</div>
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ marginTop:9, background:'#fff', borderRadius:8, padding:'9px 10px' }}>
+                      <div style={{ fontSize:9, color:'#000', marginBottom:5, fontWeight:600 }}>Ou choisis ta propre quantit&eacute; :</div>
+                      <div style={{ display:'flex', gap:5, alignItems:'center' }}>
+                        <input type="number" min={1} value={isStar ? starsQty : heartsQty} onChange={e => { const n = parseInt(e.target.value); setQty(!isNaN(n) && n > 0 ? n : 1); }} style={{ flex:1, background:'#f0f0f0', border:'1px solid #ccc', borderRadius:6, padding:6, color:'#000', fontSize:12, minWidth:0 }} />
+                        <button onClick={() => onSend()} disabled={voteLoading || likeLoading} style={{ background:'#FF0000', color:'#fff', fontSize:11, borderRadius:6, padding:'7px 14px', fontWeight:600, border:'none', cursor:'pointer', whiteSpace:'nowrap', fontFamily:'DM Sans, sans-serif' }}>Envoyer</button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Saisie ± */}
               {(() => {
