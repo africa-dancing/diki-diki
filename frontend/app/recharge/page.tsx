@@ -58,6 +58,7 @@ export default function RechargePage() {
   const [initialBalance, setInitialBalance] = useState(0);
   const [rechargeUnits,  setRechargeUnits]  = useState(0);
   /*DKDK_UNIT_VALUE*/ const [unitValue, setUnitValue] = useState(100); // 1 unite = X F (settings)
+  /*DKDK_MIN_RECHARGE*/ const [minRecharge, setMinRecharge] = useState(100);
   const [selectedAmount, setSelectedAmount] = useState(2000);
   const [customAmount,   setCustomAmount]   = useState('');
   const [method,  setMethod]  = useState('mtn');
@@ -94,6 +95,7 @@ export default function RechargePage() {
         const rows = res?.data || [];
         const uv = rows.find((x: any) => x.key === 'recharge_unit_value');
         if (uv?.value) setUnitValue(Number(uv.value));
+        const mr = rows.find((x) => x.key === 'min_recharge'); if (mr?.value) setMinRecharge(Number(mr.value));
       })
       .catch(() => {});
   }, [router]);
@@ -153,7 +155,7 @@ export default function RechargePage() {
   };
 
   const handleRecharge = async () => {
-    if (!amount || amount < 500) { setError('Montant minimum : 500 F CFA.'); return; }
+    if (!amount || amount < minRecharge) { setError('Montant minimum : ${minRecharge} F CFA.'); return; }
     if (method !== 'card' && !phone.trim()) { setError('Numéro de téléphone requis.'); return; }
     setLoading(true); setError('');
     try {
@@ -308,6 +310,30 @@ export default function RechargePage() {
             );
           })}
         </div>
+        {/*DKDK_CUSTOM_AMOUNT*/}
+        <input
+          inputMode="numeric"
+          placeholder={`Autre montant (${fmt(minRecharge)} – 1 000 000 F, multiples de 100)`}
+          value={customAmount}
+          onChange={e => setCustomAmount(e.target.value.replace(/\D/g, ""))}
+          onBlur={() => {
+            if (!customAmount) return;
+            let v = parseInt(customAmount.replace(/\D/g, "")) || 0;
+            if (v > 1000000) v = 1000000;
+            v = Math.round(v / 100) * 100;
+            if (v > 0 && v < minRecharge) v = minRecharge;
+            setCustomAmount(v > 0 ? String(v) : "");
+            if (v > 0) setSelectedAmount(0);
+          }}
+          style={{
+            width: "100%", boxSizing: "border-box", marginBottom: 10,
+            background: customAmount ? "linear-gradient(135deg,rgba(255,170,0,0.18),rgba(255,107,0,0.12))" : "rgba(255,255,255,0.04)",
+            border: `1px solid ${customAmount ? "#FFAA00" : "rgba(255,255,255,0.08)"}`,
+            borderRadius: 12, padding: "13px 12px", fontSize: 13, fontWeight: 700,
+            color: customAmount ? "#FFAA00" : "rgba(255,255,255,0.7)",
+            fontFamily: "DM Sans, sans-serif", outline: "none",
+          }}
+        />
 
         
 
@@ -419,21 +445,21 @@ export default function RechargePage() {
         {/* ── CTA ── */}
         <button
           onClick={handleRecharge}
-          disabled={loading || !amount || amount < 500}
+          disabled={loading || !amount || amount < minRecharge}
           style={{
             width: '100%',
-            background: loading || !amount || amount < 500
+            background: loading || !amount || amount < minRecharge
               ? 'rgba(255,255,255,0.06)'
               : 'linear-gradient(135deg,#FFAA00,#FF6B00)',
             border: 'none', borderRadius: 14,
             padding: '16px', fontSize: 15, fontWeight: 800,
-            color: loading || !amount || amount < 500 ? 'rgba(255,255,255,0.25)' : '#000',
-            cursor: loading || !amount || amount < 500 ? 'not-allowed' : 'pointer',
+            color: loading || !amount || amount < minRecharge ? 'rgba(255,255,255,0.25)' : '#000',
+            cursor: loading || !amount || amount < minRecharge ? 'not-allowed' : 'pointer',
             fontFamily: 'Syne, sans-serif',
             transition: 'all .2s',
           }}
         >
-          {loading ? '⏳ Traitement en cours…' : amount >= 500 ? `⚡ Recharger ${fmt(amount)} F` : '⚡ Recharger'}
+          {loading ? '⏳ Traitement en cours…' : amount >= minRecharge ? `⚡ Recharger ${fmt(amount)} F` : '⚡ Recharger'}
         </button>
 
         <div style={{ textAlign: 'center', fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 12 }}>
