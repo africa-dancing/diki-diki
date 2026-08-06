@@ -502,6 +502,63 @@ export default function WatchPage() {
       .catch(() => {});
   }, []);
 
+  /*DKDK_REJEU_VOTE*/
+  useEffect(() => {
+    let pv: any = null;
+    try {
+      const raw = localStorage.getItem('dkdk_pending_vote');
+      if (!raw) return;
+      pv = JSON.parse(raw);
+    } catch { return; }
+    if (!pv || !pv.participant_id || !pv.ts || Date.now() - pv.ts > 600000) {
+      try { localStorage.removeItem('dkdk_pending_vote'); } catch {}
+      return;
+    }
+    const token = getToken();
+    if (!token) return;
+    const needUnits = pv.type === 'heart' ? pv.qty * 2 : pv.qty;
+    let cancelled = false;
+    let tries = 0;
+    const MAX = 15;
+    const tick = async () => {
+      if (cancelled) return;
+      tries++;
+      let units = 0, bal = 0;
+      try {
+        const r = await fetch(`${API}/votes/balance`, { headers: { Authorization: `Bearer ${token}` } });
+        const d = r.ok ? await r.json() : null;
+        bal = d ? (d.wallet ?? d.balance ?? 0) : 0;
+        units = Math.floor(bal / voteAmount);
+        setWallet(bal);
+        setRechargeUnits(units);
+      } catch {}
+      if (units >= needUnits) {
+        try { localStorage.removeItem('dkdk_pending_vote'); } catch {}
+        try {
+          await fetch(`${API}/brackets/arena/vote-pool`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ participant_id: pv.participant_id, qty: pv.qty, type: pv.type }),
+          });
+          setRechargeUnits(units - needUnits);
+          setWallet(bal - needUnits * voteAmount);
+          setVoteSuccess(true);
+          setTimeout(() => setVoteSuccess(false), 1500);
+          refreshPool();
+        } catch {}
+        return;
+      }
+      if (tries >= MAX) {
+        try { localStorage.removeItem('dkdk_pending_vote'); } catch {}
+        setVoteError('Ta recharge est bien reçue. Clique sur Envoyer pour lancer ton vote.');
+        setTimeout(() => setVoteError(null), 6000);
+        return;
+      }
+      if (!cancelled) setTimeout(tick, 2000);
+    };
+    tick();
+    return () => { cancelled = true; };
+  }, []);
   const fetchVideo = useCallback(async () => {
     setLoading(true);
     try {
@@ -626,8 +683,11 @@ export default function WatchPage() {
     }
     if (starsQty < 1) return;
     if (rechargeUnits < starsQty) {
-      setVoteError(`Solde insuffisant. Tu as ${rechargeUnits} unité${rechargeUnits > 1 ? 's' : ''} sur ton Compte Voter & Soutenir.`);
-      setTimeout(() => setVoteError(null), 4000); return;
+      /*DKDK_AIGUILLAGE_STAR*/
+      const manque = (starsQty - rechargeUnits) * voteAmount;
+      try { localStorage.setItem("dkdk_pending_vote", JSON.stringify({ participant_id: bracketData?.current_participant_id, type: "star", qty: starsQty, ts: Date.now() })); } catch {}
+      router.push(`/recharge?montant=${manque}&retour=${encodeURIComponent(window.location.pathname)}`);
+      return;
     }
     if (voteLoading) return;
     const vidId = currentVideo?.id ?? id;
@@ -669,8 +729,11 @@ export default function WatchPage() {
     }
     if (heartsQty < 1) return;
     if (rechargeUnits < heartsQty * 2) {
-      setVoteError(`Solde insuffisant. Tu as ${rechargeUnits} unité${rechargeUnits > 1 ? 's' : ''} sur ton Compte Voter & Soutenir.`);
-      setTimeout(() => setVoteError(null), 4000); return;
+      /*DKDK_AIGUILLAGE_HEART*/
+      const manque = (heartsQty * 2 - rechargeUnits) * voteAmount;
+      try { localStorage.setItem("dkdk_pending_vote", JSON.stringify({ participant_id: bracketData?.current_participant_id, type: "heart", qty: heartsQty, ts: Date.now() })); } catch {}
+      router.push(`/recharge?montant=${manque}&retour=${encodeURIComponent(window.location.pathname)}`);
+      return;
     }
     if (likeLoading) return;
     const vidId = currentVideo?.id ?? id;
