@@ -55,6 +55,7 @@ function fmt(n: number) { return n.toLocaleString('fr-FR'); }
 export default function RechargePage() {
   useAnalytics(); /*DKDK_HEARTBEAT*/
   const router = useRouter();
+  /*DKDK_RETOUR_URL*/ const [retourUrl, setRetourUrl] = useState('');
   const [initialBalance, setInitialBalance] = useState(0);
   const [rechargeUnits,  setRechargeUnits]  = useState(0);
   /*DKDK_UNIT_VALUE*/ const [unitValue, setUnitValue] = useState(100); // 1 unite = X F (settings)
@@ -80,6 +81,13 @@ export default function RechargePage() {
   useEffect(() => {
     const token = getToken();
     if (!token) { router.push('/auth/login'); return; }
+    /*DKDK_LIRE_URL*/
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      const m = parseInt((sp.get('montant') || '').replace(/\D/g, '')) || 0;
+      if (m > 0) { setCustomAmount(String(m)); setSelectedAmount(0); }
+      const r = sp.get('retour'); if (r && r.startsWith('/')) setRetourUrl(r);
+    } catch {}
     fetch(`${API}/users/balance`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setInitialBalance(d.balance ?? 0); })
@@ -205,7 +213,7 @@ export default function RechargePage() {
         {fmt(amount)} F CFA → +{fmt(units)} unités sur Compte Voter & Soutenir
       </div>
       <button
-        onClick={() => router.push('/compte')}
+        onClick={() => router.push(retourUrl || '/compte')}
         style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 50, padding: '12px 28px', fontSize: 14, fontWeight: 700, color: '#000', cursor: 'pointer', marginTop: 8 }}
       >
         Retourner à mon compte →
@@ -244,7 +252,7 @@ export default function RechargePage() {
 
         {/* Annuler à droite */}
         <button
-          onClick={() => router.push('/compte')}
+          onClick={() => router.push(retourUrl || '/compte')}
           style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 50, padding: '7px 18px', fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
         >
           ✕ Annuler
