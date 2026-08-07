@@ -30,13 +30,15 @@ const ERRORS: Record<string, string> = {
 export default function RegisterPage() {
   const router = useRouter();
   const [step, setStep]         = useState<Step>(1);
-  const [form, setForm]         = useState<FormData>({ name:'', email:'', phone:'', password:'', country:'BJ' });
+  const [form, setForm]         = useState<FormData>({ name:'', email:'', phone:'', password:'', country:'+229' });
   const [otp, setOtp]           = useState(['','','','','','']);
   const [loading, setLoading]   = useState(false);
   const [resendCD, setResendCD] = useState(0);
   const [error, setError]       = useState('');
   const [showPass, setShowPass] = useState(false);
   const otpRefs                 = useRef<(HTMLInputElement|null)[]>([]);
+  const [countries, setCountries] = useState<any[]>([]); /*DKDK_PAYS_LIST*/
+  useEffect(() => { fetch(`${API}/pays-monnaies/`).then(r => r.ok ? r.json() : []).then(rows => { if (Array.isArray(rows) && rows.length) setCountries(rows); }).catch(() => {}); }, []);
 
   const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -59,8 +61,7 @@ export default function RegisterPage() {
     if (form.password.length < 8)  { setError('Mot de passe trop court (min. 8 car.).'); return; }
     setLoading(true);
     try {
-      const country   = COUNTRIES.find(c => c.code === form.country);
-      const fullPhone = form.phone.startsWith('+') ? form.phone : `${country?.dial||''}${form.phone}`;
+      const fullPhone = form.phone.startsWith('+') ? form.phone : `${form.country}${form.phone}`;
       const res = await fetch(`${API}/auth/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, phone: fullPhone }),
@@ -132,7 +133,7 @@ export default function RegisterPage() {
         .reg-bg::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(255,184,0,.03) 40px,rgba(255,184,0,.03) 41px),repeating-linear-gradient(-45deg,transparent,transparent 40px,rgba(255,184,0,.03) 40px,rgba(255,184,0,.03) 41px);pointer-events:none}
         .glow-tr{position:fixed;top:-150px;right:-100px;width:450px;height:450px;background:radial-gradient(circle,rgba(255,107,0,.1) 0%,transparent 70%);pointer-events:none}
         .glow-bl{position:fixed;bottom:-150px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(255,184,0,.08) 0%,transparent 70%);pointer-events:none}
-        .reg-card{position:relative;width:100%;max-width:480px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:44px 40px;backdrop-filter:blur(20px)}
+        .reg-card{position:relative;width:100%;max-width:480px;background:rgba(255,255,255,.04);border:1px solid rgba(126,3,128,.6);border-top:2px solid #7e0380;border-radius:24px;padding:44px 40px;backdrop-filter:blur(20px)}
         .logo-area{display:flex;align-items:center;justify-content:center;margin-bottom:28px}
         .social-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
         .btn-social{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer}
@@ -172,7 +173,7 @@ export default function RegisterPage() {
       `}</style>
 
       <div className="reg-bg">
-        <div className="glow-tr"/><div className="glow-bl"/>
+        
         <div className="reg-card">
 
           {/* ── Logo ── */}
@@ -185,11 +186,11 @@ export default function RegisterPage() {
             <>
               <h1 style={{
                 fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 800,
-                color: '#fff', marginBottom: 6, letterSpacing: '-.5px',
+                color: '#fff', marginBottom: 6, letterSpacing: '-.5px', textAlign: 'center',
               }}>
                 Crée ton compte!
               </h1>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,.4)', marginBottom: 24 }}>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,.4)', marginBottom: 24, textAlign: 'center' }}>
                 Pour participer aux challenges artistiques
               </p>
 
@@ -226,7 +227,7 @@ export default function RegisterPage() {
                   <div className="field">
                     <label>Pays</label>
                     <select name="country" value={form.country} onChange={handleChange}>
-                      {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name} ({c.dial})</option>)}
+                      {(countries.length ? countries : COUNTRIES.map(c => ({ indicatif: c.dial, pays: c.name }))).map((c: any) => <option key={c.indicatif} value={c.indicatif}>{c.pays} ({c.indicatif})</option>)}
                     </select>
                   </div>
                   <div className="field">
