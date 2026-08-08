@@ -275,6 +275,7 @@ export default function WatchPage() {
   const [wallet, setWallet]                 = useState<number | null>(null); // en F CFA
   const [rechargeUnits, setRechargeUnits]   = useState(0);                   // en unités (wallet / 100)
   const [voteCount, setVoteCount]           = useState<number | null>(null);
+  const [inviteFerme, setInviteFerme] = useState(false); /*DKDK_INVITE_FERME*/
 
   // ── Claviers étoiles / cœurs ──
   const [starsQty, setStarsQty]             = useState(1);
@@ -994,6 +995,14 @@ export default function WatchPage() {
           onEnded={() => { setPlaying(false); if (hasNext) goTo(currentVideoIndex + 1); }}
           playsInline
         />
+        {estEnCours && !inviteFerme && (!isLoggedIn() || voteCount === 0) && ( /*DKDK_INVITE_BANNER*/
+          <div onClick={e => e.stopPropagation()} style={{ position:"absolute", left:0, right:0, bottom:0, zIndex:20, padding:"14px 14px 16px", background:"rgba(10,10,15,0.88)", borderTop:"2px solid #7e0380", borderLeft:"1px solid rgba(126,3,128,0.6)", borderRight:"1px solid rgba(126,3,128,0.6)", cursor:"default" }}>
+            <div onClick={() => setInviteFerme(true)} style={{ position:"absolute", top:8, right:10, color:"rgba(255,255,255,0.5)", fontSize:16, cursor:"pointer", lineHeight:1 }}>{"\u2715"}</div>
+            <div style={{ color:"#fff", fontWeight:700, fontSize:14, marginBottom:5, paddingRight:18 }}>{"\uD83C\uDFC6 Cette prestation m\u00e9rite votre voix ?"}</div>
+            <div style={{ color:"rgba(255,255,255,0.6)", fontSize:12, lineHeight:1.45, marginBottom:12 }}>Soutenez votre candidat et faites-le monter sur le podium.</div>
+            <div onClick={() => { setInviteFerme(true); if (typeof window !== "undefined") window.scrollBy({ top: Math.round(window.innerHeight * 0.8), behavior:"smooth" }); }} style={{ textAlign:"center", background:"#FF8A00", color:"#201400", fontWeight:800, fontSize:14, padding:"11px", borderRadius:10, cursor:"pointer" }}>Voter</div>
+          </div>
+        )}
         {totalInComp > 1 && (
           <div style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4, zIndex: 10 }}>
             {competitionVideos.map((_, i) => (
