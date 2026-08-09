@@ -348,7 +348,7 @@ export default function RechargePage() {
         {/* ── Mode de paiement ── */}
         <div style={sectionTitle}>Mode de paiement</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 20 }}>
-          {METHODS.map(m => {
+          {METHODS.filter(m => m.id !== 'card').map(m => { /*DKDK_HIDE_CARD*/
             const isSel = method === m.id;
             return (
               <div
