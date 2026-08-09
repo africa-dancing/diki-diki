@@ -2,6 +2,7 @@
 import 'dotenv/config';
 import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
 
 const paysMonnaiesRouter = Router();
 
@@ -55,6 +56,37 @@ paysMonnaiesRouter.get('/resoudre', async (req: Request, res: Response) => {
     }
     if (meilleur) return res.json({ ...meilleur, resolu: true });
     return res.json({ ...repli, resolu: false });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/*DKDK_REFRESH_TAUX*/
+paysMonnaiesRouter.post('/refresh-taux', requireAuth, requireAdmin, async (_req: Request, res: Response) => {
+  try {
+    const key = process.env.EXCHANGE_API_KEY;
+    if (!key) return res.status(500).json({ error: 'EXCHANGE_API_KEY manquante' });
+    const doFetch: any = (globalThis as any).fetch;
+    if (!doFetch) return res.status(500).json({ error: 'fetch indisponible (Node < 18 ?)' });
+    const r = await doFetch("https://v6.exchangerate-api.com/v6/" + key + "/latest/USD");
+    const j = await r.json();
+    if (j.result !== 'success') return res.status(502).json({ error: 'API taux: ' + (j['error-type'] || 'echec') });
+    const rates = j.conversion_rates || {};
+    const REF_USD = 0.20;
+    const sb = getSupabase();
+    const sel = await sb.from('pays_monnaies').select('id, code_monnaie').is('taux_vers_reference', null);
+    if (sel.error) throw sel.error;
+    let maj = 0; const introuvables: string[] = [];
+    for (const row of (sel.data || []) as any[]) {
+      const code = row.code_monnaie;
+      if (!code) continue;
+      const taux = rates[code];
+      if (typeof taux !== 'number') { introuvables.push(code); continue; }
+      const val = Math.round(REF_USD * taux * 10000) / 10000;
+      const up = await sb.from('pays_monnaies').update({ taux_vers_reference: val }).eq('id', row.id);
+      if (!up.error) maj++;
+    }
+    res.json({ success: true, mis_a_jour: maj, monnaies_introuvables: Array.from(new Set(introuvables)) });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
   }
