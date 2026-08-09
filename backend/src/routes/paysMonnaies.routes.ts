@@ -62,8 +62,16 @@ paysMonnaiesRouter.get('/resoudre', async (req: Request, res: Response) => {
 });
 
 /*DKDK_REFRESH_TAUX*/
-paysMonnaiesRouter.post('/refresh-taux', requireAuth, requireAdmin, async (_req: Request, res: Response) => {
+paysMonnaiesRouter.post('/refresh-taux', async (req: Request, res: Response) => {
   try {
+    /*DKDK_CRON_AUTH*/
+    const secret = process.env.CRON_SECRET;
+    const fourni = req.header('x-cron-secret');
+    const parSecret = !!secret && fourni === secret;
+    if (!parSecret) {
+      try { requireAdmin(req as any, res as any, () => {}); } catch { return res.status(401).json({ error: 'NON_AUTORISE' }); }
+      if ((res as any).headersSent) return;
+    }
     const key = process.env.EXCHANGE_API_KEY;
     if (!key) return res.status(500).json({ error: 'EXCHANGE_API_KEY manquante' });
     const doFetch: any = (globalThis as any).fetch;
