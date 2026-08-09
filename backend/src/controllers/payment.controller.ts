@@ -86,7 +86,19 @@ export async function initiateVotePayment(req: Request, res: Response) {
       return res.status(400).json({ error: 'INVALID_VOTE_TYPE' });
     }
     /*DKDK_VOTE_AMT*/
-    const amount = (vote_type === 'heart' ? 200 : 100) * voteQty;
+    let _prixEtoile = 100, _prixCoeur = 200; /*DKDK_PRIX_SETTINGS*/
+    try {
+      const { data: _stx } = await supabase
+        .from('settings')
+        .select('key, value')
+        .in('key', ['bracket_vote_amount', 'bracket_heart_amount']);
+      for (const _s of (_stx || []) as any[]) {
+        const _v = Number(_s.value);
+        if (_s.key === 'bracket_vote_amount' && Number.isFinite(_v) && _v > 0) _prixEtoile = _v;
+        if (_s.key === 'bracket_heart_amount' && Number.isFinite(_v) && _v > 0) _prixCoeur = _v;
+      }
+    } catch {}
+    const amount = (vote_type === 'heart' ? _prixCoeur : _prixEtoile) * voteQty;
     const { data: user } = await supabase
       .from('users')
       .select('email, name')
