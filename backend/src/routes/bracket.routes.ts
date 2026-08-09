@@ -99,6 +99,11 @@ bracketRouter.post('/arena/vote', requireAuth, requireVerified, async (req: Auth
     const { duel_id, participant_id } = req.body;
     if (!duel_id || !participant_id)
       return res.status(400).json({ success: false, error: 'Champs manquants.' });
+    /*DKDK_SUSPEND_GUARD*/
+    { const { data: _sp } = await getSupabase()
+        .from('bracket_participants').select('suspended_at').eq('id', participant_id).single();
+      if (_sp && _sp.suspended_at) return res.status(403).json({ success: false, error: 'Ce candidat est temporairement suspendu (verification en cours). Vote impossible pour l instant.' }); }
+
     const { data, error } = await getSupabase().rpc('vote_bracket', {
       p_user_id: req.user!.userId,
       p_duel_id: duel_id,
@@ -353,6 +358,11 @@ bracketRouter.post('/arena/vote-pool', requireAuth, requireVerified, async (req:
     if (!participant_id)
       return res.status(400).json({ success: false, error: 'Champ participant_id manquant.' });
     const q = parseInt(qty, 10);
+    /*DKDK_SUSPEND_GUARD*/
+    { const { data: _sp } = await getSupabase()
+        .from('bracket_participants').select('suspended_at').eq('id', participant_id).single();
+      if (_sp && _sp.suspended_at) return res.status(403).json({ success: false, error: 'Ce candidat est temporairement suspendu (verification en cours). Vote impossible pour l instant.' }); }
+
     const { data, error } = await getSupabase().rpc('vote_bracket_pool', {
       p_user_id: req.user!.userId,
       p_participant_id: participant_id,
