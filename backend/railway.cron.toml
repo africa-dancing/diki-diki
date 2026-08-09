@@ -1,4 +1,3 @@
-﻿# Config Railway DEDIEE au service cron (ne concerne QUE grateful-growth)
 [build]
 buildCommand = "npm install --include=dev"
 
