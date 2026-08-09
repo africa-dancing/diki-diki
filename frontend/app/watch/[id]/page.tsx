@@ -167,7 +167,7 @@ interface Video {
   id: string; title: string; description?: string; storage_url: string;
   status: string; created_at: string; discipline?: string;
   track_title?: string; track_artist?: string; track_genre?: string; views?: number;
-  contest_id?: string;
+  contest_id?: string; suspended?: boolean; /*DKDK_SUSPEND_TYPE*/
 }
 interface Candidate {
   id: string; user_id: string; name?: string; stage_name?: string;
@@ -987,6 +987,12 @@ export default function WatchPage() {
             <div style={{ fontSize:34 }}>⏳</div>
             <div style={{ fontFamily:'Syne, sans-serif', fontSize:16, fontWeight:800, color:'#fff' }}>Challenge en formation</div>
             <div style={{ fontSize:13, color:'rgba(255,255,255,0.75)', lineHeight:1.5, maxWidth:300 }}>Le vote ouvrira quand le groupe sera complet.</div>
+          </div>
+        )}
+        {displayVideo.suspended && ( /*DKDK_SUSPEND_PLACEHOLDER*/
+          <div style={{ position:'absolute', inset:0, zIndex:26, background:'rgba(10,10,15,0.94)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, padding:'0 24px', textAlign:'center' }}>
+            <div style={{ fontFamily:'Syne, sans-serif', fontSize:17, fontWeight:800, color:'#fff' }}>Candidat suspendu</div>
+            <div style={{ fontSize:13, color:'rgba(255,255,255,0.78)', lineHeight:1.5, maxWidth:300 }}>Cette prestation est temporairement indisponible, en cours de vérification.</div>
           </div>
         )}
         <video ref={videoRef} src={displayVideo.storage_url} style={s.video}
