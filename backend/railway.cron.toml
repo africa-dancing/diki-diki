@@ -1,0 +1,6 @@
+﻿# Config Railway DEDIEE au service cron (ne concerne QUE grateful-growth)
+[build]
+buildCommand = "npm install --include=dev"
+
+[deploy]
+startCommand = "npx tsx src/scripts/refresh-taux.ts"
