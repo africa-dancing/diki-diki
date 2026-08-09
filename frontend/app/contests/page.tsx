@@ -105,10 +105,10 @@ export default function ContestsPage() {
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,170,0,0.1)', border: '1px solid rgba(255,170,0,0.3)', borderRadius: 50, padding: '5px 14px', marginBottom: 12 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: OR, display: 'inline-block', animation: 'pulse 1.5s infinite' }} />
-            <span style={{ fontSize: 14, color: OR, fontWeight: 700, letterSpacing: '.06em' }}>{activeCount} COMPÉTITION{activeCount > 1 ? 'S' : ''} EN COURS</span>
+            <span style={{ fontSize: 14, color: OR, fontWeight: 700, letterSpacing: '.06em' }}>{activeCount} CHALLENGE{activeCount > 1 ? 'S' : ''} EN COURS</span>
           </div>
           <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(1.6rem,4vw,2.6rem)', color: '#fff', marginBottom: 8 }}>
-            🏆 Toutes les <span style={{ color: OR }}>compétitions</span>
+            🏆 Toutes les <span style={{ color: OR }}>challenges</span>
           </h1>
           <p style={{ fontSize: 14, color: '#ffffff', maxWidth: 500, margin: '0 auto' }}>
             Découvrez les talents en lice, votez pour vos favoris et suivez les résultats en temps réel.
@@ -145,7 +145,7 @@ export default function ContestsPage() {
         ) : displayed.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px' }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🏆</div>
-            <p style={{ color: '#ffffff', fontSize: 14 }}>Aucune compétition dans cette catégorie.</p>
+            <p style={{ color: '#ffffff', fontSize: 14 }}>Aucun challenge dans cette catégorie.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

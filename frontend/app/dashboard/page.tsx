@@ -140,7 +140,7 @@ const [contentLoading, setContentLoading] = useState(false);
         body: JSON.stringify(newContest),
       });
       if (res.ok) {
-        showMsg('Compétition créée !', true);
+        showMsg('Challenge créé !', true);
         setShowForm(false);
         setNewContest({ title: '', discipline: 'danse', comp_type: 'duo', duration_days: 30 });
         loadContests();
@@ -240,7 +240,7 @@ async function handleDeleteSubject(id: string) {
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '56px', marginBottom: '16px' }}>🏆</div>
           <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#fff', marginBottom: '8px', fontFamily: 'sans-serif' }}>Bienvenue sur PAC !</h2>
-          <p style={{ color: 'rgba(255,255,255,.5)', marginBottom: '24px', fontFamily: 'sans-serif' }}>Découvre les compétitions en cours</p>
+          <p style={{ color: 'rgba(255,255,255,.5)', marginBottom: '24px', fontFamily: 'sans-serif' }}>Découvre les challenges en cours</p>
           <a href="/vote" style={{ background: 'linear-gradient(135deg,#FFB800,#FF6B00)', color: '#000', padding: '12px 32px', borderRadius: '12px', fontWeight: 700, textDecoration: 'none', fontSize: '15px', fontFamily: 'sans-serif' }}>
             Voir les Challenges
           </a>
@@ -251,7 +251,7 @@ async function handleDeleteSubject(id: string) {
 
   const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'stats',        label: 'Statistiques', icon: Icon.stats },
-    { key: 'contests',     label: 'Compétitions', icon: Icon.contests },
+    { key: 'contests',     label: 'Challenges', icon: Icon.contests },
     { key: 'users',        label: 'Utilisateurs', icon: Icon.users },
     { key: 'videos',       label: 'Vidéos',       icon: Icon.videos },
     { key: 'transactions', label: 'Transactions', icon: Icon.wallet },
@@ -362,7 +362,7 @@ async function handleDeleteSubject(id: string) {
                 {[
                   { label: 'Utilisateurs', val: statsLoading ? '...' : (stats.users ?? '—'), sub: 'Total inscrits', color: '#FF8C00', icon: '👥' },
                   { label: 'Votes',        val: statsLoading ? '...' : (stats.votes ?? '—'), sub: 'Votes enregistrés', color: '#22c55e', icon: '🗳️' },
-                  { label: 'Compétitions', val: statsLoading ? '...' : (stats.contests ?? '—'), sub: 'En cours', color: '#3b82f6', icon: '🏆' },
+                  { label: 'Challenges', val: statsLoading ? '...' : (stats.contests ?? '—'), sub: 'En cours', color: '#3b82f6', icon: '🏆' },
                   { label: 'Revenus',      val: statsLoading ? '...' : (stats.revenue ? `${Number(stats.revenue).toLocaleString('fr-FR')} F` : '—'), sub: 'CFA collectés', color: '#a855f7', icon: '💰' },
                 ].map(k => (
                   <div key={k.label} className="kpi" style={{ borderColor: `${k.color}30` }}>
@@ -389,20 +389,20 @@ async function handleDeleteSubject(id: string) {
             </>
           )}
 
-          {/* ─── COMPÉTITIONS ──────────────────────────────── */}
+          {/* ─── CHALLENGES ──────────────────────────────── */}
           {tab === 'contests' && (
             <>
               <div className="section-title">
-                <span>🎭 Gestion des compétitions</span>
+                <span>🎭 Gestion des challenges</span>
                 <button className="btn btn-orange" onClick={() => setShowForm(f => !f)}>
-                  {Icon.plus} Nouvelle compétition
+                  {Icon.plus} Nouveau challenge
                 </button>
               </div>
 
               {/* Formulaire création */}
               {showForm && (
                 <div className="card" style={{ padding: '20px', marginBottom: '16px', borderColor: 'rgba(255,140,0,.2)' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '16px', color: '#FF8C00' }}>➕ Créer une compétition</div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '16px', color: '#FF8C00' }}>➕ Créer un challenge</div>
                   <div className="form-grid">
                     <div>
                       <label className="form-label">Titre *</label>
@@ -438,7 +438,7 @@ async function handleDeleteSubject(id: string) {
                   <span>Titre</span><span>Discipline</span><span>Type</span><span>Statut</span><span>Actions</span>
                 </div>
                 {contestsLoading ? <div className="spinner" /> :
-                  contests.length === 0 ? <div className="empty">Aucune compétition trouvée</div> :
+                  contests.length === 0 ? <div className="empty">Aucun challenge trouvée</div> :
                   contests.map(c => (
                     <div className="table-row" key={c.id} style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto' }}>
                       <span style={{ fontWeight: 500, fontSize: '13px' }}>{c.title}</span>

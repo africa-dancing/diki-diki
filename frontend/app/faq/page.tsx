@@ -34,11 +34,11 @@ const faqs = [
     items: [
       {
         q: "C'est quoi Diki-Diki ?",
-        a: `Diki-Diki est une plateforme panafricaine de compétitions artistiques avec votes monétisés en temps réel.\n\nLes artistes soumettent leurs vidéos de prestation et s'affrontent dans des challenges par élimination. Le public vote en envoyant des étoiles ★ ou des cœurs ❤️, et la cagnotte est distribuée au podium à la fin du challenge.\n\nDisciplines : danse, chant, instrument, acapella, humour, poésie, conte, théâtre.\n\n🌍 Ouverte à toute l'Afrique, à toute la diaspora internationale et au reste du monde.`,
+        a: `Diki-Diki est une plateforme panafricaine de challenges artistiques avec votes monétisés en temps réel.\n\nLes artistes soumettent leurs vidéos de prestation et s'affrontent dans des challenges par élimination. Le public vote en envoyant des étoiles ★ ou des cœurs ❤️, et la cagnotte est distribuée au podium à la fin du challenge.\n\nDisciplines : danse, chant, instrument, acapella, humour, poésie, conte, théâtre.\n\n🌍 Ouverte à toute l'Afrique, à toute la diaspora internationale et au reste du monde.`,
       },
       {
         q: "Quels sont les avantages d'être sur Diki-Diki ?",
-        a: `Pour les artistes :\n• Visibilité auprès d'une audience africaine et internationale\n• Compétition équitable — c'est le public qui vote\n• Gains réels — le podium se partage la cagnotte (60 % champion, 25 % 2e, 15 % 3e)\n• Compte créé automatiquement — voter ne nécessite qu'un numéro de téléphone\n• Appartenir à une communauté de talents africains en pleine croissance\n\nPour le public :\n• Découverte de talents que vous n'auriez jamais rencontrés ailleurs\n• Soutien direct — vos votes alimentent la cagnotte de vos artistes favoris\n• Accès gratuit — regarder, commenter et partager est entièrement gratuit`,
+        a: `Pour les artistes :\n• Visibilité auprès d'une audience africaine et internationale\n• Challenge équitable — c'est le public qui vote\n• Gains réels — le podium se partage la cagnotte (60 % champion, 25 % 2e, 15 % 3e)\n• Compte créé automatiquement — voter ne nécessite qu'un numéro de téléphone\n• Appartenir à une communauté de talents africains en pleine croissance\n\nPour le public :\n• Découverte de talents que vous n'auriez jamais rencontrés ailleurs\n• Soutien direct — vos votes alimentent la cagnotte de vos artistes favoris\n• Accès gratuit — regarder, commenter et partager est entièrement gratuit`,
       },
     ],
   },
@@ -47,7 +47,7 @@ const faqs = [
     items: [
       {
         q: "C'est quoi un challenge Diki-Diki ?",
-        a: `Un challenge est une compétition par élimination où les candidats s'affrontent devant le public. À chaque étape, les candidats les mieux votés passent au tour suivant. Le public vote en envoyant des étoiles ★ (100 F CFA) ou des cœurs ❤️ (200 F CFA).\n\n5 types de challenges selon le nombre de candidats :\n• C2 — 2 candidats, 1 étape (Finale directe)\n• C4 — 4 candidats, 2 étapes (Demi + Finale)\n• C8 — 8 candidats, 3 étapes (Quart + Demi + Finale)\n• C12 — 12 candidats, 4 étapes (+ 3e place automatique)\n• C16 — 16 candidats, 5 étapes (+ Match bronze inédit pour la 3e place)\n\nChaque étape se clôture quand l'objectif de cagnotte est atteint.`,
+        a: `Un challenge est une épreuve par élimination où les candidats s'affrontent devant le public. À chaque étape, les candidats les mieux votés passent au tour suivant. Le public vote en envoyant des étoiles ★ (100 F CFA) ou des cœurs ❤️ (200 F CFA).\n\n5 types de challenges selon le nombre de candidats :\n• C2 — 2 candidats, 1 étape (Finale directe)\n• C4 — 4 candidats, 2 étapes (Demi + Finale)\n• C8 — 8 candidats, 3 étapes (Quart + Demi + Finale)\n• C12 — 12 candidats, 4 étapes (+ 3e place automatique)\n• C16 — 16 candidats, 5 étapes (+ Match bronze inédit pour la 3e place)\n\nChaque étape se clôture quand l'objectif de cagnotte est atteint.`,
       },
       {
         q: "Comment les gagnants sont-ils désignés ?",

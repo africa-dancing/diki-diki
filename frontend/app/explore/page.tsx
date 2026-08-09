@@ -240,11 +240,11 @@ export default function ExplorePage() {
               </section>
             )}
 
-            {/* ── Compétitions en vedette ── */}
+            {/* ── Challenges en vedette ── */}
             {contests.length > 0 && !search && disc==='Tous' && (
               <section style={{ marginBottom:40 }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-                  <h2 style={{ fontFamily:'Syne,sans-serif', fontSize:18, fontWeight:800, color:'#fff' }}>🏆 Compétitions en cours</h2>
+                  <h2 style={{ fontFamily:'Syne,sans-serif', fontSize:18, fontWeight:800, color:'#fff' }}>🏆 Challenges en cours</h2>
                   <Link href="/contests" style={{ fontSize:12, color:OR, textDecoration:'none', fontWeight:600 }}>Voir tout →</Link>
                 </div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:12 }}>

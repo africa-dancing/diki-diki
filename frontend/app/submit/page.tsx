@@ -450,7 +450,7 @@ export default function SubmitPage() {
               <div style={{ marginTop: 14, background: 'rgba(0,0,0,0.18)', borderRadius: 10, padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
                 <span style={{ fontSize: 15 }}>💡</span>
                 <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>
-                  Ta vidéo sera d'abord enregistrée en <strong>brouillon</strong>. Tu choisiras la compétition au moment de la soumettre à la modération depuis ton compte.
+                  Ta vidéo sera d'abord enregistrée en <strong>brouillon</strong>. Tu choisiras le challenge au moment de la soumettre à la modération depuis ton compte.
                 </span>
               </div>
             </div>
@@ -836,7 +836,7 @@ export default function SubmitPage() {
               <div style={{ fontSize: 12, color: '#FFAA00', fontWeight: 700, marginBottom: 10 }}>Prochaines étapes :</div>
               {[
                 { n: '1', icon: '👤', text: 'Va dans ton compte → Mes vidéos' },
-                { n: '2', icon: '🏆', text: 'Clique sur "Soumettre pour validation" et choisis une compétition' },
+                { n: '2', icon: '🏆', text: 'Clique sur "Soumettre pour validation" et choisis un challenge' },
                 { n: '3', icon: '⏳', text: 'Notre équipe valide ta vidéo sous 24 à 48h' },
                 { n: '4', icon: '✅', text: 'Vidéo approuvée → visible sur la plateforme' },
               ].map(step => (

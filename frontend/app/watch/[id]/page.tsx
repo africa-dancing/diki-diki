@@ -65,7 +65,7 @@ function getRoundObjectif(maxP: number, round: number, obj: Record<string,number
 const DEFAULT_MSGS = [
   '📢 Bienvenue sur Diki-Diki Vision — La scène des talents africains !',
   '💰 Rechargez votre compte pour voter et soutenir vos candidats',
-  '🎬 Soumettez votre vidéo et participez aux prochaines compétitions',
+  '🎬 Soumettez votre vidéo et participez aux prochaines challenges',
 ];
 function TickerBand() {
   const [msgs, setMsgs] = useState(DEFAULT_MSGS);
@@ -1499,7 +1499,7 @@ export default function WatchPage() {
                 );
               });
             })()/*DKDK_SIEGES_IIFE_CLOSE*/}
-            {(!bracketData?.pool || bracketData.pool.length === 0) && <span style={{ color: 'rgba(255,154,0,0.5)', fontSize: 12, fontStyle: 'italic', fontFamily: 'DM Sans, sans-serif' }}>Autres compétitions à venir</span>}
+            {(!bracketData?.pool || bracketData.pool.length === 0) && <span style={{ color: 'rgba(255,154,0,0.5)', fontSize: 12, fontStyle: 'italic', fontFamily: 'DM Sans, sans-serif' }}>Autres challenges à venir</span>}
             </div>{/*DKDK_MARQUEE_END*/}
           </div>
         </div>

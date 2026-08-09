@@ -129,13 +129,13 @@ function CreateModal({ onClose, onCreated, token }: { onClose:()=>void; onCreate
     <div onClick={onClose} style={{ position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:16 }}>
       <div onClick={e=>e.stopPropagation()} style={{ background:'#12121e',border:'1px solid rgba(255,170,0,0.25)',borderRadius:20,width:'100%',maxWidth:520,overflow:'hidden' }}>
         <div style={{ background:G,padding:'18px 22px',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-          <div style={{ fontSize:17,fontWeight:800,color:'#fff',fontFamily:'Syne,sans-serif' }}>🏆 Créer une compétition</div>
+          <div style={{ fontSize:17,fontWeight:800,color:'#fff',fontFamily:'Syne,sans-serif' }}>🏆 Créer un challenge</div>
           <button onClick={onClose} style={{ width:28,height:28,borderRadius:'50%',background:'rgba(255,255,255,0.1)',border:'none',color:'#fff',fontSize:14,cursor:'pointer' }}>✕</button>
         </div>
         {done ? (
           <div style={{ padding:40,textAlign:'center' }}>
             <div style={{ fontSize:48,marginBottom:12 }}>🎉</div>
-            <p style={{ color:'#4ade80',fontWeight:700,fontSize:15 }}>Compétition créée avec succès !</p>
+            <p style={{ color:'#4ade80',fontWeight:700,fontSize:15 }}>Challenge créé avec succès !</p>
           </div>
         ) : (
           <div style={{ padding:'22px',display:'flex',flexDirection:'column',gap:14 }}>
@@ -159,12 +159,12 @@ function CreateModal({ onClose, onCreated, token }: { onClose:()=>void; onCreate
               <div><label style={lbl}>Date de début</label><input style={inp} type="datetime-local" value={form.starts_at} onChange={e=>setForm(f=>({...f,starts_at:e.target.value}))}/></div>
               <div><label style={lbl}>Date de fin *</label><input style={inp} type="datetime-local" value={form.ends_at} onChange={e=>setForm(f=>({...f,ends_at:e.target.value}))}/></div>
             </div>
-            <div><label style={lbl}>Description (facultatif)</label><textarea style={{...inp,resize:'vertical',minHeight:70}} placeholder="Décrivez la compétition…" value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></div>
+            <div><label style={lbl}>Description (facultatif)</label><textarea style={{...inp,resize:'vertical',minHeight:70}} placeholder="Décrivez le challenge…" value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></div>
             {err && <div style={{ background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.25)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#f87171' }}>⚠️ {err}</div>}
             <div style={{ display:'flex',gap:10,justifyContent:'flex-end',paddingTop:4 }}>
               <button onClick={onClose} style={{ background:'transparent',border:'1px solid rgba(255,255,255,0.15)',borderRadius:50,padding:'9px 18px',fontSize:13,color:'rgba(255,255,255,0.5)',cursor:'pointer',fontFamily:'DM Sans,sans-serif' }}>Annuler</button>
               <button onClick={submit} disabled={saving} style={{ background:`linear-gradient(135deg,${OR},${OR2})`,border:'none',borderRadius:50,padding:'9px 22px',fontSize:13,fontWeight:700,color:'#000',cursor:'pointer',fontFamily:'DM Sans,sans-serif',opacity:saving?0.6:1 }}>
-                {saving ? '⏳ Création…' : '✅ Créer la compétition'}
+                {saving ? '⏳ Création…' : '✅ Créer le challenge'}
               </button>
             </div>
           </div>
@@ -210,11 +210,11 @@ function EditModal({ contest, onClose, onSaved, token }: { contest:Contest; onCl
     <div onClick={onClose} style={{ position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:16 }}>
       <div onClick={e=>e.stopPropagation()} style={{ background:'#12121e',border:'1px solid rgba(255,170,0,0.25)',borderRadius:20,width:'100%',maxWidth:520,overflow:'hidden' }}>
         <div style={{ background:'rgba(255,170,0,0.08)',borderBottom:'1px solid rgba(255,170,0,0.2)',padding:'18px 22px',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-          <div style={{ fontSize:17,fontWeight:800,color:'#fff',fontFamily:'Syne,sans-serif' }}>✏️ Modifier la compétition</div>
+          <div style={{ fontSize:17,fontWeight:800,color:'#fff',fontFamily:'Syne,sans-serif' }}>✏️ Modifier le challenge</div>
           <button onClick={onClose} style={{ width:28,height:28,borderRadius:'50%',background:'rgba(255,255,255,0.08)',border:'none',color:'#fff',fontSize:14,cursor:'pointer' }}>✕</button>
         </div>
         {done ? (
-          <div style={{ padding:40,textAlign:'center' }}><div style={{ fontSize:44,marginBottom:10 }}>✅</div><p style={{ color:'#4ade80',fontWeight:700 }}>Compétition mise à jour !</p></div>
+          <div style={{ padding:40,textAlign:'center' }}><div style={{ fontSize:44,marginBottom:10 }}>✅</div><p style={{ color:'#4ade80',fontWeight:700 }}>Challenge mis à jour !</p></div>
         ) : (
           <div style={{ padding:'22px',display:'flex',flexDirection:'column',gap:14 }}>
             <div><label style={lbl}>Titre</label><input style={inp} type="text" value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))}/></div>
@@ -281,7 +281,7 @@ export default function AdminPage() {
       const res = await fetch(`${API}/contests`, { headers: { Authorization:`Bearer ${admin.token}` } });
       const d = await res.json();
       setContests(d?.contests ?? d?.data ?? d ?? []);
-    } catch { showMsg('Impossible de charger les compétitions.', 'error'); }
+    } catch { showMsg('Impossible de charger les challenges.', 'error'); }
     finally { setLoading(false); }
   }
 
@@ -335,7 +335,7 @@ export default function AdminPage() {
             </div>
             <button onClick={() => setShowCreate(true)}
               style={{ background:`linear-gradient(135deg,${OR},${OR2})`, border:'none', borderRadius:50, padding:'10px 22px', fontSize:13, fontWeight:700, color:'#000', cursor:'pointer', fontFamily:'DM Sans,sans-serif', display:'flex', alignItems:'center', gap:8 }}>
-              🏆 + Créer une compétition
+              🏆 + Créer un challenge
             </button>
           </div>
 
@@ -380,9 +380,9 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Liste compétitions */}
+          {/* Liste challenges */}
           <div style={{ marginBottom:12, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div style={{ fontSize:15, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif' }}>🏆 Toutes les compétitions ({contests.length})</div>
+            <div style={{ fontSize:15, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif' }}>🏆 Toutes les challenges ({contests.length})</div>
           </div>
 
           {loading ? (
@@ -390,10 +390,10 @@ export default function AdminPage() {
           ) : contests.length === 0 ? (
             <div style={{ textAlign:'center', padding:'60px', background:'rgba(255,255,255,0.02)', border:'1px dashed rgba(255,170,0,0.2)', borderRadius:16 }}>
               <div style={{ fontSize:40, marginBottom:12 }}>🏆</div>
-              <p style={{ color:'rgba(255,255,255,0.3)', fontSize:14, marginBottom:16 }}>Aucune compétition pour l'instant.</p>
+              <p style={{ color:'rgba(255,255,255,0.3)', fontSize:14, marginBottom:16 }}>Aucun challenge pour l'instant.</p>
               <button onClick={() => setShowCreate(true)}
                 style={{ background:`linear-gradient(135deg,${OR},${OR2})`, border:'none', borderRadius:50, padding:'10px 22px', fontSize:13, fontWeight:700, color:'#000', cursor:'pointer' }}>
-                + Créer la première compétition
+                + Créer la première challenge
               </button>
             </div>
           ) : (
