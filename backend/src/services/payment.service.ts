@@ -5,6 +5,16 @@ const FEDAPAY_API = process.env.NODE_ENV === 'production'
   : 'https://sandbox-api.fedapay.com/v1';
 
 const SECRET_KEY = process.env.FEDAPAY_SECRET_KEY!;
+
+/*DKDK_FEDA_COUNTRY*/
+function _fedaCountry(phone?: string): string {
+  const s = String(phone || '').trim();
+  if (!s.startsWith('+')) return 'BJ';
+  const digits = s.replace(/[^0-9]/g, '');
+  const MAP: Record<string, string> = { '229':'BJ','225':'CI','228':'TG','221':'SN','227':'NE','223':'ML','226':'BF','245':'GW' };
+  for (const ind of Object.keys(MAP)) if (digits.startsWith(ind)) return MAP[ind];
+  return 'BJ';
+}
 const FRAIS_RATE = 0.02; // 2% frais retrait
 
 // ─── INITIER UN PAIEMENT (recharge) ─────────────────────────
@@ -28,7 +38,7 @@ export async function initiatePayment(params: {
         email:        params.userEmail,
         firstname:    params.firstName,
         lastname:     params.lastName,
-        phone_number: { number: params.phone, country: 'BJ' },
+        phone_number: { number: params.phone, country: _fedaCountry(params.phone) },
       },
     },
     { headers: { Authorization: `Bearer ${SECRET_KEY}`, 'Content-Type': 'application/json' } }
@@ -84,7 +94,7 @@ export async function withdrawPayment(params: {
       customer: {
         firstname:    params.firstName,
         lastname:     params.lastName,
-        phone_number: { number: params.phone, country: 'BJ' },
+        phone_number: { number: params.phone, country: _fedaCountry(params.phone) },
       },
     },
     { headers: { Authorization: `Bearer ${SECRET_KEY}`, 'Content-Type': 'application/json' } }
