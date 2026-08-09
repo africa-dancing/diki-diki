@@ -68,6 +68,18 @@ function AdminChallengesInner() {
   };
 
   const fermerDetail = () => { setDetailId(null); setVideos([]); };
+  /*DKDK_TOGGLE_SUSPEND*/
+  const toggleSuspend = async (v: any) => {
+    const pid = v.id || v.participant_id;
+    if (!pid) return;
+    try {
+      const r = await fetch(API + '/brackets/participant/' + pid + '/suspend', { method: 'POST', headers: { Authorization: 'Bearer ' + admin?.token } });
+      const j = await r.json();
+      if (j.success) {
+        setVideos((prev: any[]) => prev.map((x: any) => ((x.id || x.participant_id) === pid ? { ...x, suspended_at: j.suspended_at } : x)));
+      } else { setErreur(j.error || 'Action echouee.'); }
+    } catch (e) { setErreur('Erreur reseau.'); }
+  };
 
   const supprimer = async (ch: Challenge) => {
     if (!window.confirm('Supprimer definitivement ce challenge non demarre ? Action irreversible.')) return;
@@ -159,8 +171,9 @@ function AdminChallengesInner() {
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                   {videos.map((v: any, i: number) => (
                     <div key={v.id || v.participant_id || i} style={{ background:'#0a0a0f', border:'1px solid #1e1e2e', borderRadius:10, padding:'10px 12px', display:'flex', alignItems:'center', gap:10 }}>
-                      <span style={{ flex:1, fontSize:13, color:'#fff' }}>{v.title || v.video_title || v.pseudo || v.user_pseudo || ('Video ' + (i + 1))}</span>
+                      <span style={{ flex:1, fontSize:13, color:'#fff' }}>{v.users?.name || v.title || v.video_title || v.pseudo || v.user_pseudo || ('Candidat ' + (i + 1))}{v.suspended_at ? <span style={{ color:'#ed9b07', fontWeight:700, fontSize:11 }}> &middot; suspendu</span> : null}</span>
                       {v.score !== undefined ? <span style={{ fontSize:12, color:OR, fontWeight:700 }}>{v.score} pts</span> : null}
+                      <button onClick={() => toggleSuspend(v)} style={{ padding:'6px 12px', borderRadius:8, border:'none', background: v.suspended_at ? '#4ade80' : '#ed9b07', color:'#0a0a0f', fontWeight:700, fontSize:12, cursor:'pointer' }}>{v.suspended_at ? 'Reactiver' : 'Suspendre'}</button>
                     </div>
                   ))}
                 </div>
