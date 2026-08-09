@@ -379,6 +379,23 @@ bracketRouter.post('/arena/vote-pool', requireAuth, requireVerified, async (req:
 
 // ===== ROUTE SOUTENIR (hors challenge, 10F/clic, 50/50) =====
 /*DKDK_SOUTENIR_ROUTE*/
+/*DKDK_SUSPEND_TOGGLE*/
+bracketRouter.post('/participant/:participantId/suspend', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    if (req.user?.role !== 'admin') return res.status(403).json({ success: false, error: 'Reserve a l administrateur.' });
+    const sb = getSupabase();
+    const { data: part, error: pErr } = await sb
+      .from('bracket_participants').select('id, suspended_at').eq('id', req.params.participantId).single();
+    if (pErr || !part) return res.status(404).json({ success: false, error: 'Participant introuvable.' });
+    const nouveau = part.suspended_at ? null : new Date().toISOString();
+    const { error: uErr } = await sb.from('bracket_participants').update({ suspended_at: nouveau }).eq('id', part.id);
+    if (uErr) throw uErr;
+    res.json({ success: true, suspended: !!nouveau, suspended_at: nouveau });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 bracketRouter.post('/video/:videoId/soutenir', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   try {
     const supabase = getSupabase();
