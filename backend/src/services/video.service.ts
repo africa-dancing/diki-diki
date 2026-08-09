@@ -170,7 +170,7 @@ export async function getVideoById(videoId: string) {
     .eq('id', videoId)
     .single();
   if (error || !data) throw new Error('VIDEO_NOT_FOUND');
-  return await signerVideo(data); /*DKDK_SIGN_READ*/
+  /*DKDK_SUSPEND_HIDE*/ { const { data: _susp } = await supabase.from('bracket_participants').select('id').eq('video_id', videoId).not('suspended_at', 'is', null).limit(1); if (_susp && _susp.length > 0) return Object.assign({}, data, { storage_url: null, suspended: true }); } return await signerVideo(data); /*DKDK_SIGN_READ*/
 }
 
 export async function addComment(videoId: string, userId: string, content: string) {
