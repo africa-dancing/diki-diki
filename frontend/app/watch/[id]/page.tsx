@@ -990,7 +990,7 @@ export default function WatchPage() {
           </div>
         )}
         {displayVideo.suspended && ( /*DKDK_SUSPEND_PLACEHOLDER*/
-          <div style={{ position:'absolute', inset:0, zIndex:26, background:'rgba(10,10,15,0.94)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, padding:'0 24px', textAlign:'center' }}>
+          <div style={{ position:'absolute', inset:0, zIndex:40, background:'rgba(10,10,15,0.97)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, padding:'0 24px', textAlign:'center' }}>
             <div style={{ fontFamily:'Syne, sans-serif', fontSize:17, fontWeight:800, color:'#fff' }}>Candidat suspendu</div>
             <div style={{ fontSize:13, color:'rgba(255,255,255,0.78)', lineHeight:1.5, maxWidth:300 }}>Cette prestation est temporairement indisponible, en cours de vérification.</div>
           </div>
@@ -1494,7 +1494,7 @@ export default function WatchPage() {
                       {c.avatar_url ? <img src={c.avatar_url} alt='' style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : initial}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
-                      <div style={s.candidateName}>{elimine ? 'Éliminé' : (c.name ?? 'Candidat')}</div>
+                      <div style={s.candidateName}>{c.suspended_at ? 'Suspendu' : elimine ? 'Éliminé' : (c.name ?? 'Candidat')}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700 }}>
                         <span style={{ color: '#FF0000' }}>★ <span style={{ color: '#fff' }}>{c.stars_count ?? 0}</span></span>
                         <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
