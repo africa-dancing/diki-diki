@@ -14,7 +14,7 @@ const s: Record<string, React.CSSProperties> = {
   header:  { borderBottom: `1px solid rgb(249, 246, 246)`, padding: '20px 12px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   logo:    { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: OR, textDecoration: 'none', letterSpacing: 1 },
   back:    { color: 'rgb(26, 255, 0)', fontSize: 13, textDecoration: 'none' },
-  hero:    { padding: '48px 24px 32px', maxWidth: 760, margin: '0 auto', textAlign: 'center' as const },
+  hero:    { padding: '40px 24px 36px', background: 'radial-gradient(ellipse 55% 42px at 50% 16px,hsl(339, 98%, 49%) 0%,transparent 72%)', textAlign: 'center' as const },/*DKDK_FAQ_HALO*/
   badge:   { display: 'inline-block', background: `linear-gradient(90deg,${OR},${OR2})`, color: '#0a0a0f', fontSize: 11, fontWeight: 700, letterSpacing: 2, padding: '4px 12px', borderRadius: 4, marginBottom: 16, textTransform: 'uppercase' as const },
   h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 32, color: '#fa0404', margin: '0 0 8px', lineHeight: 1.2, textTransform: 'uppercase' as const, textAlign: 'center' as const },
   sub:     { color: 'rgba(255,255,255,0.5)', fontSize: 15, marginBottom: 0, textAlign: 'center' as const },
