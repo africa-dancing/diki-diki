@@ -235,7 +235,7 @@ export default function RechargePage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'radial-gradient(ellipse 80% 170px at 50% 30px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, #0a0a0f', color: '#f0f0f0', fontFamily: 'DM Sans, sans-serif', paddingTop: 56 }}>
+    <div style={{ minHeight: '100vh', background: 'radial-gradient(ellipse 70% 90px at 50% 18px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, #0a0a0f', color: '#f0f0f0', fontFamily: 'DM Sans, sans-serif', paddingTop: 56 }}>
 
       {/* ── TOPBAR ── */}
       <div style={{
