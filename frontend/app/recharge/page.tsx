@@ -235,7 +235,7 @@ export default function RechargePage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#f0f0f0', fontFamily: 'DM Sans, sans-serif', paddingTop: 56 }}>
+    <div style={{ minHeight: '100vh', background: 'radial-gradient(ellipse 80% 170px at 50% 30px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, #0a0a0f', color: '#f0f0f0', fontFamily: 'DM Sans, sans-serif', paddingTop: 56 }}>
 
       {/* ── TOPBAR ── */}
       <div style={{
@@ -261,8 +261,8 @@ export default function RechargePage() {
 
       {/* ── COLONNE UNIQUE CENTRÉE ── */}
       {/*DKDK_HALO*/}
-        {/*DKDK_HALO — halo en fond du haut de la colonne, colle a la top-bar*/}
-        <div style={{ maxWidth: 520, margin: '0 auto', padding: '28px 20px 80px', background: 'radial-gradient(ellipse 130% 200px at 50% 0%,hsl(339, 98%, 49%) 0%,transparent 72%)' }}>
+        {/*DKDK_HALO — halo magenta pleine largeur : voir le fond du conteneur racine*/}
+        <div style={{ maxWidth: 520, margin: '0 auto', padding: '28px 20px 80px' }}>
 
         {/* Titre */}
         <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', borderRadius: 18, padding: '22px 20px', marginBottom: 28, textAlign: 'center' }}>
