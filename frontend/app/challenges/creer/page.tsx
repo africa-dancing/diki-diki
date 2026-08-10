@@ -40,6 +40,12 @@ export default function CreerChallengePage() {
   const [videoId, setVideoId] = useState('');
   const [msg, setMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  /*DKDK_SPORT_CREATE — creation explicite d'un challenge sport (art -> epreuve -> niveau de difficulte)*/
+  const [typeCreation, setTypeCreation] = useState<'artistique' | 'sport'>('artistique');
+  const [sportEpreuves, setSportEpreuves] = useState<any[]>([]);
+  const [sportArt, setSportArt] = useState('');            // sport_slug
+  const [sportEpreuveNom, setSportEpreuveNom] = useState(''); // nom de l'epreuve (regroupe les paliers)
+  const [sportDiff, setSportDiff] = useState('');          // slug du niveau de difficulte choisi
 
   useEffect(() => {
     const t = getToken();
@@ -66,6 +72,11 @@ export default function CreerChallengePage() {
     fetch(`${API}/challenge-formats`)
       .then(r => r.json())
       .then((d: any) => { setFormats(Array.isArray(d) ? d : (d.data ?? [])); })
+      .catch(() => {});
+    /*DKDK_SPORT_CREATE — charger les epreuves sport actives (art -> epreuve -> niveau de difficulte)*/
+    fetch(`${API}/sport/epreuves`)
+      .then(r => r.json())
+      .then((d: any) => { setSportEpreuves(Array.isArray(d) ? d : (d.data ?? [])); })
       .catch(() => {});
     /*DKDK_CHEMIN_B_LOAD*/
     fetch(`${API}/categories`)
@@ -125,8 +136,87 @@ export default function CreerChallengePage() {
     } catch { /* silencieux */ }
   };
 
+  /*DKDK_SPORT_CREATE — derivations pour l'ecran sport (art -> epreuve -> niveau de difficulte)*/
+  const _slug = (s: string) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const sportArts = (() => {
+    const seen: Record<string, boolean> = {}; const out: any[] = [];
+    sportEpreuves.forEach((e: any) => { if (!seen[e.sport_slug]) { seen[e.sport_slug] = true; out.push({ slug: e.sport_slug, name: e.sport, emoji: e.emoji || '🏅' }); } });
+    return out;
+  })();
+  const sportEpreuveNoms = (() => {
+    const seen: Record<string, boolean> = {}; const out: string[] = [];
+    sportEpreuves.filter((e: any) => e.sport_slug === sportArt).forEach((e: any) => { if (!seen[e.epreuve]) { seen[e.epreuve] = true; out.push(e.epreuve); } });
+    return out;
+  })();
+  const sportRows = sportEpreuves.filter((e: any) => e.sport_slug === sportArt && e.epreuve === sportEpreuveNom);
+  const sportDiffOptions = (() => {
+    if (sportRows.length === 0) return [] as any[];
+    // Cas foot/basket : plusieurs paliers (colonne niveau) -> chaque palier est un niveau de difficulte
+    const withNiveau = sportRows.filter((r: any) => r.niveau != null);
+    if (withNiveau.length > 0) {
+      return withNiveau.slice().sort((a: any, b: any) => a.niveau - b.niveau)
+        .map((r: any) => ({ slug: 'niv-' + r.niveau, label: 'Niveau ' + r.niveau, regle: r.regle, }));
+    }
+    // Cas arts martiaux : une seule ligne avec une liste de formes -> chaque forme est un niveau
+    const row = sportRows[0];
+    if (row && row.choix_liste) {
+      return String(row.choix_liste).split(',').map((s: string) => s.trim()).filter(Boolean)
+        .map((f: string, i: number) => ({ slug: _slug(f), label: f + ' (' + (i + 1) + ')', regle: row.regle, }));
+    }
+    if (row && row.choix_type === 'simple') { const out: any[] = []; for (let i = 1; i <= (row.choix_max || 10); i++) out.push({ slug: 'forme-' + i, label: 'Forme ' + i, regle: row.regle }); return out; }
+    if (row && row.choix_type === 'plage') { const out: any[] = []; for (let i = 2; i <= (row.choix_max || 10); i++) out.push({ slug: '1a' + i, label: '1 à ' + i, regle: row.regle }); return out; }
+    return [] as any[]; // pas de sous-niveau (ex : Dunks) : l'epreuve EST la cible
+  })();
+  const sportHasDiff = sportDiffOptions.length > 0;
+  const sportRegle = sportHasDiff
+    ? (sportDiffOptions.find((o: any) => o.slug === sportDiff)?.regle || '')
+    : (sportRows[0]?.regle || '');
+
   const submit = async () => {
     setMsg('');
+    /*DKDK_SPORT_CREATE — parcours de creation sport : art -> epreuve -> niveau de difficulte -> 1 video*/
+    if (typeCreation === 'sport') {
+      if (!formatCode) { setMsg('Choisis un type de challenge.'); return; }
+      if (!sportArt) { setMsg('Choisis un art.'); return; }
+      if (!sportEpreuveNom) { setMsg('Choisis une epreuve.'); return; }
+      if (sportHasDiff && !sportDiff) { setMsg('Choisis un niveau de difficulte.'); return; }
+      if (!videoId) { setMsg('Choisis une video.'); return; }
+      const artObj = sportArts.find((a: any) => a.slug === sportArt);
+      const diffOpt = sportHasDiff ? sportDiffOptions.find((o: any) => o.slug === sportDiff) : null;
+      const difficulteLabel = diffOpt ? diffOpt.label : '';
+      const difficulteSlug = diffOpt ? diffOpt.slug : '';
+      const styleLabel = sportEpreuveNom + (difficulteLabel ? ' · ' + difficulteLabel : '');
+      setSubmitting(true);
+      try {
+        const t = getToken();
+        const res = await fetch(`${API}/brackets/arena/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
+          body: JSON.stringify({
+            video_id: videoId,
+            categorie: 'Sport',
+            discipline: artObj ? artObj.name : sportArt,
+            style: styleLabel,
+            format_code: formatCode,
+            mode: 'normal', modele: 'parcours', niveau: 1,
+            video_ids: [videoId],
+            sport: {
+              art: artObj ? artObj.name : sportArt,
+              art_slug: sportArt,
+              epreuve: sportEpreuveNom,
+              epreuve_slug: _slug(sportEpreuveNom),
+              difficulte: difficulteLabel,
+              difficulte_slug: difficulteSlug,
+              regle: sportRegle || '',
+            },
+          }),
+        });
+        const data = await res.json();
+        if (!data.success) { setMsg(data.error || 'Erreur.'); setSubmitting(false); return; }
+        router.push(`/challenges/${data.data.bracket_id}`);
+      } catch { setMsg('Erreur reseau. Reessaie.'); setSubmitting(false); }
+      return;
+    }
         {modele === 'bloc' && niveau > 1 && videos.length > 0 && (
           <>
             {Array.from({ length: niveau - 1 }).map((_, i) => {
@@ -248,6 +338,15 @@ export default function CreerChallengePage() {
           <h1 style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 800, color: '#fefefe' }}>Créer un challenge</h1>
         </div>
 
+        {/*DKDK_SPORT_CREATE — choix Artistique vs Sport*/}
+        <label style={labelStyle}>Que veux-tu créer ?</label>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          {[{ v: 'artistique', l: 'Discipline artistique' }, { v: 'sport', l: 'Sport' }].map(o => (
+            <button key={o.v} onClick={() => { setTypeCreation(o.v as any); setMsg(''); }} style={{ flex: 1, minWidth: 140, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: typeCreation === o.v ? `1px solid ${OR}` : '1px solid rgba(255,255,255,0.15)', background: typeCreation === o.v ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'rgba(255,255,255,0.05)', color: typeCreation === o.v ? '#000' : 'rgba(255,255,255,0.6)' }}>{o.l}</button>
+          ))}
+        </div>
+
+        {typeCreation === 'artistique' && (<>
         {/*DKDK_MODE_BLOC*/}
         <label style={labelStyle}>Mode</label>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -324,6 +423,44 @@ export default function CreerChallengePage() {
             })()}
           </div>
         ))}
+        </>)}
+
+        {/*DKDK_SPORT_CREATE — ecran sport : Type -> Art -> Epreuve -> Niveau de difficulte*/}
+        {typeCreation === 'sport' && (<>
+        <label style={labelStyle}>Type de challenge</label>
+        <select style={inputStyle} value={formatCode} onChange={e => setFormatCode(e.target.value)}>
+          <option value='' style={{ background: '#1a1a1f' }}>-- Choisir un type --</option>
+          {formats.map((ff: any) => <option key={ff.code} value={ff.code} style={{ background: '#1a1a1f' }}>{ff.libelle}</option>)}
+        </select>
+
+        <label style={labelStyle}>Art</label>
+        <select style={inputStyle} value={sportArt} onChange={e => { setSportArt(e.target.value); setSportEpreuveNom(''); setSportDiff(''); }}>
+          <option value='' style={{ background: '#1a1a1f' }}>-- Choisir un art --</option>
+          {sportArts.map((a: any) => <option key={a.slug} value={a.slug} style={{ background: '#1a1a1f' }}>{a.emoji} {a.name}</option>)}
+        </select>
+
+        {sportArt && (<>
+          <label style={labelStyle}>Épreuve</label>
+          <select style={inputStyle} value={sportEpreuveNom} onChange={e => { setSportEpreuveNom(e.target.value); setSportDiff(''); }}>
+            <option value='' style={{ background: '#1a1a1f' }}>-- Choisir une épreuve --</option>
+            {sportEpreuveNoms.map((nom: string) => <option key={nom} value={nom} style={{ background: '#1a1a1f' }}>{nom}</option>)}
+          </select>
+        </>)}
+
+        {sportEpreuveNom && sportHasDiff && (<>
+          <label style={labelStyle}>Niveau de difficulté</label>
+          <select style={inputStyle} value={sportDiff} onChange={e => setSportDiff(e.target.value)}>
+            <option value='' style={{ background: '#1a1a1f' }}>-- Choisir un niveau --</option>
+            {sportDiffOptions.map((o: any) => <option key={o.slug} value={o.slug} style={{ background: '#1a1a1f' }}>{o.label}</option>)}
+          </select>
+        </>)}
+
+        {sportEpreuveNom && sportRegle && (
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: -6, marginBottom: 16, lineHeight: 1.5, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 12px', background: 'rgba(255,255,255,0.03)' }}>
+            📋 {sportRegle}
+          </div>
+        )}
+        </>)}
 
         <label style={labelStyle}>Ta vidéo (approuvée)</label>
         {videos.length === 0 ? (

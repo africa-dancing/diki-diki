@@ -230,8 +230,10 @@ export async function createArenaChallenge(params: {
   champs_valeurs?: { champ_id: string; champ_titre: string; choix_id: string; valeur: string }[]; /*DKDK_CHEMIN_B_BACK*/
   paiement_confirme?: boolean; /*DKDK_FIX_PAIEMENT_CREATE*/
   modele?: string; niveau?: number; video_ids?: string[]; /*DKDK_ETAPE4_SVC*/
+  /*DKDK_SPORT_CREATE — creation explicite d'un challenge sport (art -> epreuve -> niveau de difficulte)*/
+  sport?: { art: string; art_slug: string; epreuve: string; epreuve_slug: string; difficulte?: string; difficulte_slug?: string; regle?: string };
 }) {
-  const { user_id, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs, paiement_confirme, modele, niveau, video_ids } = params;
+  const { user_id, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs, paiement_confirme, modele, niveau, video_ids, sport } = params;
   const modeVal = mode || 'normal';
 
   // Charger et valider le format choisi (obligatoire) /*DKDK_FORMAT_CREATION*/
@@ -252,7 +254,18 @@ export async function createArenaChallenge(params: {
 
   // Cle composite (chemin B) via fonction partagee /*DKDK_CHEMIN_B_BACK*/
   const cv = Array.isArray(champs_valeurs) ? champs_valeurs : [];
-  const bracketKey = computeBracketKey(discipline, modeVal, track_id, fmt.code, cv);
+  /*DKDK_SPORT_CREATE — le sport a sa propre cle (art + epreuve + niveau de difficulte + format),
+     toujours 1 seule video, mode 'normal', pas de piste musicale, modele parcours niveau 1.
+     Le reste du parcours (validation format, wallet, inscription, moteur) reste IDENTIQUE. */
+  const bracketKey = sport
+    ? ['sport', fmt.code, sport.art_slug, sport.epreuve_slug, sport.difficulte_slug].filter(Boolean).join('|')
+    : computeBracketKey(discipline, modeVal, track_id, fmt.code, cv);
+  const discFinal   = sport ? sport.art : discipline;
+  const styleFinal  = sport ? (sport.epreuve + (sport.difficulte ? ' · ' + sport.difficulte : '')) : style;
+  const trackFinal  = sport ? null : (track_id || null);
+  const modeFinal   = sport ? 'normal' : modeVal;
+  const modeleFinal = sport ? 'parcours' : (modele || 'parcours');
+  const niveauFinal = sport ? 1 : (niveau || 1);
 
   const { data: u, error: uErr } = await supabase
     .from('users').select('is_verified').eq('id', user_id).single();
@@ -280,12 +293,12 @@ export async function createArenaChallenge(params: {
   } else {
     const { data: created, error: cErr } = await supabase
       .from('brackets').insert({
-        title: style + ' - ' + discipline,
-        categorie, discipline, style,
-        track_id: track_id || null, mode: modeVal,
+        title: styleFinal + ' - ' + discFinal,
+        categorie, discipline: discFinal, style: styleFinal,
+        track_id: trackFinal, mode: modeFinal,
         type: 'libre', status: 'waiting_candidates', code: fmt.code,
         bracket_key: bracketKey, /*DKDK_CHEMIN_B_BACK*/
-        modele: modele || 'parcours', niveau: niveau || 1, /*DKDK_ETAPE4_INSERT*/
+        modele: modeleFinal, niveau: niveauFinal, /*DKDK_ETAPE4_INSERT*/
         objectif_bloc: objectifBloc, /*DKDK_ETAPE4_OBJECTIF*/
         max_participants: maxParticipants, current_round: 1,
         total_cagnotte: 0, commission_pct: 0.5,
@@ -294,7 +307,8 @@ export async function createArenaChallenge(params: {
     if (cErr || !created) throw new Error('Erreur lors de la creation du challenge.');
     bracketId = created.id;
     // Enregistrer les valeurs de champs pour l'affichage propre /*DKDK_CHEMIN_B_BACK*/
-    if (cv.length > 0) {
+    // (le sport n'utilise pas ces champs dynamiques : son libelle vit dans style/title) /*DKDK_SPORT_CREATE*/
+    if (cv.length > 0 && !sport) {
       await supabase.from('bracket_champs_valeurs').insert(
         cv.map(x => ({ bracket_id: bracketId, champ_id: x.champ_id, champ_titre: x.champ_titre, choix_id: x.choix_id, valeur: x.valeur }))
       );
