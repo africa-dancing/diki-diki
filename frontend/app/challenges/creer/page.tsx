@@ -333,10 +333,15 @@ export default function CreerChallengePage() {
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#f0f0f0', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
       <Navbar />
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px' }}>
-        <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '20px', marginBottom: 20, textAlign: 'center' }}>
-          <h1 style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 800, color: '#fefefe' }}>Créer un challenge</h1>
+      {/*DKDK_MAGENTA_HERO — halo magenta sous la top-bar (meme effet que la page Contact)*/}
+      <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
+        <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px 4px' }}>
+          <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '20px', textAlign: 'center', boxShadow: '0 8px 40px rgba(225,29,143,0.35)' }}>
+            <h1 style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 800, color: '#fefefe' }}>Créer un challenge</h1>
+          </div>
         </div>
+      </div>
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '20px 16px' }}>
 
         {/*DKDK_SPORT_CREATE — choix Artistique vs Sport*/}
         <label style={labelStyle}>Que veux-tu créer ?</label>
