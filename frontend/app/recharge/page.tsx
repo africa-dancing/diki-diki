@@ -261,7 +261,7 @@ export default function RechargePage() {
 
       {/* ── COLONNE UNIQUE CENTRÉE ── */}
       {/*DKDK_HALO*/}
-        <div style={{ height: 200, marginTop: 56, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', marginBottom: -200, pointerEvents: 'none' }} />
+        <div style={{ height: 150, marginTop: 56, background: 'radial-gradient(ellipse 85% 65% at 50% 0%,hsl(339, 98%, 49%) 0%,transparent 70%)', marginBottom: -150, pointerEvents: 'none' }} />
         <div style={{ maxWidth: 520, margin: '0 auto', padding: '28px 20px 80px' }}>
 
         {/* Titre */}

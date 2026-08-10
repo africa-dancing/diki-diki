@@ -38,12 +38,10 @@ export default function ChallengesListPage() {
     <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f0', fontFamily:'DM Sans,sans-serif', paddingBottom:80 }}>
       <Navbar />
 
-      {/* Hero - identique a la Home */}
-
-      <div style={{ maxWidth:700, margin:'0 auto', padding:'24px 16px' }}>
-
-        {/* Panneau d'en-tete, degrade signature */}
-        <div style={{ background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border:'1px solid rgb(10,0,0)', borderRadius:16, padding:'20px', marginBottom:20, textAlign:'center' as const }}>
+      {/*DKDK_MAGENTA_HERO — halo magenta colle a la top-bar (comme /challenges/creer)*/}
+      <div style={{ background:'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop:8 }}>
+        <div style={{ maxWidth:700, margin:'0 auto', padding:'24px 16px 4px' }}>
+          <div style={{ background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border:'1px solid rgb(10,0,0)', borderRadius:16, padding:'20px', textAlign:'center' as const, boxShadow:'0 8px 40px rgba(225,29,143,0.35)' }}>
           <h1 style={{ fontFamily:'Syne,sans-serif', fontSize:22, fontWeight:800, color:'#fefefe', marginBottom:6 }}>
             Les Challenges
           </h1>
@@ -51,6 +49,9 @@ export default function ChallengesListPage() {
             {/*DKDK_BANDEAU*/}Podium Challenges {'\u00B7'} Parcours d{'\u2019'}{'\u00E9'}tapes ({'\u00E9'}limination progressive) ou Bloc group{'\u00E9'} (classement final) {'\u00B7'} 6 formats et 4 niveaux de difficult{'\u00E9'} {'\u00B7'} Toute participation m{'\u00E9'}rite un encouragement
           </div>
         </div>
+        </div>
+      </div>
+      <div style={{ maxWidth:700, margin:'0 auto', padding:'8px 16px 0' }}>
 
         {/* Bouton creer un challenge */}
         <Link href="/challenges/creer" style={{ display:'block', textAlign:'center' as const, background:'linear-gradient(135deg,#FF6B00,#FFD700)', color:'#000', fontWeight:800, fontFamily:'Syne,sans-serif', fontSize:15, padding:'14px', borderRadius:14, textDecoration:'none', marginBottom:20 }}>
