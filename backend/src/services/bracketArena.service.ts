@@ -304,7 +304,7 @@ export async function createArenaChallenge(params: {
         total_cagnotte: 0, commission_pct: 0.5,
         created_at: new Date().toISOString(),
       }).select('id').single();
-    if (cErr || !created) throw new Error('Erreur lors de la creation du challenge.');
+    if (cErr || !created) throw new Error('Erreur creation challenge: ' + (cErr?.message || '') + (cErr?.details ? ' | ' + cErr.details : '') + (cErr?.hint ? ' | ' + cErr.hint : '')); /*DKDK_DIAG*/
     bracketId = created.id;
     // Enregistrer les valeurs de champs pour l'affichage propre /*DKDK_CHEMIN_B_BACK*/
     // (le sport n'utilise pas ces champs dynamiques : son libelle vit dans style/title) /*DKDK_SPORT_CREATE*/
