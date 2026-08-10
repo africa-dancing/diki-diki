@@ -296,7 +296,7 @@ export async function createArenaChallenge(params: {
         title: styleFinal + ' - ' + discFinal,
         categorie, discipline: discFinal, style: styleFinal,
         track_id: trackFinal, mode: modeFinal,
-        type: 'libre', status: 'waiting_candidates', code: fmt.code,
+        type: 'libre', status: 'waiting_candidates', code: null, /*DKDK_FIX_CODE_UNIQUE — le code unique est genere au lancement ; a la creation on laisse null (evite la collision brackets_code_key)*/
         bracket_key: bracketKey, /*DKDK_CHEMIN_B_BACK*/
         modele: modeleFinal, niveau: niveauFinal, /*DKDK_ETAPE4_INSERT*/
         objectif_bloc: objectifBloc, /*DKDK_ETAPE4_OBJECTIF*/
@@ -304,7 +304,7 @@ export async function createArenaChallenge(params: {
         total_cagnotte: 0, commission_pct: 0.5,
         created_at: new Date().toISOString(),
       }).select('id').single();
-    if (cErr || !created) throw new Error('Erreur creation challenge: ' + (cErr?.message || '') + (cErr?.details ? ' | ' + cErr.details : '') + (cErr?.hint ? ' | ' + cErr.hint : '')); /*DKDK_DIAG*/
+    if (cErr || !created) throw new Error('Erreur lors de la creation du challenge.');
     bracketId = created.id;
     // Enregistrer les valeurs de champs pour l'affichage propre /*DKDK_CHEMIN_B_BACK*/
     // (le sport n'utilise pas ces champs dynamiques : son libelle vit dans style/title) /*DKDK_SPORT_CREATE*/

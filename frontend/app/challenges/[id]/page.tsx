@@ -406,7 +406,7 @@ export default function BracketPage() {
           <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:12 }}>
             <div>
               <div style={{ fontSize:14, color:'#fff', fontWeight:800, letterSpacing:'.12em', marginBottom:4, textAlign:'center' as const }}>{bracket.status === 'in_progress' ? 'CHALLENGE EN COURS' : 'INSCRIPTIONS OUVERTES'}</div>
-              <div style={{ fontSize:11, color:'#FFD700', fontWeight:700, textAlign:'center' as const, marginBottom:8 }}>{(bracket as any).code ?? ''}</div>
+              <div style={{ fontSize:11, color:'#FFD700', fontWeight:700, textAlign:'center' as const, marginBottom:8 }}>{(bracket as any).code ?? ('C' + ((bracket as any).max_participants ?? ''))}</div>{/*DKDK_FIX_CODE_UNIQUE*/}
               <h1 style={{ fontFamily:'Syne,sans-serif', fontSize:24, fontWeight:800, color:'#ffffff', marginBottom:6, textAlign:'center' as const, textShadow:'0 1px 3px rgba(0,0,0,0.5)' }}>{((bracket as any).style && bracket.discipline) ? ((bracket as any).style + ' — ' + bracket.discipline.charAt(0).toUpperCase() + bracket.discipline.slice(1)) : bracket.title}</h1>
               {bracket.status === 'in_progress' && <div style={{ fontSize:12, color:'rgb(255,255,255)' }}>Tour en cours : <strong style={{color:OR}}>{ROUND_LABELS[bracket.current_round]}</strong></div>}
             </div>

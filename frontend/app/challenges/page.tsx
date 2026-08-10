@@ -85,9 +85,8 @@ export default function ChallengesListPage() {
               <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,170,0,0.2)', borderRadius:16, padding:'16px', marginBottom:12, cursor:'pointer' }}>
 
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, flexWrap:'wrap', marginBottom:8 }}>
-                  {b.code
-                    ? <span style={{ fontSize:10, color:OR, fontWeight:700, letterSpacing:'.05em' }}>{b.code}</span>
-                    : <span style={{ fontSize:10, color:'rgba(255,255,255,0.25)' }}>{'\u2014'}</span>}
+                  {/*DKDK_FIX_CODE_UNIQUE \u2014 badge = code genere si lance, sinon le format derive du nombre de candidats*/}
+                  <span style={{ fontSize:10, color:OR, fontWeight:700, letterSpacing:'.05em' }}>{b.code ? b.code : ('C' + b.max_participants)}</span>
                   <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:20, background:st.bg, color:st.color }}>{st.label}</span>
                 </div>
 
