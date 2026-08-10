@@ -424,7 +424,7 @@ export default function SubmitPage() {
   });
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0f', fontFamily: 'DM Sans, sans-serif', paddingBottom: 80, paddingTop: 56 }}>
+    <div style={{ minHeight: '100vh', background: 'radial-gradient(ellipse 80% 170px at 50% 30px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, #0a0a0f', fontFamily: 'DM Sans, sans-serif', paddingBottom: 80, paddingTop: 56 }}>
 
       {/* ── Topbar ── */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, background: 'rgba(8,8,15,0.95)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,170,0,0.12)', padding: '0 20px 0 0', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -437,8 +437,8 @@ export default function SubmitPage() {
       </div>
 
       {/*DKDK_HALO*/}
-        {/*DKDK_HALO — halo en fond du haut de la colonne, colle a la top-bar*/}
-        <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px', background: 'radial-gradient(ellipse 130% 200px at 50% 0%,hsl(339, 98%, 49%) 0%,transparent 72%)' }}>
+        {/*DKDK_HALO — halo magenta pleine largeur : voir le fond du conteneur racine*/}
+        <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px' }}>
 
         {/* Stepper */}
         {step < 5 && (
