@@ -1225,8 +1225,8 @@ export default function WatchPage() {
 
               {/* Onglets */}
               {/*DKDK_FUSION_LIGNE*/}
-              {/*DKDK_PALIERS_MOBILE : nouveau pave a paliers, mobile uniquement*/}
-              {isMobile && (() => {
+              {/*DKDK_PALIERS_MOBILE : Passe 1 — affiche aussi sur PC (remplace l'ancien pave numerique)*/}
+              {(() => {
                 const paliers = [1, 2, 5, 10];
                 const isStar = activeTab === 'stars';
                 const onSend = isStar ? handleSendStars : handleSendHearts;
@@ -1257,8 +1257,8 @@ export default function WatchPage() {
                 );
               })()}
 
-              {/* Saisie ± */}
-              {(() => {
+              {/* Saisie ± — ancien pave numerique : mobile uniquement (retire du PC en Passe 1) */}
+              {isMobile && (() => {
                 const isStar  = activeTab === 'stars';
                 const qty     = isStar ? starsQty : heartsQty;
                 const setQty  = isStar ? setStarsQty : setHeartsQty;
