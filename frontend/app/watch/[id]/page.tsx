@@ -1154,8 +1154,12 @@ export default function WatchPage() {
   const ROUND_LABELS: Record<number,string> = {1:"Huitième de finale",2:"Quart de finale",3:"Demi-finale",4:"Finale"};
   const ROUND_CUT: Record<number,string> = {1:"16 → 8",2:"8 → 4",3:"4 → 3",4:"2 → 1"};
 
-  const obj = getRoundObjectif(b.max_participants ?? 16, b.current_round, objSettings); /*DKDK_OBJ_NET*/
-  const col = r ? Math.round(r.montant_collecte * (1 - commission)) : 0;
+  /*DKDK_OBJ_PAR_FORMAT — l'objectif d'etape vient desormais du challenge lui-meme (inscrit depuis « Formats de challenge »),
+    et non plus des reglages globaux. On lit l'objectif reel de l'etape en cours (active_round.objectif_montant) ;
+    on garde l'ancien calcul en secours uniquement si l'etape n'est pas encore chargee. Montant collecte = brut,
+    pour que la barre atteigne 100 % exactement quand le moteur ferme l'etape.*/
+  const obj = (r && r.objectif_montant != null) ? r.objectif_montant : getRoundObjectif(b.max_participants ?? 16, b.current_round, objSettings);
+  const col = r ? r.montant_collecte : 0;
   const pct = obj > 0 ? Math.min(100, Math.round(col / obj * 100)) : 0;
   const total = b.total_cagnotte || 0;
   const comm = b.commission_pct != null ? b.commission_pct : 0.5;
