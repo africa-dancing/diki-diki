@@ -668,7 +668,8 @@ export default function WatchPage() {
   useEffect(() => { setCurrency(detectCurrency()); }, []);
 
   // ── VOTER — envoyer des ⭐ étoiles (connectés uniquement) ─────────
-  const handleSendStars = async () => {
+  const handleSendStars = async (forcedQty?: number) => {
+    const q = (typeof forcedQty === 'number' && forcedQty > 0) ? forcedQty : starsQty; /*DKDK_FIX_PALIER — utiliser la quantite passee (evite un state perime au clic-palier)*/
     /*DKDK_VOTE_STATE_GUARD_STARS*/
     if (!estEnCours) { setVoteError('Le vote n est pas encore ouvert pour ce challenge.'); setTimeout(() => setVoteError(null), 4000); return; }
     if (!isLoggedIn()) { openOneTap('stars'); return; }
@@ -682,11 +683,11 @@ export default function WatchPage() {
         return;
       }
     }
-    if (starsQty < 1) return;
-    if (rechargeUnits < starsQty) {
+    if (q < 1) return;
+    if (rechargeUnits < q) {
       /*DKDK_AIGUILLAGE_STAR*/
-      const manque = (starsQty - rechargeUnits) * voteAmount;
-      try { localStorage.setItem("dkdk_pending_vote", JSON.stringify({ participant_id: bracketData?.current_participant_id, type: "star", qty: starsQty, ts: Date.now() })); } catch {}
+      const manque = (q - rechargeUnits) * voteAmount;
+      try { localStorage.setItem("dkdk_pending_vote", JSON.stringify({ participant_id: bracketData?.current_participant_id, type: "star", qty: q, ts: Date.now() })); } catch {}
       router.push(`/recharge?montant=${manque}&retour=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
@@ -697,13 +698,13 @@ export default function WatchPage() {
       const res = await fetch(`${API}/brackets/arena/vote-pool`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ participant_id: bracketData?.current_participant_id, qty: starsQty, type: 'star' }),
+        body: JSON.stringify({ participant_id: bracketData?.current_participant_id, qty: q, type: 'star' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Erreur');
-      setMyVotesOnVideo(v => v + starsQty);
-      setRechargeUnits(u => u - starsQty);
-      setWallet(w => w !== null ? w - starsQty * 100 : w);
+      setMyVotesOnVideo(v => v + q);
+      setRechargeUnits(u => u - q);
+      setWallet(w => w !== null ? w - q * 100 : w);
       setVoteSuccess(true);
       setTimeout(() => setVoteSuccess(false), 1500);
       refreshPool();
@@ -714,7 +715,8 @@ export default function WatchPage() {
   };
 
   // ── LIKER — envoyer des ❤️ cœurs (connectés uniquement) ──────────
-  const handleSendHearts = async () => {
+  const handleSendHearts = async (forcedQty?: number) => {
+    const q = (typeof forcedQty === 'number' && forcedQty > 0) ? forcedQty : heartsQty; /*DKDK_FIX_PALIER*/
     /*DKDK_VOTE_STATE_GUARD_HEARTS*/
     if (!estEnCours) { setVoteError('Le vote n est pas encore ouvert pour ce challenge.'); setTimeout(() => setVoteError(null), 4000); return; }
     if (!isLoggedIn()) { openOneTap('hearts'); return; }
@@ -728,11 +730,11 @@ export default function WatchPage() {
         return;
       }
     }
-    if (heartsQty < 1) return;
-    if (rechargeUnits < heartsQty * 2) {
+    if (q < 1) return;
+    if (rechargeUnits < q * 2) {
       /*DKDK_AIGUILLAGE_HEART*/
-      const manque = (heartsQty * 2 - rechargeUnits) * voteAmount;
-      try { localStorage.setItem("dkdk_pending_vote", JSON.stringify({ participant_id: bracketData?.current_participant_id, type: "heart", qty: heartsQty, ts: Date.now() })); } catch {}
+      const manque = (q * 2 - rechargeUnits) * voteAmount;
+      try { localStorage.setItem("dkdk_pending_vote", JSON.stringify({ participant_id: bracketData?.current_participant_id, type: "heart", qty: q, ts: Date.now() })); } catch {}
       router.push(`/recharge?montant=${manque}&retour=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
@@ -743,12 +745,12 @@ export default function WatchPage() {
       await fetch(`${API}/brackets/arena/vote-pool`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ participant_id: bracketData?.current_participant_id, qty: heartsQty, type: 'heart' }),
+        body: JSON.stringify({ participant_id: bracketData?.current_participant_id, qty: q, type: 'heart' }),
       });
       setLiked(true);
-      setLikeCount(c => c + heartsQty);
-      setRechargeUnits(u => u - heartsQty * 2);
-      setWallet(w => w !== null ? w - heartsQty * 200 : w);
+      setLikeCount(c => c + q);
+      setRechargeUnits(u => u - q * 2);
+      setWallet(w => w !== null ? w - q * 200 : w);
       refreshPool();
     } catch {
       // rollback silencieux
@@ -1077,7 +1079,7 @@ export default function WatchPage() {
         {loggedIn && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <div style={{ position: 'relative' }}>
-              <button onClick={handleSendStars} /*DKDK_VOTER_GRISE*/ style={{ width: 34, height: 34, borderRadius: '50%', background: myVotesOnVideo > 0 ? 'rgba(255,170,0,0.2)' : 'rgba(15,15,25,0.9)', border: `1.5px solid ${myVotesOnVideo > 0 ? '#FFAA00' : 'rgba(255,255,255,0.18)'}`, color: '#fff', cursor: (!estEnCours || voteLoading) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !estEnCours ? 0.4 : (voteLoading ? 0.6 : 1) }}>
+              <button onClick={() => handleSendStars()} /*DKDK_VOTER_GRISE*/ style={{ width: 34, height: 34, borderRadius: '50%', background: myVotesOnVideo > 0 ? 'rgba(255,170,0,0.2)' : 'rgba(15,15,25,0.9)', border: `1.5px solid ${myVotesOnVideo > 0 ? '#FFAA00' : 'rgba(255,255,255,0.18)'}`, color: '#fff', cursor: (!estEnCours || voteLoading) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !estEnCours ? 0.4 : (voteLoading ? 0.6 : 1) }}>
                 {voteLoading ? <SpinIcon /> : <VoteIcon active={myVotesOnVideo > 0} />}
               </button>
               {myVotesOnVideo > 0 && (
@@ -1231,7 +1233,7 @@ export default function WatchPage() {
                 const isStar = activeTab === 'stars';
                 const onSend = isStar ? handleSendStars : handleSendHearts;
                 const setQty = isStar ? setStarsQty : setHeartsQty;
-                const votePalier = (u) => { setQty(u); setTimeout(() => onSend(), 0); };
+                const votePalier = (u) => { setQty(u); onSend(u); }; /*DKDK_FIX_PALIER — envoyer la quantite du palier directement, pas via le state*/
                 return (
                   <div style={{ background:'#FF0000', borderRadius:12, padding:11, marginBottom:6 }}>
                     <div style={{ display:'flex', gap:5, marginBottom:9 }}>
@@ -1305,7 +1307,7 @@ export default function WatchPage() {
                       <span>Reste : {Math.max(0, rechargeUnits - (isStar ? qty : qty * 2))}</span>
                     </div>
                     <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginBottom: 4, lineHeight: 1.3 }} /*DKDK_C3_MENTION*/>{isStar ? `1 Étoile = 1 Unité = ${voteAmount} F CFA` : `1 Cœur (Compte Double) = 2 Unités = ${heartAmount} F CFA`}</div>
-                    <button onClick={onSend} disabled={loading || overBal || qty < 1}
+                    <button onClick={() => onSend()} disabled={loading || overBal || qty < 1}
                       style={{ width: '100%', padding: '7px', background: btnBg, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, marginTop: 'auto', color: btnCol, cursor: overBal ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
                       {loading ? '⏳…' : (<><span style={{ color: isStar ? '#FF0000' : '#FF1493', fontSize: 18, marginRight: 4 }}>{isStar ? '★' : '♥'}</span>{`Envoyer ${qty} ${isStar ? `étoile${qty > 1 ? 's' : ''}` : `cœur${qty > 1 ? 's' : ''}`}`}</>)}
                     </button>
@@ -1370,7 +1372,7 @@ export default function WatchPage() {
                       <button onClick={() => setQty(function(q){ return q + 1; })} style={{ width: 30, height: 30, borderRadius: 6, border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', fontSize: 16, color: '#f0f0f0', cursor: 'pointer' }}>+</button>
                     </div>
                     <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: 8 }}>{qty} {isStar ? '★' : '♥'} = <b style={{ color: '#FFAA00' }}>{qty * unitF} F</b></div>
-                    <button onClick={isStar ? handleSendStars : handleSendHearts} style={{ width: '100%', padding: '10px', background: 'linear-gradient(135deg,rgba(126,3,128,0.85),rgb(237,7,15))', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>{isStar ? '★ Voter' : '♥ Liker'}</button>
+                    <button onClick={() => { if (isStar) { handleSendStars(); } else { handleSendHearts(); } }} style={{ width: '100%', padding: '10px', background: 'linear-gradient(135deg,rgba(126,3,128,0.85),rgb(237,7,15))', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>{isStar ? '★ Voter' : '♥ Liker'}</button>
                   </>
                 );
               })()}
