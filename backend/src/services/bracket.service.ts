@@ -206,11 +206,12 @@ async function openNewBracket(track_id: string, previousBracket: any) {
 
 // ── 4. Vérifier et avancer les tours (appelé par le cron) ──────────
 export async function checkAndAdvanceRounds() {
-  // Tous les brackets elimination en cours
+  // Brackets a etapes en cours : anciens 'elimination' ET nouveaux 'parcours' (classement au score) /*DKDK_ARBITRE_PARCOURS*/
+  // On elargit la selection sans toucher a l'etiquette 'type' (qui sert aussi a distinguer libre/repertoire cote musique).
   const { data: brackets } = await supabase
     .from('brackets')
     .select('*')
-    .eq('type', 'elimination')
+    .or('type.eq.elimination,modele.eq.parcours')
     .eq('status', 'in_progress');
   if (!brackets || brackets.length === 0) return;
 

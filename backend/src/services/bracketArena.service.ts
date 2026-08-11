@@ -141,21 +141,45 @@ export async function launchBracket(bracket: any) {
   }
   await supabase.from('bracket_duels').insert(duels);
 
-  // c) Les 4 rounds avec objectifs depuis settings
-  const objectifs = [
-    await getSetting('bracket_obj_huitieme', 1250000),
-    await getSetting('bracket_obj_quart', 1250000),
-    await getSetting('bracket_obj_demi', 1000000),
-    await getSetting('bracket_obj_finale', 500000),
-  ];
-  const rounds = objectifs.map((obj, idx) => ({
-    bracket_id: bracket.id,
-    round: idx + 1,
-    objectif_montant: obj,
-    montant_collecte: 0,
-    status: idx === 0 ? 'in_progress' : 'pending',
-    started_at: idx === 0 ? now.toISOString() : null,
-  }));
+  // c) Les etapes selon le FORMAT : nb_etapes x objectif_etape, lu depuis challenge_formats /*DKDK_OBJ_PAR_FORMAT*/
+  //    (ex. C2 -> 1 etape a 2 500 000 ; C16 -> 4 etapes a 15 000 000 chacune)
+  const { data: fmtRow } = await supabase
+    .from('challenge_formats')
+    .select('nb_etapes, objectif_etape')
+    .eq('nb_candidats', bracket.max_participants)
+    .maybeSingle();
+
+  const nbEtapes = fmtRow?.nb_etapes ?? 0;
+  const objEtape = fmtRow?.objectif_etape ?? 0;
+
+  let rounds;
+  if (nbEtapes >= 1 && objEtape > 0) {
+    // Cas normal : on cree exactement nb_etapes etapes, chacune avec l'objectif du format
+    rounds = Array.from({ length: nbEtapes }, (_, idx) => ({
+      bracket_id: bracket.id,
+      round: idx + 1,
+      objectif_montant: objEtape,
+      montant_collecte: 0,
+      status: idx === 0 ? 'in_progress' : 'pending',
+      started_at: idx === 0 ? now.toISOString() : null,
+    }));
+  } else {
+    // Filet de securite : format introuvable -> ancien comportement (4 etapes, reglages globaux)
+    const objectifs = [
+      await getSetting('bracket_obj_huitieme', 1250000),
+      await getSetting('bracket_obj_quart', 1250000),
+      await getSetting('bracket_obj_demi', 1000000),
+      await getSetting('bracket_obj_finale', 500000),
+    ];
+    rounds = objectifs.map((obj, idx) => ({
+      bracket_id: bracket.id,
+      round: idx + 1,
+      objectif_montant: obj,
+      montant_collecte: 0,
+      status: idx === 0 ? 'in_progress' : 'pending',
+      started_at: idx === 0 ? now.toISOString() : null,
+    }));
+  }
   await supabase.from('bracket_rounds').insert(rounds);
 
   // d) Bracket en cours + code
