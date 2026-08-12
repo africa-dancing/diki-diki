@@ -7,22 +7,28 @@ import { checkAndAdvanceRounds } from '../services/bracket.service';
  * Tourne toutes les heures.
  */
 export function startBracketCron() {
-  const INTERVAL_MS = 60 * 60 * 1000; // 1 heure
+  const INTERVAL_MS = 3 * 60 * 1000; // 3 minutes (filet de securite) /*DKDK_CRON_3MIN*/
+  // Note : la fermeture se fait normalement DES le vote qui atteint l'objectif (voir /arena/vote-pool).
+  // Ce cron n'est qu'un filet de securite au cas ou un declenchement immediat serait manque.
 
-  console.log('⚡ [BRACKET CRON] Démarré — vérification toutes les heures');
+  console.log('⚡ [BRACKET CRON] Démarré — vérification toutes les 3 minutes (filet de sécurité)');
 
+  let enCours = false; // anti-chevauchement : jamais deux passages simultanes /*DKDK_CRON_LOCK*/
   const run = async () => {
+    if (enCours) return;
+    enCours = true;
     try {
-      console.log(`⚡ [BRACKET CRON] Vérification des duels à ${new Date().toISOString()}`);
       await checkAndAdvanceRounds();
     } catch (err: any) {
       console.error('🔴 [BRACKET CRON] Erreur :', err.message);
+    } finally {
+      enCours = false;
     }
   };
 
   // Lancement immédiat au démarrage
   run();
 
-  // Puis toutes les heures
+  // Puis toutes les 3 minutes
   setInterval(run, INTERVAL_MS);
 }

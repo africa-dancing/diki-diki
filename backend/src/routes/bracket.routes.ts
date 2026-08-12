@@ -3,6 +3,7 @@ import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 /*DKDK_DEAD_ROUTES_REMOVED*/ // 3 routes non authentifiees supprimees ; checkAndAdvanceRounds reste appele par src/cron/bracket.cron.ts
 import { inscribeToArena, createArenaChallenge, checkArenaChallenge } from '../services/bracketArena.service';
+import { checkAndAdvanceRounds } from '../services/bracket.service'; /*DKDK_CLOSE_INSTANT — fermeture immediate apres un vote*/
 import { requireAuth, AuthRequest, requireVerified, requireAdmin } from '../middleware/auth.middleware';
 
 const bracketRouter = Router();
@@ -181,6 +182,8 @@ bracketRouter.post('/arena/vote', requireAuth, requireVerified, async (req: Auth
     if (error) throw error;
     if (!data.success) return res.status(400).json(data);
     res.json(data);
+    /*DKDK_CLOSE_INSTANT — fermeture immediate si l'objectif est atteint (verrou anti-double-versement cote service).*/
+    checkAndAdvanceRounds().catch(() => {});
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -441,6 +444,9 @@ bracketRouter.post('/arena/vote-pool', requireAuth, requireVerified, async (req:
     if (error) throw error;
     if (!data.success) return res.status(400).json(data);
     res.json(data);
+    /*DKDK_CLOSE_INSTANT — des que ce vote est passe, on verifie si l'objectif de l'etape est atteint
+      et on ferme dans la foulee (sans attendre le cron). Le verrou interne empeche tout double-versement.*/
+    checkAndAdvanceRounds().catch(() => {});
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

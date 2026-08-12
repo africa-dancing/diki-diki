@@ -205,7 +205,16 @@ async function openNewBracket(track_id: string, previousBracket: any) {
 }
 
 // ── 4. Vérifier et avancer les tours (appelé par le cron) ──────────
+let _avancementEnCours = false; /*DKDK_ADVANCE_LOCK — un seul avancement/fermeture a la fois (empeche tout double-versement de cagnotte)*/
 export async function checkAndAdvanceRounds() {
+  // Verrou : si un avancement tourne deja (cron OU declenchement par un vote), on ne relance pas en parallele.
+  if (_avancementEnCours) return;
+  _avancementEnCours = true;
+  try { await _avancerToursInterne(); }
+  finally { _avancementEnCours = false; }
+}
+
+async function _avancerToursInterne() {
   // Brackets a etapes en cours : anciens 'elimination' ET nouveaux 'parcours' (classement au score) /*DKDK_ARBITRE_PARCOURS*/
   // On elargit la selection sans toucher a l'etiquette 'type' (qui sert aussi a distinguer libre/repertoire cote musique).
   const { data: brackets } = await supabase
@@ -354,6 +363,22 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
   const bracketId = bracket.id;
   const totalCag  = bracket.total_cagnotte || 0;
 
+  /*DKDK_VERROU_VERSEMENT — securite paiement : on « reserve » le bracket de facon atomique.
+    Seul l'appel qui reussit a passer le statut de 'in_progress' a 'closing' continue ; tout autre
+    appel simultane (0 ligne modifiee) s'arrete ici => aucune cagnotte versee deux fois.*/
+  {
+    const { data: reserve } = await supabase
+      .from('brackets')
+      .update({ status: 'closing' })
+      .eq('id', bracketId)
+      .eq('status', 'in_progress')
+      .select('id');
+    if (!reserve || reserve.length === 0) {
+      console.log('[DISTRIB] Bracket ' + bracketId + ' deja en cours de cloture — versement ignore (anti-double).');
+      return;
+    }
+  }
+
   /*DKDK_DISTRIB_BYTYPE*/
   // Lire tous les pourcentages depuis settings (modifiables sans toucher au code)
   const { data: rows } = await supabase.from('settings').select('key, value')
@@ -435,6 +460,37 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
   }
 
   console.log(`[DISTRIB] Bracket ${bracketId} : net=${net}, champ=${gainChampion}, 2e=${gainSecond}, 3e=${gainTroisieme}, primes=${totalPrimes}`);
+
+  /*DKDK_NOTIF_TOUS — message in-app detaille (chiffres clairs) a TOUS les candidats du challenge*/
+  try {
+    const { data: partsAll } = await supabase
+      .from('bracket_participants')
+      .select('id, user_id, users(name)')
+      .eq('bracket_id', bracketId);
+    const nom = (pid: string | null) => {
+      const p = (partsAll || []).find((x: any) => x.id === pid) as any;
+      return (p && p.users && p.users.name) ? p.users.name : 'Candidat';
+    };
+    const F = (n: number) => Math.round(n).toLocaleString('fr-FR') + ' F';
+    let recap = 'Champion : ' + nom(championId) + ' (' + F(gainChampion) + ')';
+    if (secondId && gainSecond > 0)     recap += ' | 2e : ' + nom(secondId) + ' (' + F(gainSecond) + ')';
+    if (thirdId && gainTroisieme > 0)   recap += ' | 3e : ' + nom(thirdId) + ' (' + F(gainTroisieme) + ')';
+    const commPct = Math.round(commissionPct * 100);
+    const message =
+      'Le challenge est termine ! ' + recap +
+      '. Cagnotte totale : ' + F(totalCag) +
+      ' (commission plateforme ' + commPct + '% = ' + F(totalCag * commissionPct) +
+      ', a partager : ' + F(net) + ').' +
+      (totalPrimes > 0 ? ' Primes de participation reversees aux elimines : ' + F(totalPrimes) + '.' : '') +
+      ' Merci d avoir participe !';
+    for (const p of (partsAll || [])) {
+      await supabase.from('notifications').insert({
+        user_id: p.user_id, type: 'challenge',
+        title: 'Resultats du challenge',
+        message, read: false, created_at: new Date().toISOString(),
+      });
+    }
+  } catch (e) { console.error('[NOTIF TOUS] echec bracket ' + bracketId, e); }
 
   // Fermer le bracket (podium en participant_id, convention unifiee)
   await supabase.from('brackets').update({
