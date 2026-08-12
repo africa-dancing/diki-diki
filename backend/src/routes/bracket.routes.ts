@@ -101,8 +101,13 @@ bracketRouter.get('/admin/stats', requireAuth, requireAdmin, async (_req: AuthRe
 
 // ===== RAPPORT ADMIN (back-office LECTURE SEULE) — supervision + digest quotidien /*DKDK_ADMIN_RAPPORT*/
 // Aucune ecriture : uniquement des lectures agregees. Sert de « mains » (en lecture) aux assistants IA.
-bracketRouter.get('/admin/rapport', requireAuth, requireAdmin, async (_req: AuthRequest, res: Response) => {
+bracketRouter.get('/admin/rapport', async (req: Request, res: Response) => {
   try {
+    // Auth par JETON DE LECTURE dedie (variable d'env REPORT_TOKEN). Fail-closed : refuse si non configure.
+    const fourni = (req.query.token as string) || (req.headers['x-report-token'] as string) || '';
+    if (!process.env.REPORT_TOKEN || fourni !== process.env.REPORT_TOKEN) {
+      return res.status(403).json({ success: false, error: 'Jeton de rapport invalide ou absent.' });
+    }
     const supabase = getSupabase();
 
     // Objectif par etape, indexe par nombre de candidats
