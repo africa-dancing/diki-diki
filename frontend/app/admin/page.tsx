@@ -262,6 +262,7 @@ export default function AdminPage() {
   const router = useRouter();
   const { admin } = useAdminAuth();
   const [contests,    setContests]    = useState<Contest[]>([]);
+  const [bstats,      setBstats]      = useState<any>(null); /*DKDK_ADMIN_AGG — vrais chiffres des brackets*/
   const [loading,     setLoading]     = useState(true);
   const [showCreate,  setShowCreate]  = useState(false);
   const [editContest, setEditContest] = useState<Contest|null>(null);
@@ -285,7 +286,16 @@ export default function AdminPage() {
     finally { setLoading(false); }
   }
 
-  useEffect(() => { loadContests(); }, [admin?.token]);
+  async function loadBstats() {
+    if (!admin?.token) return;
+    try {
+      const res = await fetch(`${API}/brackets/admin/stats`, { headers: { Authorization:`Bearer ${admin.token}` } });
+      const d = await res.json();
+      setBstats(d?.data ?? null);
+    } catch { /* silencieux : les chiffres restent a 0 si indispo */ }
+  }
+
+  useEffect(() => { loadContests(); loadBstats(); }, [admin?.token]);
 
   async function deleteContest(id: string, title: string) {
     if (!confirm(`Supprimer "${title}" ? Cette action est irréversible.`)) return;
@@ -316,10 +326,12 @@ export default function AdminPage() {
     } catch { showMsg('Erreur lors de la mise à jour.', 'error'); }
   }
 
-  const activeCount  = contests.filter(c => c.status === 'active').length;
-  const pendingCount = contests.filter(c => c.status === 'pending').length;
-  const endedCount   = contests.filter(c => c.status === 'ended').length;
-  const totalVotes   = contests.reduce((s,c) => s + (c.candidates ?? []).reduce((vs,cd) => vs + (cd.votes ?? 0), 0), 0);
+  /*DKDK_ADMIN_AGG — comptes issus des vrais challenges (brackets), plus des contests vides*/
+  const activeCount  = bstats?.counts?.en_cours     ?? 0;
+  const pendingCount = bstats?.counts?.en_formation ?? 0;
+  const endedCount   = bstats?.counts?.terminees    ?? 0;
+  const totalVotes   = bstats?.votes_total          ?? 0;
+  const challenges: any[] = bstats?.challenges ?? [];
 
   return (
     <AdminGuard>
@@ -333,7 +345,7 @@ export default function AdminPage() {
               <div style={{ fontSize:22, fontWeight:800, color:'#fff', fontFamily:'Syne,sans-serif', marginBottom:4 }}>⚙️ Dashboard Admin</div>
               <div style={{ fontSize:12, color:'#4a4a6a' }}>Gestion complète de la plateforme Diki-Diki</div>
             </div>
-            <button onClick={() => setShowCreate(true)}
+            <button onClick={() => router.push('/challenges/creer')}
               style={{ background:`linear-gradient(135deg,${OR},${OR2})`, border:'none', borderRadius:50, padding:'10px 22px', fontSize:13, fontWeight:700, color:'#000', cursor:'pointer', fontFamily:'DM Sans,sans-serif', display:'flex', alignItems:'center', gap:8 }}>
               🏆 + Créer un challenge
             </button>
@@ -380,55 +392,47 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Liste challenges */}
+          {/* Liste challenges — vrais challenges (brackets) /*DKDK_ADMIN_AGG*/}
           <div style={{ marginBottom:12, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div style={{ fontSize:15, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif' }}>🏆 Toutes les challenges ({contests.length})</div>
+            <div style={{ fontSize:15, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif' }}>🏆 Toutes les challenges ({challenges.length})</div>
           </div>
 
-          {loading ? (
+          {!bstats ? (
             <div style={{ textAlign:'center', padding:'60px', color:'#4a4a6a' }}>⏳ Chargement…</div>
-          ) : contests.length === 0 ? (
+          ) : challenges.length === 0 ? (
             <div style={{ textAlign:'center', padding:'60px', background:'rgba(255,255,255,0.02)', border:'1px dashed rgba(255,170,0,0.2)', borderRadius:16 }}>
               <div style={{ fontSize:40, marginBottom:12 }}>🏆</div>
               <p style={{ color:'rgba(255,255,255,0.3)', fontSize:14, marginBottom:16 }}>Aucun challenge pour l'instant.</p>
-              <button onClick={() => setShowCreate(true)}
+              <button onClick={() => router.push('/challenges/creer')}
                 style={{ background:`linear-gradient(135deg,${OR},${OR2})`, border:'none', borderRadius:50, padding:'10px 22px', fontSize:13, fontWeight:700, color:'#000', cursor:'pointer' }}>
                 + Créer la première challenge
               </button>
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              {contests.map(c => {
-                const st     = STATUS_META[c.status] ?? STATUS_META.pending;
-                const votes  = (c.candidates ?? []).reduce((s,cd) => s + (cd.votes ?? 0), 0);
-                const days   = Math.max(0, Math.ceil((new Date(c.ends_at).getTime() - Date.now()) / 86400000));
+              {challenges.map((c:any) => {
+                const stMap: Record<string, {label:string;color:string;bg:string}> = {
+                  in_progress:        { label:'⚔️ En cours',     color:'#FFAA00', bg:'rgba(255,170,0,0.12)'  },
+                  active:             { label:'⚔️ En cours',     color:'#FFAA00', bg:'rgba(255,170,0,0.12)'  },
+                  waiting_candidates: { label:'📝 En formation', color:'#4ade80', bg:'rgba(74,222,128,0.12)' },
+                  open:               { label:'📝 En formation', color:'#4ade80', bg:'rgba(74,222,128,0.12)' },
+                  ouvrir:             { label:'📝 En formation', color:'#4ade80', bg:'rgba(74,222,128,0.12)' },
+                  ouvert:             { label:'📝 En formation', color:'#4ade80', bg:'rgba(74,222,128,0.12)' },
+                  done:               { label:'🏁 Terminé',      color:'#f87171', bg:'rgba(248,113,113,0.12)'},
+                };
+                const st = stMap[c.status] ?? { label:c.status, color:'rgba(255,255,255,0.4)', bg:'rgba(255,255,255,0.05)' };
                 return (
-                  <div key={c.id} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'16px 18px', display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
+                  <div key={c.id} onClick={() => router.push('/challenges/' + c.id)}
+                    style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'16px 18px', display:'flex', alignItems:'center', gap:14, flexWrap:'wrap', cursor:'pointer' }}>
                     <div style={{ fontSize:24 }}>{DISC_EMOJI[c.discipline] ?? '🏆'}</div>
                     <div style={{ flex:1, minWidth:160 }}>
                       <div style={{ fontSize:14, fontWeight:700, color:'#fff', marginBottom:4, fontFamily:'Syne,sans-serif' }}>{c.title}</div>
                       <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
                         <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:st.bg, color:st.color }}>{st.label}</span>
-                        <span style={{ fontSize:11, color:'rgba(255,255,255,0.35)' }}>{DISC_FR[c.discipline] ?? c.discipline} · {c.comp_type}</span>
-                        {c.status !== 'ended' && <span style={{ fontSize:11, color:days<=3?'#f87171':'rgba(255,255,255,0.3)' }}>⏱ {days}j restants</span>}
-                        <span style={{ fontSize:11, color:OR }}><span style={{color:"#FF0000"}}>★</span> {fmt(votes)} votes</span>
+                        <span style={{ fontSize:11, color:'rgba(255,255,255,0.35)' }}>{c.code ? c.code : ('C' + c.max_participants)} · {DISC_FR[c.discipline] ?? c.discipline ?? '—'}</span>
+                        <span style={{ fontSize:11, color:'rgba(255,255,255,0.5)' }}>👥 {c.participants ?? 0}/{c.max_participants}</span>
+                        <span style={{ fontSize:11, color:'#f7c205', fontWeight:700 }}>🏆 {fmt(c.total_cagnotte ?? 0)} F</span>
                       </div>
-                    </div>
-                    <div style={{ display:'flex', gap:8, flexShrink:0, flexWrap:'wrap' }}>
-                      {(c.status === 'active' || c.status === 'paused') && (
-                        <button onClick={() => toggleStatus(c)}
-                          style={{ padding:'6px 12px', fontSize:11, fontWeight:700, borderRadius:8, cursor:'pointer', fontFamily:'DM Sans,sans-serif', background:c.status==='active'?'rgba(96,165,250,0.1)':'rgba(74,222,128,0.1)', border:`1px solid ${c.status==='active'?'rgba(96,165,250,0.3)':'rgba(74,222,128,0.3)'}`, color:c.status==='active'?'#60a5fa':'#4ade80' }}>
-                          {c.status === 'active' ? '⏸ Pause' : '▶ Relancer'}
-                        </button>
-                      )}
-                      <button onClick={() => setEditContest(c)}
-                        style={{ padding:'6px 12px', fontSize:11, fontWeight:700, borderRadius:8, cursor:'pointer', fontFamily:'DM Sans,sans-serif', background:'rgba(255,170,0,0.1)', border:'1px solid rgba(255,170,0,0.3)', color:OR }}>
-                        ✏️ Modifier
-                      </button>
-                      <button onClick={() => deleteContest(c.id, c.title)} disabled={deleting===c.id}
-                        style={{ padding:'6px 12px', fontSize:11, fontWeight:700, borderRadius:8, cursor:'pointer', fontFamily:'DM Sans,sans-serif', background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', color:'#f87171', opacity:deleting===c.id?0.5:1 }}>
-                        {deleting===c.id ? '⏳' : '🗑 Supprimer'}
-                      </button>
                     </div>
                   </div>
                 );

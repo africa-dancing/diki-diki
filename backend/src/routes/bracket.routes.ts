@@ -3,7 +3,7 @@ import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 /*DKDK_DEAD_ROUTES_REMOVED*/ // 3 routes non authentifiees supprimees ; checkAndAdvanceRounds reste appele par src/cron/bracket.cron.ts
 import { inscribeToArena, createArenaChallenge, checkArenaChallenge } from '../services/bracketArena.service';
-import { requireAuth, AuthRequest, requireVerified } from '../middleware/auth.middleware';
+import { requireAuth, AuthRequest, requireVerified, requireAdmin } from '../middleware/auth.middleware';
 
 const bracketRouter = Router();
 
@@ -24,6 +24,75 @@ bracketRouter.get('/', async (req: Request, res: Response) => {
       .order('created_at', { ascending: false });
     if (error) throw error;
     res.json({ success: true, data });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===== AGREGATION ADMIN (Dashboard + Statistiques) — lit les VRAIS challenges (brackets) /*DKDK_ADMIN_AGG*/
+// Remplace l'ancienne agregation basee sur les 'contests' (systeme parallele vide).
+bracketRouter.get('/admin/stats', requireAuth, requireAdmin, async (_req: AuthRequest, res: Response) => {
+  try {
+    const supabase = getSupabase();
+
+    // 1. Tous les challenges, tous statuts confondus (y compris 'done')
+    const { data: bks, error: bErr } = await supabase
+      .from('brackets')
+      .select('id, code, title, discipline, categorie, style, status, modele, current_round, total_cagnotte, commission_pct, max_participants, winner_id, created_at, ended_at, bracket_participants!bracket_participants_bracket_id_fkey(count)')
+      .order('created_at', { ascending: false });
+    if (bErr) throw bErr;
+    const brackets = bks || [];
+
+    const isEnCours     = (s: string) => s === 'in_progress' || s === 'active';
+    const isEnFormation = (s: string) => ['open', 'ouvrir', 'ouvert', 'waiting_candidates'].includes(s);
+    const isTerminee    = (s: string) => s === 'done';
+
+    let en_cours = 0, en_formation = 0, terminees = 0;
+    let total_collecte = 0, platform_cut = 0;
+    const challenges = brackets.map((b: any) => {
+      if (isEnCours(b.status)) en_cours++;
+      else if (isEnFormation(b.status)) en_formation++;
+      else if (isTerminee(b.status)) terminees++;
+      const cag  = b.total_cagnotte || 0;
+      const comm = (b.commission_pct != null ? Number(b.commission_pct) : 0.5);
+      total_collecte += cag;
+      platform_cut   += Math.round(cag * comm);
+      return {
+        id: b.id, title: b.title, code: b.code, discipline: b.discipline,
+        status: b.status, modele: b.modele, current_round: b.current_round,
+        total_cagnotte: cag, max_participants: b.max_participants,
+        participants: b.bracket_participants?.[0]?.count ?? 0,
+        winner_id: b.winner_id, created_at: b.created_at, ended_at: b.ended_at,
+      };
+    });
+    const net_cagnotte = total_collecte - platform_cut;
+
+    // 2. Total des votes exprimes (une ligne = un vote)
+    const { count: votesCount } = await supabase
+      .from('bracket_votes').select('*', { count: 'exact', head: true });
+
+    // 3. Videos (en attente + total)
+    const { count: pendingVideos } = await supabase
+      .from('videos').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+    const { count: totalVideos } = await supabase
+      .from('videos').select('*', { count: 'exact', head: true });
+
+    // 4. Utilisateurs
+    const { count: totalUsers } = await supabase
+      .from('users').select('*', { count: 'exact', head: true });
+
+    res.json({
+      success: true,
+      data: {
+        counts: { en_cours, en_formation, terminees, total: brackets.length },
+        votes_total:   votesCount   || 0,
+        finances:      { total_collecte, platform_cut, net_cagnotte },
+        pending_videos: pendingVideos || 0,
+        total_videos:   totalVideos   || 0,
+        total_users:    totalUsers    || 0,
+        challenges,
+      },
+    });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -77,20 +77,25 @@ export default function AdminStatsPage() {
   useEffect(() => {
     if (!admin?.token) return;
     setLoading(true);
-    Promise.all([
-      fetch(`${API}/contests`, { headers: { Authorization: `Bearer ${admin.token}` } })
-        .then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch(`${API}/videos?status=pending`, { headers: { Authorization: `Bearer ${admin.token}` } })
-        .then(r => r.ok ? r.json() : null).catch(() => null),
-    ]).then(([contestsData, pendingData]) => {
-      const contests       = contestsData?.contests ?? contestsData?.data ?? contestsData ?? [];
-      const activeContests = Array.isArray(contests) ? contests.filter((c: any) => c.status === 'active').length : 0;
-      const pending        = pendingData?.videos?.length ?? (Array.isArray(pendingData) ? pendingData.length : 0);
-      const totalVotes     = Array.isArray(contests) ? contests.reduce((s: number, c: any) =>
-        s + (c.candidates ?? []).reduce((vs: number, cd: any) => vs + (cd.votes ?? 0), 0), 0) : 0;
-      const revenue = totalVotes * 100;
-      setStats({ total_votes: totalVotes, total_revenue: revenue, platform_cut: revenue * 0.5, net_cagnotte: revenue * 0.5, total_users: 0, total_videos: 0, pending_videos: pending, active_contests: activeContests, operators: DEFAULT_OPERATORS });
-    }).catch(() => setError('Impossible de charger les statistiques.'))
+    // DKDK_ADMIN_AGG — on lit les VRAIS challenges (brackets) via l'agregation admin, plus les contests vides.
+    fetch(`${API}/brackets/admin/stats`, { headers: { Authorization: `Bearer ${admin.token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(res => {
+        const d = res?.data;
+        if (!d) { setError('Impossible de charger les statistiques.'); return; }
+        setStats({
+          total_votes:     d.votes_total ?? 0,
+          total_revenue:   d.finances?.total_collecte ?? 0,   // total collecte (brut)
+          platform_cut:    d.finances?.platform_cut ?? 0,     // part plateforme (commission)
+          net_cagnotte:    d.finances?.net_cagnotte ?? 0,     // cagnotte nette a partager
+          total_users:     d.total_users ?? 0,
+          total_videos:    d.total_videos ?? 0,
+          pending_videos:  d.pending_videos ?? 0,
+          active_contests: d.counts?.en_cours ?? 0,           // challenges en cours
+          operators:       DEFAULT_OPERATORS,
+        });
+      })
+      .catch(() => setError('Impossible de charger les statistiques.'))
       .finally(() => setLoading(false));
   }, [admin?.token]);
 
@@ -212,7 +217,7 @@ export default function AdminStatsPage() {
               {/* KPIs secondaires */}
               <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:10 }}>
                 {[
-                  { label:'Compétitions actives', val: String(stats.active_contests),                                           color:'#4ade80'           },
+                  { label:'Challenges en cours', val: String(stats.active_contests),                                           color:'#4ade80'           },
                   { label:'Total vidéos',          val: stats.total_videos > 0 ? fmt(stats.total_videos) : '—',                 color:'rgba(255,255,255,0.5)' },
                   { label:'Utilisateurs',          val: stats.total_users  > 0 ? fmt(stats.total_users)  : '—',                 color:'rgba(255,255,255,0.5)' },
                   { label:'Revenus totaux',        val: fmt(stats.total_revenue)+' F',                                           color:OR                  },
