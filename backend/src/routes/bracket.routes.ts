@@ -99,6 +99,90 @@ bracketRouter.get('/admin/stats', requireAuth, requireAdmin, async (_req: AuthRe
   }
 });
 
+// ===== RAPPORT ADMIN (back-office LECTURE SEULE) — supervision + digest quotidien /*DKDK_ADMIN_RAPPORT*/
+// Aucune ecriture : uniquement des lectures agregees. Sert de « mains » (en lecture) aux assistants IA.
+bracketRouter.get('/admin/rapport', requireAuth, requireAdmin, async (_req: AuthRequest, res: Response) => {
+  try {
+    const supabase = getSupabase();
+
+    // Objectif par etape, indexe par nombre de candidats
+    const { data: fmts } = await supabase.from('challenge_formats').select('nb_candidats, objectif_etape');
+    const objParCand: Record<number, number> = {};
+    (fmts || []).forEach((f: any) => { objParCand[f.nb_candidats] = f.objectif_etape || 0; });
+
+    // Tous les challenges + leurs etapes
+    const { data: bks } = await supabase
+      .from('brackets')
+      .select('id, code, title, discipline, status, current_round, total_cagnotte, max_participants, winner_id, created_at, ended_at, bracket_rounds(round, objectif_montant, montant_collecte, status)')
+      .order('created_at', { ascending: false });
+    const brackets = bks || [];
+
+    const enCours = (s: string) => s === 'in_progress' || s === 'active';
+    const enForm  = (s: string) => ['open', 'ouvrir', 'ouvert', 'waiting_candidates'].includes(s);
+    const termine = (s: string) => s === 'done';
+
+    let nbEnCours = 0, nbForm = 0, nbTermine = 0;
+    let cagEnCours = 0, cagTermine = 0;
+    const bloques: any[] = [];
+    const actifs: any[] = [];
+
+    for (const b of brackets) {
+      const cag = b.total_cagnotte || 0;
+      if (enCours(b.status)) {
+        nbEnCours++; cagEnCours += cag;
+        actifs.push({ id: b.id, title: b.title, code: b.code, discipline: b.discipline, cagnotte: cag, etape: b.current_round, max_participants: b.max_participants });
+        // Bloque = l'etape active a atteint son objectif mais le challenge n'a pas avance (ex. egalite)
+        const rActive = (b.bracket_rounds || []).find((r: any) => r.status === 'in_progress' || r.status === 'active');
+        const objetc = objParCand[b.max_participants] ?? (rActive?.objectif_montant ?? 0);
+        if (rActive && objetc > 0 && (rActive.montant_collecte || 0) >= objetc) {
+          bloques.push({ id: b.id, title: b.title, code: b.code, etape: rActive.round, collecte: rActive.montant_collecte, objectif: objetc });
+        }
+      } else if (enForm(b.status)) { nbForm++; }
+      else if (termine(b.status)) { nbTermine++; cagTermine += cag; }
+    }
+
+    // Commission plateforme (reglage)
+    const { data: cRow } = await supabase.from('settings').select('value').eq('key', 'bracket_commission_pct').maybeSingle();
+    const commissionPct = cRow ? (parseInt(cRow.value, 10) || 50) : 50;
+
+    // Total reellement verse (prix + primes) via les transactions
+    const { data: txs } = await supabase.from('transactions').select('amount').eq('type', 'bracket_win').eq('status', 'success');
+    const totalVerse = (txs || []).reduce((s: number, t: any) => s + (t.amount || 0), 0);
+
+    // Part reelle de la plateforme sur les challenges TERMINES = cagnotte(termines) - verse
+    const partPlateformeReelle = Math.max(0, cagTermine - totalVerse);
+    const pctPlateformeReel = cagTermine > 0 ? Math.round((partPlateformeReelle / cagTermine) * 1000) / 10 : null;
+
+    // Moderation + utilisateurs
+    const { count: videosAttente } = await supabase.from('videos').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+    const { count: totalUsers }    = await supabase.from('users').select('*', { count: 'exact', head: true });
+
+    res.json({
+      success: true,
+      genere_le: new Date().toISOString(),
+      data: {
+        challenges: {
+          en_cours: nbEnCours, en_formation: nbForm, termines: nbTermine, total: brackets.length,
+          bloques,   // etapes qui ont atteint l'objectif mais ne se ferment pas -> a surveiller
+          actifs,    // liste des challenges en cours
+        },
+        finances: {
+          cagnotte_en_cours: cagEnCours,
+          cagnotte_terminee: cagTermine,
+          commission_pct: commissionPct,
+          total_verse: totalVerse,                       // prix + primes deja distribues
+          part_plateforme_reelle: partPlateformeReelle,  // gardee par la plateforme (sur les termines)
+          pct_plateforme_reel: pctPlateformeReel,        // % reel garde (apres primes)
+        },
+        moderation: { videos_en_attente: videosAttente || 0 },
+        utilisateurs: totalUsers || 0,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ===== ROUTES ARENA v2 (cahier des charges v2) =====
 
 // Inscription a un challenge (user extrait du token)

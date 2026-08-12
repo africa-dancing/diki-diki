@@ -565,18 +565,34 @@ async function closeStage(bracket: any, round: any) {
   if (!aliveAll || aliveAll.length === 0) return;
   const alive = aliveAll;
 
-  /*DKDK_OBJECTIF_GATE — une etape ne se cloture pas tant que l'objectif d'argent n'est pas atteint*/
-  {
-    // Objectif du format (relie par nb de candidats = max_participants)
-    const { data: fmt } = await supabase
-      .from('challenge_formats')
-      .select('objectif_etape')
-      .eq('nb_candidats', bracket.max_participants)
+  // ── Config du format : Candidats (C), Étapes (E), Gagnants (G) + objectif d'argent /*DKDK_FORMAT_DRIVEN*/
+  //    Tout vient de « Formats de challenge » : nb_candidats / nb_etapes / objectif_etape,
+  //    et nb_gagnants (section « Objectifs Bloc groupe », constant par format).
+  const C = bracket.max_participants;
+  const { data: fmtRow } = await supabase
+    .from('challenge_formats')
+    .select('code, nb_etapes, objectif_etape')
+    .eq('nb_candidats', C)
+    .limit(1)
+    .maybeSingle();
+  const E = (fmtRow?.nb_etapes && fmtRow.nb_etapes >= 1) ? fmtRow.nb_etapes : totalRoundsFor(C);
+  const objectif = fmtRow?.objectif_etape ?? 0;
+
+  let G = nbLaureats(C); // filet de securite si la config est absente
+  if (fmtRow?.code) {
+    const { data: boRow } = await supabase
+      .from('bloc_objectifs')
+      .select('nb_gagnants')
+      .eq('format_code', fmtRow.code)
+      .order('niveau', { ascending: true })
       .limit(1)
       .maybeSingle();
-    const objectif = fmt?.objectif_etape ?? 0;
+    if (boRow?.nb_gagnants && boRow.nb_gagnants >= 1) G = boRow.nb_gagnants;
+  }
+  if (!E || E < 1) { console.log(`[CLOSE] Format inconnu pour ${C} candidats`); return; }
 
-    // Montant reellement collecte sur ce round
+  // ── Gate objectif d'argent : l'etape ne se cloture pas tant que l'objectif n'est pas atteint ──
+  {
     const { data: rnd } = await supabase
       .from('bracket_rounds')
       .select('montant_collecte')
@@ -584,142 +600,72 @@ async function closeStage(bracket: any, round: any) {
       .eq('round', currentRound)
       .maybeSingle();
     const collecte = rnd?.montant_collecte ?? 0;
-
     if (objectif > 0 && collecte < objectif) {
-      console.log(`[CLOSE] Objectif non atteint bracket ${bracketId} round ${currentRound} : ${collecte}/${objectif} -> etape maintenue ouverte`);
+      console.log(`[CLOSE] Objectif non atteint bracket ${bracketId} etape ${currentRound}/${E} : ${collecte}/${objectif}`);
       return;
     }
   }
 
-  /*DKDK_CLOSESTAGE_BRANCHED*/
-  // ── Config dynamique selon le type (max_participants) ──
-  const stage = getStageConfig(bracket.max_participants, currentRound);
-  if (!stage) { console.log(`[CLOSE] Pas de config pour max=${bracket.max_participants} round=${currentRound}`); return; }
+  // ── Planning d'elimination derive des chiffres du format : on finit PILE sur G gagnants /*DKDK_ELIM_PLAN*/
+  //    On repartit les (C - G) eliminations sur les E etapes, un peu plus tot que tard.
+  const totalElim = Math.max(0, C - G);
+  const base  = Math.floor(totalElim / E);
+  const reste = totalElim % E;
+  const elimAuTour = (r: number) => base + (r <= reste ? 1 : 0);              // r = 1..E
+  const survivantsApres = (r: number) => { let s = C; for (let i = 1; i <= r; i++) s -= elimAuTour(i); return s; };
+  if (currentRound < 1 || currentRound > E) { console.log(`[CLOSE] etape ${currentRound} hors plage (E=${E})`); return; }
 
-  // ── MATCH BRONZE (C16 round 4) : pas encore implemente, on protege ──
-  if (stage.isBronzeMatch) {
-    /*DKDK_BRONZE_PLAY*/
-    // ── Match pour la 3e place : seuls les 2 candidats final_path='bronze' jouent ──
-    const { data: duo } = await supabase
-      .from('bracket_participants')
-      .select('id, user_id, score')
-      .eq('bracket_id', bracketId)
-      .eq('final_path', 'bronze')
-      .is('eliminated_at', null)
-      .order('score', { ascending: false });
-    if (!duo || duo.length < 2) { console.log(`[CLOSE] Bronze: pas 2 candidats bronze, abandon bracket ${bracketId}`); return; }
-    if (duo[0].score === duo[1].score) {
-      console.log(`[CLOSE] Egalite bronze bracket ${bracketId} -> prolongation`);
+  const isFinale = currentRound === E;
+  const keep = survivantsApres(currentRound); // survivants apres cette etape (a la derniere etape = G)
+
+  // ── Departage : on ne ferme pas tant qu'une egalite rend le classement ambigu ──
+  //    Etape normale : ecart exige a la frontiere (dernier garde vs premier elimine).
+  //    Finale : ecart exige entre chaque place payee (1er/2e/3e) et juste en dessous.
+  const bornes: number[] = isFinale ? Array.from({ length: keep }, (_, i) => i + 1) : [keep];
+  for (const b of bornes) {
+    if (alive.length > b && alive[b - 1] && alive[b] && alive[b - 1].score === alive[b].score) {
+      console.log(`[CLOSE] Egalite a la place ${b} bracket ${bracketId} etape ${currentRound}/${E} -> prolongation`);
       return;
     }
-    const nowB = new Date().toISOString();
-    const troisieme = duo[0];
-    const quatrieme = duo[1];
-
-    await supabase.from('brackets').update({ third_id: troisieme.id }).eq('id', bracketId);
-    await supabase.from('bracket_participants').update({ eliminated_at: nowB }).eq('id', quatrieme.id);
-    await supabase.from('bracket_participants').update({ score: 0 }).eq('bracket_id', bracketId).eq('final_path', 'finale');
-
-    const finaleR = currentRound + 1;
-    await supabase.from('bracket_rounds').update({ status: 'done', ended_at: nowB }).eq('bracket_id', bracketId).eq('round', currentRound);
-    await supabase.from('bracket_rounds').update({ status: 'in_progress', started_at: nowB }).eq('bracket_id', bracketId).eq('round', finaleR);
-    await supabase.from('brackets').update({ current_round: finaleR }).eq('id', bracketId);
-
-    await supabase.from('notifications').insert({ user_id: troisieme.user_id, type: 'challenge', title: '3e place decrochee !', message: 'Bravo, tu montes sur le podium en 3e position !', read: false, created_at: nowB });
-
-    console.log(`[CLOSE] Bracket ${bracketId} bronze joue : 3e = ${troisieme.id}, finale (R${finaleR}) ouverte`);
-    return;
   }
 
-  /*DKDK_SPLIT_BRONZE*/
-  // ── Demi qui precede un match bronze (C16 R3) : router au lieu d'eliminer ──
-  if (stage.splitToBronze) {
-    if (alive.length < 4) { console.log(`[CLOSE] splitToBronze: moins de 4 candidats, abandon bracket ${bracketId}`); return; }
-    // Egalite a la 2e place (entre finaliste #2 et bronze #1) -> prolongation
-    if (alive[1].score === alive[2].score) {
-      console.log(`[CLOSE] Egalite demi/bronze bracket ${bracketId} -> prolongation`);
-      return;
-    }
-    const finalistes = alive.slice(0, 2); // chemin finale
-    const bronzes    = alive.slice(2, 4); // chemin bronze (PAS elimines)
-    const nowS = new Date().toISOString();
-
-    await supabase.from('bracket_participants').update({ final_path: 'finale', score: 0 }).in('id', finalistes.map((p: any) => p.id));
-    await supabase.from('bracket_participants').update({ final_path: 'bronze', score: 0 }).in('id', bronzes.map((p: any) => p.id));
-
-    const nextR = currentRound + 1; // round bronze
-    await supabase.from('bracket_rounds').update({ status: 'done', ended_at: nowS }).eq('bracket_id', bracketId).eq('round', currentRound);
-    await supabase.from('bracket_rounds').update({ status: 'in_progress', started_at: nowS }).eq('bracket_id', bracketId).eq('round', nextR);
-    await supabase.from('brackets').update({ current_round: nextR }).eq('id', bracketId);
-
-    for (const c of bronzes) {
-      await supabase.from('notifications').insert({ user_id: c.user_id, type: 'challenge', title: 'Match pour la 3e place !', message: 'Tu joues le match du bronze. Le gagnant monte sur le podium !', read: false, created_at: nowS });
-    }
-    for (const c of finalistes) {
-      await supabase.from('notifications').insert({ user_id: c.user_id, type: 'challenge', title: 'Qualifie pour la FINALE !', message: 'Tu es en finale. Patiente le temps du match pour la 3e place.', read: false, created_at: nowS });
-    }
-
-    console.log(`[CLOSE] Bracket ${bracketId} demi -> bronze (R${nextR}) : 2 finalistes en attente, 2 au bronze`);
-    return;
-  }
-
-  // ── Finale : 1er = champion, 2e = second ──
-  if (stage.isFinale) {
-    /*DKDK_FINALE_PATH*/
-    // Pour un type avec bronze (C16), ne garder que les finalistes (le 3e n'est pas elimine)
-    let alive = aliveAll;
-    if (stage.totalRounds === 5) {
-      alive = aliveAll.filter((p: any) => p.final_path === 'finale');
-    }
-    if (alive.length >= 2 && alive[0].score === alive[1].score) {
-      console.log(`[CLOSE] Egalite finale bracket ${bracketId} -> prolongation`);
-      return;
-    }
-    await distributeCagnotte(bracket, alive[0].id, alive[1]?.id ?? null);
-    return;
-  }
-
-  const keep = stage.keep;
-  if (!keep) return;
-
-  // ── Gestion egalite a la place limite (entre keep-1 et keep) ──
-  if (alive.length > keep) {
-    const scoreLimite = alive[keep - 1].score;
-    const scoreSuivant = alive[keep].score;
-    if (scoreLimite === scoreSuivant) {
-      console.log(`[CLOSE] Egalite place limite bracket ${bracketId} round ${currentRound} -> prolongation`);
-      return; // on prolonge l etape jusqu a ce qu un score departage
-    }
-  }
-
-  const qualifies = alive.slice(0, keep);
-  const elimines  = alive.slice(keep);
   const now = new Date().toISOString();
-
-  // ── Figer le 3e avant d eliminer (C12 : 3e auto) ──
-  if (stage.freezeThird && alive.length >= 3) {
-    const troisieme = alive[2];
-    await supabase.from('brackets').update({ third_id: troisieme.id }).eq('id', bracketId);
-  }
-
-  // Eliminer les non qualifies
+  const qualifies = alive.slice(0, keep);   // a la finale : les G gagnants, classes par score
+  const elimines  = alive.slice(keep);
   const idsElimines = elimines.map((p: any) => p.id);
   if (idsElimines.length > 0) {
     await supabase.from('bracket_participants').update({ eliminated_at: now }).in('id', idsElimines);
   }
 
-  // Reset du score des qualifies (chaque etape repart a zero)
+  // ══════════ FINALE : les G survivants sont le podium — on paie et on cloture ══════════
+  if (isFinale) {
+    if (G >= 3 && qualifies[2]) {
+      await supabase.from('brackets').update({ third_id: qualifies[2].id }).eq('id', bracketId);
+    }
+    // distributeCagnotte paie 1er/2e/3e selon le partage des Reglages, verse les primes aux elimines,
+    // envoie le recap detaille a TOUS, et cloture le bracket. forceLaureats = G (ta config).
+    await distributeCagnotte(bracket, qualifies[0].id, qualifies[1]?.id ?? null, G);
+    for (const p of elimines) {
+      await supabase.from('notifications').insert({
+        user_id: p.user_id, type: 'challenge', title: 'Fin du parcours',
+        message: `Ton parcours s'arrete a la derniere etape (${currentRound}/${E}). Merci pour ta prestation ! Ta prime de participation vient de t'etre versee.`,
+        read: false, created_at: now,
+      });
+    }
+    console.log(`[CLOSE] Bracket ${bracketId} FINALE etape ${currentRound}/${E} : ${G} gagnant(s) payes, ${idsElimines.length} elimine(s)`);
+    return;
+  }
+
+  // ══════════ ETAPE INTERMEDIAIRE : on qualifie les survivants et on ouvre l'etape suivante ══════════
   const idsQualifies = qualifies.map((p: any) => p.id);
   await supabase.from('bracket_participants').update({ score: 0 }).in('id', idsQualifies);
 
-  // Cloturer le round courant, activer le suivant
   const nextRound = currentRound + 1;
   await supabase.from('bracket_rounds').update({ status: 'done', ended_at: now }).eq('bracket_id', bracketId).eq('round', currentRound);
   await supabase.from('bracket_rounds').update({ status: 'in_progress', started_at: now }).eq('bracket_id', bracketId).eq('round', nextRound);
   await supabase.from('brackets').update({ current_round: nextRound }).eq('id', bracketId);
 
   /*DKDK_UPDATE_VIDEO_ROUND*/
-  // Mettre a jour video_id des qualifies si une video a ete soumise pour le prochain round
   for (const p of qualifies) {
     const { data: nextVid } = await supabase
       .from('bracket_participant_videos')
@@ -728,27 +674,29 @@ async function closeStage(bracket: any, round: any) {
       .eq('round_number', nextRound)
       .maybeSingle();
     if (nextVid?.video_id) {
-      await supabase
-        .from('bracket_participants')
-        .update({ video_id: nextVid.video_id })
-        .eq('id', p.id);
+      await supabase.from('bracket_participants').update({ video_id: nextVid.video_id }).eq('id', p.id);
     }
   }
 
-  // Notifier les qualifies
-  const labels = ['', 'Huitieme', 'Quart', 'Demi', 'Finale'];
   for (const p of qualifies) {
     await supabase.from('notifications').insert({
-      user_id: p.user_id,
-      type: 'challenge',
-      title: `Qualifie pour le ${labels[nextRound]} !`,
-      message: `Felicitations, tu passes au tour suivant. Nouvelle etape, les scores repartent a zero !`,
-      read: false,
-      created_at: now,
+      user_id: p.user_id, type: 'challenge',
+      title: `Qualifie pour l'etape ${nextRound}/${E} !`,
+      message: `Felicitations, tu passes a l'etape suivante. Nouvelle etape, les scores repartent a zero !`,
+      read: false, created_at: now,
     });
   }
 
-  console.log(`[CLOSE] Bracket ${bracketId} round ${currentRound} -> ${nextRound} : ${keep} qualifies, ${idsElimines.length} elimines`);
+  /*DKDK_NOTIF_ELIMINES*/
+  for (const p of elimines) {
+    await supabase.from('notifications').insert({
+      user_id: p.user_id, type: 'challenge', title: 'Fin du parcours',
+      message: `Ton parcours s'arrete a l'etape ${currentRound}/${E} (tu totalises ${p.score ?? 0} vote(s) sur cette etape). Merci pour ta prestation ! Ta prime de participation te sera versee a la cloture du challenge.`,
+      read: false, created_at: now,
+    });
+  }
+
+  console.log(`[CLOSE] Bracket ${bracketId} etape ${currentRound}/${E} -> ${nextRound} : ${keep} qualifie(s), ${idsElimines.length} elimine(s)`);
 }
 
 // ── 9. Ajouter les votes à la cagnotte ─────────────────────────────
