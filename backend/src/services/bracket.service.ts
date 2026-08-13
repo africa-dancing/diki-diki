@@ -26,43 +26,6 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/*DKDK_STAGECONFIG*/
-// ── Configuration des étapes par type (5 types de challenges) ──────
-// Discriminant = max_participants (2/4/8/12/16). NON branché pour l'instant.
-// keep = nb gardés ; isFinale = champion/2e ; isBronzeMatch = match 3e place (C16) ; freezeThird = 3e figé auto (C12).
-export interface StageConfig {
-  keep: number;
-  isFinale: boolean;
-  isBronzeMatch: boolean;
-  splitToBronze: boolean;
-  freezeThird: boolean;
-  totalRounds: number;
-}
-
-export function getStageConfig(maxParticipants: number, round: number): StageConfig | null {
-  /*DKDK_STAGECONFIG_V2 — elimination par lots : on elimine N/R candidats par round*/
-  const N = maxParticipants;
-  const R = totalRoundsFor(N);
-  if (R < 1) return null;
-  if (round < 1 || round > R) return null;
-
-  // Survivants a l'issue de chaque round : N - round * (N / R). Le dernier round laisse N/R = la finale.
-  const parLot = N / R;                 // N est garanti divisible par R (verifie a la creation)
-  const survivantsApres = (r: number) => N - r * parLot;
-
-  const isFinale = round === R;
-  const keep = isFinale ? 0 : survivantsApres(round);
-
-  return {
-    keep,
-    isFinale,
-    isBronzeMatch: false,
-    splitToBronze: false,
-    freezeThird: false,
-    totalRounds: R,
-  };
-}
-
 // Nombre de rounds d'un format = nb d'etapes. Pour l'instant deduit de N par la meme regle
 // que les formats definis (N/R entier). Le vrai nb_etapes vient de challenge_formats et sera
 // injecte par l'appelant ; ici on garde une table de secours coherente avec les 6 formats.
@@ -76,56 +39,6 @@ export function nbLaureats(N: number): number {
   if (N < 4) return 1;
   if (N <= 8) return 2;
   return 3;
-}
-
-export async function inscribeCandidatToBracket(params: {
-  track_id: string;
-  user_id: string;
-  video_id: string;
-  track_choice: string;
-}) {
-  const { track_id, user_id, video_id, track_choice } = params;
-
-  // Trouver le bracket ouvert pour ce morceau
-  const { data: bracket, error: bErr } = await supabase
-    .from('brackets')
-    .select('*')
-    .eq('track_id', track_id)
-    .eq('status', 'open')
-    .single();
-
-  if (bErr || !bracket) throw new Error('Aucun bracket ouvert pour ce morceau.');
-
-  // Vérifier doublon
-  const { data: existing } = await supabase
-    .from('bracket_participants')
-    .select('id')
-    .eq('bracket_id', bracket.id)
-    .eq('user_id', user_id)
-    .single();
-
-  if (existing) throw new Error('Tu es déjà inscrit à ce bracket.');
-
-  // Inscrire le candidat
-  const { error: insErr } = await supabase.from('bracket_participants').insert({
-    bracket_id: bracket.id, user_id, video_id,
-    track_choice, registered_at: new Date().toISOString(),
-  });
-  if (insErr) throw new Error('Erreur lors de l\'inscription.');
-
-  // Compter les inscrits
-  const { count } = await supabase
-    .from('bracket_participants')
-    .select('*', { count:'exact', head:true })
-    .eq('bracket_id', bracket.id);
-
-  // Bracket complet → fermer + tirage + ouvrir nouveau
-  if (count && count >= bracket.max_participants) {
-    await closeBracketAndStart(bracket);
-    await openNewBracket(track_id, bracket);
-  }
-
-  return { bracket_id: bracket.id, participants: count };
 }
 
 // ── 2. Fermer le bracket et démarrer les duels ─────────────────────
@@ -253,36 +166,6 @@ async function _avancerToursInterne() {
       catch (e) { console.error('[DECOMPTE BLOC] echec bracket ' + b.id, e); }
     }
   }
-}
-
-// ── 5. Résoudre un duel ────────────────────────────────────────────
-async function resolveDuel(duel: any) {
-  // Égalité → prolongation 5 jours
-  if (duel.votes_a === duel.votes_b) {
-    const newEndsAt = addDays(new Date(), OVERTIME_DAYS);
-    await supabase.from('bracket_duels').update({
-      status:  'overtime',
-      ends_at: newEndsAt.toISOString(),
-    }).eq('id', duel.id);
-
-    // Notifier les participants
-    await notifyDuelParticipants(duel, '⚖️ Égalité !', `Égalité dans votre duel ! Prolongation de ${OVERTIME_DAYS} jours.`);
-    return;
-  }
-
-  // Déterminer le gagnant
-  const winner_participant = duel.votes_a > duel.votes_b ? duel.participant_a : duel.participant_b;
-  const loser_participant  = duel.votes_a > duel.votes_b ? duel.participant_b : duel.participant_a;
-
-  await supabase.from('bracket_duels').update({
-    status:             'done',
-    winner_participant,
-    loser_participant,
-    resolved_at:        new Date().toISOString(),
-  }).eq('id', duel.id);
-
-  // Notifier gagnant et perdant
-  await notifyDuelParticipants(duel, '🏆 Duel terminé !', 'Votre duel vient de se terminer. Consultez le bracket pour voir le résultat.');
 }
 
 // ── 6. Vérifier si le tour est complet et avancer ─────────────────

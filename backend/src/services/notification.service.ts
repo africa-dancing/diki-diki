@@ -13,12 +13,8 @@ export type NotifType =
   | 'video_pending'
   | 'video_approved'
   | 'video_rejected'
-  | 'contest_joined'
   | 'vote_received'
   | 'vote_milestone'
-  | 'contest_ending_soon'
-  | 'contest_won'
-  | 'contest_lost'
   | 'wallet_credited'
   | 'wallet_low'
   | 'wallet_alert_third';
@@ -154,24 +150,6 @@ export async function notifyVideoRejected(
   );
 }
 
-// ── 6. Inscrit dans une compétition ──────────────────────
-export async function notifyContestJoined(
-  userId: string, contestTitle: string, compType: string
-): Promise<void> {
-  await notify(
-    userId,
-    'contest_joined',
-    'Compétition rejointe !',
-    `Vous participez maintenant à : ${contestTitle}. Partagez votre profil pour recevoir des votes !`,
-    `🏆 Diki-Diki\n` +
-    `Vous êtes inscrit(e) dans :\n` +
-    `"${contestTitle}" (${compType})\n` +
-    `Partagez votre profil pour collecter des votes !\n` +
-    `100 F CFA = 1 vote en votre faveur.`,
-    { contestTitle, compType }
-  );
-}
-
 // ── 7. Vote reçu ─────────────────────────────────────────
 export async function notifyVoteReceived(
   candidateId: string,
@@ -213,70 +191,6 @@ export async function notifyVoteMilestone(
     `Cagnotte actuelle : ${cagnotte.toLocaleString('fr-FR')} F CFA\n` +
     `Continuez à partager votre profil !`,
     { milestone, cagnotte }
-  );
-}
-
-// ── 9. Fin de compétition imminente (48h avant) ──────────
-export async function notifyContestEndingSoon(
-  userId:       string,
-  contestTitle: string,
-  hoursLeft:    number,
-  totalVotes:   number
-): Promise<void> {
-  await notify(
-    userId,
-    'contest_ending_soon',
-    `Plus que ${hoursLeft}h !`,
-    `La compétition "${contestTitle}" se termine dans ${hoursLeft}h. Mobilisez vos supporters !`,
-    `⏰ Diki-Diki\n` +
-    `Plus que ${hoursLeft}h pour "${contestTitle}" !\n` +
-    `${totalVotes.toLocaleString('fr-FR')} votes au total.\n` +
-    `Mobilisez vos supporters pour les derniers votes !`,
-    { contestTitle, hoursLeft, totalVotes }
-  );
-}
-
-// ── 10. Victoire ─────────────────────────────────────────
-export async function notifyContestWon(
-  userId:     string,
-  firstName:  string,
-  contestTitle: string,
-  payout:     number,
-  totalVotes: number
-): Promise<void> {
-  await notify(
-    userId,
-    'contest_won',
-    '🏆 Vous avez gagné !',
-    `Félicitations ! Vous remportez "${contestTitle}" avec ${totalVotes} votes. Gain : ${payout.toLocaleString('fr-FR')} F CFA (80% de la cagnotte).`,
-    `🏆 FÉLICITATIONS ${firstName.toUpperCase()} !\n` +
-    `Vous remportez "${contestTitle}" !\n` +
-    `${totalVotes.toLocaleString('fr-FR')} votes · Gain : ${payout.toLocaleString('fr-FR')} F CFA\n` +
-    `80% de la cagnotte vous sont attribués.\n` +
-    `Merci d'avoir participé à Diki-Diki !`,
-    { contestTitle, payout, totalVotes }
-  );
-}
-
-// ── 11. Défaite ───────────────────────────────────────────
-export async function notifyContestLost(
-  userId:       string,
-  firstName:    string,
-  contestTitle: string,
-  payout:       number,
-  totalVotes:   number
-): Promise<void> {
-  await notify(
-    userId,
-    'contest_lost',
-    'Compétition terminée',
-    `La compétition "${contestTitle}" est terminée. Vous arrivez 2e avec un gain de ${payout.toLocaleString('fr-FR')} F CFA (20%).`,
-    `🎖️ Diki-Diki\n` +
-    `"${contestTitle}" est terminée.\n` +
-    `Bravo ${firstName}, vous finissez 2e !\n` +
-    `Gain : ${payout.toLocaleString('fr-FR')} F CFA (20% de la cagnotte)\n` +
-    `Retentez votre chance dans une prochaine compétition !`,
-    { contestTitle, payout, totalVotes }
   );
 }
 
@@ -334,12 +248,8 @@ export const notifications = {
   videoSubmitted:  notifyVideoSubmitted,
   videoApproved:   notifyVideoApproved,
   videoRejected:   notifyVideoRejected,
-  contestJoined:   notifyContestJoined,
   voteReceived:    notifyVoteReceived,
   voteMilestone:   notifyVoteMilestone,
-  contestEndingSoon: notifyContestEndingSoon,
-  contestWon:      notifyContestWon,
-  contestLost:     notifyContestLost,
   walletCredited:  notifyWalletCredited,
   walletLow:       notifyWalletLow,
 };
@@ -369,17 +279,10 @@ async function checkContestsEndingSoon(): Promise<void> {
     const hoursLeft = Math.ceil(
       (new Date(contest.ends_at).getTime() - Date.now()) / (1000 * 60 * 60)
     );
-    const { count } = await supabase
+    await supabase
       .from('votes')
       .select('*', { count:'exact', head:true })
       .eq('contest_id', contest.id);
-
-    for (const cand of contest.candidates || []) {
-      if (!cand.user_id) continue;
-      await notifyContestEndingSoon(
-        cand.user_id, contest.title, hoursLeft, count || 0
-      );
-    }
   }
 }
 
