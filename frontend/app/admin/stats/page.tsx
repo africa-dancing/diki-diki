@@ -16,7 +16,6 @@ interface Stats {
   total_videos:    number;
   pending_videos:  number;
   active_contests: number;
-  operators?: { name: string; pct: number; color: string }[];
 }
 
 interface LiveData {
@@ -33,14 +32,6 @@ interface Summary {
   peak_visits:   number;
   hourly_visits: number[];
 }
-
-const DEFAULT_OPERATORS = [
-  { name: 'MTN MoMo',       pct: 42, color: '#FFD700' },
-  { name: 'Moov Money',     pct: 28, color: '#0057FF' },
-  { name: 'Carte bancaire', pct: 18, color: '#4ade80' },
-  { name: 'Orange Money',   pct:  8, color: '#FF6B00' },
-  { name: 'Autres',         pct:  4, color: '#8B2FC9' },
-];
 
 const PAGE_LABELS: Record<string, string> = {
   '/home': '🏠 Accueil', '/watch': '▶ Watch', '/compte': '👤 Compte',
@@ -92,7 +83,6 @@ export default function AdminStatsPage() {
           total_videos:    d.total_videos ?? 0,
           pending_videos:  d.pending_videos ?? 0,
           active_contests: d.counts?.en_cours ?? 0,           // challenges en cours
-          operators:       DEFAULT_OPERATORS,
         });
       })
       .catch(() => setError('Impossible de charger les statistiques.'))
@@ -229,40 +219,9 @@ export default function AdminStatsPage() {
                 ))}
               </div>
 
-              {/* Répartition + Opérateurs */}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'10px' }}>
-                  <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif', marginBottom:16 }}>Répartition des revenus</div>
-                  {[
-                    { label:'Diki-Diki (50%)',     pct:50,   val:stats.platform_cut,        color:OR        },
-                    { label:'🥇 1er prix (37.5%)', pct:37.5, val:stats.net_cagnotte * 0.75, color:'#4ade80' },
-                    { label:'🥈 2e prix (12.5%)',  pct:12.5, val:stats.net_cagnotte * 0.25, color:'#60a5fa' },
-                  ].map(r => (
-                    <div key={r.label} style={{ marginBottom:8 }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:5 }}>
-                        <span style={{ color:'#a0a0c0' }}>{r.label}</span>
-                        <span style={{ color:r.color, fontWeight:700 }}>{fmt(r.val)} F</span>
-                      </div>
-                      <div style={{ height:5, background:'rgba(255,255,255,0.05)', borderRadius:3 }}>
-                        <div style={{ height:5, borderRadius:3, width:`${r.pct * 2}%`, background:r.color }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'10px' }}>
-                  <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif', marginBottom:10 }}>Revenus par opérateur</div>
-                  {(stats.operators ?? DEFAULT_OPERATORS).map(r => (
-                    <div key={r.name} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
-                      <div style={{ fontSize:11, color:'#6a6a8a', width:110, flexShrink:0 }}>{r.name}</div>
-                      <div style={{ flex:1, height:5, background:'rgba(255,255,255,0.05)', borderRadius:3 }}>
-                        <div style={{ height:5, borderRadius:3, width:`${r.pct}%`, background:r.color }} />
-                      </div>
-                      <div style={{ fontSize:11, color:r.color, width:32, textAlign:'right' as const }}>{r.pct}%</div>
-                      <div style={{ fontSize:11, color:'#4a4a6a', width:80, textAlign:'right' as const }}>{fmt(Math.round(stats.platform_cut * r.pct / 100))} F</div>
-                    </div>
-                  ))}
-                </div>
+              {/* DKDK_STATS_FICTIF_RETIRE — blocs factices retires (repartition codee en dur + operateurs inventes). Reconstruction sur donnees reelles a venir. */}
+              <div style={{ background:'rgba(255,255,255,0.03)', border:'1px dashed rgba(255,255,255,0.12)', borderRadius:14, padding:'14px', textAlign:'center', color:'rgba(255,255,255,0.35)', fontSize:12 }}>
+                Répartition détaillée par rang et par opérateur — en cours de reconstruction sur des données réelles.
               </div>
             </>
           )}
