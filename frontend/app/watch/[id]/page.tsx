@@ -317,6 +317,7 @@ export default function WatchPage() {
   const [oneTapLoading, setOneTapLoading]   = useState(false);
   const [oneTapError, setOneTapError]       = useState('');
   const [oneTapAction, setOneTapAction]     = useState('stars');
+  const [oneTapPayUrl, setOneTapPayUrl]     = useState(''); /*DKDK_PREPAY_URL*/
   const [newComment, setNewComment]         = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
   const [copied, setCopied]                 = useState(false);
@@ -449,7 +450,24 @@ export default function WatchPage() {
         });
         const payData = await payRes.json();
         if (!payRes.ok || !payData.paymentUrl) throw new Error(payData.error || 'Erreur paiement');
-        window.location.href = payData.paymentUrl;
+        /*DKDK_PENDING_RETURN*/
+        // Contexte conserve pour le retour de FedaPay : permet un reessai
+        // en 1 clic (session MTN neuve) et un retour direct au challenge.
+        try {
+          localStorage.setItem('dkdk_pending_return', JSON.stringify({
+            participant_id: bracketData?.current_participant_id,
+            vote_type: vType,
+            qty: vQty,
+            phone: oneTapPhone,
+            returnPath: window.location.pathname,
+            ts: Date.now(),
+          }));
+        } catch {}
+        /*DKDK_PREPAY_STEP*/
+        // On ne redirige plus immediatement : on affiche d'abord une consigne
+        // pour que l'utilisateur valide son PIN sans tarder (la fenetre MTN expire vite).
+        setOneTapPayUrl(payData.paymentUrl);
+        setOneTapStep('prepay');
       } catch (e: any) { setOneTapError(e.message); }
     } catch (e: any) { setOneTapError(e.message); }
     finally { setOneTapLoading(false); }
@@ -899,12 +917,14 @@ export default function WatchPage() {
           <div style={{ background:'#12121e', border:'1px solid rgba(255,170,0,0.3)', borderRadius:20, padding:'28px 24px', maxWidth:320, width:'90%' }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize:32, textAlign:'center', marginBottom:12 }}>{oneTapAction === 'stars' ? '⭐' : '❤️'}</div>
             <h3 style={{ fontFamily:'Syne, sans-serif', fontWeight:700, fontSize:'1rem', color:'#fff', textAlign:'center', marginBottom:6 }}>
-              {oneTapStep === 'phone' ? 'Voter en 1 tap' : 'Code de confirmation'}
+              {oneTapStep === 'phone' ? 'Voter en 1 tap' : oneTapStep === 'otp' ? 'Code de confirmation' : 'Prépare ton téléphone 📲'}
             </h3>
             <p style={{ fontSize:'0.8rem', color:'rgba(255,255,255,0.45)', textAlign:'center', marginBottom:16, lineHeight:1.5 }}>
               {oneTapStep === 'phone'
                 ? 'Entrez votre numero — on cree votre compte automatiquement.'
-                : 'Code envoye au ' + oneTapPhone}
+                : oneTapStep === 'otp'
+                ? 'Code envoye au ' + oneTapPhone
+                : 'Dernière étape : le paiement Mobile Money.'}
             </p>
             {oneTapError && <div style={{ background:'rgba(255,0,0,0.12)', border:'1px solid rgba(255,0,0,0.3)', borderRadius:8, padding:'8px 12px', fontSize:12, color:'#f87171', marginBottom:10, textAlign:'center' }}>{oneTapError}</div>}
             {oneTapStep === 'phone' ? (
@@ -919,7 +939,7 @@ export default function WatchPage() {
                   {oneTapLoading ? '⏳…' : 'Recevoir le code →'}
                 </button>
               </>
-            ) : (
+            ) : oneTapStep === 'otp' ? (
               <>
                 <input
                   type="text" placeholder="123456" maxLength={6}
@@ -932,8 +952,34 @@ export default function WatchPage() {
                 </button>
                 <button onClick={() => setOneTapStep('phone')} style={{ width:'100%', background:'none', border:'none', color:'rgba(255,255,255,0.35)', fontSize:12, cursor:'pointer', marginTop:8, fontFamily:'DM Sans, sans-serif' }}>← Changer de numero</button>
               </>
+            ) : (
+              /*DKDK_PREPAY_UI*/
+              <>
+                <div style={{ background:'rgba(255,170,0,0.10)', border:'1px solid rgba(255,170,0,0.35)', borderRadius:12, padding:'12px 14px', marginBottom:14 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8, color:'#FFAA00', fontWeight:800, fontFamily:'Syne, sans-serif', fontSize:13 }}>
+                    <span style={{ fontSize:16 }}>⏱️</span> Tu as environ 60 secondes
+                  </div>
+                  <div style={{ fontSize:12.5, color:'rgba(255,255,255,0.8)', lineHeight:1.55 }}>
+                    Une demande de <b>code PIN</b> va apparaître sur ton téléphone. <b>Saisis-le tout de suite</b>, sans quitter cette page — la fenêtre de MTN expire très vite.
+                  </div>
+                </div>
+                <ol style={{ margin:'0 0 16px', padding:'0 0 0 18px', color:'rgba(255,255,255,0.6)', fontSize:12, lineHeight:1.7 }}>
+                  <li>Garde ton téléphone en main 📱</li>
+                  <li>Valide le paiement affiché par FedaPay</li>
+                  <li>Entre ton code PIN dès qu&apos;il est demandé</li>
+                </ol>
+                <button onClick={() => { if (oneTapPayUrl) window.location.href = oneTapPayUrl; }} disabled={!oneTapPayUrl}
+                  style={{ width:'100%', background:'linear-gradient(135deg,#4ade80,#16a34a)', border:'none', borderRadius:50, padding:'12px', fontSize:15, fontWeight:800, color:'#03210f', cursor:'pointer', fontFamily:'Syne, sans-serif', opacity:oneTapPayUrl ? 1 : 0.6 }}>
+                  Je suis prêt — Payer maintenant →
+                </button>
+                <div style={{ fontSize:11, color:'rgba(255,255,255,0.35)', textAlign:'center', marginTop:8, lineHeight:1.5 }}>
+                  Paiement sécurisé par Mobile Money. Aucun montant n&apos;est débité tant que tu n&apos;as pas validé ton PIN.
+                </div>
+              </>
             )}
-            <button onClick={() => { setShowOneTap(false); router.push('/auth/login'); }} style={{ width:'100%', background:'none', border:'none', color:'rgba(255,255,255,0.25)', fontSize:11, cursor:'pointer', marginTop:10, fontFamily:'DM Sans, sans-serif' }}>J ai deja un compte →</button>
+            {oneTapStep !== 'prepay' && (
+              <button onClick={() => { setShowOneTap(false); router.push('/auth/login'); }} style={{ width:'100%', background:'none', border:'none', color:'rgba(255,255,255,0.25)', fontSize:11, cursor:'pointer', marginTop:10, fontFamily:'DM Sans, sans-serif' }}>J ai deja un compte →</button>
+            )}
           </div>
         </div>
       )}

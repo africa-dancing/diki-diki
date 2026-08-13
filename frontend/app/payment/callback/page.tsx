@@ -18,6 +18,23 @@ function CallbackInner() {
 
   const [phase, setPhase]     = useState<'checking' | 'ok' | 'ko'>('checking');
   const [balance, setBalance] = useState<number | null>(null);
+  /*DKDK_CB_RETURN*/
+  // Contexte du vote conserve avant le depart vers FedaPay (page watch).
+  // S'il est present, c'etait un vote : on renvoie au challenge et on
+  // propose un reessai en 1 clic (paiement neuf) au lieu d'aller vers /recharge.
+  const [pendingReturn, setPendingReturn] = useState<any>(null);
+  const [retrying, setRetrying]           = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('dkdk_pending_return');
+      if (raw) {
+        const ctx = JSON.parse(raw);
+        // On ignore un contexte trop vieux (> 30 min) pour eviter un reessai errone.
+        if (ctx && ctx.ts && Date.now() - ctx.ts < 1800000) setPendingReturn(ctx);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     const approved = status.toLowerCase() === 'approved';
@@ -41,12 +58,50 @@ function CallbackInner() {
       } catch (_e) {
         // Silencieux : le paiement est valide, seul l affichage du solde echoue.
       }
-      if (!annule) setPhase('ok');
+      if (!annule) {
+        setPhase('ok');
+        // Succes : le contexte a rempli son role, on le nettoie.
+        try { localStorage.removeItem('dkdk_pending_return'); } catch {}
+      }
     };
 
     const t = setTimeout(lireSolde, 2500);
     return () => { annule = true; clearTimeout(t); };
   }, [status]);
+
+  /*DKDK_RETRY_1CLIC*/
+  // Reessai en 1 clic : on relance un paiement TOUT NEUF (session MTN fraiche)
+  // a partir du contexte conserve, sans redemander le numero ni l'OTP.
+  const retryVote = async () => {
+    const token = getToken();
+    if (!pendingReturn || !pendingReturn.participant_id || !token) {
+      router.push(pendingReturn?.returnPath || '/recharge');
+      return;
+    }
+    setRetrying(true);
+    try {
+      const res = await fetch(API + '/payment/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({
+          participant_id: pendingReturn.participant_id,
+          vote_type:      pendingReturn.vote_type,
+          qty:            pendingReturn.qty,
+          phone:          pendingReturn.phone,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.paymentUrl) throw new Error(data.error || 'Erreur');
+      // On rafraichit l'horodatage du contexte pour la prochaine boucle retour/reessai.
+      try {
+        localStorage.setItem('dkdk_pending_return', JSON.stringify({ ...pendingReturn, ts: Date.now() }));
+      } catch {}
+      window.location.href = data.paymentUrl;
+    } catch (_e) {
+      setRetrying(false);
+      router.push(pendingReturn?.returnPath || '/recharge');
+    }
+  };
 
   const wrap: React.CSSProperties = {
     minHeight: '100vh',
@@ -75,7 +130,7 @@ function CallbackInner() {
     return (
       <div style={wrap}>
         <LogoDikiDiki width={150} />
-        <div style={{ fontSize: 44, marginTop: 8 }}>{'\u23F3'}</div>
+        <div style={{ fontSize: 44, marginTop: 8 }}>{'⏳'}</div>
         <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 20, fontWeight: 800, color: '#FFAA00' }}>
           Confirmation en cours…
         </div>
@@ -88,12 +143,13 @@ function CallbackInner() {
 
   // ---- Paiement reussi ----
   if (phase === 'ok') {
+    const estVote = !!(pendingReturn && pendingReturn.returnPath);
     return (
       <div style={wrap}>
         <LogoDikiDiki width={150} />
-        <div style={{ fontSize: 56, marginTop: 8 }}>{'\u2705'}</div>
+        <div style={{ fontSize: 56, marginTop: 8 }}>{'✅'}</div>
         <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 24, fontWeight: 800, color: '#4ade80' }}>
-          Paiement confirme !
+          {estVote ? 'Vote confirme !' : 'Paiement confirme !'}
         </div>
         {balance !== null ? (
           <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)' }}>
@@ -104,12 +160,18 @@ function CallbackInner() {
           </div>
         ) : (
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', maxWidth: 320, lineHeight: 1.6 }}>
-            Ton compte sera credite dans quelques instants.
+            {estVote ? 'Ton vote est pris en compte.' : 'Ton compte sera credite dans quelques instants.'}
           </div>
         )}
-        <button style={btn} onClick={() => router.push('/compte')}>
-          Voir mon compte {'\u2192'}
-        </button>
+        {estVote ? (
+          <button style={btn} onClick={() => { try { localStorage.removeItem('dkdk_pending_return'); } catch {} router.push(pendingReturn.returnPath); }}>
+            Retour au challenge {'→'}
+          </button>
+        ) : (
+          <button style={btn} onClick={() => router.push('/compte')}>
+            Voir mon compte {'→'}
+          </button>
+        )}
         <button style={btnGhost} onClick={() => router.push('/home')}>
           Retour a l accueil
         </button>
@@ -118,26 +180,39 @@ function CallbackInner() {
   }
 
   // ---- Paiement echoue ou annule ----
+  const estVoteKo = !!(pendingReturn && pendingReturn.participant_id);
   return (
     <div style={wrap}>
       <LogoDikiDiki width={150} />
-      <div style={{ fontSize: 56, marginTop: 8 }}>{'\u26A0\uFE0F'}</div>
+      <div style={{ fontSize: 56, marginTop: 8 }}>{'⚠️'}</div>
       <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 22, fontWeight: 800, color: '#FF6B00' }}>
         Paiement non abouti
       </div>
       <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', maxWidth: 340, lineHeight: 1.6 }}>
-        Le paiement a ete annule ou refuse. <strong>Aucun montant n a ete debite.</strong>
+        Le paiement a ete annule ou a expire. <strong>Aucun montant n a ete debite.</strong>
         {txId ? (
           <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 8 }}>
             Reference : {txId}
           </div>
         ) : null}
       </div>
-      <button style={btn} onClick={() => router.push('/recharge')}>
-        Reessayer
-      </button>
-      <button style={btnGhost} onClick={() => router.push('/home')}>
-        Retour a l accueil
+      {estVoteKo && (
+        /*DKDK_CB_COACH*/
+        <div style={{ background:'rgba(255,170,0,0.10)', border:'1px solid rgba(255,170,0,0.35)', borderRadius:12, padding:'11px 14px', maxWidth:340, fontSize:12.5, color:'rgba(255,255,255,0.8)', lineHeight:1.55 }}>
+          <b style={{ color:'#FFAA00' }}>⏱️ Cette fois, valide vite :</b> garde ton téléphone en main et saisis ton code PIN <b>en moins d&apos;une minute</b>. La fenêtre de MTN expire très rapidement.
+        </div>
+      )}
+      {estVoteKo ? (
+        <button style={{ ...btn, background: retrying ? 'rgba(255,170,0,0.5)' : 'linear-gradient(135deg,#4ade80,#16a34a)', color:'#03210f' }} onClick={retryVote} disabled={retrying}>
+          {retrying ? '⏳…' : 'Réessayer mon vote maintenant →'}
+        </button>
+      ) : (
+        <button style={btn} onClick={() => router.push('/recharge')}>
+          Reessayer
+        </button>
+      )}
+      <button style={btnGhost} onClick={() => { try { localStorage.removeItem('dkdk_pending_return'); } catch {} router.push(estVoteKo ? pendingReturn.returnPath : '/home'); }}>
+        {estVoteKo ? 'Retour au challenge' : 'Retour a l accueil'}
       </button>
     </div>
   );

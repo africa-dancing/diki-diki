@@ -195,6 +195,8 @@ export default function RechargePage() {
         };
         throw new Error(_msgs[_code] || ('Echec de la recharge' + (_code ? ' (' + _code + ')' : '') + '.'));
       }
+      /*DKDK_CLEAR_VOTE_CTX*/ // Une recharge n'est pas un vote : on purge tout contexte de retour de vote pour eviter un mauvais libelle au callback.
+      try { localStorage.removeItem('dkdk_pending_return'); } catch {}
       if (data.paymentUrl || data.payment_url) { window.location.href = (data.paymentUrl || data.payment_url); return; } /*DKDK_PAYMENT_URL*/
       /*DKDK_NO_FAKE_SUCCESS*/
       // Le backend renvoie TOUJOURS paymentUrl en cas de succes (redirection ci-dessus).
