@@ -65,18 +65,12 @@ export default function AdminStatsPage() {
   const [periode, setPeriode] = useState<'tout' | 'mois' | 'semaine'>('tout'); /*DKDK_REPARTITION_PERIODE*/
   const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
 
-  // Bloque le scroll du body uniquement sur la page Statistiques
+  // Page Statistiques : on retire le padding-top global mais on LAISSE le defilement actif /*DKDK_STATS_SCROLL*/
   useEffect(() => {
     const b = document.body.style;
-    const prev = { overflow: b.overflow, height: b.height, paddingTop: b.paddingTop };
-    b.setProperty("overflow", "hidden", "important");
-    b.setProperty("height", "100vh", "important");
+    const prev = { paddingTop: b.paddingTop };
     b.setProperty("padding-top", "0", "important");
-    return () => {
-      b.overflow = prev.overflow;
-      b.height = prev.height;
-      b.paddingTop = prev.paddingTop;
-    };
+    return () => { b.paddingTop = prev.paddingTop; };
   }, []);
   const liveRef = useRef<NodeJS.Timeout>();
   const OR = '#FFAA00';
@@ -136,7 +130,7 @@ export default function AdminStatsPage() {
     <AdminGuard>
       <div style={{ display:'flex', minHeight:'100vh', background:'#0a0a0f' }}>
         <AdminSidebar />
-        <main style={{ flex:1, padding:'72px 16px 48px', overflowY:'auto', fontFamily:'DM Sans,sans-serif', position:'relative' }}>
+        <main style={{ flex:1, padding:'72px 16px 64px', overflow:'visible', fontFamily:'DM Sans,sans-serif', position:'relative' }}>
 
           {/* Header */}
           <div style={{ marginBottom:12 }}>
