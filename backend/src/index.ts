@@ -7,7 +7,6 @@ import educationRouter from './routes/education.routes';
 
 import {
   authRouter,
-  contestRouter,
   voteRouter,
   walletRouter,
   userRouter,
@@ -22,7 +21,7 @@ import {
 } from './routes/index.routes';
 import { videoRouter }                                  from './routes/video.routes';
 import { notificationRouter, startNotificationCron }   from './routes/notification.routes';
-import analyticsRouter                                  from './routes/analytics';
+import analyticsRouter                                  from './routes/analytics';
 import totpRouter                                        from './routes/totp.routes';       /*DKDK_TOTP*/
 import bracketRouter                                    from './routes/bracket.routes';
 import musiqueRouter                                    from './routes/musique.routes';    // ✅ déplacé ici
@@ -31,7 +30,7 @@ import monitoringRouter                                 from './routes/monitorin
 import sportRouter               from './routes/sport.routes';  /*DKDK_SPORT_IMPORT*/
 import { paysMonnaiesRouter } from './routes/paysMonnaies.routes'; /*DKDK_PAYS_MONNAIES_IMPORT*/
 import { contactRouter } from './routes/contact.routes'; /*DKDK_CONTACT_IMPORT*/
-import { startBracketCron }                             from './cron/bracket.cron';        // ✅ déplacé ici
+import { startBracketCron }                             from './cron/bracket.cron';        // ✅ déplacé ici
 import { startAnalyticsCron }                           from './cron/analytics.cron';    /*DKDK_ANALYTICS_CRON*/
 import { errorHandler }                                 from './middleware/error.middleware';
 
@@ -56,7 +55,6 @@ app.get('/health', (_req, res) => {
 
 // ── Routes ─────────────────────────────────────────────────────────
 app.use('/v1/auth',          authRouter);
-app.use('/v1/contests',      contestRouter);
 app.use('/v1/payment',       paymentRouter);
 app.use('/v1/payments',      paymentRouter); /*DKDK_PAYMENTS_ALIAS*/
 app.use('/v1/votes',         voteRouter);
@@ -91,7 +89,7 @@ app.listen(PORT, () => {
   console.log(`   PORT : ${PORT}`);
   console.log(`   ENV  : ${process.env.NODE_ENV}`);
   console.log(`   Docs : http://localhost:${PORT}/health\n`);
-  startBracketCron();       // ✅ ici, dans listen()
+  startBracketCron();       // ✅ ici, dans listen()
   startAnalyticsCron();     /*DKDK_ANALYTICS_CRON*/
   // startNotificationCron();
 })

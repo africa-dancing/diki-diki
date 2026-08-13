@@ -10,10 +10,6 @@ import { z } from 'zod';
 // ─── Auth ────────────────────────────────────────────────────
 export { authRouter } from './auth.routes';
 
-// ─── Contest ─────────────────────────────────────────────────
-import contestRoutes from './contest.routes';
-export const contestRouter = contestRoutes;
-
 // ─── Vote ────────────────────────────────────────────────────
 import { Router as VoteRouter } from 'express';
 import * as voteCtrl from '../controllers/vote.controller';
