@@ -68,7 +68,7 @@ function NotifCard({ notif, onRead, onDelete }: { notif: Notif; onRead: (id:stri
   const handleClick = () => {
     if (!notif.read) onRead(notif.id);
     if (notif.meta?.video_id)   router.push(`/watch/${notif.meta.video_id}`);
-    if (notif.meta?.contest_id) router.push(`/contests`);
+    if (notif.meta?.contest_id) router.push(`/challenges`);
   };
 
   return (

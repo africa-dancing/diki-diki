@@ -66,58 +66,6 @@ function Toggle({on,onToggle}:{on:boolean;onToggle:()=>void}) {
   return <div onClick={onToggle} style={{width:48,height:26,borderRadius:13,background:on?'#FFAA00':'rgba(255,255,255,0.1)',display:'flex',alignItems:'center',padding:3,cursor:'pointer',flexShrink:0,transition:'background 0.25s'}}><div style={{width:20,height:20,borderRadius:'50%',background:on?'#fff':'rgba(255,255,255,0.45)',marginLeft:on?'auto':0,transition:'margin 0.25s'}}/></div>;
 }
 
-function SubmissionModal({video,contests,onClose,onSuccess}:{video:{id:string;title:string;discipline?:string};contests:Contest[];onClose:()=>void;onSuccess:()=>void}) {
-  const [sel,setSel]=useState('');const [load,setLoad]=useState(false);const [err,setErr]=useState('');const [done,setDone]=useState(false);
-  const open=contests.filter(c=>c.status==='active'||c.status==='pending');
-  async function submit(){if(!sel){setErr('Choisis un challenge.');return;}setLoad(true);setErr('');try{const res=await fetch(`${API}/videos/${video.id}`,{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({status:'pending',contest_id:sel})});const d=await res.json();if(!res.ok)throw new Error(d.message??d.error??'Erreur');setDone(true);setTimeout(()=>{onSuccess();onClose();},2000);}catch(e:any){setErr(e.message);}finally{setLoad(false);}}
-  return (
-    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.78)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:16}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:'#12121e',border:'1px solid rgba(255,170,0,0.25)',borderRadius:20,width:'100%',maxWidth:460,overflow:'hidden'}}>
-        <div style={{background:'linear-gradient(135deg,rgba(255,170,0,0.1),rgba(255,107,0,0.06))',borderBottom:'1px solid rgba(255,170,0,0.15)',padding:'16px 20px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <div><div style={{fontSize:10,color:'#FFAA00',fontWeight:700,letterSpacing:'.1em',marginBottom:3}}>SOUMETTRE POUR VALIDATION</div><div style={{fontSize:16,fontWeight:800,color:'#fff',fontFamily:'Syne, sans-serif'}}>🏆 Choisir un challenge</div></div>
-          <button onClick={onClose} style={{width:28,height:28,borderRadius:'50%',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.9)',fontSize:14,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
-        </div>
-        {done?(<div style={{padding:40,textAlign:'center'}}><div style={{fontSize:44,marginBottom:12}}>🎉</div><p style={{color:'#4ade80',fontWeight:700,fontSize:15,marginBottom:6}}>Vidéo soumise pour validation !</p><p style={{color:'rgba(255,255,255,0.85)',fontSize:12,lineHeight:1.6}}>Notre équipe examinera ta vidéo sous 24 à 48h.</p></div>):(
-          <div style={{padding:'18px 20px',display:'flex',flexDirection:'column',gap:14}}>
-            <div style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:12,padding:'10px 14px',display:'flex',alignItems:'center',gap:10}}><span style={{fontSize:20}}>{DISC_EMOJI[video.discipline??'']??'🎬'}</span><div><div style={{fontSize:13,fontWeight:600,color:'#fff'}}>{video.title}</div><div style={{fontSize:11,color:'rgba(255,255,255,0.85)'}}>Brouillon → En attente de modération</div></div></div>
-            <div>
-              <label style={{display:'block',fontSize:12,fontWeight:600,color:'rgba(255,255,255,0.9)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.5px'}}>Challenge * <span style={{color:'rgba(248,113,113,0.7)',fontSize:10,textTransform:'none',fontWeight:400}}>obligatoire</span></label>
-              {open.length===0?(<div style={{background:'rgba(248,113,113,0.07)',border:'1px solid rgba(248,113,113,0.18)',borderRadius:12,padding:'12px 14px',fontSize:13,color:'#f87171'}}>⚠️ Aucun challenge ouverte en ce moment.</div>):(
-                <div style={{display:'flex',flexDirection:'column',gap:8}}>{open.map(c=>(<div key={c.id} onClick={()=>setSel(c.id)} style={{padding:'12px 14px',borderRadius:12,border:`1px solid ${sel===c.id?'#FFAA00':'rgba(255,255,255,0.1)'}`,background:sel===c.id?'rgba(255,170,0,0.08)':'rgba(255,255,255,0.03)',cursor:'pointer',display:'flex',alignItems:'center',gap:10,transition:'all .2s'}}><div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:'#fff',marginBottom:2}}>{c.title}</div><div style={{fontSize:11,color:'rgba(255,255,255,0.85)'}}>{DISC_FR[c.discipline]??c.discipline} · {c.status==='active'?'● En cours':'○ Bientôt'}</div></div><div style={{width:20,height:20,borderRadius:'50%',border:`2px solid ${sel===c.id?'#FFAA00':'rgba(255,255,255,0.2)'}`,background:sel===c.id?'#FFAA00':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{sel===c.id&&<div style={{width:8,height:8,borderRadius:'50%',background:'#000'}}/>}</div></div>))}</div>
-              )}
-            </div>
-            <div style={{background:'rgba(255,170,0,0.04)',border:'1px solid rgba(255,170,0,0.15)',borderRadius:10,padding:'10px 14px',fontSize:11,color:'rgba(255,170,0,0.7)',lineHeight:1.6}}>ℹ️ Ta vidéo sera examinée et apparaîtra dans le challenge dès son approbation.</div>
-            {err&&<div style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.25)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#f87171'}}>⚠️ {err}</div>}
-            <div style={{display:'flex',gap:10,justifyContent:'flex-end',paddingTop:4}}><button onClick={onClose} style={btnSecondary}>Annuler</button><button onClick={submit} disabled={load||!sel||open.length===0} style={{...btnPrimary,opacity:(!sel||open.length===0)?0.4:1}}>{load?'⏳ Soumission…':'✅ Soumettre pour validation'}</button></div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function InscriptionModal({contests,approvedVideos,preSelectedVideoId,onClose,onSuccess}:{contests:Contest[];approvedVideos:UserVideo[];preSelectedVideoId?:string;onClose:()=>void;onSuccess:()=>void}) {
-  const [selV,setSelV]=useState(preSelectedVideoId??'');const [selC,setSelC]=useState('');const [load,setLoad]=useState(false);const [err,setErr]=useState('');const [done,setDone]=useState(false);
-  const open=contests.filter(c=>c.status==='active'||c.status==='pending');
-  async function submit(){if(!selV||!selC){setErr('Sélectionne une vidéo et un challenge.');return;}setLoad(true);setErr('');try{const res=await fetch(`${API}/contests/${selC}/candidates`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({video_id:selV})});const d=await res.json();if(!res.ok)throw new Error(d.message??d.error??'Erreur');setDone(true);setTimeout(()=>{onSuccess();onClose();},1800);}catch(e:any){setErr(e.message);}finally{setLoad(false);}}
-  return (
-    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:16}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:'#12121e',border:'1px solid rgba(255,170,0,0.25)',borderRadius:20,width:'100%',maxWidth:480,overflow:'hidden'}}>
-        <div style={{background:'linear-gradient(135deg,rgba(255,170,0,0.1),rgba(255,107,0,0.06))',borderBottom:'1px solid rgba(255,170,0,0.15)',padding:'16px 20px',display:'flex',alignItems:'center',justifyContent:'space-between'}}><div><div style={{fontSize:10,color:'#FFAA00',fontWeight:700,letterSpacing:'.1em',marginBottom:3}}>CHALLENGE</div><div style={{fontSize:17,fontWeight:800,color:'#fff',fontFamily:'Syne, sans-serif'}}>Inscrire une vidéo 🏆</div></div><button onClick={onClose} style={{width:28,height:28,borderRadius:'50%',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.9)',fontSize:14,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button></div>
-        {done?(<div style={{padding:40,textAlign:'center'}}><div style={{fontSize:48,marginBottom:12}}>🎉</div><p style={{color:'#4ade80',fontWeight:700,fontSize:15}}>Inscription enregistrée !</p></div>):(
-          <div style={{padding:'18px 20px',display:'flex',flexDirection:'column',gap:14}}>
-            {!preSelectedVideoId&&approvedVideos.length>0&&(<div><label style={{display:'block',fontSize:12,fontWeight:600,color:'rgba(255,255,255,0.9)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.5px'}}>Vidéo approuvée</label><div style={{display:'flex',flexDirection:'column',gap:6}}>{approvedVideos.map(v=>(<div key={v.id} onClick={()=>setSelV(v.id)} style={{padding:'10px 14px',borderRadius:12,border:`1px solid ${selV===v.id?'#FFAA00':'rgba(255,255,255,0.1)'}`,background:selV===v.id?'rgba(255,170,0,0.08)':'rgba(255,255,255,0.03)',cursor:'pointer',display:'flex',alignItems:'center',gap:10}}><span style={{fontSize:20}}>{DISC_EMOJI[v.discipline??'']??'🎬'}</span><div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:'#fff'}}>{v.title}</div><div style={{fontSize:11,color:'rgba(255,255,255,0.85)'}}>{DISC_FR[v.discipline??'']??v.discipline}</div></div>{selV===v.id&&<span style={{color:'#FFAA00',fontSize:16}}>✓</span>}</div>))}</div></div>)}
-            {preSelectedVideoId&&(<div style={{padding:'10px 14px',borderRadius:12,border:'1px solid rgba(255,170,0,0.3)',background:'rgba(255,170,0,0.06)'}}><div style={{fontSize:11,color:'#FFAA00',fontWeight:700,marginBottom:3}}>VIDÉO SÉLECTIONNÉE</div><div style={{fontSize:13,color:'#fff'}}>{approvedVideos.find(v=>v.id===preSelectedVideoId)?.title??preSelectedVideoId}</div></div>)}
-            <div><label style={{display:'block',fontSize:12,fontWeight:600,color:'rgba(255,255,255,0.9)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.5px'}}>Challenge ouverte</label>{open.length===0?(<p style={{fontSize:13,color:'rgba(255,255,255,0.85)',fontStyle:'italic'}}>Aucun challenge ouverte.</p>):(<div style={{display:'flex',flexDirection:'column',gap:6}}>{open.map(c=>(<div key={c.id} onClick={()=>setSelC(c.id)} style={{padding:'10px 14px',borderRadius:12,border:`1px solid ${selC===c.id?'#FFAA00':'rgba(255,255,255,0.1)'}`,background:selC===c.id?'rgba(255,170,0,0.08)':'rgba(255,255,255,0.03)',cursor:'pointer',display:'flex',alignItems:'center',gap:10}}><span style={{fontSize:20}}>{DISC_EMOJI[c.discipline]??'🏆'}</span><div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:'#fff'}}>{c.title}</div><div style={{fontSize:11,color:'rgba(255,255,255,0.85)'}}>{DISC_FR[c.discipline]??c.discipline} · {c.comp_type}</div></div>{selC===c.id&&<span style={{color:'#FFAA00',fontSize:16}}>✓</span>}</div>))}</div>)}</div>
-            {err&&<div style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.25)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#f87171'}}>⚠️ {err}</div>}
-            <div style={{display:'flex',gap:10,justifyContent:'flex-end',paddingTop:4}}><button onClick={onClose} style={btnSecondary}>Annuler</button><button onClick={submit} disabled={load||!selV||!selC||approvedVideos.length===0} style={{...btnPrimary,opacity:(!selV||!selC||approvedVideos.length===0)?0.5:1}}>{load?'⏳ Inscription…':"🏆 S'inscrire"}</button></div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ✅ icon prop changé de string à React.ReactNode pour supporter <StarRed />
 function PrivacyRow({icon,label,desc,on,onToggle}:{icon:React.ReactNode;label:string;desc:string;on:boolean;onToggle:()=>void}) {
   return (
@@ -249,9 +197,8 @@ function EditProfileModal({profile,onClose,onSaved}:{profile:UserProfile;onClose
   );
 }
 
-function MesVideosSection({videos,loading,contests,onRefresh,router}:{videos:UserVideo[];loading:boolean;contests:Contest[];onRefresh:()=>void;router:any}) {
-  const [subId,setSubId]=useState<string|null>(null);const [insId,setInsId]=useState<string|null>(null);
-  const approved=videos.filter(v=>v.status==='approved');const drafts=videos.filter(v=>v.status==='draft');const others=videos.filter(v=>v.status!=='draft');
+function MesVideosSection({videos,loading,onRefresh,router}:{videos:UserVideo[];loading:boolean;onRefresh:()=>void;router:any}) {
+  const others=videos.filter(v=>v.status!=='draft');
   const sm=(color:string,bg:string,border:string):React.CSSProperties=>({background:bg,border:`1px solid ${border}`,borderRadius:50,padding:'5px 12px',fontSize:11,fontWeight:700,color,cursor:'pointer',fontFamily:'DM Sans,sans-serif'});
   return (
     <div>
@@ -260,7 +207,6 @@ function MesVideosSection({videos,loading,contests,onRefresh,router}:{videos:Use
         <div style={{...card,textAlign:'center',padding:'40px 20px',background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',border:'none'}}><div style={{fontSize:40,marginBottom:12}}>🎬</div><p style={{color:'rgba(255,255,255,0.9)',fontSize:14,marginBottom:16}}>Tu n'as pas encore ajouté de vidéo.</p><button onClick={()=>router.push('/submit')} style={btnPrimary}>Ajouter ma première vidéo</button></div>
       ):(
         <>
-          {drafts.length>0&&(<div style={{marginBottom:8}}><div style={{fontSize:11,fontWeight:700,color:'rgba(255,255,255,0.8)',letterSpacing:'.08em',marginBottom:8,textTransform:'uppercase'}}>📝 Brouillons — à soumettre pour validation</div>{drafts.map(v=>(<div key={v.id} style={{...card,border:'1px solid rgba(255,255,255,0.12)'}}><div style={{display:'flex',alignItems:'flex-start',gap:12}}><div style={{width:46,height:46,borderRadius:10,background:'rgba(255,255,255,0.06)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{DISC_EMOJI[v.discipline??'']??'🎬'}</div><div style={{flex:1,minWidth:0}}><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}><span style={{fontSize:14,fontWeight:700,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{v.title}</span><StatusBadge status="draft"/></div><div style={{fontSize:11,color:'rgba(255,255,255,0.85)',marginBottom:10}}>{DISC_FR[v.discipline??'']??v.discipline} · Non soumise à la modération</div><button onClick={()=>setSubId(v.id)} style={{background:'linear-gradient(135deg,#FFAA00,#FF6B00)',border:'none',borderRadius:50,padding:'7px 16px',fontSize:12,fontWeight:700,color:'#000',cursor:'pointer',fontFamily:'DM Sans,sans-serif'}}>🏆 Soumettre pour validation</button></div></div></div>))}</div>)}
           {others.map(v=>(
             <div key={v.id} style={card}>
               <div style={{display:'flex',alignItems:'flex-start',gap:12}}>
@@ -281,8 +227,6 @@ function MesVideosSection({videos,loading,contests,onRefresh,router}:{videos:Use
           ))}
         </>
       )}
-      {subId&&(()=>{const v=videos.find(x=>x.id===subId);if(!v)return null;return <SubmissionModal video={{id:v.id,title:v.title,discipline:v.discipline}} contests={contests} onClose={()=>setSubId(null)} onSuccess={()=>{setSubId(null);onRefresh();}}/>;})()}
-      {insId&&<InscriptionModal contests={contests} approvedVideos={approved} preSelectedVideoId={insId} onClose={()=>setInsId(null)} onSuccess={onRefresh}/>}
     </div>
   );
 }
@@ -328,17 +272,14 @@ export default function ComptePage() {
   const [activeTab,setActiveTab]=useState<TabId>('dashboard');
   const [profile,setProfile]=useState<UserProfile|null>(null);
   const [userVideos,setUserVideos]=useState<UserVideo[]>([]);
-  const [contests,setContests]=useState<Contest[]>([]);
   const [balance,setBalance]=useState(0);
   const [totalEarned,setTotalEarned]=useState(0);
   const [votesEmis,setVotesEmis]=useState(0);
   const [loading,setLoading]=useState(true);
   const [videosLoading,setVideosLoading]=useState(false);
   const [showEdit,setShowEdit]=useState(false);
-  const [favContests,setFavContests]=useState<string[]>(()=>typeof window==='undefined'?[]:JSON.parse(localStorage.getItem('dkdk_fav_contests')||'[]'));
   const [favCandidates,setFavCandidates]=useState<string[]>(()=>typeof window==='undefined'?[]:JSON.parse(localStorage.getItem('dkdk_fav_candidates')||'[]'));
 
-  function toggleFavContest(id:string){setFavContests(p=>{const n=p.includes(id)?p.filter(x=>x!==id):[...p,id];localStorage.setItem('dkdk_fav_contests',JSON.stringify(n));return n;});}
   function toggleFavCandidate(id:string){setFavCandidates(p=>{const n=p.includes(id)?p.filter(x=>x!==id):[...p,id];localStorage.setItem('dkdk_fav_candidates',JSON.stringify(n));return n;});}
 
   const fetchVideos=useCallback(async(userId:string)=>{
@@ -352,13 +293,12 @@ export default function ComptePage() {
     const uid=dec.userId;
     fetch(`${API}/users/${uid}/profile`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.ok?r.json():null).then(d=>{if(d)setProfile(d.profile??d);}).catch(()=>{const s=localStorage.getItem('dkdk_user');if(s){try{setProfile(JSON.parse(s));}catch{}}});
     fetchVideos(uid);
-    fetch(`${API}/contests`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.json()).then((res:any)=>{const raw:any[]=res.data||res.contests||[];setContests(raw.filter((c:any)=>c.status==='active'||c.status==='pending').map((c:any)=>({id:c.id,title:c.title,discipline:c.discipline,comp_type:c.comp_type,status:c.status,ends_at:c.ends_at,candidates:(c.candidates||[]).map((cd:any)=>({id:cd.id,name:cd.name,stage_name:cd.stage_name||cd.name,track_title:cd.track_title,track_artist:cd.track_artist,votes:cd.votes||0,percentage:50,video:cd.video?{id:cd.video.id,storage_url:cd.video.storage_url,thumbnail_url:cd.video.thumbnail_url}:undefined}))})));}).catch(()=>{}).finally(()=>setLoading(false));
+    setLoading(false);
     fetch(`${API}/votes/balance`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.json()).then((w:any)=>{setBalance(w.balance??w.wallet??0);setVotesEmis(w.votes_count??w.voteCount??0);}).catch(()=>{});
     fetch(`${API}/users/earnings`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.ok?r.json():null).then(d=>{if(d)setTotalEarned(d.total_earned??d.earnings??0);}).catch(()=>{});
   },[router,fetchVideos]);
 
   const handleLogout=()=>{localStorage.removeItem('dkdk_token');localStorage.removeItem('dkdk_user');router.push('/home');};
-  const approved=userVideos.filter(v=>v.status==='approved');
 
   return (
     <div style={{minHeight:'100vh',background:'#0a0a0f',color:'#f0f0f0',fontFamily:'DM Sans,sans-serif',paddingBottom:60}}>
@@ -371,7 +311,7 @@ export default function ComptePage() {
       <div style={{ height: 200, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', marginBottom: -200, pointerEvents: 'none' }} />
       <div style={{maxWidth:660,margin:'0 auto',padding:'20px 16px'}}>
         {activeTab==='dashboard'&&<DashboardSection profile={profile} balance={balance} votesEmis={votesEmis} totalEarned={totalEarned} videoCount={userVideos.length} onEditProfile={()=>setShowEdit(true)}/>}
-        {activeTab==='videos'&&<MesVideosSection videos={userVideos} loading={videosLoading} contests={contests} router={router} onRefresh={()=>{const t=getToken();const d=t?decodeToken(t):null;if(d?.userId)fetchVideos(d.userId);}}/>}
+        {activeTab==='videos'&&<MesVideosSection videos={userVideos} loading={videosLoading} router={router} onRefresh={()=>{const t=getToken();const d=t?decodeToken(t):null;if(d?.userId)fetchVideos(d.userId);}}/>}
         {activeTab==='competitions'&&(loading?<div style={{textAlign:'center',padding:'40px',color:'rgba(255,255,255,0.8)'}}>⏳ Chargement…</div>:<ParcoursSection/>/*DKDK_USE_PARCOURS*/)}
         {activeTab==='education'&&<EducationSection router={router}/>}
         {activeTab==='finances'&&<FinancesSection balance={balance} totalEarned={totalEarned} router={router}/>}

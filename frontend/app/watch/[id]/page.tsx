@@ -263,7 +263,6 @@ export default function WatchPage() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentVideo, setCurrentVideo]     = useState<Video | null>(null);
   const [candidates, setCandidates]         = useState<Candidate[]>([]);
-  const [otherCandidates, setOtherCandidates] = useState<Candidate[]>([]);
   const [comments, setComments]             = useState<Comment[]>([]);
   const [loading, setLoading]               = useState(true);
   const [error, setError]                   = useState<string | null>(null);
@@ -485,7 +484,7 @@ export default function WatchPage() {
       band.removeEventListener('mouseenter', onEnter);
       band.removeEventListener('mouseleave', onLeave);
     };
-  }, [otherCandidates, bracketData]);
+  }, [bracketData]);
 
   // ── Charger Compte Voter & Soutenir ──
   useEffect(() => {
@@ -595,27 +594,6 @@ export default function WatchPage() {
     } catch {}
   }, [id]);
 
-  const fetchOtherCandidates = useCallback(async () => {
-    try {
-      const res = await fetch(`${API}/contests`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const contests = data.contests ?? data ?? [];
-      const currentContestId = video?.contest_id;
-      const others: Candidate[] = [];
-      for (const contest of contests) {
-        if (contest.id === currentContestId) continue;
-        try {
-          const r = await fetch(`${API}/contests/${contest.id}/candidates`);
-          if (!r.ok) continue;
-          const d = await r.json();
-          const cands = (d.candidates ?? []).map((c: Candidate) => ({ ...c, contest_id: contest.id, discipline: contest.discipline }));
-          others.push(...cands);
-        } catch {}
-      }
-      setOtherCandidates(others);
-    } catch {}
-  }, [video?.contest_id]);
 
   const fetchComments = useCallback(async (vid: string) => {
     try {
@@ -654,7 +632,7 @@ export default function WatchPage() {
     } catch {}
   };
 
-  useEffect(() => { if (video) { fetchCandidates(); fetchOtherCandidates(); fetchComments(id); } }, [video, fetchCandidates, fetchOtherCandidates, fetchComments, id]);
+  useEffect(() => { if (video) { fetchCandidates(); fetchComments(id); } }, [video, fetchCandidates, fetchComments, id]);
 
   const goTo = (index: number) => {
     if (index < 0 || index >= competitionVideos.length) return;

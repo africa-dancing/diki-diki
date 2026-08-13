@@ -19,10 +19,6 @@ interface Video {
   track_artist?: string; created_at: string;
   user?: { name?: string; id?: string; country?: string };
 }
-interface Contest {
-  id: string; title: string; discipline: string; status: string;
-  ends_at: string; candidates: any[];
-}
 
 // ── Constants ──────────────────────────────────────────────────────
 const DISC_EMOJI: Record<string,string> = {
@@ -83,42 +79,10 @@ function VideoCard({ v, rank }: { v: Video; rank?: number }) {
   );
 }
 
-// ── ContestCard ────────────────────────────────────────────────────
-function ContestCard({ c }: { c: Contest }) {
-  const router = useRouter();
-  const days = Math.max(0, Math.ceil((new Date(c.ends_at).getTime() - Date.now()) / 86_400_000));
-  const disc = c.discipline?.toLowerCase() ?? '';
-  const totalVotes = c.candidates.reduce((s: number, cd: any) => s + (cd.votes ?? 0), 0);
-  return (
-    <div onClick={() => router.push(`/contests`)} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, padding:16, cursor:'pointer', transition:'all .2s' }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor='rgba(255,170,0,0.4)')}
-      onMouseLeave={e => (e.currentTarget.style.borderColor='rgba(255,255,255,0.08)')}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <span style={{ fontSize:22 }}>{DISC_EMOJI[disc] ?? '🏆'}</span>
-          <div>
-            <div style={{ fontSize:13, fontWeight:700, color:'#fff' }}>{c.title}</div>
-            <div style={{ fontSize:10, color:'rgba(255,255,255,0.4)' }}>{DISC_FR[disc] ?? c.discipline}</div>
-          </div>
-        </div>
-        <div style={{ textAlign:'right' as const }}>
-          <div style={{ fontSize:10, color:OR, fontWeight:700 }}>⏳ {days}j</div>
-          <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)' }}>restants</div>
-        </div>
-      </div>
-      <div style={{ display:'flex', justifyContent:'space-between', fontSize:11 }}>
-        <span style={{ color:'rgba(255,255,255,0.4)' }}>{c.candidates.length} candidat{c.candidates.length!==1?'s':''}</span>
-        <span style={{ color:OR, fontWeight:700 }}>⭐ {totalVotes.toLocaleString('fr-FR')} votes</span>
-      </div>
-    </div>
-  );
-}
-
 // ── Page principale ────────────────────────────────────────────────
 export default function ExplorePage() {
   const router = useRouter();
   const [videos,   setVideos]   = useState<Video[]>([]);
-  const [contests, setContests] = useState<Contest[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [search,   setSearch]   = useState('');
   const [disc,     setDisc]     = useState('Tous');
@@ -137,11 +101,8 @@ export default function ExplorePage() {
     setLoading(true);
     Promise.all([
       fetch(`${API}/videos/approved`).then(r=>r.ok?r.json():null).catch(()=>null),
-      fetch(`${API}/contests`).then(r=>r.ok?r.json():null).catch(()=>null),
-    ]).then(([vData, cData]) => {
+    ]).then(([vData]) => {
       setVideos(Array.isArray(vData)?vData:(vData?.videos??vData?.data??[]));
-      const raw = cData?.contests??cData?.data??cData??[];
-      setContests(Array.isArray(raw)?raw.filter((c:any)=>c.status==='active'):[]);
     }).finally(()=>setLoading(false));
   }, []);
 
@@ -236,19 +197,6 @@ export default function ExplorePage() {
                 </div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12 }}>
                   {trending.map((v,i)=><VideoCard key={v.id} v={v} rank={i+1}/>)}
-                </div>
-              </section>
-            )}
-
-            {/* ── Challenges en vedette ── */}
-            {contests.length > 0 && !search && disc==='Tous' && (
-              <section style={{ marginBottom:40 }}>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-                  <h2 style={{ fontFamily:'Syne,sans-serif', fontSize:18, fontWeight:800, color:'#fff' }}>🏆 Challenges en cours</h2>
-                  <Link href="/contests" style={{ fontSize:12, color:OR, textDecoration:'none', fontWeight:600 }}>Voir tout →</Link>
-                </div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:12 }}>
-                  {contests.slice(0,4).map(c=><ContestCard key={c.id} c={c}/>)}
                 </div>
               </section>
             )}

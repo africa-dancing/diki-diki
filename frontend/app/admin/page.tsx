@@ -8,24 +8,9 @@ import { useAdminAuth } from '../components/admin/AdminAuthContext';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR  = '#FFAA00';
 const OR2 = '#FF6B00';
-const G   = 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))';
 
-const DISCS = ['danse','chant','humour','poesie','conte','musique','instrument','acapella'];
 const DISC_EMOJI: Record<string,string> = { danse:'💃',chant:'🎤',humour:'😂',poesie:'📜',conte:'📖',musique:'🎵',instrument:'🎸',acapella:'🎙️' };
 const DISC_FR:    Record<string,string> = { danse:'Danse',chant:'Chant',humour:'Humour',poesie:'Poésie',conte:'Conte',musique:'Musique',instrument:'Instrument',acapella:'A cappella' };
-
-interface Contest {
-  id: string; title: string; discipline: string; comp_type: string;
-  status: string; ends_at: string; starts_at?: string; description?: string;
-  candidates?: { votes?: number }[];
-}
-
-const STATUS_META: Record<string,{label:string;color:string;bg:string}> = {
-  active:  { label:'● En cours',  color:'#4ade80', bg:'rgba(74,222,128,0.1)'   },
-  pending: { label:'○ À venir',   color:OR,        bg:'rgba(255,170,0,0.1)'    },
-  ended:   { label:'⏹ Terminé',  color:'#f87171', bg:'rgba(248,113,113,0.1)'  },
-  paused:  { label:'⏸ En pause', color:'#60a5fa', bg:'rgba(96,165,250,0.1)'   },
-};
 
 function fmt(n: number) { return n.toLocaleString('fr-FR'); }
 
@@ -80,211 +65,10 @@ function SanteWidget(props: { token?: string; router: any }) {
   );
 }
 
-function CreateModal({ onClose, onCreated, token }: { onClose:()=>void; onCreated:()=>void; token:string }) {
-  const [form, setForm] = useState({
-    title: '', discipline: 'danse', comp_type: 'duo',
-    starts_at: '', ends_at: '', description: '',
-  });
-  const [saving, setSaving] = useState(false);
-  const [err,    setErr]    = useState('');
-  const [done,   setDone]   = useState(false);
-
-  const inp: React.CSSProperties = {
-    width:'100%', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)',
-    borderRadius:10, padding:'10px 14px', fontSize:13, color:'#fff', outline:'none',
-    fontFamily:'DM Sans,sans-serif', boxSizing:'border-box',
-  };
-  const lbl: React.CSSProperties = {
-    display:'block', fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.5)',
-    marginBottom:5, textTransform:'uppercase', letterSpacing:'.5px',
-  };
-
-  async function submit() {
-    if (!form.title.trim()) { setErr('Le titre est requis.'); return; }
-    if (!form.ends_at)      { setErr('La date de fin est requise.'); return; }
-    setSaving(true); setErr('');
-    try {
-      const res = await fetch(`${API}/contests`, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
-        body: JSON.stringify({
-          title:       form.title.trim(),
-          discipline:  form.discipline,
-          comp_type:   form.comp_type,
-          starts_at:   form.starts_at || new Date().toISOString(),
-          ends_at:     new Date(form.ends_at).toISOString(),
-          description: form.description,
-          status:      'active',
-        }),
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.message ?? d.error ?? 'Erreur serveur');
-      setDone(true);
-      setTimeout(() => { onCreated(); onClose(); }, 1500);
-    } catch(e:any) { setErr(e.message); }
-    finally { setSaving(false); }
-  }
-
-  return (
-    <div onClick={onClose} style={{ position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:16 }}>
-      <div onClick={e=>e.stopPropagation()} style={{ background:'#12121e',border:'1px solid rgba(255,170,0,0.25)',borderRadius:20,width:'100%',maxWidth:520,overflow:'hidden' }}>
-        <div style={{ background:G,padding:'18px 22px',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-          <div style={{ fontSize:17,fontWeight:800,color:'#fff',fontFamily:'Syne,sans-serif' }}>🏆 Créer un challenge</div>
-          <button onClick={onClose} style={{ width:28,height:28,borderRadius:'50%',background:'rgba(255,255,255,0.1)',border:'none',color:'#fff',fontSize:14,cursor:'pointer' }}>✕</button>
-        </div>
-        {done ? (
-          <div style={{ padding:40,textAlign:'center' }}>
-            <div style={{ fontSize:48,marginBottom:12 }}>🎉</div>
-            <p style={{ color:'#4ade80',fontWeight:700,fontSize:15 }}>Challenge créé avec succès !</p>
-          </div>
-        ) : (
-          <div style={{ padding:'22px',display:'flex',flexDirection:'column',gap:14 }}>
-            <div><label style={lbl}>Titre *</label><input style={inp} type="text" placeholder="Ex: Battle Danse Afrobeats" value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))}/></div>
-            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:12 }}>
-              <div>
-                <label style={lbl}>Discipline *</label>
-                <select style={{...inp,cursor:'pointer'}} value={form.discipline} onChange={e=>setForm(f=>({...f,discipline:e.target.value}))}>
-                  {DISCS.map(d=><option key={d} value={d}>{DISC_EMOJI[d]} {DISC_FR[d]}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={lbl}>Type *</label>
-                <select style={{...inp,cursor:'pointer'}} value={form.comp_type} onChange={e=>setForm(f=>({...f,comp_type:e.target.value}))}>
-                  <option value="duo">Duo (2 candidats)</option>
-                  <option value="groupe">Groupe (3+)</option>
-                </select>
-              </div>
-            </div>
-            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:12 }}>
-              <div><label style={lbl}>Date de début</label><input style={inp} type="datetime-local" value={form.starts_at} onChange={e=>setForm(f=>({...f,starts_at:e.target.value}))}/></div>
-              <div><label style={lbl}>Date de fin *</label><input style={inp} type="datetime-local" value={form.ends_at} onChange={e=>setForm(f=>({...f,ends_at:e.target.value}))}/></div>
-            </div>
-            <div><label style={lbl}>Description (facultatif)</label><textarea style={{...inp,resize:'vertical',minHeight:70}} placeholder="Décrivez le challenge…" value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></div>
-            {err && <div style={{ background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.25)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#f87171' }}>⚠️ {err}</div>}
-            <div style={{ display:'flex',gap:10,justifyContent:'flex-end',paddingTop:4 }}>
-              <button onClick={onClose} style={{ background:'transparent',border:'1px solid rgba(255,255,255,0.15)',borderRadius:50,padding:'9px 18px',fontSize:13,color:'rgba(255,255,255,0.5)',cursor:'pointer',fontFamily:'DM Sans,sans-serif' }}>Annuler</button>
-              <button onClick={submit} disabled={saving} style={{ background:`linear-gradient(135deg,${OR},${OR2})`,border:'none',borderRadius:50,padding:'9px 22px',fontSize:13,fontWeight:700,color:'#000',cursor:'pointer',fontFamily:'DM Sans,sans-serif',opacity:saving?0.6:1 }}>
-                {saving ? '⏳ Création…' : '✅ Créer le challenge'}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function EditModal({ contest, onClose, onSaved, token }: { contest:Contest; onClose:()=>void; onSaved:()=>void; token:string }) {
-  const [form, setForm] = useState({
-    title:       contest.title,
-    discipline:  contest.discipline,
-    comp_type:   contest.comp_type,
-    status:      contest.status,
-    ends_at:     contest.ends_at ? new Date(contest.ends_at).toISOString().slice(0,16) : '',
-    description: contest.description ?? '',
-  });
-  const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState('');
-  const [done, setDone] = useState(false);
-
-  const inp: React.CSSProperties = { width:'100%',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#fff',outline:'none',fontFamily:'DM Sans,sans-serif',boxSizing:'border-box' };
-  const lbl: React.CSSProperties = { display:'block',fontSize:11,fontWeight:700,color:'rgba(255,255,255,0.5)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.5px' };
-
-  async function save() {
-    setSaving(true); setErr('');
-    try {
-      const res = await fetch(`${API}/contests/${contest.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
-        body: JSON.stringify({ ...form, ends_at: new Date(form.ends_at).toISOString() }),
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.message ?? 'Erreur');
-      setDone(true);
-      setTimeout(() => { onSaved(); onClose(); }, 1200);
-    } catch(e:any) { setErr(e.message); }
-    finally { setSaving(false); }
-  }
-
-  return (
-    <div onClick={onClose} style={{ position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:16 }}>
-      <div onClick={e=>e.stopPropagation()} style={{ background:'#12121e',border:'1px solid rgba(255,170,0,0.25)',borderRadius:20,width:'100%',maxWidth:520,overflow:'hidden' }}>
-        <div style={{ background:'rgba(255,170,0,0.08)',borderBottom:'1px solid rgba(255,170,0,0.2)',padding:'18px 22px',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-          <div style={{ fontSize:17,fontWeight:800,color:'#fff',fontFamily:'Syne,sans-serif' }}>✏️ Modifier le challenge</div>
-          <button onClick={onClose} style={{ width:28,height:28,borderRadius:'50%',background:'rgba(255,255,255,0.08)',border:'none',color:'#fff',fontSize:14,cursor:'pointer' }}>✕</button>
-        </div>
-        {done ? (
-          <div style={{ padding:40,textAlign:'center' }}><div style={{ fontSize:44,marginBottom:10 }}>✅</div><p style={{ color:'#4ade80',fontWeight:700 }}>Challenge mis à jour !</p></div>
-        ) : (
-          <div style={{ padding:'22px',display:'flex',flexDirection:'column',gap:14 }}>
-            <div><label style={lbl}>Titre</label><input style={inp} type="text" value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))}/></div>
-            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10 }}>
-              <div>
-                <label style={lbl}>Discipline</label>
-                <select style={{...inp,cursor:'pointer'}} value={form.discipline} onChange={e=>setForm(f=>({...f,discipline:e.target.value}))}>
-                  {DISCS.map(d=><option key={d} value={d}>{DISC_EMOJI[d]} {DISC_FR[d]}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={lbl}>Type</label>
-                <select style={{...inp,cursor:'pointer'}} value={form.comp_type} onChange={e=>setForm(f=>({...f,comp_type:e.target.value}))}>
-                  <option value="duo">Duo</option>
-                  <option value="groupe">Groupe</option>
-                </select>
-              </div>
-              <div>
-                <label style={lbl}>Statut</label>
-                <select style={{...inp,cursor:'pointer'}} value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}>
-                  <option value="pending">À venir</option>
-                  <option value="active">En cours</option>
-                  <option value="paused">En pause</option>
-                  <option value="ended">Terminé</option>
-                </select>
-              </div>
-            </div>
-            <div><label style={lbl}>Date de fin</label><input style={inp} type="datetime-local" value={form.ends_at} onChange={e=>setForm(f=>({...f,ends_at:e.target.value}))}/></div>
-            <div><label style={lbl}>Description</label><textarea style={{...inp,resize:'vertical',minHeight:60}} value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></div>
-            {err && <div style={{ background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.25)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#f87171' }}>⚠️ {err}</div>}
-            <div style={{ display:'flex',gap:10,justifyContent:'flex-end' }}>
-              <button onClick={onClose} style={{ background:'transparent',border:'1px solid rgba(255,255,255,0.15)',borderRadius:50,padding:'9px 18px',fontSize:13,color:'rgba(255,255,255,0.5)',cursor:'pointer',fontFamily:'DM Sans,sans-serif' }}>Annuler</button>
-              <button onClick={save} disabled={saving} style={{ background:`linear-gradient(135deg,${OR},${OR2})`,border:'none',borderRadius:50,padding:'9px 22px',fontSize:13,fontWeight:700,color:'#000',cursor:'pointer',fontFamily:'DM Sans,sans-serif',opacity:saving?0.6:1 }}>
-                {saving ? '⏳ Enregistrement…' : '💾 Enregistrer'}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function AdminPage() {
   const router = useRouter();
   const { admin } = useAdminAuth();
-  const [contests,    setContests]    = useState<Contest[]>([]);
-  const [bstats,      setBstats]      = useState<any>(null); /*DKDK_ADMIN_AGG — vrais chiffres des brackets*/
-  const [loading,     setLoading]     = useState(true);
-  const [showCreate,  setShowCreate]  = useState(false);
-  const [editContest, setEditContest] = useState<Contest|null>(null);
-  const [deleting,    setDeleting]    = useState<string|null>(null);
-  const [msg,         setMsg]         = useState('');
-  const [msgType,     setMsgType]     = useState<'success'|'error'>('success');
-
-  function showMsg(t: string, type: 'success'|'error' = 'success') {
-    setMsg(t); setMsgType(type);
-    setTimeout(() => setMsg(''), 4000);
-  }
-
-  async function loadContests() {
-    if (!admin?.token) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`${API}/contests`, { headers: { Authorization:`Bearer ${admin.token}` } });
-      const d = await res.json();
-      setContests(d?.contests ?? d?.data ?? d ?? []);
-    } catch { showMsg('Impossible de charger les challenges.', 'error'); }
-    finally { setLoading(false); }
-  }
+  const [bstats, setBstats] = useState<any>(null); /*DKDK_ADMIN_AGG — vrais chiffres des brackets*/
 
   async function loadBstats() {
     if (!admin?.token) return;
@@ -295,38 +79,9 @@ export default function AdminPage() {
     } catch { /* silencieux : les chiffres restent a 0 si indispo */ }
   }
 
-  useEffect(() => { loadContests(); loadBstats(); }, [admin?.token]);
+  useEffect(() => { loadBstats(); }, [admin?.token]);
 
-  async function deleteContest(id: string, title: string) {
-    if (!confirm(`Supprimer "${title}" ? Cette action est irréversible.`)) return;
-    setDeleting(id);
-    try {
-      const res = await fetch(`${API}/contests/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization:`Bearer ${admin?.token}` },
-      });
-      if (!res.ok) throw new Error();
-      setContests(prev => prev.filter(c => c.id !== id));
-      showMsg(`✓ "${title}" supprimée.`);
-    } catch { showMsg('Erreur lors de la suppression.', 'error'); }
-    finally { setDeleting(null); }
-  }
-
-  async function toggleStatus(contest: Contest) {
-    const newStatus = contest.status === 'active' ? 'paused' : 'active';
-    try {
-      const res = await fetch(`${API}/contests/${contest.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type':'application/json', Authorization:`Bearer ${admin?.token}` },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      if (!res.ok) throw new Error();
-      setContests(prev => prev.map(c => c.id === contest.id ? { ...c, status: newStatus } : c));
-      showMsg(`✓ Statut mis à jour : ${newStatus}`);
-    } catch { showMsg('Erreur lors de la mise à jour.', 'error'); }
-  }
-
-  /*DKDK_ADMIN_AGG — comptes issus des vrais challenges (brackets), plus des contests vides*/
+  /*DKDK_ADMIN_AGG — comptes issus des vrais challenges (brackets)*/
   const activeCount  = bstats?.counts?.en_cours     ?? 0;
   const pendingCount = bstats?.counts?.en_formation ?? 0;
   const endedCount   = bstats?.counts?.terminees    ?? 0;
@@ -385,14 +140,7 @@ export default function AdminPage() {
             ))}
           </div>
 
-          {/* Message */}
-          {msg && (
-            <div style={{ background:msgType==='success'?'rgba(74,222,128,0.08)':'rgba(248,113,113,0.08)', border:`1px solid ${msgType==='success'?'rgba(74,222,128,0.25)':'rgba(248,113,113,0.25)'}`, borderRadius:10, padding:'10px 16px', fontSize:12, color:msgType==='success'?'#4ade80':'#f87171', marginBottom:16 }}>
-              {msg}
-            </div>
-          )}
-
-          {/* Liste challenges — vrais challenges (brackets) /*DKDK_ADMIN_AGG*/}
+          {/* Liste challenges — vrais challenges (brackets) DKDK_ADMIN_AGG */}
           <div style={{ marginBottom:12, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ fontSize:15, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif' }}>🏆 Toutes les challenges ({challenges.length})</div>
           </div>
@@ -441,9 +189,6 @@ export default function AdminPage() {
           )}
         </main>
       </div>
-
-      {showCreate  && <CreateModal onClose={()=>setShowCreate(false)}   onCreated={loadContests} token={admin?.token??''} />}
-      {editContest && <EditModal   contest={editContest} onClose={()=>setEditContest(null)} onSaved={loadContests} token={admin?.token??''} />}
     </AdminGuard>
   );
 }

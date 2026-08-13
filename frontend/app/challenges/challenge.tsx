@@ -147,7 +147,7 @@ export default function ChallengesPage() {
           <span style={{ fontSize:'.48rem', fontWeight:700, color:'#fff', border:'1px solid rgba(255,255,255,.6)', borderRadius:3, padding:'1px 4px', letterSpacing:'.08em' }}>VISION</span>
         </Link>
         <div style={{ display:'flex', gap:10 }}>
-          <Link href="/contests" style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:50, padding:'6px 14px', fontSize:12, color:'rgba(255,255,255,0.6)', textDecoration:'none' }}>
+          <Link href="/challenges" style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:50, padding:'6px 14px', fontSize:12, color:'rgba(255,255,255,0.6)', textDecoration:'none' }}>
             🏆 Compétitions
           </Link>
           {loggedIn && (
