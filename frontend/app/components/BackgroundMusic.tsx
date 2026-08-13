@@ -26,6 +26,11 @@ export default function BackgroundMusic() {
   const [banner, setBanner]     = useState(false);   // bandeau visible
   const [videoActive, setVideoActive] = useState(false); // une vidéo joue
 
+  // Position déplaçable du bouton, mémorisée par visiteur /*DKDK_MUSIC_DRAG*/
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const drag = useRef({ on: false, moved: false, offX: 0, offY: 0, sx: 0, sy: 0 });
+  const BTN = 44;
+
   const bannerCount = useRef(0);
   const startedOnce = useRef(false);
   const mutedRef = useRef(false); /*DKDK_MUTEDREF_FIX*/
@@ -43,6 +48,22 @@ export default function BackgroundMusic() {
       if (m === '1') setMuted(true);
     } catch {}
   }, []);
+
+  // Restaure la position mémorisée du bouton
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem('dkdk_music_pos');
+      if (p) {
+        const o = JSON.parse(p);
+        if (typeof o?.x === 'number' && typeof o?.y === 'number') setPos(o);
+      }
+    } catch {}
+  }, []);
+
+  // Mémorise la position du bouton
+  useEffect(() => {
+    if (pos) { try { localStorage.setItem('dkdk_music_pos', JSON.stringify(pos)); } catch {} }
+  }, [pos]);
 
   // Charge la config musique depuis settings (pilote par /admin)
   useEffect(() => {
@@ -140,7 +161,42 @@ export default function BackgroundMusic() {
     else { setMuted(false); attemptPlay(); }
   };
 
+  // ── Glisser-déposer du bouton (le visiteur le place où il veut) ──────────
+  const onDragStart = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+    drag.current = { on: true, moved: false, offX: e.clientX - r.left, offY: e.clientY - r.top, sx: e.clientX, sy: e.clientY };
+    try { el.setPointerCapture(e.pointerId); } catch {}
+  };
+  const onDragMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = drag.current;
+    if (!d.on) return;
+    if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 5) return; // seuil : évite de bouger sur un simple clic
+    d.moved = true;
+    let nx = e.clientX - d.offX;
+    let ny = e.clientY - d.offY;
+    nx = Math.max(4, Math.min(window.innerWidth  - BTN - 4, nx));
+    ny = Math.max(4, Math.min(window.innerHeight - BTN - 4, ny));
+    setPos({ x: nx, y: ny });
+  };
+  const onDragEnd = () => { drag.current.on = false; };
+
+  const onButtonClick = () => {
+    if (drag.current.moved) { drag.current.moved = false; return; } // c'était un déplacement, pas un clic
+    setOpen(o => !o);
+  };
+
   if (!active) return null;
+
+  // Placement du mini-panneau selon la position du bouton (pour ne jamais sortir de l'écran)
+  const openUp   = pos ? pos.y > (typeof window !== 'undefined' ? window.innerHeight / 2 : 400) : true;
+  const alignRight = pos ? pos.x > (typeof window !== 'undefined' ? window.innerWidth / 2 : 400) : true;
+  const panelPos: React.CSSProperties = {
+    position: 'absolute',
+    width: 180,
+    ...(openUp ? { bottom: 56 } : { top: 56 }),
+    ...(alignRight ? { right: 0 } : { left: 0 }),
+  };
 
   return (
     <>
@@ -154,7 +210,7 @@ export default function BackgroundMusic() {
           color: '#fff', padding: '10px 14px', borderRadius: 12, maxWidth: 260,
           fontSize: 12, fontFamily: 'DM Sans, sans-serif', boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
         }}>
-          🎵 Musique d'ambiance — vous pouvez la couper ou régler le volume.
+          🎵 Musique d'ambiance — vous pouvez la couper, régler le volume, ou déplacer le bouton en le faisant glisser.
           <button onClick={() => setBanner(false)} style={{
             display: 'block', marginTop: 6, marginLeft: 'auto', background: 'rgba(255,255,255,0.2)',
             border: 'none', color: '#fff', borderRadius: 6, padding: '3px 10px', cursor: 'pointer', fontSize: 11
@@ -162,11 +218,14 @@ export default function BackgroundMusic() {
         </div>
       )}
 
-      {/* Bouton flottant + mini-panneau */}
-      <div style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 9999, fontFamily: 'DM Sans, sans-serif' }}>
+      {/* Bouton flottant (déplaçable) + mini-panneau */}
+      <div style={{
+        position: 'fixed', zIndex: 9999, fontFamily: 'DM Sans, sans-serif',
+        ...(pos ? { left: pos.x, top: pos.y } : { bottom: 16, right: 16 })
+      }}>
         {open && (
           <div style={{
-            position: 'absolute', bottom: 56, right: 0, width: 180,
+            ...panelPos,
             background: '#0a0a0f', border: '1px solid rgba(255,170,0,0.3)', borderRadius: 12,
             padding: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.4)'
           }}>
@@ -175,7 +234,7 @@ export default function BackgroundMusic() {
               <span style={{ fontSize: 12 }}>🔉</span>
               <input type="range" min={0} max={1} step={0.05} value={volume}
                 onChange={e => setVolume(Number(e.target.value))}
-                style={{ flex: 1, accentColor: '#7e0380' }} /> /*DKDK_MUSIC_MAGENTA*/
+                style={{ flex: 1, accentColor: '#7e0380' }} />
             </div>
             <button onClick={togglePlay} style={{
               width: '100%', padding: '7px', borderRadius: 8, border: 'none', cursor: 'pointer',
@@ -186,12 +245,22 @@ export default function BackgroundMusic() {
             </button>
           </div>
         )}
-        <button onClick={() => setOpen(o => !o)} aria-label="Musique d'ambiance" style={{
-          width: 44, height: 44, borderRadius: '50%', border: 'none', cursor: 'pointer',
-          background: playing ? 'linear-gradient(135deg,#FF6B00,#FFAA00)' : '#0a0a0f',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.3)', fontSize: 20, color: '#fff',
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
+        <button
+          onClick={onButtonClick}
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
+          aria-label="Musique d'ambiance (glisser pour déplacer)"
+          title="Cliquer pour ouvrir · glisser pour déplacer"
+          style={{
+            width: BTN, height: BTN, borderRadius: '50%', border: 'none', cursor: 'grab',
+            touchAction: 'none', userSelect: 'none',
+            background: playing ? 'linear-gradient(135deg,#FF6B00,#FFAA00)' : '#0a0a0f',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.3)', fontSize: 20, color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+        >
           🎵
         </button>
       </div>
