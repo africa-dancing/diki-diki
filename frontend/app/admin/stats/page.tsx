@@ -16,6 +16,12 @@ interface Stats {
   total_videos:    number;
   pending_videos:  number;
   active_contests: number;
+  // Répartition RÉELLE (lue des transactions + réglages) /*DKDK_REPARTITION_REELLE*/
+  commission_pct:  number;
+  total_verse:     number;
+  part_plateforme_reelle: number;
+  pct_plateforme_reel:    number;
+  repartition:     { rang1: number; rang2: number; rang3: number; primes: number };
 }
 
 interface LiveData {
@@ -83,6 +89,11 @@ export default function AdminStatsPage() {
           total_videos:    d.total_videos ?? 0,
           pending_videos:  d.pending_videos ?? 0,
           active_contests: d.counts?.en_cours ?? 0,           // challenges en cours
+          commission_pct:  d.finances?.commission_pct ?? 50,
+          total_verse:     d.finances?.total_verse ?? 0,
+          part_plateforme_reelle: d.finances?.part_plateforme_reelle ?? 0,
+          pct_plateforme_reel:    d.finances?.pct_plateforme_reel ?? 0,
+          repartition:     d.finances?.repartition ?? { rang1:0, rang2:0, rang3:0, primes:0 },
         });
       })
       .catch(() => setError('Impossible de charger les statistiques.'))
@@ -219,9 +230,61 @@ export default function AdminStatsPage() {
                 ))}
               </div>
 
-              {/* DKDK_STATS_FICTIF_RETIRE — blocs factices retires (repartition codee en dur + operateurs inventes). Reconstruction sur donnees reelles a venir. */}
-              <div style={{ background:'rgba(255,255,255,0.03)', border:'1px dashed rgba(255,255,255,0.12)', borderRadius:14, padding:'14px', textAlign:'center', color:'rgba(255,255,255,0.35)', fontSize:12 }}>
-                Répartition détaillée par rang et par opérateur — en cours de reconstruction sur des données réelles.
+              {/* Répartition RÉELLE des revenus — DKDK_REPARTITION_REELLE (transactions + réglages) */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                {/* Où va l'argent collecté (part réelle plateforme vs reversé) */}
+                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'12px' }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif', marginBottom:14 }}>Où va l'argent collecté</div>
+                  {(() => {
+                    const collecte = stats.total_revenue || 0;
+                    const pctOf = (v:number) => collecte>0 ? Math.round((v/collecte)*100) : 0;
+                    const rows = [
+                      { label:'🏦 Plateforme (réel)',        val: stats.part_plateforme_reelle, pct: stats.pct_plateforme_reel, color:OR        },
+                      { label:'🏆 Reversé aux candidats',    val: stats.total_verse,            pct: pctOf(stats.total_verse), color:'#4ade80' },
+                    ];
+                    return rows.map(r => (
+                      <div key={r.label} style={{ marginBottom:10 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:5 }}>
+                          <span style={{ color:'#a0a0c0' }}>{r.label}</span>
+                          <span style={{ color:r.color, fontWeight:700 }}>{fmt(r.val)} F · {r.pct}%</span>
+                        </div>
+                        <div style={{ height:6, background:'rgba(255,255,255,0.05)', borderRadius:3 }}>
+                          <div style={{ height:6, borderRadius:3, width:`${Math.min(100, r.pct)}%`, background:r.color }} />
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                  <div style={{ fontSize:10.5, color:'rgba(255,255,255,0.4)', marginTop:6, lineHeight:1.5 }}>
+                    Commission affichée : {stats.commission_pct}%. La plateforme conserve réellement {stats.pct_plateforme_reel}% — les primes des éliminés sont prélevées sur la commission (Modèle B).
+                  </div>
+                </div>
+
+                {/* Détail des versements par rang + primes */}
+                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'12px' }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif', marginBottom:14 }}>Détail des versements</div>
+                  {(() => {
+                    const totV = stats.total_verse || 0;
+                    const pctOf = (v:number) => totV>0 ? Math.round((v/totV)*100) : 0;
+                    if (totV <= 0) return <div style={{ fontSize:12, color:'rgba(255,255,255,0.3)', textAlign:'center', padding:'16px 0' }}>Aucune distribution effectuée pour l'instant.</div>;
+                    const rows = [
+                      { label:'🥇 1er prix',              val: stats.repartition.rang1,  color:'#FFD700' },
+                      { label:'🥈 2e prix',               val: stats.repartition.rang2,  color:'#c0c0c0' },
+                      { label:'🥉 3e prix',               val: stats.repartition.rang3,  color:'#cd7f32' },
+                      { label:'🎗️ Primes des éliminés',   val: stats.repartition.primes, color:'#f472b6' },
+                    ];
+                    return rows.map(r => (
+                      <div key={r.label} style={{ marginBottom:9 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:5 }}>
+                          <span style={{ color:'#a0a0c0' }}>{r.label}</span>
+                          <span style={{ color:r.color, fontWeight:700 }}>{fmt(r.val)} F · {pctOf(r.val)}%</span>
+                        </div>
+                        <div style={{ height:6, background:'rgba(255,255,255,0.05)', borderRadius:3 }}>
+                          <div style={{ height:6, borderRadius:3, width:`${Math.min(100, pctOf(r.val))}%`, background:r.color }} />
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
               </div>
             </>
           )}

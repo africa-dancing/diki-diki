@@ -68,6 +68,29 @@ bracketRouter.get('/admin/stats', requireAuth, requireAdmin, async (_req: AuthRe
     });
     const net_cagnotte = total_collecte - platform_cut;
 
+    // 1bis. Repartition REELLE des revenus, lue depuis les transactions reellement versees /*DKDK_REPARTITION_REELLE*/
+    const { data: winTx } = await supabase
+      .from('transactions')
+      .select('amount, metadata')
+      .eq('type', 'bracket_win')
+      .eq('status', 'success');
+    let verse_rang1 = 0, verse_rang2 = 0, verse_rang3 = 0, primes_elimines = 0, total_verse = 0;
+    for (const t of (winTx || [])) {
+      const m = Number((t as any).amount) || 0;
+      total_verse += m;
+      const rang = ((t as any).metadata && (t as any).metadata.rang) || '';
+      if      (rang === '1ere place')            verse_rang1     += m;
+      else if (rang === '2e place')              verse_rang2     += m;
+      else if (rang === '3e place')              verse_rang3     += m;
+      else if (rang === 'Prime de participation') primes_elimines += m;
+    }
+    // Commission affichee (lue des reglages, pas codee en dur)
+    const { data: commRow } = await supabase.from('settings').select('value').eq('key', 'bracket_commission_pct').maybeSingle();
+    const commission_pct = commRow ? (parseInt(commRow.value, 10) || 50) : 50;
+    // Part REELLEMENT conservee par la plateforme (Modele B : primes des elimines prelevees sur la commission)
+    const part_plateforme_reelle = Math.max(0, total_collecte - total_verse);
+    const pct_plateforme_reel = total_collecte > 0 ? Math.round((part_plateforme_reelle / total_collecte) * 100) : 0;
+
     // 2. Total des votes exprimes (une ligne = un vote)
     const { count: votesCount } = await supabase
       .from('bracket_votes').select('*', { count: 'exact', head: true });
@@ -87,7 +110,13 @@ bracketRouter.get('/admin/stats', requireAuth, requireAdmin, async (_req: AuthRe
       data: {
         counts: { en_cours, en_formation, terminees, total: brackets.length },
         votes_total:   votesCount   || 0,
-        finances:      { total_collecte, platform_cut, net_cagnotte },
+        finances:      {
+          total_collecte, platform_cut, net_cagnotte,
+          commission_pct,
+          total_verse,
+          part_plateforme_reelle, pct_plateforme_reel,
+          repartition: { rang1: verse_rang1, rang2: verse_rang2, rang3: verse_rang3, primes: primes_elimines },
+        },
         pending_videos: pendingVideos || 0,
         total_videos:   totalVideos   || 0,
         total_users:    totalUsers    || 0,
