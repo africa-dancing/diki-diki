@@ -49,7 +49,7 @@ bracketRouter.get('/admin/stats', requireAuth, requireAdmin, async (_req: AuthRe
     const isTerminee    = (s: string) => s === 'done';
 
     let en_cours = 0, en_formation = 0, terminees = 0;
-    let total_collecte = 0, platform_cut = 0;
+    let total_collecte = 0, platform_cut = 0, collecte_termine = 0;
     const challenges = brackets.map((b: any) => {
       if (isEnCours(b.status)) en_cours++;
       else if (isEnFormation(b.status)) en_formation++;
@@ -58,6 +58,7 @@ bracketRouter.get('/admin/stats', requireAuth, requireAdmin, async (_req: AuthRe
       const comm = (b.commission_pct != null ? Number(b.commission_pct) : 0.5);
       total_collecte += cag;
       platform_cut   += Math.round(cag * comm);
+      if (isTerminee(b.status)) collecte_termine += cag;
       return {
         id: b.id, title: b.title, code: b.code, discipline: b.discipline,
         status: b.status, modele: b.modele, current_round: b.current_round,
@@ -68,28 +69,54 @@ bracketRouter.get('/admin/stats', requireAuth, requireAdmin, async (_req: AuthRe
     });
     const net_cagnotte = total_collecte - platform_cut;
 
-    // 1bis. Repartition REELLE des revenus, lue depuis les transactions reellement versees /*DKDK_REPARTITION_REELLE*/
+    // 1bis. Repartition REELLE, lue depuis les transactions versees, groupee par challenge /*DKDK_REPARTITION_REELLE*/
     const { data: winTx } = await supabase
       .from('transactions')
       .select('amount, metadata')
       .eq('type', 'bracket_win')
       .eq('status', 'success');
-    let verse_rang1 = 0, verse_rang2 = 0, verse_rang3 = 0, primes_elimines = 0, total_verse = 0;
+    type Agg = { rang1: number; rang2: number; rang3: number; primes: number; verse: number };
+    const vide = (): Agg => ({ rang1: 0, rang2: 0, rang3: 0, primes: 0, verse: 0 });
+    const cumul: Agg = vide();
+    const parBracket: Record<string, Agg> = {};
     for (const t of (winTx || [])) {
       const m = Number((t as any).amount) || 0;
-      total_verse += m;
-      const rang = ((t as any).metadata && (t as any).metadata.rang) || '';
-      if      (rang === '1ere place')            verse_rang1     += m;
-      else if (rang === '2e place')              verse_rang2     += m;
-      else if (rang === '3e place')              verse_rang3     += m;
-      else if (rang === 'Prime de participation') primes_elimines += m;
+      const meta = (t as any).metadata || {};
+      const bid: string = meta.bracket_id || '';
+      const rang: string = meta.rang || '';
+      const a = parBracket[bid] || (parBracket[bid] = vide());
+      cumul.verse += m; a.verse += m;
+      if      (rang === '1ere place')             { cumul.rang1 += m; a.rang1 += m; }
+      else if (rang === '2e place')               { cumul.rang2 += m; a.rang2 += m; }
+      else if (rang === '3e place')               { cumul.rang3 += m; a.rang3 += m; }
+      else if (rang === 'Prime de participation') { cumul.primes += m; a.primes += m; }
     }
+    const total_verse = cumul.verse;
+
     // Commission affichee (lue des reglages, pas codee en dur)
     const { data: commRow } = await supabase.from('settings').select('value').eq('key', 'bracket_commission_pct').maybeSingle();
     const commission_pct = commRow ? (parseInt(commRow.value, 10) || 50) : 50;
-    // Part REELLEMENT conservee par la plateforme (Modele B : primes des elimines prelevees sur la commission)
-    const part_plateforme_reelle = Math.max(0, total_collecte - total_verse);
-    const pct_plateforme_reel = total_collecte > 0 ? Math.round((part_plateforme_reelle / total_collecte) * 100) : 0;
+
+    // Part REELLE plateforme : UNIQUEMENT sur les challenges TERMINES (les cagnottes en cours ne sont pas encore distribuees) /*DKDK_PART_REELLE_TERMINES*/
+    const part_plateforme_reelle = Math.max(0, collecte_termine - total_verse);
+    const pct_plateforme_reel = collecte_termine > 0 ? Math.round((part_plateforme_reelle / collecte_termine) * 100) : 0;
+
+    // Detail par challenge termine (pour le tableau + filtre par periode cote page)
+    const par_challenge = challenges
+      .filter((c: any) => c.status === 'done')
+      .map((c: any) => {
+        const a = parBracket[c.id] || vide();
+        const collecte = c.total_cagnotte || 0;
+        const part = Math.max(0, collecte - a.verse);
+        return {
+          id: c.id, title: c.title, code: c.code, discipline: c.discipline,
+          date: c.ended_at || c.created_at,
+          collecte, verse: a.verse,
+          part_plateforme: part,
+          pct: collecte > 0 ? Math.round((part / collecte) * 100) : 0,
+          rang1: a.rang1, rang2: a.rang2, rang3: a.rang3, primes: a.primes,
+        };
+      });
 
     // 2. Total des votes exprimes (une ligne = un vote)
     const { count: votesCount } = await supabase
@@ -112,10 +139,12 @@ bracketRouter.get('/admin/stats', requireAuth, requireAdmin, async (_req: AuthRe
         votes_total:   votesCount   || 0,
         finances:      {
           total_collecte, platform_cut, net_cagnotte,
+          collecte_termine,
           commission_pct,
           total_verse,
           part_plateforme_reelle, pct_plateforme_reel,
-          repartition: { rang1: verse_rang1, rang2: verse_rang2, rang3: verse_rang3, primes: primes_elimines },
+          repartition: { rang1: cumul.rang1, rang2: cumul.rang2, rang3: cumul.rang3, primes: cumul.primes },
+          par_challenge,
         },
         pending_videos: pendingVideos || 0,
         total_videos:   totalVideos   || 0,
