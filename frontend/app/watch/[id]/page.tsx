@@ -472,9 +472,15 @@ export default function WatchPage() {
     band.addEventListener('mouseleave', onLeave);
     const step = () => {
       if (!paused) {
-        pos -= 1.5;
-        if (track.scrollWidth > 0 && pos <= -track.scrollWidth) pos = band.clientWidth; /*DKDK_MQ_GUARD*/
-        track.style.transform = 'translateX(' + pos + 'px)';
+        /*DKDK_MQ_STATIC — si tout tient dans la bande (peu de candidats), pas de defilement : affichage statique, plus d'empilement au bord*/
+        if (track.scrollWidth <= band.clientWidth) {
+          track.style.transform = 'translateX(0px)';
+          pos = band.clientWidth;
+        } else {
+          pos -= 1.5;
+          if (track.scrollWidth > 0 && pos <= -track.scrollWidth) pos = band.clientWidth; /*DKDK_MQ_GUARD*/
+          track.style.transform = 'translateX(' + pos + 'px)';
+        }
       }
       raf = requestAnimationFrame(step);
     };
@@ -1145,6 +1151,9 @@ export default function WatchPage() {
   const fmt = (n: number) => n.toLocaleString("fr-FR");
   /*DKDK_ROUNDLABEL_USE1*/
   const rl = getRoundLabel(b.max_participants ?? 16, b.current_round);
+  // Egalite au sommet du classement -> departage en cours (DKDK_EGALITE)
+  const _aliveTri = (bracketData.pool ?? []).filter((p: any) => !p.eliminated_at).sort((a: any, b2: any) => (b2.score ?? 0) - (a.score ?? 0));
+  const egalite = challengeEnCours && _aliveTri.length >= 2 && (_aliveTri[0]?.score ?? 0) > 0 && (_aliveTri[0]?.score ?? 0) === (_aliveTri[1]?.score ?? 0);
   return (
     <div style={{ background:"linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))", borderRadius:12, padding:"8px 11px", marginBottom:7, boxShadow:"0 4px 14px rgba(237,7,15,0.18)" }}>
       {/*DKDK_ENCART_FORMATION*/}
@@ -1169,6 +1178,12 @@ export default function WatchPage() {
           <div style={{ fontSize:11, fontWeight:700, color:"#FFD700" }}>⏱ se clôt à l’objectif</div>
         </div>
       </div>
+      {egalite && (
+        <div style={{ background:"rgba(0,0,0,0.35)", border:"1px solid rgba(255,215,0,0.6)", borderRadius:9, padding:"7px 10px", marginBottom:8, textAlign:"center", animation:"pulse 2s infinite" }} /*DKDK_EGALITE_BANNER*/>
+          <div style={{ fontSize:12.5, fontWeight:800, color:"#FFD700", fontFamily:"Syne, sans-serif" }}>⚡ ÉGALITÉ !</div>
+          <div style={{ fontSize:10, color:"rgba(255,255,255,0.9)", marginTop:2, lineHeight:1.4 }}>Vos favoris sont à égalité — le prochain vote peut tout faire basculer. Départagez-les !</div>
+        </div>
+      )}
       <div style={{ fontSize:11, color:"#fff", display:"flex", justifyContent:"space-between", marginBottom:4 }}>
         <span>Objectif de l’étape</span>
         <span><b style={{ color:"#fff" }}>{fmt(col)}</b> / {fmt(obj)} F</span>
@@ -1461,12 +1476,24 @@ export default function WatchPage() {
                 /*DKDK_MEDAILLE_BRONZE*/
                 const _estApresBronze = bracketData?.bracket?.max_participants === 16 && (bracketData?.active_round?.round === 5 || bracketData?.bracket?.status === 'done');
                 const _estTroisieme = _estApresBronze && bracketData?.bracket?.third_id === c.participant_id;
-                if (enLecture) return (<div key={c.participant_id} style={{ ...s.candidateCard, background: 'linear-gradient(135deg,rgb(74,4,76),rgb(120,10,20))', border:'2px solid #FFAA00', justifyContent:'center', cursor:'default' }}><div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}><span style={{ fontSize:9, fontWeight:800, letterSpacing:'.08em', color:'#FFAA00' }}>{c.suspended_at ? 'SUSPENDU' : 'CANDIDAT EN LECTURE'}</span><span style={s.candidateName}>{c.suspended_at ? 'Suspendu' : (c.name ?? 'Candidat')}</span></div></div>);
+                if (enLecture) return (
+                  <div key={c.participant_id} style={{ ...s.candidateCard, background: 'linear-gradient(135deg,rgb(74,4,76),rgb(120,10,20))', border:'2px solid #FFAA00', cursor:'default' }}>
+                    <div style={s.candidateAvatar}>{c.avatar_url ? <img src={c.avatar_url} alt='' style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : initial}</div>
+                    <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:3 }}>
+                      <span style={{ fontSize:8, fontWeight:800, letterSpacing:'.06em', color:'#FFAA00', border:'1px solid rgba(255,170,0,0.5)', borderRadius:6, padding:'1px 5px' }}>{c.suspended_at ? 'SUSPENDU' : 'EN LECTURE'}</span>
+                      <div style={s.candidateName}>{c.suspended_at ? 'Suspendu' : (c.name ?? 'Candidat')}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700 }}>
+                        <span style={{ color: '#FF0000' }}>★ <span style={{ color: '#fff' }}>{c.stars_count ?? 0}</span></span>
+                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+                        <span style={{ color: '#FF1493' }}>♥ <span style={{ color: '#fff' }}>{c.hearts_count ?? 0}</span></span>
+                      </div>
+                    </div>
+                  </div>
+                );
                 return (
                   <button key={c.participant_id}
-                    style={{ ...s.candidateCard, background: 'linear-gradient(135deg,rgb(74,4,76),rgb(120,10,20))', border: rank === 1 ? '2px solid #FFAA00' : s.candidateCard.border, opacity: elimine ? 0.4 : (_attente ? 0.5 : 1), cursor: elimine ? 'default' : 'pointer' }} /*DKDK_ELIM*/
+                    style={{ ...s.candidateCard, background: 'linear-gradient(135deg,rgb(74,4,76),rgb(120,10,20))', border: s.candidateCard.border, opacity: elimine ? 0.4 : (_attente ? 0.5 : 1), cursor: elimine ? 'default' : 'pointer' }} /*DKDK_ELIM*/ /*DKDK_NO_MEDALS — pas de medaille pendant la competition*/
                     onClick={() => { if (!elimine && c.video_id) router.push(`/watch/${c.video_id}`); }}>
-                    {!_estRoundBronze && !_estTroisieme && (<span style={{ position: 'absolute', top: 6, left: 6, width: 24, height: 24, borderRadius: '50%', background: rankBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isPodium ? 13 : 11, fontWeight: 800, color: '#0a0a0f' }}>{medal}</span>)}
                     {_estTroisieme && (<span style={{ position: 'absolute', top: 6, left: 6, width: 24, height: 24, borderRadius: '50%', background: '#cd7f32', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#0a0a0f' }}>🥉</span>)}
                     {_estRoundBronze && (_estBronze || _estFinaliste) && (
                       <span style={{ position: 'absolute', bottom: 6, left: 6, right: 6, fontSize: 8, fontWeight: 800, textAlign: 'center', lineHeight: 1.2, color: _estBronze ? '#cd7f32' : '#fff' }}>
