@@ -87,15 +87,13 @@ import { Router as StatsRouter } from 'express';
 const statsRouter = StatsRouter();
 statsRouter.get('/', requireAuth, async (req: any, res) => {
   try {
-    const [users, votes, contests] = await Promise.all([
+    const [users, votes] = await Promise.all([
       supabase.from('users').select('id', { count: 'exact' }),
       supabase.from('votes').select('id', { count: 'exact' }),
-      supabase.from('contests').select('id', { count: 'exact' }).eq('status', 'active'),
     ]);
     res.json({
       users:    users.count    || 0,
       votes:    votes.count    || 0,
-      contests: contests.count || 0,
       revenue:  0,
     });
   } catch { res.status(500).json({ error: 'STATS_FETCH_FAILED' }); }

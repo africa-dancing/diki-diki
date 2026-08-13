@@ -3,9 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 const ERRORS: Record<string, { status: number; message: string }> = {
   INSUFFICIENT_BALANCE:    { status: 400, message: 'Solde insuffisant (min 100 F CFA)' },
   ALREADY_VOTED:           { status: 409, message: 'Vous avez déjà voté dans ce concours' },
-  CONTEST_NOT_ACTIVE:      { status: 400, message: 'Ce concours n\'est pas actif' },
   WRONG_COMPETITION_TYPE:  { status: 400, message: 'Type de compétition incorrect' },
-  CONTEST_NOT_FOUND:       { status: 404, message: 'Concours introuvable' },
   USER_NOT_FOUND:          { status: 404, message: 'Utilisateur introuvable' },
   VIDEO_NOT_FOUND:         { status: 404, message: 'Vidéo introuvable' },
   GROUP_NOT_FOUND:         { status: 404, message: 'Groupe introuvable' },
@@ -23,8 +21,6 @@ const ERRORS: Record<string, { status: number; message: string }> = {
   FORBIDDEN:               { status: 403, message: 'Action non autorisée' },
   PHONE_ALREADY_USED:      { status: 409, message: 'Ce numéro est déjà associé à un compte' },
   INVALID_CREDENTIALS:     { status: 401, message: 'Téléphone ou mot de passe incorrect' },
-  NOT_A_GROUP_CONTEST:     { status: 400, message: 'Ce concours n\'est pas de type Groupe' },
-  CONTEST_NOT_OPEN:        { status: 400, message: 'Les inscriptions sont fermées pour ce concours' },
   AMOUNT_TOO_LOW:          { status: 400, message: 'Montant minimum : 1 000 F CFA' },
 };
 

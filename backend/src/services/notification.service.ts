@@ -258,53 +258,7 @@ export const notifications = {
 // JOB CRON : vérifications automatiques (à lancer toutes les heures)
 // ═══════════════════════════════════════════════════════════
 export async function runNotificationJobs(): Promise<void> {
-  await checkContestsEndingSoon();
-  await checkVoteMilestones();
   await checkWalletAlerts();
-}
-
-// Compétitions qui se terminent dans 48h
-async function checkContestsEndingSoon(): Promise<void> {
-  const in48h = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
-  const now   = new Date().toISOString();
-
-  const { data: contests } = await supabase
-    .from('contests')
-    .select('id, title, ends_at, candidates(user_id)')
-    .eq('status', 'active')
-    .lte('ends_at', in48h)
-    .gte('ends_at', now);
-
-  for (const contest of contests || []) {
-    const hoursLeft = Math.ceil(
-      (new Date(contest.ends_at).getTime() - Date.now()) / (1000 * 60 * 60)
-    );
-    await supabase
-      .from('votes')
-      .select('*', { count:'exact', head:true })
-      .eq('contest_id', contest.id);
-  }
-}
-
-// Paliers de votes franchis
-async function checkVoteMilestones(): Promise<void> {
-  const MILESTONES = [50, 100, 500, 1000, 5000, 10000];
-
-  const { data: candidates } = await supabase
-    .from('candidates')
-    .select('id, user_id, contest_id');
-
-  for (const cand of candidates || []) {
-    const { count: votes } = await supabase
-      .from('votes')
-      .select('*', { count:'exact', head:true })
-      .eq('candidate_id', cand.id);
-
-    const reached = MILESTONES.filter(m => m === votes);
-    for (const milestone of reached) {
-      await notifyVoteMilestone(cand.user_id, milestone, (votes || 0) * 50);
-    }
-  }
 }
 
 // Alertes solde faible
