@@ -304,7 +304,12 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
     if (!participantId || gain <= 0) return;
     const { data: p } = await supabase.from('bracket_participants').select('user_id').eq('id', participantId).single();
     if (!p) return;
-    await supabase.rpc('credit_wallet', { p_user_id: p.user_id, p_amount: gain });
+    /*DKDK_GAINS_SEPARES*/
+    // L'argent GAGNE ne doit JAMAIS se meler a l'argent charge pour voter.
+    // On n'alimente donc PAS wallets.balance (portefeuille de votes) : on enregistre
+    // uniquement la transaction 'bracket_win', qui constitue le "compte de retrait"
+    // (solde retirable = somme des bracket_win/soutien_gain success - payouts).
+    // -> gains visibles et retirables, mais non votables. Pas de double compte.
     const { error: txErr } = await supabase.from('transactions').insert({
       user_id: p.user_id,
       type: 'bracket_win',
