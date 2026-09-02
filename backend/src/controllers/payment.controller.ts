@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { initiatePayment, verifyPayment, withdrawPayment } from '../services/payment.service';
 import { supabase } from '../../config/supabase';
 
-const MIN_RETRAIT = 5000;
+const MIN_RETRAIT = 1000; /*DKDK_MIN_RETRAIT_1000*/
 const MAX_RETRAIT = 2000000;
 
 /*DKDK_PAYMENT_WALLET_FIX*/

@@ -73,7 +73,7 @@ export default function RetraitPage() {
   }, [router]);
 
   const amountNum = parseInt(amount.replace(/\D/g, '')) || 0;
-  const isValid   = amountNum >= 5000 && amountNum <= initialBalance && amountNum <= 2000000 && (method === 'bank' ? !!holder && !!bankDetails : !!phone);
+  const isValid   = amountNum >= 1000 && amountNum <= initialBalance && amountNum <= 2000000 && (method === 'bank' ? !!holder && !!bankDetails : !!phone);
 
   const handleWithdraw = async () => {
     if (!isValid) return;
@@ -203,13 +203,13 @@ export default function RetraitPage() {
         </div>
 
         {/* Récapitulatif */}
-        {amountNum >= 5000 && amountNum <= initialBalance && (
+        {amountNum >= 1000 && amountNum <= initialBalance && (
           <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
             <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.5)', marginBottom:10, textTransform:'uppercase', letterSpacing:'.06em' }}>Récapitulatif</div>
             {[
               { lbl:'Montant demandé',       val:`${fmt(amountNum)} F CFA`,          color:'#fff' },
-              { lbl:'Frais de traitement',   val:'0 F CFA',                          color:'#4ade80' },
-              { lbl:'Vous recevrez',         val:`${fmt(amountNum)} F CFA`,          color:OR },
+              { lbl:'Frais de retrait (2%)',  val:`${fmt(Math.ceil(amountNum * 0.02))} F CFA`,                 color:'rgba(255,255,255,0.85)' },
+              { lbl:'Vous recevrez',          val:`${fmt(amountNum - Math.ceil(amountNum * 0.02))} F CFA`,     color:OR },
               { lbl:'Solde après retrait',   val:`${fmt(initialBalance - amountNum)} F CFA`, color:'rgba(255,255,255,0.5)' },
               { lbl:'Délai de traitement',   val:'48h ouvrées',                      color:'rgba(255,255,255,0.5)' },
             ].map((r, i) => (
