@@ -83,7 +83,8 @@ export default function RetraitPage() {
       const res = await fetch(`${API}/payment/withdraw`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ amount: amountNum, method, phone: phone.trim(), holder: holder.trim(), bank_details: bankDetails.trim() }),
+        /*DKDK_FIX_OPERATOR — le backend attend `operator` (et non `method`) : sans lui -> MISSING_FIELDS*/
+        body: JSON.stringify({ amount: amountNum, operator: method, method, phone: phone.trim(), holder: holder.trim(), bank_details: bankDetails.trim() }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? data.error ?? 'Erreur lors du retrait');
