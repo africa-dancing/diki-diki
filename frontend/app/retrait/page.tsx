@@ -73,7 +73,7 @@ export default function RetraitPage() {
   }, [router]);
 
   const amountNum = parseInt(amount.replace(/\D/g, '')) || 0;
-  const isValid   = amountNum >= 1000 && amountNum <= initialBalance && amountNum <= 2000000 && (method === 'bank' ? !!holder && !!bankDetails : !!phone);
+  const isValid   = amountNum >= 500 && amountNum <= initialBalance && amountNum <= 2000000 && (method === 'bank' ? !!holder && !!bankDetails : !!phone);
 
   const handleWithdraw = async () => {
     if (!isValid) return;
@@ -161,11 +161,11 @@ export default function RetraitPage() {
 
         {/* Montant */}
         <div style={card}>
-          <label style={lbl}>Montant à retirer (min. 1 000 F)</label>
+          <label style={lbl}>Montant à retirer (min. 500 F)</label>
           <input style={inp} type="text" placeholder="Ex : 5 000"
             value={amount} onChange={e => { setAmount(e.target.value); setConfirmed(false); }} />
-          {amountNum > 0 && amountNum < 1000 && (
-            <div style={{ fontSize:11, color:'#f87171', marginTop:6 }}>Montant minimum : 1 000 F CFA</div>
+          {amountNum > 0 && amountNum < 500 && (
+            <div style={{ fontSize:11, color:'#f87171', marginTop:6 }}>Montant minimum : 500 F CFA</div>
           )}
           {amountNum > initialBalance && (
             <div style={{ fontSize:11, color:'#f87171', marginTop:6 }}>Montant supérieur à ton solde disponible</div>
@@ -203,7 +203,7 @@ export default function RetraitPage() {
         </div>
 
         {/* Récapitulatif */}
-        {amountNum >= 1000 && amountNum <= initialBalance && (
+        {amountNum >= 500 && amountNum <= initialBalance && (
           <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
             <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.5)', marginBottom:10, textTransform:'uppercase', letterSpacing:'.06em' }}>Récapitulatif</div>
             {[
