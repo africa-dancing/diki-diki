@@ -465,7 +465,7 @@ async function closeStage(bracket: any, round: any) {
     .limit(1)
     .maybeSingle();
   const E = (fmtRow?.nb_etapes && fmtRow.nb_etapes >= 1) ? fmtRow.nb_etapes : totalRoundsFor(C);
-  const objectif = fmtRow?.objectif_etape ?? 0;
+  /*DKDK_FIX_OBJECTIF_ROUND*/ // L'objectif d'argent est desormais lu sur le ROUND (voir la porte plus bas), pas sur le format.
 
   let G = nbLaureats(C); // filet de securite si la config est absente
   if (fmtRow?.code) {
@@ -481,16 +481,20 @@ async function closeStage(bracket: any, round: any) {
   if (!E || E < 1) { console.log(`[CLOSE] Format inconnu pour ${C} candidats`); return; }
 
   // ── Gate objectif d'argent : l'etape ne se cloture pas tant que l'objectif n'est pas atteint ──
+  //    On lit l'objectif du ROUND lui-meme (celui affiche a l'ecran et utilise par
+  //    checkAndAdvanceRounds), et NON celui du format (challenge_formats.objectif_etape),
+  //    qui n'est qu'un modele par defaut et peut differer du round. /*DKDK_FIX_OBJECTIF_ROUND*/
   {
     const { data: rnd } = await supabase
       .from('bracket_rounds')
-      .select('montant_collecte')
+      .select('montant_collecte, objectif_montant')
       .eq('bracket_id', bracketId)
       .eq('round', currentRound)
       .maybeSingle();
     const collecte = rnd?.montant_collecte ?? 0;
-    if (objectif > 0 && collecte < objectif) {
-      console.log(`[CLOSE] Objectif non atteint bracket ${bracketId} etape ${currentRound}/${E} : ${collecte}/${objectif}`);
+    const objectifRound = rnd?.objectif_montant ?? 0;
+    if (objectifRound > 0 && collecte < objectifRound) {
+      console.log(`[CLOSE] Objectif non atteint bracket ${bracketId} etape ${currentRound}/${E} : ${collecte}/${objectifRound}`);
       return;
     }
   }
