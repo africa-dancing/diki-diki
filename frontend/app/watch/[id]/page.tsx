@@ -1203,7 +1203,22 @@ export default function WatchPage() {
   return (
     <div style={{ background:"linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))", borderRadius:12, padding:"8px 11px", marginBottom:7, boxShadow:"0 4px 14px rgba(237,7,15,0.18)" }}>
       {/*DKDK_ENCART_FORMATION*/}
-      {!challengeEnCours && (
+      {/*DKDK_ETAT_TERMINE — challenge fini : on affiche le champion, pas « en formation »*/}
+      {b?.status === 'done' ? (
+        (() => {
+          const _pool = bracketData.pool ?? [];
+          const _champion = _pool.find((p:any) => !p.eliminated_at) || [..._pool].sort((a:any,b2:any)=>((b2.score??0)-(a.score??0)))[0];
+          const _nom = (_champion && _champion.name) ? _champion.name : 'Champion';
+          return (
+            <div style={{ background:"rgba(0,0,0,0.28)", borderRadius:10, padding:"14px 14px", marginBottom:9, textAlign:"center" }}>
+              <div style={{ fontFamily:"Syne, sans-serif", fontSize:12, fontWeight:800, letterSpacing:".1em", color:"rgba(255,255,255,0.75)", marginBottom:6 }}>🏁 CHALLENGE TERMINÉ</div>
+              <div style={{ fontSize:34, lineHeight:1, marginBottom:4 }}>🏆</div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,0.7)", letterSpacing:".12em", fontWeight:700 }}>CHAMPION</div>
+              <div style={{ fontFamily:"Syne, sans-serif", fontSize:20, fontWeight:800, color:"#FFD700", lineHeight:1.15, marginTop:2 }}>{_nom}</div>
+            </div>
+          );
+        })()
+      ) : !challengeEnCours && (
         <div style={{ background:"rgba(0,0,0,0.25)", borderRadius:10, padding:"12px 14px", marginBottom:9, textAlign:"center" }}>
           <div style={{ fontFamily:"Syne, sans-serif", fontSize:15, fontWeight:800, color:"#fff", marginBottom:6 }}>⏳ Challenge en formation</div>
           <div style={{ fontSize:22, fontWeight:800, color:"#FFD700", fontFamily:"Syne, sans-serif", lineHeight:1.1 }}>{candidatsInscrits} / {capaciteMax}</div>
@@ -1386,6 +1401,21 @@ export default function WatchPage() {
                 <div style={{ fontSize:8, fontWeight:800, letterSpacing:".12em", color:"#fff" }}>ÉTAPE EN COURS</div>
                 <div style={{ fontFamily:"Syne, sans-serif", fontSize:15, fontWeight:800, color:"#fff" }} /*DKDK_ROUNDLABEL_USE_VISITEUR*/>{getRoundLabel(bracketData.bracket.max_participants ?? 16, bracketData.bracket.current_round).label}</div>
               </div>
+            ) : estTermine ? (
+              /*DKDK_ETAT_TERMINE_VISITEUR*/
+              (() => {
+                const _pool = bracketData.pool ?? [];
+                const _champion = _pool.find((p:any) => !p.eliminated_at) || [..._pool].sort((a:any,b2:any)=>((b2.score??0)-(a.score??0)))[0];
+                const _nom = (_champion && _champion.name) ? _champion.name : 'Champion';
+                return (
+                  <div style={{ background:"linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))", borderRadius:12, padding:"14px", marginBottom:8, textAlign:"center" }}>
+                    <div style={{ fontFamily:"Syne, sans-serif", fontSize:12, fontWeight:800, letterSpacing:".1em", color:"rgba(255,255,255,0.85)", marginBottom:6 }}>🏁 CHALLENGE TERMINÉ</div>
+                    <div style={{ fontSize:32, lineHeight:1 }}>🏆</div>
+                    <div style={{ fontSize:10, color:"rgba(255,255,255,0.85)", letterSpacing:".12em", fontWeight:700, marginTop:4 }}>CHAMPION</div>
+                    <div style={{ fontFamily:"Syne, sans-serif", fontSize:19, fontWeight:800, color:"#FFD700", lineHeight:1.15, marginTop:2 }}>{_nom}</div>
+                  </div>
+                );
+              })()
             ) : (
               <div style={{ background:"linear-gradient(135deg,rgba(126,3,128,0.52),rgb(237,7,15))", borderRadius:12, padding:"12px 14px", marginBottom:8, textAlign:"center" }}>
                 <div style={{ fontFamily:"Syne, sans-serif", fontSize:15, fontWeight:800, color:"#fff", marginBottom:6 }}>⏳ Challenge en formation</div>
@@ -1421,6 +1451,13 @@ export default function WatchPage() {
               })()}
               <div style={{ fontSize: 11, color: '#4ade80', textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>✓ Pas besoin de compte — votez directement, paiement securise par Mobile Money.</div>
               <div onClick={() => router.push('/auth/register')} style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 6, cursor: 'pointer', textDecoration: 'underline' }}>ou creez un compte gratuit</div>
+            </div>
+          ) : estTermine ? (
+            /*DKDK_ETAT_TERMINE_VISITEUR_LOCK*/
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '20px 10px', textAlign: 'center' }}>
+              <div style={{ fontSize: 30 }}>🏁</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>Challenge terminé</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>Le vote est clos. Merci d&apos;avoir suivi la compétition !</div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '20px 10px', textAlign: 'center' }}>
