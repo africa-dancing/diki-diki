@@ -439,12 +439,18 @@ async function closeStage(bracket: any, round: any) {
 
   // Candidats encore en lice, tries par score decroissant
   /*DKDK_ALIVEALL*/
+  /*DKDK_TIEBREAK_ORDER*/
+  // Classement deterministe : score d'abord, puis en cas d'egalite le repli
+  // (le plus d'etoiles, puis de coeurs, puis l'anciennete d'inscription).
   const { data: aliveAll } = await supabase
     .from('bracket_participants')
-    .select('id, user_id, score, final_path')
+    .select('id, user_id, score, final_path, stars_count, hearts_count, registered_at')
     .eq('bracket_id', bracketId)
     .is('eliminated_at', null)
-    .order('score', { ascending: false });
+    .order('score', { ascending: false })
+    .order('stars_count', { ascending: false })
+    .order('hearts_count', { ascending: false })
+    .order('registered_at', { ascending: true });
   if (!aliveAll || aliveAll.length === 0) return;
   const alive = aliveAll;
 
@@ -501,15 +507,64 @@ async function closeStage(bracket: any, round: any) {
   const isFinale = currentRound === E;
   const keep = survivantsApres(currentRound); // survivants apres cette etape (a la derniere etape = G)
 
-  // ── Departage : on ne ferme pas tant qu'une egalite rend le classement ambigu ──
-  //    Etape normale : ecart exige a la frontiere (dernier garde vs premier elimine).
-  //    Finale : ecart exige entre chaque place payee (1er/2e/3e) et juste en dessous.
+  // ── Departage avec delai (DKDK_EGALITE_DELAI) ──
+  //    On ne tranche pas une egalite de score immediatement, mais on ne prolonge
+  //    pas non plus indefiniment. Une egalite de SCORE a une place qui paie
+  //    (frontiere pour une etape normale ; chaque place payee en finale) demarre
+  //    un compte a rebours. Si un vote la casse avant la fin -> fermeture normale.
+  //    Si elle tient jusqu'au bout -> fermeture au classement de repli
+  //    (etoiles / coeurs / anciennete), deja applique sur `alive` ci-dessus.
   const bornes: number[] = isFinale ? Array.from({ length: keep }, (_, i) => i + 1) : [keep];
+  let egaliteActive = false;
   for (const b of bornes) {
     if (alive.length > b && alive[b - 1] && alive[b] && alive[b - 1].score === alive[b].score) {
-      console.log(`[CLOSE] Egalite a la place ${b} bracket ${bracketId} etape ${currentRound}/${E} -> prolongation`);
+      egaliteActive = true;
+      break;
+    }
+  }
+  if (egaliteActive) {
+    // Delai configurable (minutes) via Reglages ; defaut 60 min (1 h).
+    let delaiMin = 60;
+    try {
+      const { data: sDelai } = await supabase
+        .from('settings').select('value').eq('key', 'finale_egalite_delai_minutes').maybeSingle();
+      const v = Number(sDelai?.value);
+      if (Number.isFinite(v) && v >= 0) delaiMin = v;
+    } catch {}
+
+    const { data: rndTie, error: tieErr } = await supabase
+      .from('bracket_rounds').select('egalite_depuis')
+      .eq('bracket_id', bracketId).eq('round', currentRound).maybeSingle();
+
+    // Si le suivi est indisponible (ex. colonne absente), on reste prudent :
+    // on ne tranche pas l'egalite (ancien comportement), sans casser le moteur.
+    if (tieErr) {
+      console.log(`[CLOSE] Suivi egalite indisponible (${tieErr.message}) -> prolongation prudente bracket ${bracketId}`);
       return;
     }
+
+    const depuis = rndTie?.egalite_depuis ? new Date(rndTie.egalite_depuis).getTime() : null;
+    if (!depuis) {
+      // Premiere detection : on demarre le compte a rebours, on ne ferme pas encore.
+      await supabase.from('bracket_rounds')
+        .update({ egalite_depuis: new Date().toISOString() })
+        .eq('bracket_id', bracketId).eq('round', currentRound);
+      console.log(`[CLOSE] Egalite detectee bracket ${bracketId} etape ${currentRound}/${E} -> compte a rebours ${delaiMin}min`);
+      return;
+    }
+
+    const ecouleMin = (Date.now() - depuis) / 60000;
+    if (ecouleMin < delaiMin) {
+      console.log(`[CLOSE] Egalite en cours (${ecouleMin.toFixed(1)}/${delaiMin}min) bracket ${bracketId} -> prolongation`);
+      return;
+    }
+    // Delai ecoule et toujours a egalite : on ferme au classement de repli (on continue plus bas).
+    console.log(`[CLOSE] Egalite non resolue apres ${delaiMin}min bracket ${bracketId} -> fermeture au repli (etoiles/coeurs/anciennete)`);
+  } else {
+    // Pas d'egalite : si un compte a rebours trainait, on le remet a zero (best effort).
+    await supabase.from('bracket_rounds')
+      .update({ egalite_depuis: null })
+      .eq('bracket_id', bracketId).eq('round', currentRound);
   }
 
   const now = new Date().toISOString();
