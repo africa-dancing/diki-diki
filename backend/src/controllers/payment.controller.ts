@@ -412,6 +412,12 @@ export async function withdraw(req: Request, res: Response) {
         payoutId:  result.payoutId,
       });
     } catch (fedaErr: any) {
+      /*DKDK_LOG_PAYOUT_FAIL — on journalise la vraie raison renvoyee par FedaPay (sinon impossible a diagnostiquer)*/
+      try {
+        const _st = fedaErr?.response?.status;
+        const _body = fedaErr?.response?.data ? JSON.stringify(fedaErr.response.data) : (fedaErr?.message || 'inconnue');
+        console.error('[WITHDRAW] Echec payout FedaPay | status=' + _st + ' | detail=' + _body);
+      } catch (_logErr) { /* la journalisation ne doit jamais casser la reponse */ }
       // FedaPay a echoue : transaction marquee failed.
       // Un payout failed n'est PAS soustrait du solde -> gains redeviennent dispo.
       await supabase
