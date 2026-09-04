@@ -244,42 +244,52 @@ export async function webhook(req: Request, res: Response) { /*DKDK_WEBHOOK_VOTE
       console.log('[DKDK_SIG] OK : signature valide');
     }
     // ---- Fin verification. Webhook authentifie. ----
-    /*DKDK_WEBHOOK_PAYOUT_V2*/
+    /*DKDK_WEBHOOK_PAYOUT_V3*/
     // ---- RETRAITS (payout) : confirmation reussite / echec ----
-    // FedaPay traite un retrait comme une transaction sortante.
-    // Evenements reels : transaction.transferred (reussi),
-    // transaction.declined / transaction.canceled (echoue).
-    // On ne fait que mettre a jour une etiquette de statut, jamais d'argent.
+    // FedaPay envoie des evenements payout.* : payout.created, payout.failed,
+    // payout.sent / payout.succeeded... On lit le statut REEL de l'entite
+    // (entity.status) et on met a jour l'etiquette de NOTRE transaction.
+    // On ne touche JAMAIS d'argent ici. Un payout 'failed' redonne le solde
+    // retirable (car un 'failed' n'est pas compte comme retrait engage).
     {
       const _b: any = req.body || {};
       const _event = String(_b.name || _b.event || '').toLowerCase();
-      // Objet transaction FedaPay (formes possibles selon la charge utile)
-      const _obj = _b.entity || _b.object || _b.data || {};
-      const _fedaId = _obj.id || _b.transaction_id || _b.id || null;
-      // Est-ce un evenement de transaction qui nous interesse pour un retrait ?
-      const _isTransferred = _event.indexOf('transaction.transferred') !== -1;
-      const _isDeclined    = _event.indexOf('transaction.declined') !== -1
-                          || _event.indexOf('transaction.canceled') !== -1
-                          || _event.indexOf('transaction.cancelled') !== -1;
-      if ((_isTransferred || _isDeclined) && _fedaId) {
-        // Cherche UNIQUEMENT une transaction de type payout liee a cet id FedaPay.
-        const { data: _ptx } = await supabase
-          .from('transactions')
-          .select('id, type, status')
-          .eq('fedapay_id', String(_fedaId))
-          .eq('type', 'payout')
-          .maybeSingle();
-        // Si c'est bien un retrait a nous, on met a jour son statut.
-        if (_ptx && _ptx.status !== 'success' && _ptx.status !== 'failed') {
-          const _newStatus = _isTransferred ? 'success' : 'failed';
-          await supabase
+      const _obj: any = _b.entity || _b.data || {};
+      const _objType = String(_b.object || _obj.object || '').toLowerCase();
+      const _fedaId = _obj.id || _b.object_id || _b.transaction_id || null;
+      const _isPayout = _event.indexOf('payout.') === 0 || _objType === 'payout';
+      if (_isPayout && _fedaId) {
+        const _pStatus = String(_obj.status || '').toLowerCase();
+        let _newStatus: string | null = null;
+        if (_pStatus === 'sent' || _pStatus === 'succeeded' || _pStatus === 'success' || _pStatus === 'transferred') {
+          _newStatus = 'success';
+        } else if (_pStatus === 'failed' || _pStatus === 'canceled' || _pStatus === 'cancelled') {
+          _newStatus = 'failed';
+        } else if (_event.indexOf('payout.failed') !== -1 || _event.indexOf('payout.canceled') !== -1) {
+          _newStatus = 'failed';
+        } else if (_event.indexOf('payout.sent') !== -1 || _event.indexOf('payout.succeeded') !== -1) {
+          _newStatus = 'success';
+        }
+        if (_newStatus) {
+          const _errMsg = _obj.last_error_message ? String(_obj.last_error_message).substring(0, 300) : '';
+          console.log('[WEBHOOK_PAYOUT] id=' + _fedaId + ' | statut_feda=' + _pStatus + ' -> ' + _newStatus + (_errMsg ? ' | erreur=' + _errMsg : ''));
+          const { data: _ptx } = await supabase
             .from('transactions')
-            .update({ status: _newStatus })
-            .eq('id', _ptx.id);
+            .select('id, status')
+            .eq('fedapay_id', String(_fedaId))
+            .eq('type', 'payout')
+            .maybeSingle();
+          if (_ptx && _ptx.status !== 'success' && _ptx.status !== 'failed') {
+            await supabase
+              .from('transactions')
+              .update({ status: _newStatus })
+              .eq('id', _ptx.id);
+          }
           return res.status(200).json({ received: true, payout: _newStatus });
         }
-        // Pas un retrait a nous (ou deja traite) : on NE s'arrete PAS,
-        // on laisse le bloc entrant ci-dessous traiter le cas echeant.
+        // Evenement payout non terminal (created, processing) : on acquitte sans rien changer.
+        console.log('[WEBHOOK_PAYOUT] id=' + _fedaId + ' | statut_feda=' + (_pStatus || 'inconnu') + ' (non terminal, ignore)');
+        return res.status(200).json({ received: true, payout: _pStatus || 'pending' });
       }
     }
     // ---- Fin bloc retraits. En dessous : traitement de l'argent entrant. ----

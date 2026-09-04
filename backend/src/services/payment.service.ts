@@ -126,9 +126,11 @@ export async function withdrawPayment(params: {
   const payout = response.data['v1/payout'];
 
   // Déclencher le payout immédiatement — FedaPay: PUT /v1/payouts/start
+  // IMPORTANT: PAS de scheduled_at => envoi immediat. Le mot 'now' litteral etait
+  // rejete par FedaPay (INVALID_PARAMS: scheduled_at invalid_datetime).
   await axios.put(
     `${FEDAPAY_API}/payouts/start`,
-    { payouts: [{ id: payout.id, scheduled_at: 'now' }] },
+    { payouts: [{ id: payout.id }] },
     { headers: { Authorization: `Bearer ${SECRET_KEY}`, 'Content-Type': 'application/json' } }
   );
 
