@@ -34,11 +34,15 @@ const faqs = [
     items: [
       {
         q: "C'est quoi Diki-Diki ?",
-        a: `Diki-Diki est une plateforme panafricaine de challenges artistiques avec votes monétisés en temps réel.\n\nLes artistes soumettent leurs vidéos de prestation et s'affrontent dans des challenges par élimination. Le public vote en envoyant des étoiles ★ ou des cœurs ❤️, et la cagnotte est distribuée au podium à la fin du challenge.\n\nDisciplines : danse, chant, instrument, acapella, humour, poésie, conte, théâtre.\n\n🌍 Ouverte à toute l'Afrique, à toute la diaspora internationale et au reste du monde.`,
+        a: `Diki-Diki est la scène des talents africains : une plateforme panafricaine de challenges artistiques et sportifs, où c'est le public qui départage les candidats — par des votes payants.\n\nLes candidats soumettent des vidéos de leur prestation et s'affrontent dans un challenge. Le public les soutient en envoyant des étoiles ★ ou des cœurs ❤️. Ces votes forment une cagnotte commune, partagée à la fin entre les gagnants ; les candidats éliminés reçoivent une prime de participation.\n\nLe vote payant est à la fois le jury (seul le public tranche, jamais une note technique) et le moteur : c'est lui qui constitue le prix à gagner.\n\nDisciplines : danse, chant, instrument, humour, poésie, conte, théâtre… et disciplines sportives. 🌍 Ouverte à toute l'Afrique et à la diaspora.`,
+      },
+      {
+        q: "Qui peut utiliser Diki-Diki ?",
+        a: `Trois profils, non figés — on passe volontiers de l'un à l'autre :\n\n• Le visiteur regarde les vidéos, librement et gratuitement.\n• Le candidat s'inscrit, téléverse au moins une vidéo et concourt ; il dispose d'un compte pour recevoir ses gains.\n• Le votant soutient les candidats par des votes payants — c'est de lui que dépend tout : il départage les candidats et constitue la cagnotte.\n\nRegarder, commenter et partager est entièrement gratuit. Seul le vote est payant.`,
       },
       {
         q: "Quels sont les avantages d'être sur Diki-Diki ?",
-        a: `Pour les artistes :\n• Visibilité auprès d'une audience africaine et internationale\n• Challenge équitable — c'est le public qui vote\n• Gains réels — le podium se partage la cagnotte (60 % champion, 25 % 2e, 15 % 3e)\n• Compte créé automatiquement — voter ne nécessite qu'un numéro de téléphone\n• Appartenir à une communauté de talents africains en pleine croissance\n\nPour le public :\n• Découverte de talents que vous n'auriez jamais rencontrés ailleurs\n• Soutien direct — vos votes alimentent la cagnotte de vos artistes favoris\n• Accès gratuit — regarder, commenter et partager est entièrement gratuit`,
+        a: `Pour les candidats :\n• Une scène monétisée et équitable — c'est le public qui vote, pas un jury technique.\n• Des gains réels : le podium se partage la cagnotte, et même les éliminés reçoivent une prime de participation.\n• Inscription 100 % gratuite, et une visibilité auprès d'une audience africaine et internationale.\n\nPour le public :\n• Découvrir des talents et les soutenir directement — vos votes alimentent leur cagnotte.\n• Un accès libre et gratuit pour regarder, commenter et partager.`,
       },
     ],
   },
@@ -46,37 +50,45 @@ const faqs = [
     cat: '🏆 Comprendre le Challenge',
     items: [
       {
-        q: "C'est quoi un challenge Diki-Diki ?",
-        a: `Un challenge est une épreuve par élimination où les candidats s'affrontent devant le public. À chaque étape, les candidats les mieux votés passent au tour suivant. Le public vote en envoyant des étoiles ★ (100 F CFA) ou des cœurs ❤️ (200 F CFA).\n\n5 types de challenges selon le nombre de candidats :\n• C2 — 2 candidats, 1 étape (Finale directe)\n• C4 — 4 candidats, 2 étapes (Demi + Finale)\n• C8 — 8 candidats, 3 étapes (Quart + Demi + Finale)\n• C12 — 12 candidats, 4 étapes (+ 3e place automatique)\n• C16 — 16 candidats, 5 étapes (+ Match bronze inédit pour la 3e place)\n\nChaque étape se clôture quand l'objectif de cagnotte est atteint.`,
+        q: "C'est quoi un challenge ?",
+        a: `Un challenge est une compétition entre candidats sur une même discipline. Le public vote en envoyant des étoiles ★ (100 F CFA, poids 1) ou des cœurs ❤️ (200 F CFA, poids 2), ce qui fait monter le score des candidats.\n\nChaque étape se ferme lorsqu'elle atteint son objectif de cagnotte (défini par le format). À la fin, les gagnants se partagent la cagnotte et les éliminés reçoivent une prime.`,
       },
       {
-        q: "Comment les gagnants sont-ils désignés ?",
-        a: `À chaque étape, les candidats sont classés par score (votes reçus). Les mieux classés passent au tour suivant, les autres sont éliminés.\n\nEn cas d'égalité à la place limite, l'étape se prolonge naturellement jusqu'à ce qu'un vote départage les candidats.\n\nEn C16, les 2 candidats éliminés en demi-finale s'affrontent dans un match bronze pour la 3e place avant la grande finale.`,
+        q: "Quels sont les formats de challenge ?",
+        a: `Il existe 6 formats, selon le nombre de candidats. Chaque format fixe le nombre d'étapes, de gagnants et d'éliminés :\n\n• C2 — 2 candidats · 1 étape · 1 gagnant · 1 éliminé\n• C4 — 4 candidats · 2 étapes · 2 gagnants · 2 éliminés\n• C6 — 6 candidats · 3 étapes · 3 gagnants · 3 éliminés\n• C8 — 8 candidats · 4 étapes · 3 gagnants · 5 éliminés\n• C12 — 12 candidats · 4 étapes · 3 gagnants · 9 éliminés\n• C16 — 16 candidats · 4 étapes · 3 gagnants · 13 éliminés\n\nLe total « gagnants + éliminés » est toujours égal au nombre de candidats.`,
+      },
+      {
+        q: "Parcours ou Bloc groupé : quelle différence ?",
+        a: `Un challenge suit l'un de deux modèles :\n\n• Parcours (élimination progressive) — étape par étape : à chaque étape le candidat fournit une vidéo, le public vote, et les moins votés sont éliminés. On recommence jusqu'au podium final.\n\n• Bloc groupé (classement final) — le candidat fournit toutes ses vidéos d'emblée ; il n'y a qu'un seul décompte à la fin, un seul classement.`,
+      },
+      {
+        q: "Comment les gagnants et les éliminés sont-ils désignés ?",
+        a: `Uniquement par les votes du public. À chaque étape, les candidats sont classés par score ; les mieux classés continuent, les moins votés sont éliminés. Les scores repartent de zéro à chaque nouvelle étape.\n\nEn cas d'égalité à une place décisive, un court délai supplémentaire laisse les votes départager. Si l'égalité persiste, un classement de départage s'applique : le plus d'étoiles, puis le plus de cœurs, puis l'ordre d'inscription.`,
       },
       {
         q: "Qui peut créer un challenge ?",
-        a: `Tout utilisateur vérifié ayant rechargé au minimum 1 000 F CFA sur sa vie de compte et disposant d'au moins une vidéo approuvée peut créer un challenge.\n\nLe créateur est automatiquement inscrit comme 1er candidat. Le challenge démarre quand tous les candidats sont inscrits.`,
+        a: `Tout candidat vérifié disposant d'au moins une vidéo approuvée peut créer un challenge — il en devient le 1er candidat — ou en rejoindre un existant. Le challenge démarre automatiquement dès que le nombre de candidats du format est atteint.`,
       },
     ],
   },
   {
     cat: '🎤 Participation',
     items: [
-      { q: 'Comment participer à un challenge ?', a: "Soumettez une vidéo de votre prestation depuis la page Ajouter. Choisissez votre type de challenge (C2 à C16). Une fois votre vidéo approuvée, rejoignez un challenge existant ou créez le vôtre. Le challenge démarre quand tous les candidats sont inscrits." },
-      { q: 'Quel type de vidéo puis-je soumettre ?', a: "Toute performance artistique originale : danse, chant, instrument, humour, poésie... Format MP4 ou MOV, maximum 500 MB et 10 minutes. La vidéo doit vous appartenir et respecter les règles de la communauté." },
-      { q: "Combien coûte l'inscription à un challenge ?", a: "L'inscription est 100 % gratuite pour tout candidat. Seul le public paie pour voter." },
-      { q: 'Puis-je participer à plusieurs challenges en même temps ?', a: "Oui, vous pouvez vous inscrire à plusieurs challenges simultanément, à condition de disposer d'une vidéo approuvée pour chacun." },
-      { q: 'Puis-je changer ma vidéo entre deux étapes ?', a: "Oui ! Le modèle une vidéo par étape vous permet de soumettre une nouvelle vidéo avant le début de chaque nouvelle étape. Allez dans Mes vidéos → Soumettre pour cette étape." },
+      { q: 'Comment participer à un challenge ?', a: "Soumettez une vidéo de votre prestation, choisissez la discipline et le format (C2 à C16). Une fois la vidéo approuvée, créez un challenge ou rejoignez-en un. Il démarre quand tous les candidats sont inscrits." },
+      { q: 'Quel type de vidéo puis-je soumettre ?', a: "Toute prestation artistique ou sportive originale qui vous appartient : danse, chant, instrument, humour, poésie… au format vidéo standard (MP4 ou MOV), dans le respect des règles de la communauté." },
+      { q: "Combien coûte l'inscription à un challenge ?", a: "L'inscription est 100 % gratuite pour les candidats. Seul le public paie, en votant." },
+      { q: 'Puis-je participer à plusieurs challenges en même temps ?', a: "Oui, à condition de disposer d'une vidéo approuvée pour chacun." },
+      { q: 'Puis-je changer ma vidéo entre deux étapes ?', a: "Oui. En modèle Parcours, vous pouvez soumettre une nouvelle vidéo avant chaque nouvelle étape, depuis Mes vidéos." },
     ],
   },
   {
     cat: '🗳️ Votes & Cagnotte',
     items: [
-      { q: 'Comment fonctionne le vote ?', a: "Deux types de votes :\n• ★ Étoile = 1 unité = 100 F CFA (poids +1 dans le classement)\n• ❤️ Cœur = 2 unités = 200 F CFA (poids +2 dans le classement)\n\nTous les montants votés alimentent directement la cagnotte du challenge après déduction de la commission plateforme (50 %)." },
-      { q: "La cagnotte, c'est quoi exactement ?", a: "La cagnotte est l'ensemble des votes accumulés sur toutes les étapes d'un challenge. À la fin :\n• C2/C4 : 100 % au champion\n• C8 : 65 % champion, 35 % 2e\n• C12/C16 : 60 % champion, 25 % 2e, 15 % 3e\n\nCes pourcentages sont appliqués sur le montant net après commission plateforme (50 %)." },
-      { q: "Qu'est-ce que le Soutenir ?", a: "Hors période de vote active (entre deux étapes ou pour une vidéo sans challenge), vous pouvez Soutenir un artiste pour 10 F CFA. 50 % vont directement à l'artiste, 50 % à la plateforme." },
-      { q: 'Puis-je voter plusieurs fois pour le même candidat ?', a: "Oui, vous pouvez envoyer autant d'étoiles ou de cœurs que vous souhaitez, tant que l'étape est active et que votre solde le permet." },
-      { q: "Que se passe-t-il en cas d'égalité ?", a: "L'étape se prolonge naturellement jusqu'à ce qu'un vote départage les candidats à égalité. Les votes continuent d'être acceptés normalement." },
+      { q: 'Comment fonctionne le vote ?', a: "Deux façons de soutenir :\n• ★ Étoile = 100 F CFA (poids +1 au classement)\n• ❤️ Cœur = 200 F CFA (poids +2 au classement)\n\nVous pouvez voter par paliers (100, 200, 500, 1 000 F) ou saisir une quantité libre. Chaque vote fait monter le score du candidat et alimente la cagnotte du challenge." },
+      { q: "Comment la cagnotte est-elle partagée ?", a: "La cagnotte, c'est l'ensemble des votes d'un challenge. La plateforme prélève une commission (50 %) ; le reste — le net — revient au podium, selon le format :\n\n• C2 (1 gagnant) : 100 %\n• C4 (2 gagnants) : 65 % / 35 %\n• C6, C8, C12, C16 (3 gagnants) : 60 % / 25 % / 15 %\n\nRègle intangible : on ne distribue jamais plus que ce qui a été collecté." },
+      { q: "Que gagne un candidat éliminé ?", a: "Toute participation est récompensée : chaque éliminé reçoit une prime de participation, égale à 20 % de ce que ses propres votes ont rapporté. Ces primes sont financées par la commission de la plateforme, pas par la part du podium." },
+      { q: "L'objectif d'une étape, est-ce mon gain ?", a: "Non — c'est une confusion fréquente. L'objectif d'une étape est le montant à collecter pour qu'elle se ferme, pas un gain de candidat. Votre gain réel dépend de la cagnotte réellement collectée, moins la commission, partagée selon le podium." },
+      { q: 'Puis-je voter plusieurs fois pour le même candidat ?', a: "Oui, autant d'étoiles ou de cœurs que vous le souhaitez, tant que l'étape est active et que votre solde le permet." },
     ],
   },
   {
@@ -92,9 +104,9 @@ const faqs = [
   {
     cat: '🔒 Compte & Sécurité',
     items: [
-      { q: 'Comment réinitialiser mon mot de passe ?', a: "Sur la page de connexion, cliquez sur « Mot de passe oublié ». Un lien de réinitialisation vous sera envoyé par email." },
-      { q: 'Comment supprimer mon compte ?', a: "Allez dans Paramètres → Mon compte → Supprimer mon compte. Cette action est irréversible et entraîne la suppression de toutes vos données dans un délai de 30 jours." },
-      { q: 'Mon compte a été suspendu, que faire ?', a: "Contactez notre équipe à support@dikidiki.com en précisant votre nom d'utilisateur et la raison supposée de la suspension. Nous étudions chaque cas sous 48 h." },
+      { q: 'Comment réinitialiser mon mot de passe ?', a: "Sur la page de connexion, cliquez sur « Mot de passe oublié ». Un lien de réinitialisation vous sera envoyé." },
+      { q: 'Comment supprimer mon compte ?', a: "Allez dans Paramètres → Mon compte → Supprimer mon compte. L'action est irréversible ; vos données sont supprimées dans un délai de 30 jours." },
+      { q: 'Mon compte a été suspendu, que faire ?', a: "Contactez-nous via la page Contact en précisant votre nom d'utilisateur et la raison supposée. Nous étudions chaque cas sous 48 h." },
     ],
   },
 ];
@@ -143,7 +155,7 @@ export default function FAQPage() {
         <div style={s.contact}>
           <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18, color: '#ffffff', margin: '0 0 8px', textAlign: 'center' as const, width: '100%' }}>Vous n'avez pas trouvé votre réponse ?</p>
           <p style={{ color: 'rgb(255, 255, 255)', fontSize: 14, margin: '0 0 4px', textAlign: 'center' as const, width: '100%' }}>Notre équipe vous répond sous 24 h</p>
-          <a href="mailto:support@dikidiki.com" style={s.ctaBtn}>📧 Contacter le support</a>
+          <a href="/contact" style={s.ctaBtn}>📧 Contacter le support</a>
         </div>
       </div>
     </div>
