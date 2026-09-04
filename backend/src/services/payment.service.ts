@@ -11,7 +11,7 @@ function _fedaCountry(phone?: string): string {
   const s = String(phone || '').trim();
   if (!s.startsWith('+')) return 'BJ';
   const digits = s.replace(/[^0-9]/g, '');
-  const MAP: Record<string, string> = { '229':'BJ','225':'CI','228':'TG','221':'SN','227':'NE','223':'ML','226':'BF','245':'GW' };
+  const MAP: Record<string, string> = { '229':'BJ','225':'CI','228':'TG','221':'SN','226':'BF','224':'GN','227':'NE','223':'ML','245':'GW' };
   for (const ind of Object.keys(MAP)) if (digits.startsWith(ind)) return MAP[ind];
   return 'BJ';
 }
@@ -27,8 +27,9 @@ function _fedaMode(operator?: string, phone?: string): string {
   const op = String(operator || '').toLowerCase();
   const country = _fedaCountry(phone);
   if (country === 'BJ') {
-    if (op === 'mtn')  return 'mtn_open';
-    if (op === 'moov') return 'moov';
+    if (op === 'mtn')     return 'mtn_open';
+    if (op === 'moov')    return 'moov';
+    if (op === 'celtiis') return 'sbin';
   }
   if (country === 'CI') {
     if (op === 'mtn')    return 'mtn_ci';
@@ -36,12 +37,28 @@ function _fedaMode(operator?: string, phone?: string): string {
     if (op === 'wave')   return 'wave_ci';
     if (op === 'orange') return 'orange_ci';
   }
-  if (country === 'TG' && op === 'moov') return 'moov_tg';
+  if (country === 'TG') {
+    if (op === 'moov')                     return 'moov_tg';
+    if (op === 'tmoney' || op === 'togocom') return 'togocel';
+  }
+  if (country === 'BF') {
+    if (op === 'orange') return 'orange-bf';
+    if (op === 'moov')   return 'moov_bf';
+  }
   if (country === 'SN') {
     if (op === 'wave')   return 'wave_sn';
     if (op === 'orange') return 'orange_sn';
   }
+  if (country === 'GN' && op === 'mtn') return 'mtn_open_gn';
   return op; // repli : on renvoie l'etiquette telle quelle
+}
+
+/*DKDK_PROVIDER — routage prestataire. FedaPay pour les marches francophones
+  qu'il couvre ; PawaPay pour tout le reste de l'Afrique. */
+const FEDAPAY_COUNTRIES = ['BJ', 'CI', 'TG', 'BF', 'SN', 'GN'];
+export function paymentProvider(countryIso?: string): 'fedapay' | 'pawapay' {
+  const iso = String(countryIso || '').toUpperCase();
+  return FEDAPAY_COUNTRIES.indexOf(iso) !== -1 ? 'fedapay' : 'pawapay';
 }
 
 // ─── INITIER UN PAIEMENT (recharge) ─────────────────────────

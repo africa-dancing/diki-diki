@@ -3,6 +3,7 @@ import LogoDikiDiki from '../components/LogoDikiDiki';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { COUNTRIES, BRANDS, getCountry } from './operators';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
@@ -10,54 +11,22 @@ function fmt(n: number) { return n.toLocaleString('fr-FR'); }
 /*DKDK_FRAIS_FIXE — frais fixes FedaPay par retrait, a la charge du candidat (doit egaler FRAIS_FIXE du backend). */
 const FRAIS_FIXE = 150;
 
-const METHODS = [
-  { id: 'mtn',  label: 'MTN MoMo',      gradient: 'linear-gradient(135deg,#FFAA00,#FF6B00)',
-    logo: (
-      <svg width="38" height="38" viewBox="0 0 44 44" fill="none">
-        <circle cx="22" cy="22" r="22" fill="#FFCC00"/>
-        <text x="22" y="19" textAnchor="middle" fill="#00008B" fontSize="11" fontWeight="900" fontFamily="Arial,sans-serif">MTN</text>
-        <text x="22" y="30" textAnchor="middle" fill="#00008B" fontSize="8" fontWeight="700" fontFamily="Arial,sans-serif">MoMo</text>
-      </svg>
-    )
-  },
-  { id: 'moov', label: 'Moov Money',     gradient: 'linear-gradient(135deg,#FFAA00,#FF6B00)',
-    logo: (
-      <svg width="38" height="38" viewBox="0 0 44 44" fill="none">
-        <rect width="44" height="44" rx="10" fill="#00A650"/>
-        <text x="22" y="20" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="900" fontFamily="Arial,sans-serif">moov</text>
-        <text x="22" y="31" textAnchor="middle" fill="#FFD700" fontSize="7.5" fontWeight="700" fontFamily="Arial,sans-serif">MONEY</text>
-      </svg>
-    )
-  },
-  { id: 'bank', label: 'Virement',       gradient: 'linear-gradient(135deg,#FFAA00,#FF6B00)',
-    logo: (
-      <svg width="38" height="38" viewBox="0 0 44 44" fill="none">
-        <rect width="44" height="44" rx="10" fill="#1E3A5F"/>
-        <rect x="7" y="20" width="30" height="14" rx="2" fill="#2563EB" stroke="#93C5FD" strokeWidth="0.8"/>
-        <rect x="10" y="16" width="24" height="6" rx="1" fill="#1D4ED8"/>
-        <polygon points="22,8 35,16 9,16" fill="#3B82F6"/>
-        <rect x="12" y="23" width="4" height="8" rx="1" fill="#93C5FD"/>
-        <rect x="20" y="23" width="4" height="8" rx="1" fill="#93C5FD"/>
-        <rect x="28" y="23" width="4" height="8" rx="1" fill="#93C5FD"/>
-        <rect x="7" y="34" width="30" height="2" rx="1" fill="#60A5FA"/>
-      </svg>
-    )
-  },
-];
-
 export default function RetraitPage() {
   const router = useRouter();
   const [initialBalance, setInitialBalance]   = useState(0);
   const [totalEarned, setTotalEarned]         = useState(0);
+  const [countryIso, setCountryIso]           = useState('BJ');
   const [amount, setAmount]                   = useState('');
-  const [method, setMethod]                   = useState('mtn');
+  const [method, setMethod]                   = useState('mtn'); // id d'opérateur
   const [phone, setPhone]                     = useState('');
   const [holder, setHolder]                   = useState('');
-  const [bankDetails, setBankDetails]         = useState('');
   const [loading, setLoading]                 = useState(false);
   const [success, setSuccess]                 = useState(false);
   const [error, setError]                     = useState('');
   const [confirmed, setConfirmed]             = useState(false);
+
+  const country = getCountry(countryIso) || COUNTRIES[0];
+  const CUR = country.currency === 'XOF' ? 'F CFA' : country.currency;
 
   useEffect(() => {
     const token = getToken();
@@ -74,8 +43,17 @@ export default function RetraitPage() {
       .catch(() => {});
   }, [router]);
 
+  // Quand on change de pays : on sélectionne son premier opérateur et on réinitialise.
+  function changeCountry(iso: string) {
+    const c = getCountry(iso);
+    setCountryIso(iso);
+    setMethod(c && c.operators.length ? c.operators[0] : '');
+    setConfirmed(false);
+    setError('');
+  }
+
   const amountNum = parseInt(amount.replace(/\D/g, '')) || 0;
-  const isValid   = amountNum >= 500 && amountNum <= initialBalance && amountNum <= 2000000 && (method === 'bank' ? !!holder && !!bankDetails : !!phone);
+  const isValid   = country.enabled && amountNum >= 500 && amountNum <= initialBalance && amountNum <= 2000000 && !!phone && !!method;
 
   const handleWithdraw = async () => {
     if (!isValid) return;
@@ -85,8 +63,8 @@ export default function RetraitPage() {
       const res = await fetch(`${API}/payment/withdraw`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        /*DKDK_FIX_OPERATOR — le backend attend `operator` (et non `method`) : sans lui -> MISSING_FIELDS*/
-        body: JSON.stringify({ amount: amountNum, operator: method, method, phone: phone.trim(), holder: holder.trim(), bank_details: bankDetails.trim() }),
+        /*DKDK_MULTIPAYS — on envoie country + operator ; le backend route vers FedaPay ou PawaPay*/
+        body: JSON.stringify({ amount: amountNum, country: country.iso, operator: method, method, phone: phone.trim(), holder: holder.trim() }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? data.error ?? 'Erreur lors du retrait');
@@ -108,10 +86,10 @@ export default function RetraitPage() {
       <div style={{ maxWidth:520, margin:'0 auto', padding:'80px 16px', textAlign:'center' }}>
         <div style={{ fontSize:64, marginBottom:16 }}>💸</div>
         <div style={{ fontFamily:'Syne,sans-serif', fontSize:22, fontWeight:900, color:'#4ade80', marginBottom:8 }}>Demande de retrait envoyée !</div>
-        <div style={{ fontSize:14, color:'rgba(255,255,255,0.5)', marginBottom:6 }}>{fmt(amountNum)} F CFA en cours de traitement</div>
+        <div style={{ fontSize:14, color:'rgba(255,255,255,0.5)', marginBottom:6 }}>{fmt(amountNum)} {CUR} en cours de traitement</div>
         <div style={{ fontSize:13, color:'rgba(255,255,255,0.35)', marginBottom:28, lineHeight:1.7 }}>
           Ton virement est en cours, tu devrais le recevoir en <strong style={{ color:'#fff' }}>quelques minutes</strong>.<br/>
-          Nouveau solde Compte de Retrait : <strong style={{ color:OR }}>{fmt(initialBalance)} F CFA</strong>
+          Nouveau solde Compte de Retrait : <strong style={{ color:OR }}>{fmt(initialBalance)} {CUR}</strong>
         </div>
         <button onClick={() => router.push('/compte')} style={btnP}>Retourner à mon compte</button>
       </div>
@@ -127,23 +105,20 @@ export default function RetraitPage() {
           <span style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'1.15rem' }}>
             <LogoDikiDiki width={130} />
           </span>
-          
         </Link>
         <button onClick={() => router.push('/compte')} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, padding:'6px 14px', color:'rgba(255,255,255,0.5)', fontSize:12, cursor:'pointer' }}>
           ✕ Annuler
         </button>
       </div>
 
-      {/*DKDK_HALO*/}
-        {/*DKDK_HALO — halo magenta pleine largeur : voir le fond du conteneur racine*/}
-        <div style={{ maxWidth:520, margin:'0 auto', padding:'24px 16px' }}>
+      <div style={{ maxWidth:520, margin:'0 auto', padding:'24px 16px' }}>
         <div style={{ background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', borderRadius:18, padding:'22px 20px', marginBottom:20, textAlign:'center' }}>
           <div style={{ fontSize:38, marginBottom:8 }}>💸</div>
           <div style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:20, color:'#fff', marginBottom:6 }}>Retirer mes gains</div>
-          <div style={{ fontSize:13, color:'rgba(255,255,255,0.85)', lineHeight:1.6 }}>Transfert depuis ton Compte de Retrait vers Mobile Money ou compte bancaire</div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.85)', lineHeight:1.6 }}>Transfert depuis ton Compte de Retrait vers ton Mobile Money</div>
         </div>
 
-        {/* Compte de Retrait *//*DKDK_RENAME_RETRAIT_PAGE*/}
+        {/* Compte de Retrait */}
         <div style={{ background:'rgba(56,130,220,0.08)', border:'1px solid rgba(56,130,220,0.25)', borderRadius:16, padding:'16px 18px', marginBottom:14 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
@@ -159,62 +134,79 @@ export default function RetraitPage() {
 
         {/* Info Compte Voter & Soutenir */}
         <div style={{ background:'rgba(255,80,80,0.05)', border:'1px solid rgba(255,80,80,0.18)', borderRadius:10, padding:'10px 14px', marginBottom:14, fontSize:12, color:'rgba(255,120,120,0.8)' }}>
-          🔒 Le Compte Voter & Soutenir (étoiles/cœurs) ne permet pas de retrait. Seul le Compte de Retrait peut être retiré.
+          🔒 Le Compte Voter &amp; Soutenir (étoiles/cœurs) ne permet pas de retrait. Seul le Compte de Retrait peut être retiré.
+        </div>
+
+        {/* Pays */}
+        <div style={card}>
+          <label style={lbl}>Pays de réception</label>
+          <select
+            value={countryIso}
+            onChange={e => changeCountry(e.target.value)}
+            style={{ ...inp, appearance:'none', WebkitAppearance:'none', cursor:'pointer' }}
+          >
+            {COUNTRIES.map(c => (
+              <option key={c.iso} value={c.iso} style={{ background:'#12121a', color:'#fff' }}>
+                {c.flag} {c.name}{c.enabled ? '' : ' — bientôt'}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Montant */}
         <div style={card}>
-          <label style={lbl}>Montant à retirer (min. 500 F)</label>
+          <label style={lbl}>Montant à retirer (min. 500 {CUR})</label>
           <input style={inp} type="text" placeholder="Ex : 5 000"
             value={amount} onChange={e => { setAmount(e.target.value); setConfirmed(false); }} />
           {amountNum > 0 && amountNum < 500 && (
-            <div style={{ fontSize:11, color:'#f87171', marginTop:6 }}>Montant minimum : 500 F CFA</div>
+            <div style={{ fontSize:11, color:'#f87171', marginTop:6 }}>Montant minimum : 500 {CUR}</div>
           )}
           {amountNum > initialBalance && (
             <div style={{ fontSize:11, color:'#f87171', marginTop:6 }}>Montant supérieur à ton solde disponible</div>
           )}
         </div>
 
-        {/* Méthode */}
+        {/* Méthode — opérateurs du pays sélectionné */}
         <div style={card}>
-          <label style={lbl}>Méthode de retrait</label>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:16 }}>
-            {METHODS.map(m => (
-              <div key={m.id} onClick={() => { setMethod(m.id); setConfirmed(false); }}
-                style={{ background: m.gradient, border:`2px solid ${method===m.id?'#fff':'transparent'}`, borderRadius:14, padding:'10px 6px', textAlign:'center' as const, cursor:'pointer', transition:'all .2s', boxShadow: method===m.id?'0 0 0 1px rgba(255,255,255,0.3)':'none', display:'flex', flexDirection:'column' as const, alignItems:'center', gap:5 }}>
-                {m.logo}
-                <div style={{ fontSize:10, fontWeight:700, color:'#000' }}>{m.label}</div>
-              </div>
-            ))}
+          <label style={lbl}>Opérateur Mobile Money</label>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom: country.enabled ? 16 : 4 }}>
+            {country.operators.map(id => {
+              const b = BRANDS[id]; if (!b) return null;
+              const selected = method === id;
+              return (
+                <div key={id} onClick={() => { setMethod(id); setConfirmed(false); }}
+                  style={{ background:b.bg, border:`2px solid ${selected?'#fff':'transparent'}`, borderRadius:14, padding:'14px 6px', textAlign:'center' as const, cursor:'pointer', transition:'all .2s', boxShadow: selected?'0 0 0 1px rgba(255,255,255,0.35)':'none', minHeight:56, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <div style={{ fontSize:12, fontWeight:800, color:b.fg, lineHeight:1.2 }}>{b.label}</div>
+                </div>
+              );
+            })}
           </div>
 
-          {method !== 'bank' ? (
+          {country.enabled ? (
             <>
               <label style={lbl}>Numéro de réception</label>
-              <input style={{ ...inp, marginBottom:10 }} type="tel" placeholder="+229 01 XX XX XX XX" value={phone} onChange={e => { setPhone(e.target.value); setConfirmed(false); }} />
+              <input style={{ ...inp, marginBottom:10 }} type="tel" placeholder={`${country.prefix} …`} value={phone} onChange={e => { setPhone(e.target.value); setConfirmed(false); }} />
               <label style={lbl}>Titulaire du compte</label>
               <input style={inp} type="text" placeholder="Nom complet" value={holder} onChange={e => { setHolder(e.target.value); setConfirmed(false); }} />
             </>
           ) : (
-            <>
-              <label style={lbl}>Titulaire du compte bancaire</label>
-              <input style={{ ...inp, marginBottom:10 }} type="text" placeholder="Nom complet" value={holder} onChange={e => { setHolder(e.target.value); setConfirmed(false); }} />
-              <label style={lbl}>IBAN / Coordonnées bancaires</label>
-              <textarea style={{ ...inp, resize:'vertical', minHeight:60 }} placeholder="IBAN, banque, agence…" value={bankDetails} onChange={e => { setBankDetails(e.target.value); setConfirmed(false); }} />
-            </>
+            <div style={{ background:'rgba(255,170,0,0.06)', border:'1px solid rgba(255,170,0,0.25)', borderRadius:10, padding:'11px 14px', fontSize:12.5, color:OR, lineHeight:1.5 }}>
+              🚧 Les retraits pour <strong>{country.flag} {country.name}</strong> arrivent bientôt.
+              Tu vois ici les opérateurs qui y seront disponibles ({country.operators.map(id => BRANDS[id]?.label).filter(Boolean).join(', ')}).
+            </div>
           )}
         </div>
 
-        {/* Récapitulatif */}
-        {amountNum >= 500 && amountNum <= initialBalance && (
+        {/* Récapitulatif — seulement si le pays est actif */}
+        {country.enabled && amountNum >= 500 && amountNum <= initialBalance && (
           <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
             <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.5)', marginBottom:10, textTransform:'uppercase', letterSpacing:'.06em' }}>Récapitulatif</div>
             {[
-              { lbl:'Montant demandé',       val:`${fmt(amountNum)} F CFA`,          color:'#fff' },
-              { lbl:'Frais de retrait (FedaPay)', val:`${fmt(FRAIS_FIXE)} F CFA`,                 color:'rgba(255,255,255,0.85)' },
-              { lbl:'Vous recevrez',          val:`${fmt(Math.max(0, amountNum - FRAIS_FIXE))} F CFA`,     color:OR },
-              { lbl:'Solde après retrait',   val:`${fmt(initialBalance - amountNum)} F CFA`, color:'rgba(255,255,255,0.5)' },
-              { lbl:'Délai de traitement',   val:'quelques minutes',                 color:'rgba(255,255,255,0.5)' },
+              { lbl:'Montant demandé',            val:`${fmt(amountNum)} ${CUR}`,                          color:'#fff' },
+              { lbl:'Frais de retrait (FedaPay)', val:`${fmt(FRAIS_FIXE)} ${CUR}`,                         color:'rgba(255,255,255,0.85)' },
+              { lbl:'Vous recevrez',              val:`${fmt(Math.max(0, amountNum - FRAIS_FIXE))} ${CUR}`, color:OR },
+              { lbl:'Solde après retrait',        val:`${fmt(initialBalance - amountNum)} ${CUR}`,          color:'rgba(255,255,255,0.5)' },
+              { lbl:'Délai de traitement',        val:'quelques minutes',                                  color:'rgba(255,255,255,0.5)' },
             ].map((r, i) => (
               <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderTop: i>0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                 <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>{r.lbl}</span>
@@ -225,9 +217,9 @@ export default function RetraitPage() {
         )}
 
         {/* Confirmation */}
-        {confirmed && (
+        {confirmed && country.enabled && (
           <div style={{ background:'rgba(255,170,0,0.06)', border:'1px solid rgba(255,170,0,0.25)', borderRadius:12, padding:'12px 16px', marginBottom:14, fontSize:13, color:OR }}>
-            ⚠️ Confirme le retrait de <strong>{fmt(amountNum)} F CFA</strong> vers {method === 'mtn' ? 'MTN MoMo' : method === 'moov' ? 'Moov Money' : 'virement bancaire'}.
+            ⚠️ Confirme le retrait de <strong>{fmt(amountNum)} {CUR}</strong> vers {BRANDS[method]?.label || method}.
             Cette action est irréversible.
           </div>
         )}
@@ -244,7 +236,7 @@ export default function RetraitPage() {
             style={{ ...btnP, flex:1, opacity: !isValid || loading ? 0.5 : 1,
               background: confirmed ? 'linear-gradient(135deg,#f87171,#ef4444)' : 'linear-gradient(135deg,#FFAA00,#FF6B00)',
             }}>
-            {loading ? '⏳ Traitement…' : confirmed ? `✅ Confirmer le retrait de ${fmt(amountNum)} F` : `💸 Retirer ${amountNum ? fmt(amountNum) + ' F CFA' : ''}`}
+            {loading ? '⏳ Traitement…' : confirmed ? `✅ Confirmer le retrait de ${fmt(amountNum)} ${CUR}` : `💸 Retirer ${amountNum ? fmt(amountNum) + ' ' + CUR : ''}`}
           </button>
         </div>
       </div>

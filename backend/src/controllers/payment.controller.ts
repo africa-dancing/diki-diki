@@ -1,6 +1,6 @@
 import * as _dkdkCrypto from 'crypto'; /*DKDK_SIG_OBSERVE*/
 import { Request, Response } from 'express';
-import { initiatePayment, verifyPayment, withdrawPayment } from '../services/payment.service';
+import { initiatePayment, verifyPayment, withdrawPayment, paymentProvider } from '../services/payment.service';
 import { supabase } from '../../config/supabase';
 
 const MIN_RETRAIT = 500; /*DKDK_MIN_RETRAIT_500*/
@@ -353,6 +353,16 @@ export async function withdraw(req: Request, res: Response) {
       return res.status(400).json({
         error: 'INVALID_AMOUNT',
         message: 'Le montant doit etre entre ' + MIN_RETRAIT + ' et ' + MAX_RETRAIT + ' F CFA',
+      });
+    }
+    /*DKDK_PROVIDER_GUARD — routage prestataire. Aujourd'hui seul FedaPay est branche.
+      Un pays route vers PawaPay est refuse proprement (integration a venir).
+      country absent => on suppose l'ancien flux Benin (FedaPay). */
+    const _country = String((req.body && req.body.country) || 'BJ').toUpperCase();
+    if (paymentProvider(_country) === 'pawapay') {
+      return res.status(501).json({
+        error:   'PROVIDER_NOT_ACTIVE',
+        message: 'Les retraits pour ce pays arriveront bientot (PawaPay en cours d\'integration).',
       });
     }
     // 2. Recuperer le nom (pour FedaPay)
