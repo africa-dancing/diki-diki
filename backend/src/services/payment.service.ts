@@ -17,6 +17,29 @@ function _fedaCountry(phone?: string): string {
 }
 const FRAIS_RATE = 0.02; // 2% frais retrait
 
+/*DKDK_FEDA_MODE — FedaPay attend des codes de mode precis pour les payouts Mobile Money,
+  differents de nos etiquettes ('mtn','moov'...). Ex. MTN Benin = 'mtn_open', Moov Benin = 'moov'. */
+function _fedaMode(operator?: string, phone?: string): string {
+  const op = String(operator || '').toLowerCase();
+  const country = _fedaCountry(phone);
+  if (country === 'BJ') {
+    if (op === 'mtn')  return 'mtn_open';
+    if (op === 'moov') return 'moov';
+  }
+  if (country === 'CI') {
+    if (op === 'mtn')    return 'mtn_ci';
+    if (op === 'moov')   return 'moov_ci';
+    if (op === 'wave')   return 'wave_ci';
+    if (op === 'orange') return 'orange_ci';
+  }
+  if (country === 'TG' && op === 'moov') return 'moov_tg';
+  if (country === 'SN') {
+    if (op === 'wave')   return 'wave_sn';
+    if (op === 'orange') return 'orange_sn';
+  }
+  return op; // repli : on renvoie l'etiquette telle quelle
+}
+
 // ─── INITIER UN PAIEMENT (recharge) ─────────────────────────
 export async function initiatePayment(params: {
   amount:    number;
@@ -90,7 +113,7 @@ export async function withdrawPayment(params: {
       description: `Retrait Diki-Diki — ${netAmount} F CFA`,
       amount:      netAmount,
       currency:    { iso: 'XOF' },
-      mode:        params.operator, // 'mtn', 'orange', 'wave', 'moov'
+      mode:        _fedaMode(params.operator, params.phone), // FedaPay: 'mtn_open', 'moov'...
       customer: {
         firstname:    params.firstName,
         lastname:     params.lastName,
@@ -102,11 +125,11 @@ export async function withdrawPayment(params: {
 
   const payout = response.data['v1/payout'];
 
-  // Déclencher le payout immédiatement
+  // Déclencher le payout immédiatement — FedaPay: PUT /v1/payouts/start
   await axios.put(
-    `${FEDAPAY_API}/payouts/${payout.id}/send_now`,
-    {},
-    { headers: { Authorization: `Bearer ${SECRET_KEY}` } }
+    `${FEDAPAY_API}/payouts/start`,
+    { payouts: [{ id: payout.id, scheduled_at: 'now' }] },
+    { headers: { Authorization: `Bearer ${SECRET_KEY}`, 'Content-Type': 'application/json' } }
   );
 
   return {
