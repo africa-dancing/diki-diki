@@ -82,10 +82,11 @@ const faqs = [
   {
     cat: '💳 Paiement & Retrait',
     items: [
-      { q: 'Comment retirer mes gains ?', a: "Allez dans Portefeuille → Retrait, saisissez le montant souhaité et votre numéro Mobile Money. Le virement est traité sous 72 heures ouvrables." },
-      { q: 'Quels moyens de paiement sont acceptés ?', a: "Diki-Diki Vision accepte les paiements via Mobile Money (MTN, Moov, Wave) et carte bancaire, traités par notre partenaire FedaPay." },
-      { q: 'Mon paiement a échoué, que faire ?', a: "Vérifiez votre solde Mobile Money ou les informations de votre carte. Si le problème persiste, contactez-nous à support@dikidiki.com avec votre numéro de transaction." },
-      { q: 'Y a-t-il des frais sur les retraits ?', a: "Des frais opérateurs peuvent s'appliquer selon votre opérateur Mobile Money. Diki-Diki Vision n'applique pas de frais supplémentaires sur les retraits." },
+      { q: 'Comment retirer mes gains ?', a: "Allez dans votre Compte → Retrait, saisissez le montant, choisissez votre pays et votre opérateur Mobile Money, puis votre numéro de réception. Le virement est en général reçu en quelques minutes.\n\nSeuls les gains (podium ou prime de participation) sont retirables. L'argent chargé pour voter, lui, ne se retire pas." },
+      { q: 'Dans quels pays puis-je retirer mes gains ?', a: "Le retrait Mobile Money s'ouvre progressivement à travers l'Afrique :\n\n✅ Disponible : 🇧🇯 Bénin\n\n🔓 En cours d'ouverture (Afrique de l'Ouest francophone) : 🇨🇮 Côte d'Ivoire, 🇸🇳 Sénégal, 🇹🇬 Togo, 🇧🇫 Burkina Faso, 🇬🇳 Guinée\n\n🌍 Bientôt (reste de l'Afrique) : Ghana, Nigeria, Kenya, Tanzanie, Ouganda, Rwanda, Cameroun, RD Congo, Gabon, Congo-Brazzaville, Zambie, Malawi, Mozambique, Éthiopie, Sierra Leone, Lesotho\n\n💳 À venir : Afrique du Nord et australe (paiement par carte)\n\nSi ton pays n'est pas encore ouvert, tes gains restent en sécurité sur ton Compte de Retrait en attendant." },
+      { q: 'Quels moyens de paiement sont acceptés ?', a: "Le Mobile Money, selon ton pays : MTN, Moov, Orange, Wave, Celtiis… traités par notre partenaire FedaPay (et bientôt PawaPay pour élargir la couverture à toute l'Afrique)." },
+      { q: 'Y a-t-il des frais sur les retraits ?', a: "Oui : des frais fixes de 150 F CFA par retrait s'appliquent. Ce sont les frais de notre partenaire de paiement, répercutés à l'identique — Diki-Diki ne prend aucune marge dessus. Ils sont affichés clairement dans le récapitulatif avant de confirmer (« Vous recevrez : montant − 150 F »)." },
+      { q: 'Mon retrait a échoué, que faire ?', a: "Pas d'inquiétude : en cas d'échec, tes gains restent disponibles sur ton Compte de Retrait — rien n'est perdu. Réessaie un peu plus tard, et si le problème persiste, contacte-nous via la page Contact → raccourci « Retrait & paiement »." },
     ],
   },
   {
