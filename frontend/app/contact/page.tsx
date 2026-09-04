@@ -21,7 +21,7 @@ const s: Record<string, React.CSSProperties> = {
   body:    { maxWidth: 760, margin: '0 auto', padding: '0 24px' },
 
   gridReseaux: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 },
-  gridPanneaux:{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 40 },
+  gridPanneaux:{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 40 },
 
   card:    { background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '18px 10px', textAlign: 'center' as const, textDecoration: 'none', display: 'block', color: '#e8e0d0', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", width: '100%' },
   cardReseau:{ background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '14px 8px', textAlign: 'center' as const, textDecoration: 'none', display: 'block', color: '#e8e0d0' },
@@ -154,6 +154,13 @@ export default function ContactPage() {
 
         {/* Ligne 2 : Bug & Partenariat (defilent vers le formulaire) + FAQ (lien) */}
         <div style={s.gridPanneaux}>
+          <button type="button" style={s.card} onClick={() => allerAuFormulaire('Demande de retrait')}>
+            <div style={s.cardIcon}>💸</div>
+            <div style={s.cardT}>Retrait &amp; paiement</div>
+            <div style={s.cardS}>Virement non reçu, retrait bloqué</div>
+            <div style={s.cardL}>Nous écrire</div>
+          </button>
+
           <button type="button" style={s.card} onClick={() => allerAuFormulaire('Bug technique')}>
             <div style={s.cardIcon}>🐛</div>
             <div style={s.cardT}>Bug & technique</div>
