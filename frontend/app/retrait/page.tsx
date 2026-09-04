@@ -7,6 +7,8 @@ import Link from 'next/link';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
 function fmt(n: number) { return n.toLocaleString('fr-FR'); }
+/*DKDK_FRAIS_FIXE — frais fixes FedaPay par retrait, a la charge du candidat (doit egaler FRAIS_FIXE du backend). */
+const FRAIS_FIXE = 150;
 
 const METHODS = [
   { id: 'mtn',  label: 'MTN MoMo',      gradient: 'linear-gradient(135deg,#FFAA00,#FF6B00)',
@@ -108,7 +110,7 @@ export default function RetraitPage() {
         <div style={{ fontFamily:'Syne,sans-serif', fontSize:22, fontWeight:900, color:'#4ade80', marginBottom:8 }}>Demande de retrait envoyée !</div>
         <div style={{ fontSize:14, color:'rgba(255,255,255,0.5)', marginBottom:6 }}>{fmt(amountNum)} F CFA en cours de traitement</div>
         <div style={{ fontSize:13, color:'rgba(255,255,255,0.35)', marginBottom:28, lineHeight:1.7 }}>
-          Ton virement sera effectué sous <strong style={{ color:'#fff' }}>48h ouvrées</strong>.<br/>
+          Ton virement est en cours, tu devrais le recevoir en <strong style={{ color:'#fff' }}>quelques minutes</strong>.<br/>
           Nouveau solde Compte de Retrait : <strong style={{ color:OR }}>{fmt(initialBalance)} F CFA</strong>
         </div>
         <button onClick={() => router.push('/compte')} style={btnP}>Retourner à mon compte</button>
@@ -209,10 +211,10 @@ export default function RetraitPage() {
             <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.5)', marginBottom:10, textTransform:'uppercase', letterSpacing:'.06em' }}>Récapitulatif</div>
             {[
               { lbl:'Montant demandé',       val:`${fmt(amountNum)} F CFA`,          color:'#fff' },
-              { lbl:'Frais de retrait (2%)',  val:`${fmt(Math.ceil(amountNum * 0.02))} F CFA`,                 color:'rgba(255,255,255,0.85)' },
-              { lbl:'Vous recevrez',          val:`${fmt(amountNum - Math.ceil(amountNum * 0.02))} F CFA`,     color:OR },
+              { lbl:'Frais de retrait (FedaPay)', val:`${fmt(FRAIS_FIXE)} F CFA`,                 color:'rgba(255,255,255,0.85)' },
+              { lbl:'Vous recevrez',          val:`${fmt(Math.max(0, amountNum - FRAIS_FIXE))} F CFA`,     color:OR },
               { lbl:'Solde après retrait',   val:`${fmt(initialBalance - amountNum)} F CFA`, color:'rgba(255,255,255,0.5)' },
-              { lbl:'Délai de traitement',   val:'48h ouvrées',                      color:'rgba(255,255,255,0.5)' },
+              { lbl:'Délai de traitement',   val:'quelques minutes',                 color:'rgba(255,255,255,0.5)' },
             ].map((r, i) => (
               <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderTop: i>0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                 <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>{r.lbl}</span>

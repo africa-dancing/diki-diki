@@ -15,7 +15,11 @@ function _fedaCountry(phone?: string): string {
   for (const ind of Object.keys(MAP)) if (digits.startsWith(ind)) return MAP[ind];
   return 'BJ';
 }
-const FRAIS_RATE = 0.02; // 2% frais retrait
+// Frais FIXES FedaPay par decaissement (fixed_commission = 150 F pour MoMo Benin),
+// a la charge du CANDIDAT qui retire (champion ou elimine), JAMAIS de la plateforme.
+// Le candidat recoit (montant - FRAIS_FIXE) ; FedaPay debite montant du solde marchand.
+// (Doit egaler FRAIS_FIXE cote frontend retrait/page.tsx.)
+const FRAIS_FIXE = 150;
 
 /*DKDK_FEDA_MODE — FedaPay attend des codes de mode precis pour les payouts Mobile Money,
   differents de nos etiquettes ('mtn','moov'...). Ex. MTN Benin = 'mtn_open', Moov Benin = 'moov'. */
@@ -104,7 +108,7 @@ export async function withdrawPayment(params: {
   firstName: string;
   lastName:  string;
 }) {
-  const frais     = Math.ceil(params.amount * FRAIS_RATE);
+  const frais     = FRAIS_FIXE;
   const netAmount = params.amount - frais;
 
   const response = await axios.post(
