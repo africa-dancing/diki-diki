@@ -58,10 +58,10 @@ export interface CountryConf {
 export const COUNTRIES: CountryConf[] = [
   // ─── FedaPay — marchés francophones couverts ──────────────────────────────
   { iso:'BJ', name:'Bénin',            flag:'🇧🇯', prefix:'+229', currency:'XOF', provider:'fedapay', enabled:true,  operators:['mtn','moov','celtiis'] },
-  { iso:'CI', name:"Côte d'Ivoire",    flag:'🇨🇮', prefix:'+225', currency:'XOF', provider:'fedapay', enabled:false, operators:['mtn','moov','orange','wave'] },
-  { iso:'TG', name:'Togo',             flag:'🇹🇬', prefix:'+228', currency:'XOF', provider:'fedapay', enabled:false, operators:['moov','tmoney'] },
-  { iso:'BF', name:'Burkina Faso',     flag:'🇧🇫', prefix:'+226', currency:'XOF', provider:'fedapay', enabled:false, operators:['orange','moov'] },
-  { iso:'SN', name:'Sénégal',          flag:'🇸🇳', prefix:'+221', currency:'XOF', provider:'fedapay', enabled:false, operators:['orange','wave'] },
+  { iso:'CI', name:"Côte d'Ivoire",    flag:'🇨🇮', prefix:'+225', currency:'XOF', provider:'fedapay', enabled:true,  operators:['mtn','moov','orange','wave'] },
+  { iso:'TG', name:'Togo',             flag:'🇹🇬', prefix:'+228', currency:'XOF', provider:'fedapay', enabled:true,  operators:['moov','tmoney'] },
+  { iso:'BF', name:'Burkina Faso',     flag:'🇧🇫', prefix:'+226', currency:'XOF', provider:'fedapay', enabled:true,  operators:['orange','moov'] },
+  { iso:'SN', name:'Sénégal',          flag:'🇸🇳', prefix:'+221', currency:'XOF', provider:'fedapay', enabled:true,  operators:['orange','wave'] },
   { iso:'GN', name:'Guinée',           flag:'🇬🇳', prefix:'+224', currency:'GNF', provider:'fedapay', enabled:false, operators:['mtn'] },
 
   // ─── PawaPay — tous les autres marchés ────────────────────────────────────
