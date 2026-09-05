@@ -26,7 +26,6 @@ export default function RetraitPage() {
   const country = getCountry(countryIso) || COUNTRIES[0];
   const rule = currencyRule(country.currency);
   const MIN = rule.min;   // minimum de retrait pour la devise du pays
-  const FEE = rule.fee;   // frais fixes pour la devise du pays
   const CUR = rule.label; // libellé de la devise (F CFA, GNF…)
 
   useEffect(() => {
@@ -54,6 +53,7 @@ export default function RetraitPage() {
   }
 
   const amountNum = parseInt(amount.replace(/\D/g, '')) || 0;
+  const FEE = rule.feePct ? Math.ceil(amountNum * rule.feePct) : rule.fee; // frais fixes (FedaPay) ou % (PawaPay)
   const isValid   = country.enabled && amountNum >= MIN && amountNum <= initialBalance && amountNum <= 2000000 && !!phone && !!method;
 
   const handleWithdraw = async () => {

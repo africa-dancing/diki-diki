@@ -100,11 +100,19 @@ export function detectCountry(phone: string): CountryConf | null {
 // ─── Règles de retrait PAR DEVISE ─────────────────────────────────────────────
 // min = montant minimum de retrait ; fee = frais fixes répercutés au candidat.
 // ⚠️ Ces valeurs doivent rester identiques côté backend (payment.service.ts).
-export interface CurrencyRule { label: string; min: number; fee: number; }
+export interface CurrencyRule { label: string; min: number; fee: number; feePct?: number; }
 export const CURRENCIES: Record<string, CurrencyRule> = {
   XOF: { label: 'F CFA', min: 500,   fee: 150  }, // FedaPay UEMOA — confirmé en prod
-  GNF: { label: 'GNF',   min: 25000, fee: 5000 }, // ⚠️ PROVISOIRE — frais FedaPay GNF + min à confirmer
-  // À compléter pour PawaPay : XAF, GHS, NGN, KES, UGX, TZS, RWF, ZMW, MWK, MZN, CDF, ETB, LSL, SLE
+  GNF: { label: 'GNF',   min: 25000, fee: 5000 }, // ⚠️ PROVISOIRE (Guinée inactive)
+  // PawaPay — frais en % (défaut 3 %, à calibrer par pays). Doit rester identique au backend CURRENCY_RULES.
+  XAF: { label: 'FCFA',  min: 500,   fee: 0, feePct: 0.03 },
+  CDF: { label: 'CDF',   min: 5000,  fee: 0, feePct: 0.03 },
+  KES: { label: 'KES',   min: 200,   fee: 0, feePct: 0.03 },
+  RWF: { label: 'RWF',   min: 1000,  fee: 0, feePct: 0.03 },
+  SLE: { label: 'SLE',   min: 20,    fee: 0, feePct: 0.03 },
+  TZS: { label: 'TZS',   min: 2000,  fee: 0, feePct: 0.03 },
+  UGX: { label: 'UGX',   min: 3000,  fee: 0, feePct: 0.03 },
+  ZMW: { label: 'ZMW',   min: 20,    fee: 0, feePct: 0.03 },
 };
 export function currencyRule(cur?: string): CurrencyRule {
   return CURRENCIES[String(cur || '').toUpperCase()] || CURRENCIES.XOF;

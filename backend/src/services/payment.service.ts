@@ -64,17 +64,36 @@ export function paymentProvider(countryIso?: string): 'fedapay' | 'pawapay' {
 /*DKDK_DEVISE — regles de retrait PAR DEVISE (min + frais fixes a la charge du candidat).
   Doit rester identique au frontend operators.ts (CURRENCIES). */
 const COUNTRY_CURRENCY: Record<string, string> = {
+  // FedaPay (XOF sauf Guinee GNF)
   BJ: 'XOF', CI: 'XOF', TG: 'XOF', BF: 'XOF', SN: 'XOF', NE: 'XOF', GN: 'GNF',
+  // PawaPay
+  CM: 'XAF', CG: 'XAF', GA: 'XAF', CD: 'CDF', KE: 'KES',
+  RW: 'RWF', SL: 'SLE', TZ: 'TZS', UG: 'UGX', ZM: 'ZMW',
 };
-const CURRENCY_RULES: Record<string, { min: number; fee: number }> = {
-  XOF: { min: 500,   fee: 150  }, // FedaPay UEMOA — confirme en prod
-  GNF: { min: 25000, fee: 5000 }, // ⚠️ PROVISOIRE — frais FedaPay GNF + min a confirmer
+// fee = frais FIXES (FedaPay) ; feePct = frais en POURCENTAGE (PawaPay). Un seul des deux par devise.
+const CURRENCY_RULES: Record<string, { min: number; fee?: number; feePct?: number }> = {
+  XOF: { min: 500,   fee: 150  },   // FedaPay UEMOA — confirme en prod
+  GNF: { min: 25000, fee: 5000 },   // ⚠️ PROVISOIRE (Guinee inactive)
+  // PawaPay — frais en % (defaut 3 %, marge de securite ; a calibrer par pays avant LIVE). Minimums ~1 USD.
+  XAF: { min: 500,   feePct: 0.03 },
+  CDF: { min: 5000,  feePct: 0.03 },
+  KES: { min: 200,   feePct: 0.03 },
+  RWF: { min: 1000,  feePct: 0.03 },
+  SLE: { min: 20,    feePct: 0.03 },
+  TZS: { min: 2000,  feePct: 0.03 },
+  UGX: { min: 3000,  feePct: 0.03 },
+  ZMW: { min: 20,    feePct: 0.03 },
 };
-export function retraitRule(countryIso?: string): { currency: string; min: number; fee: number } {
+export function retraitRule(countryIso?: string): { currency: string; min: number; fee: number; feePct: number } {
   const iso = String(countryIso || '').toUpperCase();
   const cur = COUNTRY_CURRENCY[iso] || 'XOF';
   const r = CURRENCY_RULES[cur] || CURRENCY_RULES.XOF;
-  return { currency: cur, min: r.min, fee: r.fee };
+  return { currency: cur, min: r.min || 0, fee: r.fee || 0, feePct: r.feePct || 0 };
+}
+// Frais effectifs pour un montant : pourcentage (PawaPay) sinon fixe (FedaPay).
+export function retraitFee(countryIso: string | undefined, amount: number): number {
+  const r = retraitRule(countryIso);
+  return r.feePct > 0 ? Math.ceil(amount * r.feePct) : r.fee;
 }
 
 // ─── INITIER UN PAIEMENT (recharge) ─────────────────────────
@@ -142,7 +161,7 @@ export async function withdrawPayment(params: {
   lastName:  string;
   country?:  string;
 }) {
-  const frais     = retraitRule(params.country).fee;
+  const frais     = retraitFee(params.country, params.amount);
   const netAmount = params.amount - frais;
 
   const response = await axios.post(

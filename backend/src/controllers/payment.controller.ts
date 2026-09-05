@@ -1,6 +1,7 @@
 import * as _dkdkCrypto from 'crypto'; /*DKDK_SIG_OBSERVE*/
 import { Request, Response } from 'express';
-import { initiatePayment, verifyPayment, withdrawPayment, paymentProvider, retraitRule } from '../services/payment.service';
+import { initiatePayment, verifyPayment, withdrawPayment, paymentProvider, retraitRule, retraitFee } from '../services/payment.service';
+import { pawaProvider, pawapayPayout, pawapayStatus } from '../services/pawapay.service';
 import { supabase } from '../../config/supabase';
 
 const MIN_RETRAIT = 500; /*DKDK_MIN_RETRAIT_500*/
@@ -358,15 +359,7 @@ export async function withdraw(req: Request, res: Response) {
         message: 'Le montant doit etre entre ' + _rule.min + ' et ' + MAX_RETRAIT + ' ' + _rule.currency,
       });
     }
-    /*DKDK_PROVIDER_GUARD — routage prestataire. Aujourd'hui seul FedaPay est branche.
-      Un pays route vers PawaPay est refuse proprement (integration a venir). */
-    if (paymentProvider(_country) === 'pawapay') {
-      return res.status(501).json({
-        error:   'PROVIDER_NOT_ACTIVE',
-        message: 'Les retraits pour ce pays arriveront bientot (PawaPay en cours d\'integration).',
-      });
-    }
-    // 2. Recuperer le nom (pour FedaPay)
+    // 2. Recuperer le nom (pour le prestataire)
     const { data: user } = await supabase
       .from('users')
       .select('name, email')
@@ -409,43 +402,52 @@ export async function withdraw(req: Request, res: Response) {
       })
       .select()
       .single();
-    // 5. Lancer le payout FedaPay
+    // 5. Lancer le payout selon le prestataire (FedaPay francophone / PawaPay le reste)
+    const _provider = paymentProvider(_country);
+    const _fee = retraitFee(_country, amount);
+    const _net = amount - _fee;
     try {
-      var _wNames = splitName(user.name);
-      const result = await withdrawPayment({
-        amount,
-        phone,
-        operator,
-        userId,
-        firstName: _wNames.firstName,
-        lastName:  _wNames.lastName,
-        country:   _country,
-      });
-      // 6. Mettre a jour la transaction avec l'ID FedaPay
+      let _payoutId = '';
+      if (_provider === 'pawapay') {
+        const _prov = pawaProvider(_country, operator);
+        if (!_prov) {
+          await supabase.from('transactions').update({ status: 'failed' }).eq('id', tx?.id);
+          return res.status(400).json({ error: 'OPERATOR_NOT_SUPPORTED', message: 'Operateur non pris en charge pour ce pays.' });
+        }
+        const pres = await pawapayPayout({ amount: _net, currency: _rule.currency, phone, provider: _prov });
+        if (String(pres.status || '').toUpperCase() !== 'ACCEPTED') {
+          throw new Error('PAWAPAY_' + (pres.status || 'REJECTED') + ' | ' + JSON.stringify(pres.raw || {}));
+        }
+        _payoutId = String(pres.payoutId);
+      } else {
+        var _wNames = splitName(user.name);
+        const result = await withdrawPayment({
+          amount, phone, operator, userId,
+          firstName: _wNames.firstName, lastName: _wNames.lastName, country: _country,
+        });
+        _payoutId = String(result.payoutId);
+      }
+      // 6. Mettre a jour la transaction avec l'ID du prestataire + statut 'sent'
       await supabase
         .from('transactions')
-        .update({ fedapay_id: String(result.payoutId), status: 'sent' })
+        .update({ fedapay_id: _payoutId, status: 'sent' })
         .eq('id', tx?.id);
       return res.status(200).json({
         success:   true,
         message:   'Retrait initie avec succes',
-        netAmount: result.netAmount,
-        frais:     result.frais,
-        payoutId:  result.payoutId,
+        netAmount: _net,
+        frais:     _fee,
+        payoutId:  _payoutId,
       });
-    } catch (fedaErr: any) {
-      /*DKDK_LOG_PAYOUT_FAIL — on journalise la vraie raison renvoyee par FedaPay (sinon impossible a diagnostiquer)*/
+    } catch (payErr: any) {
+      /*DKDK_LOG_PAYOUT_FAIL — on journalise la vraie raison (sinon impossible a diagnostiquer)*/
       try {
-        const _st = fedaErr?.response?.status;
-        const _body = fedaErr?.response?.data ? JSON.stringify(fedaErr.response.data) : (fedaErr?.message || 'inconnue');
-        console.error('[WITHDRAW] Echec payout FedaPay | status=' + _st + ' | detail=' + _body);
+        const _st = payErr?.response?.status;
+        const _body = payErr?.response?.data ? JSON.stringify(payErr.response.data) : (payErr?.message || 'inconnue');
+        console.error('[WITHDRAW] Echec payout ' + _provider + ' | status=' + _st + ' | detail=' + _body);
       } catch (_logErr) { /* la journalisation ne doit jamais casser la reponse */ }
-      // FedaPay a echoue : transaction marquee failed.
-      // Un payout failed n'est PAS soustrait du solde -> gains redeviennent dispo.
-      await supabase
-        .from('transactions')
-        .update({ status: 'failed' })
-        .eq('id', tx?.id);
+      // Echec : transaction 'failed'. Un payout failed n'est PAS soustrait du solde -> gains redeviennent dispo.
+      await supabase.from('transactions').update({ status: 'failed' }).eq('id', tx?.id);
       return res.status(502).json({
         error:   'PAYOUT_FAILED',
         message: 'Le virement a echoue. Vos gains restent disponibles.',
@@ -453,5 +455,75 @@ export async function withdraw(req: Request, res: Response) {
     }
   } catch {
     return res.status(500).json({ error: 'WITHDRAW_FAILED' });
+  }
+}
+
+// ─── CALLBACK PawaPay (statut d'un payout) ───────────────────────────────────
+// PawaPay POST sur cette URL avec { payoutId, status, ... }. On ne fait PAS
+// confiance au corps : on redemande le vrai statut a PawaPay (GET /v2/payouts/{id}),
+// puis on met a jour NOTRE transaction. On ne touche jamais d'argent ici.
+// Un payout 'failed' redonne le solde retirable (car un 'failed' n'est pas compte).
+export async function pawapayCallback(req: Request, res: Response) {
+  try {
+    const _b: any = req.body || {};
+    const _payoutId = String(_b.payoutId || _b.payout_id || '');
+    if (!_payoutId) return res.status(200).json({ received: true });
+
+    // Statut authentifie : on interroge PawaPay directement (jamais confiance au corps brut).
+    let _status = String(_b.status || '').toUpperCase();
+    try {
+      const s = await pawapayStatus(_payoutId);
+      if (s && s.status) _status = String(s.status).toUpperCase();
+    } catch (_e) { /* si l'appel echoue, on retombe sur le statut du corps */ }
+
+    let _newStatus: string | null = null;
+    if (_status === 'COMPLETED') _newStatus = 'success';
+    else if (_status === 'FAILED' || _status === 'REJECTED' || _status === 'CANCELLED') _newStatus = 'failed';
+    // PROCESSING / ENQUEUED / IN_RECONCILIATION : non terminal -> on attend.
+
+    if (_newStatus) {
+      console.log('[PAWAPAY_CB] payoutId=' + _payoutId + ' | statut=' + _status + ' -> ' + _newStatus);
+      const { data: _ptx } = await supabase
+        .from('transactions')
+        .select('id, status')
+        .eq('fedapay_id', _payoutId)
+        .eq('type', 'payout')
+        .maybeSingle();
+      if (_ptx && _ptx.status !== 'success' && _ptx.status !== 'failed') {
+        await supabase.from('transactions').update({ status: _newStatus }).eq('id', _ptx.id);
+      }
+    } else {
+      console.log('[PAWAPAY_CB] payoutId=' + _payoutId + ' | statut=' + _status + ' (non terminal, ignore)');
+    }
+    // Toujours 200 pour eviter que PawaPay re-essaie en boucle.
+    return res.status(200).json({ received: true });
+  } catch {
+    return res.status(200).json({ received: true });
+  }
+}
+
+// ─── TEST sandbox PawaPay (ADMIN) ────────────────────────────────────────────
+// Declenche un payout de test avec des donnees fournies (numero de test PawaPay),
+// SANS toucher au solde d'un candidat. Sert a valider l'integration en sandbox.
+export async function pawapayTest(req: Request, res: Response) {
+  try {
+    const { amount, country, operator, phone } = req.body || {};
+    const iso = String(country || '').toUpperCase();
+    const _prov = pawaProvider(iso, operator);
+    if (!_prov) return res.status(400).json({ error: 'BAD_PROVIDER', message: 'country/operator invalides pour PawaPay' });
+    const _rule = retraitRule(iso);
+    const r = await pawapayPayout({
+      amount:   Number(amount) || 100,
+      currency: _rule.currency,
+      phone:    String(phone || ''),
+      provider: _prov,
+    });
+    return res.status(200).json({ ok: true, provider: _prov, currency: _rule.currency, ...r });
+  } catch (e: any) {
+    return res.status(500).json({
+      error:  'PAWA_TEST_FAILED',
+      status: e?.response?.status,
+      detail: e?.response?.data || e?.message,
+    });
   }
 }

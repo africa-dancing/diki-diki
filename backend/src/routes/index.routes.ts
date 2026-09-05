@@ -29,6 +29,8 @@ paymentRouter.post('/initiate', requireAuth, requireVerified, paymentCtrl.initia
 paymentRouter.post('/vote', requireAuth, requireVerified, paymentCtrl.initiateVotePayment); /*DKDK_VOTE_PAY_ROUTE*/
 paymentRouter.post('/withdraw', requireAuth, requireVerified, paymentCtrl.withdraw); /*DKDK_WITHDRAW_ROUTE*/
 paymentRouter.post('/webhook',  paymentCtrl.webhook);
+paymentRouter.post('/pawapay-callback', paymentCtrl.pawapayCallback); /*DKDK_PAWAPAY_CALLBACK*/
+paymentRouter.post('/pawapay-test', requireAuth, requireAdmin, paymentCtrl.pawapayTest); /*DKDK_PAWAPAY_TEST (admin, sandbox)*/
 export { paymentRouter };
 
 // ─── Wallet ──────────────────────────────────────────────────
