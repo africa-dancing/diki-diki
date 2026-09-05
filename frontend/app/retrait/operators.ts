@@ -95,3 +95,16 @@ export function detectCountry(phone: string): CountryConf | null {
   for (const c of sorted) if (digits.startsWith(c.prefix)) return c;
   return null;
 }
+
+// ─── Règles de retrait PAR DEVISE ─────────────────────────────────────────────
+// min = montant minimum de retrait ; fee = frais fixes répercutés au candidat.
+// ⚠️ Ces valeurs doivent rester identiques côté backend (payment.service.ts).
+export interface CurrencyRule { label: string; min: number; fee: number; }
+export const CURRENCIES: Record<string, CurrencyRule> = {
+  XOF: { label: 'F CFA', min: 500,   fee: 150  }, // FedaPay UEMOA — confirmé en prod
+  GNF: { label: 'GNF',   min: 25000, fee: 5000 }, // ⚠️ PROVISOIRE — frais FedaPay GNF + min à confirmer
+  // À compléter pour PawaPay : XAF, GHS, NGN, KES, UGX, TZS, RWF, ZMW, MWK, MZN, CDF, ETB, LSL, SLE
+};
+export function currencyRule(cur?: string): CurrencyRule {
+  return CURRENCIES[String(cur || '').toUpperCase()] || CURRENCIES.XOF;
+}

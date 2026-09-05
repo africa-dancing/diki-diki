@@ -1,6 +1,6 @@
 import * as _dkdkCrypto from 'crypto'; /*DKDK_SIG_OBSERVE*/
 import { Request, Response } from 'express';
-import { initiatePayment, verifyPayment, withdrawPayment, paymentProvider } from '../services/payment.service';
+import { initiatePayment, verifyPayment, withdrawPayment, paymentProvider, retraitRule } from '../services/payment.service';
 import { supabase } from '../../config/supabase';
 
 const MIN_RETRAIT = 500; /*DKDK_MIN_RETRAIT_500*/
@@ -345,20 +345,21 @@ export async function withdraw(req: Request, res: Response) {
     const userId = (req as any).user.userId;
     const { amount, phone, operator } = req.body;
     /*DKDK_WITHDRAW_V2*/
+    // Pays + regle de devise (minimum et frais). country absent => ancien flux Benin (XOF).
+    const _country = String((req.body && req.body.country) || 'BJ').toUpperCase();
+    const _rule = retraitRule(_country);
     // 1. Validation
     if (!amount || !phone || !operator) {
       return res.status(400).json({ error: 'MISSING_FIELDS' });
     }
-    if (amount < MIN_RETRAIT || amount > MAX_RETRAIT) {
+    if (amount < _rule.min || amount > MAX_RETRAIT) {
       return res.status(400).json({
         error: 'INVALID_AMOUNT',
-        message: 'Le montant doit etre entre ' + MIN_RETRAIT + ' et ' + MAX_RETRAIT + ' F CFA',
+        message: 'Le montant doit etre entre ' + _rule.min + ' et ' + MAX_RETRAIT + ' ' + _rule.currency,
       });
     }
     /*DKDK_PROVIDER_GUARD — routage prestataire. Aujourd'hui seul FedaPay est branche.
-      Un pays route vers PawaPay est refuse proprement (integration a venir).
-      country absent => on suppose l'ancien flux Benin (FedaPay). */
-    const _country = String((req.body && req.body.country) || 'BJ').toUpperCase();
+      Un pays route vers PawaPay est refuse proprement (integration a venir). */
     if (paymentProvider(_country) === 'pawapay') {
       return res.status(501).json({
         error:   'PROVIDER_NOT_ACTIVE',
@@ -418,6 +419,7 @@ export async function withdraw(req: Request, res: Response) {
         userId,
         firstName: _wNames.firstName,
         lastName:  _wNames.lastName,
+        country:   _country,
       });
       // 6. Mettre a jour la transaction avec l'ID FedaPay
       await supabase

@@ -3,13 +3,11 @@ import LogoDikiDiki from '../components/LogoDikiDiki';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { COUNTRIES, BRANDS, getCountry } from './operators';
+import { COUNTRIES, BRANDS, getCountry, currencyRule } from './operators';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
 function fmt(n: number) { return n.toLocaleString('fr-FR'); }
-/*DKDK_FRAIS_FIXE — frais fixes FedaPay par retrait, a la charge du candidat (doit egaler FRAIS_FIXE du backend). */
-const FRAIS_FIXE = 150;
 
 export default function RetraitPage() {
   const router = useRouter();
@@ -26,7 +24,10 @@ export default function RetraitPage() {
   const [confirmed, setConfirmed]             = useState(false);
 
   const country = getCountry(countryIso) || COUNTRIES[0];
-  const CUR = country.currency === 'XOF' ? 'F CFA' : country.currency;
+  const rule = currencyRule(country.currency);
+  const MIN = rule.min;   // minimum de retrait pour la devise du pays
+  const FEE = rule.fee;   // frais fixes pour la devise du pays
+  const CUR = rule.label; // libellé de la devise (F CFA, GNF…)
 
   useEffect(() => {
     const token = getToken();
@@ -53,7 +54,7 @@ export default function RetraitPage() {
   }
 
   const amountNum = parseInt(amount.replace(/\D/g, '')) || 0;
-  const isValid   = country.enabled && amountNum >= 500 && amountNum <= initialBalance && amountNum <= 2000000 && !!phone && !!method;
+  const isValid   = country.enabled && amountNum >= MIN && amountNum <= initialBalance && amountNum <= 2000000 && !!phone && !!method;
 
   const handleWithdraw = async () => {
     if (!isValid) return;
@@ -155,11 +156,11 @@ export default function RetraitPage() {
 
         {/* Montant */}
         <div style={card}>
-          <label style={lbl}>Montant à retirer (min. 500 {CUR})</label>
+          <label style={lbl}>Montant à retirer (min. {fmt(MIN)} {CUR})</label>
           <input style={inp} type="text" placeholder="Ex : 5 000"
             value={amount} onChange={e => { setAmount(e.target.value); setConfirmed(false); }} />
-          {amountNum > 0 && amountNum < 500 && (
-            <div style={{ fontSize:11, color:'#f87171', marginTop:6 }}>Montant minimum : 500 {CUR}</div>
+          {amountNum > 0 && amountNum < MIN && (
+            <div style={{ fontSize:11, color:'#f87171', marginTop:6 }}>Montant minimum : {fmt(MIN)} {CUR}</div>
           )}
           {amountNum > initialBalance && (
             <div style={{ fontSize:11, color:'#f87171', marginTop:6 }}>Montant supérieur à ton solde disponible</div>
@@ -198,13 +199,13 @@ export default function RetraitPage() {
         </div>
 
         {/* Récapitulatif — seulement si le pays est actif */}
-        {country.enabled && amountNum >= 500 && amountNum <= initialBalance && (
+        {country.enabled && amountNum >= MIN && amountNum <= initialBalance && (
           <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
             <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.5)', marginBottom:10, textTransform:'uppercase', letterSpacing:'.06em' }}>Récapitulatif</div>
             {[
               { lbl:'Montant demandé',            val:`${fmt(amountNum)} ${CUR}`,                          color:'#fff' },
-              { lbl:'Frais de retrait (FedaPay)', val:`${fmt(FRAIS_FIXE)} ${CUR}`,                         color:'rgba(255,255,255,0.85)' },
-              { lbl:'Vous recevrez',              val:`${fmt(Math.max(0, amountNum - FRAIS_FIXE))} ${CUR}`, color:OR },
+              { lbl:'Frais de retrait (FedaPay)', val:`${fmt(FEE)} ${CUR}`,                         color:'rgba(255,255,255,0.85)' },
+              { lbl:'Vous recevrez',              val:`${fmt(Math.max(0, amountNum - FEE))} ${CUR}`, color:OR },
               { lbl:'Solde après retrait',        val:`${fmt(initialBalance - amountNum)} ${CUR}`,          color:'rgba(255,255,255,0.5)' },
               { lbl:'Délai de traitement',        val:'quelques minutes',                                  color:'rgba(255,255,255,0.5)' },
             ].map((r, i) => (

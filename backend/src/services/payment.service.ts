@@ -15,11 +15,9 @@ function _fedaCountry(phone?: string): string {
   for (const ind of Object.keys(MAP)) if (digits.startsWith(ind)) return MAP[ind];
   return 'BJ';
 }
-// Frais FIXES FedaPay par decaissement (fixed_commission = 150 F pour MoMo Benin),
-// a la charge du CANDIDAT qui retire (champion ou elimine), JAMAIS de la plateforme.
-// Le candidat recoit (montant - FRAIS_FIXE) ; FedaPay debite montant du solde marchand.
-// (Doit egaler FRAIS_FIXE cote frontend retrait/page.tsx.)
-const FRAIS_FIXE = 150;
+// Frais de retrait : voir retraitRule() plus bas (frais fixes par devise, a la charge
+// du candidat, jamais de la plateforme). Le candidat recoit (montant - frais) ;
+// FedaPay debite le montant plein du solde marchand.
 
 /*DKDK_FEDA_MODE — FedaPay attend des codes de mode precis pour les payouts Mobile Money,
   differents de nos etiquettes ('mtn','moov'...). Ex. MTN Benin = 'mtn_open', Moov Benin = 'moov'. */
@@ -59,6 +57,22 @@ const FEDAPAY_COUNTRIES = ['BJ', 'CI', 'TG', 'BF', 'SN', 'GN'];
 export function paymentProvider(countryIso?: string): 'fedapay' | 'pawapay' {
   const iso = String(countryIso || '').toUpperCase();
   return FEDAPAY_COUNTRIES.indexOf(iso) !== -1 ? 'fedapay' : 'pawapay';
+}
+
+/*DKDK_DEVISE — regles de retrait PAR DEVISE (min + frais fixes a la charge du candidat).
+  Doit rester identique au frontend operators.ts (CURRENCIES). */
+const COUNTRY_CURRENCY: Record<string, string> = {
+  BJ: 'XOF', CI: 'XOF', TG: 'XOF', BF: 'XOF', SN: 'XOF', GN: 'GNF',
+};
+const CURRENCY_RULES: Record<string, { min: number; fee: number }> = {
+  XOF: { min: 500,   fee: 150  }, // FedaPay UEMOA — confirme en prod
+  GNF: { min: 25000, fee: 5000 }, // ⚠️ PROVISOIRE — frais FedaPay GNF + min a confirmer
+};
+export function retraitRule(countryIso?: string): { currency: string; min: number; fee: number } {
+  const iso = String(countryIso || '').toUpperCase();
+  const cur = COUNTRY_CURRENCY[iso] || 'XOF';
+  const r = CURRENCY_RULES[cur] || CURRENCY_RULES.XOF;
+  return { currency: cur, min: r.min, fee: r.fee };
 }
 
 // ─── INITIER UN PAIEMENT (recharge) ─────────────────────────
@@ -124,8 +138,9 @@ export async function withdrawPayment(params: {
   userId:    string;
   firstName: string;
   lastName:  string;
+  country?:  string;
 }) {
-  const frais     = FRAIS_FIXE;
+  const frais     = retraitRule(params.country).fee;
   const netAmount = params.amount - frais;
 
   const response = await axios.post(
