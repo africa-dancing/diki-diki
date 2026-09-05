@@ -46,14 +46,16 @@ function _fedaMode(operator?: string, phone?: string): string {
   if (country === 'SN') {
     if (op === 'wave')   return 'wave_sn';
     if (op === 'orange') return 'orange_sn';
+    if (op === 'free')   return 'free_sn';   // a confirmer par un test reel
   }
+  if (country === 'NE' && op === 'airtel') return 'airtel_ne'; // a confirmer par un test reel
   if (country === 'GN' && op === 'mtn') return 'mtn_open_gn';
   return op; // repli : on renvoie l'etiquette telle quelle
 }
 
 /*DKDK_PROVIDER — routage prestataire. FedaPay pour les marches francophones
   qu'il couvre ; PawaPay pour tout le reste de l'Afrique. */
-const FEDAPAY_COUNTRIES = ['BJ', 'CI', 'TG', 'BF', 'SN', 'GN'];
+const FEDAPAY_COUNTRIES = ['BJ', 'CI', 'TG', 'BF', 'SN', 'NE', 'GN'];
 export function paymentProvider(countryIso?: string): 'fedapay' | 'pawapay' {
   const iso = String(countryIso || '').toUpperCase();
   return FEDAPAY_COUNTRIES.indexOf(iso) !== -1 ? 'fedapay' : 'pawapay';
@@ -62,7 +64,7 @@ export function paymentProvider(countryIso?: string): 'fedapay' | 'pawapay' {
 /*DKDK_DEVISE — regles de retrait PAR DEVISE (min + frais fixes a la charge du candidat).
   Doit rester identique au frontend operators.ts (CURRENCIES). */
 const COUNTRY_CURRENCY: Record<string, string> = {
-  BJ: 'XOF', CI: 'XOF', TG: 'XOF', BF: 'XOF', SN: 'XOF', GN: 'GNF',
+  BJ: 'XOF', CI: 'XOF', TG: 'XOF', BF: 'XOF', SN: 'XOF', NE: 'XOF', GN: 'GNF',
 };
 const CURRENCY_RULES: Record<string, { min: number; fee: number }> = {
   XOF: { min: 500,   fee: 150  }, // FedaPay UEMOA — confirme en prod
