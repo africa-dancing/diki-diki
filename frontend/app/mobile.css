@@ -17,9 +17,13 @@
   --ink-soft:rgba(243,238,228,.76);    /* sous-titres lisibles */
   --ink-dim:rgba(243,238,228,.56);     /* mentions discrètes */
   --or:#FFB224; --or2:#FF7A1A; --red:#ff4d4d; --green:#2fe06f; --purple:#a12aa3;
-  --nav-bg:rgba(9,7,10,.97);
   --grad:linear-gradient(90deg,var(--or),var(--or2));
   --on-accent:#150c00;
+  /* ── Barre du haut : couleurs FIXES (ne changent JAMAIS avec le thème) ── */
+  --nav-bg:rgba(9,7,10,.97); --nav-panel:#0f0f0f;
+  --nav-ink:#f3eee4; --nav-ink-soft:rgba(243,238,228,.6); --nav-ink-dim:rgba(243,238,228,.4);
+  --nav-line:rgba(255,255,255,.1); --nav-surface:rgba(255,255,255,.06);
+  --nav-or:#FFB224; --nav-or2:#FF7A1A;
 }
 :root[data-theme="light"]{
   color-scheme: light;
@@ -30,7 +34,7 @@
   --ink-soft:rgba(29,22,12,.74);        /* sous-titres lisibles */
   --ink-dim:rgba(29,22,12,.52);
   --or:#c85400; --or2:#e85d00; --red:#cf1020; --green:#0f9c4a; --purple:#8a1e8c;
-  --nav-bg:rgba(255,253,248,.96);
+  /* La barre du haut n'est PAS redéfinie ici : elle reste sombre en mode Jour. */
 }
 
 /* Empêche le scroll horizontal sur tout le site */
