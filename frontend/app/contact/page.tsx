@@ -15,7 +15,7 @@ const s: Record<string, React.CSSProperties> = {
   badgeWrap: { padding: '16px', display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' as const },
   badge:   { background: `linear-gradient(135deg,${OR},${OR2})`, color: '#000', fontSize: 12, padding: '5px 12px', borderRadius: 20, fontWeight: 800 },
   hero:    { padding: '16px 24px 32px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' as const },
-  h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1.4rem,4vw,2rem)', lineHeight: 1.1, margin: '0 0 8px', background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
+  h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1.4rem,4vw,2rem)', lineHeight: 1.1, margin: '0 0 8px', color: '#fa0404' },
   sub:     { color: 'rgba(255,255,255,0.6)', fontSize: 14, margin: 0 },
   divider: { height: 1, background: 'rgba(255,255,255,0.06)', margin: '24px 0 32px' },
   body:    { maxWidth: 760, margin: '0 auto', padding: '0 24px' },
