@@ -134,7 +134,7 @@ export default function HomePage() {
 
 
       {/* Hero */}
-      <div style={{ padding: '16px 24px 32px', minHeight: 64, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
+      <div style={{ padding: '16px 24px 40px', minHeight: 120, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
       </div>
 
       {/* Grille vidéos */}
