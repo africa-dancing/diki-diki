@@ -165,6 +165,7 @@ export default function Navbar() {
               { href: '/home',          label: 'Accueil' },
                 { href: '/faq',           label: 'Comment ça marche' },
                 { href: '/contact',       label: 'Contact' }, /*DKDK_NAV_CONTACT*/
+                { href: '/cgu',           label: 'CGU & Règlement' }, /*DKDK_NAV_CGU*/
                 { href: '/auth/register', label: "S'inscrire", hide: !!token },
                 { href: '/compte',        label: 'Mon compte', hide: !token },
                 { href: '/recharge',      label: 'Recharger', hide: !token },

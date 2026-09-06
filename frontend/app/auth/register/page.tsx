@@ -36,6 +36,7 @@ export default function RegisterPage() {
   const [resendCD, setResendCD] = useState(0);
   const [error, setError]       = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [accepted, setAccepted] = useState(false); /*DKDK_CGU_ACCEPT*/
   const otpRefs                 = useRef<(HTMLInputElement|null)[]>([]);
   const [countries, setCountries] = useState<any[]>([]); /*DKDK_PAYS_LIST*/
   useEffect(() => { fetch(`${API}/pays-monnaies/`).then(r => r.ok ? r.json() : []).then(rows => { if (Array.isArray(rows) && rows.length) setCountries(rows); }).catch(() => {}); }, []);
@@ -59,6 +60,7 @@ export default function RegisterPage() {
     if (!form.email.includes('@')) { setError('Email invalide.'); return; }
     if (form.phone.length < 6)     { setError('Telephone invalide.'); return; }
     if (form.password.length < 8)  { setError('Mot de passe trop court (min. 8 car.).'); return; }
+    if (!accepted)                 { setError('Tu dois accepter les CGU et le Reglement pour continuer.'); return; }
     setLoading(true);
     try {
       const fullPhone = form.phone.startsWith('+') ? form.phone : `${form.country}${form.phone}`;
@@ -162,6 +164,10 @@ export default function RegisterPage() {
         .resend-btn{background:none;border:none;color:#FFAA00;font-size:14px;font-weight:600;cursor:pointer}
         .resend-btn:disabled{color:rgba(255,170,0,.4);cursor:not-allowed}
         .error-msg{background:rgba(230,60,60,.1);border:1px solid rgba(230,60,60,.25);border-radius:10px;padding:11px 15px;font-size:13px;color:#ff7070;margin-bottom:14px}
+        .accept-row{display:flex;align-items:flex-start;gap:10px;margin:4px 0 16px;cursor:pointer}
+        .accept-row input{appearance:auto;width:18px;height:18px;margin-top:1px;accent-color:#FFAA00;cursor:pointer;flex-shrink:0}
+        .accept-row span{font-size:13px;line-height:1.5;color:rgba(255,255,255,.6)}
+        .accept-row a{color:#FFAA00;text-decoration:none;font-weight:600}
         .btn-primary{width:100%;padding:15px;background:linear-gradient(135deg,#FFAA00,#FF6B00);border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#000;cursor:pointer;transition:opacity .2s}
         .btn-primary:hover:not(:disabled){opacity:.9}
         .btn-primary:disabled{opacity:.5;cursor:not-allowed}
@@ -252,8 +258,15 @@ export default function RegisterPage() {
                     })}
                   </div>
                 </div>
+                <label className="accept-row">
+                  <input type="checkbox" checked={accepted} onChange={e => { setAccepted(e.target.checked); setError(''); }} />
+                  <span>
+                    J&apos;ai lu et j&apos;accepte les{' '}
+                    <Link href="/cgu" target="_blank">CGU, le Règlement des challenges et la Politique de confidentialité</Link>. Je confirme avoir 18 ans ou plus.
+                  </span>
+                </label>
                 {error && <div className="error-msg">⚠️ {error}</div>}
-                <button type="submit" className="btn-primary" disabled={loading}>
+                <button type="submit" className="btn-primary" disabled={loading || !accepted}>
                   {loading && <span className="spinner"/>}
                   {loading ? 'Creation...' : 'Creer mon compte →'}
                 </button>
