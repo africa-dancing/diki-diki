@@ -66,7 +66,7 @@ export default function RegisterPage() {
       const fullPhone = form.phone.startsWith('+') ? form.phone : `${form.country}${form.phone}`;
       const res = await fetch(`${API}/auth/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, phone: fullPhone }),
+        body: JSON.stringify({ ...form, phone: fullPhone, accepted }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'REGISTER_FAILED');

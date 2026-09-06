@@ -12,6 +12,8 @@ const registerSchema = z.object({
   phone:    z.string().regex(/^\+?[1-9]\d{7,14}$/, 'Téléphone invalide'),
   password: z.string().min(8, 'Minimum 8 caractères'),
   country:  z.string().min(2),
+  // Garde-fou serveur : l'acceptation des CGU/Règlement doit valoir exactement true.
+  accepted: z.literal(true, { errorMap: () => ({ message: 'Vous devez accepter les CGU et le Règlement' }) }),
 });
 
 const loginSchema = z.object({
