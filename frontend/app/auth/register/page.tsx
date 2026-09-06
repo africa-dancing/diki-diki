@@ -131,50 +131,50 @@ export default function RegisterPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        .reg-bg{min-height:100vh;background:#08080f;display:flex;align-items:center;justify-content:center;padding:24px;font-family:'DM Sans',sans-serif;position:relative;overflow:hidden}
+        .reg-bg{min-height:100vh;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;font-family:'DM Sans',sans-serif;position:relative;overflow:hidden}
         .reg-bg::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(255,184,0,.03) 40px,rgba(255,184,0,.03) 41px),repeating-linear-gradient(-45deg,transparent,transparent 40px,rgba(255,184,0,.03) 40px,rgba(255,184,0,.03) 41px);pointer-events:none}
         .glow-tr{position:fixed;top:-150px;right:-100px;width:450px;height:450px;background:radial-gradient(circle,rgba(255,107,0,.1) 0%,transparent 70%);pointer-events:none}
         .glow-bl{position:fixed;bottom:-150px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(255,184,0,.08) 0%,transparent 70%);pointer-events:none}
-        .reg-card{position:relative;width:100%;max-width:480px;background:rgba(255,255,255,.04);border:1px solid rgba(126,3,128,.6);border-top:2px solid #7e0380;border-radius:24px;padding:44px 40px;backdrop-filter:blur(20px)}
+        .reg-card{position:relative;width:100%;max-width:480px;background:var(--surface);border:1px solid rgba(126,3,128,.6);border-top:2px solid #7e0380;border-radius:24px;padding:44px 40px;backdrop-filter:blur(20px)}
         .logo-area{display:flex;align-items:center;justify-content:center;margin-bottom:28px}
         .social-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
-        .btn-social{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer}
+        .btn-social{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
         .btn-social svg{width:18px;height:18px}
-        .divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:rgba(255,255,255,.2);font-size:13px}
-        .divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+        .divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--ink-dim);font-size:13px}
+        .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line)}
         .field{margin-bottom:13px}
-        .field label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+        .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
         .input-wrap{position:relative}
-        .field input,.field select{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:13px 16px;font-family:'DM Sans',sans-serif;font-size:15px;color:#fff;outline:none;transition:border-color .2s;appearance:none}
-        .field input:focus,.field select:focus{border-color:#FFAA00;background:rgba(255,170,0,.05)}
-        .field input::placeholder{color:rgba(255,255,255,.22)}
-        .field select option{background:#1a1a2e;color:#fff}
-        .eye-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:18px;padding:4px}
+        .field input,.field select{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--ink);outline:none;transition:border-color .2s;appearance:none}
+        .field input:focus,.field select:focus{border-color:var(--or);background:rgba(255,170,0,.05)}
+        .field input::placeholder{color:var(--ink-dim)}
+        .field select option{background:var(--bg-soft);color:var(--ink)}
+        .eye-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink-soft);font-size:18px;padding:4px}
         .row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
         .pwd-strength{display:flex;gap:4px;margin-top:7px}
-        .pwd-bar{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.1);transition:background .3s}
-        .pwd-bar.weak{background:#FF4444}.pwd-bar.medium{background:#FFAA00}.pwd-bar.strong{background:#44FF88}
-        .otp-info{background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.2);border-radius:12px;padding:14px 16px;font-size:14px;color:rgba(255,255,255,.7);margin-bottom:22px;line-height:1.5}
-        .otp-info strong{color:#FFAA00}
+        .pwd-bar{flex:1;height:3px;border-radius:2px;background:var(--line);transition:background .3s}
+        .pwd-bar.weak{background:#FF4444}.pwd-bar.medium{background:var(--or)}.pwd-bar.strong{background:#44FF88}
+        .otp-info{background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.2);border-radius:12px;padding:14px 16px;font-size:14px;color:var(--ink-soft);margin-bottom:22px;line-height:1.5}
+        .otp-info strong{color:var(--or)}
         .otp-grid{display:flex;gap:10px;justify-content:center;margin-bottom:8px}
-        .otp-cell{width:52px;height:60px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;text-align:center;font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:#fff;outline:none;transition:border-color .2s,transform .1s}
-        .otp-cell:focus{border-color:#FFAA00;background:rgba(255,170,0,.08);transform:scale(1.05)}
+        .otp-cell{width:52px;height:60px;background:var(--surface);border:1px solid var(--line);border-radius:12px;text-align:center;font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--ink);outline:none;transition:border-color .2s,transform .1s}
+        .otp-cell:focus{border-color:var(--or);background:rgba(255,170,0,.08);transform:scale(1.05)}
         .otp-cell.filled{border-color:rgba(255,170,0,.4)}
-        .resend-row{text-align:center;margin:14px 0;font-size:14px;color:rgba(255,255,255,.4)}
-        .resend-btn{background:none;border:none;color:#FFAA00;font-size:14px;font-weight:600;cursor:pointer}
+        .resend-row{text-align:center;margin:14px 0;font-size:14px;color:var(--ink-soft)}
+        .resend-btn{background:none;border:none;color:var(--or);font-size:14px;font-weight:600;cursor:pointer}
         .resend-btn:disabled{color:rgba(255,170,0,.4);cursor:not-allowed}
         .error-msg{background:rgba(230,60,60,.1);border:1px solid rgba(230,60,60,.25);border-radius:10px;padding:11px 15px;font-size:13px;color:#ff7070;margin-bottom:14px}
         .accept-row{display:flex;align-items:flex-start;gap:10px;margin:4px 0 16px;cursor:pointer}
-        .accept-row input{appearance:auto;width:18px;height:18px;margin-top:1px;accent-color:#FFAA00;cursor:pointer;flex-shrink:0}
-        .accept-row span{font-size:13px;line-height:1.5;color:rgba(255,255,255,.6)}
-        .accept-row a{color:#FFAA00;text-decoration:none;font-weight:600}
-        .btn-primary{width:100%;padding:15px;background:linear-gradient(135deg,#FFAA00,#FF6B00);border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#000;cursor:pointer;transition:opacity .2s}
+        .accept-row input{appearance:auto;width:18px;height:18px;margin-top:1px;accent-color:var(--or);cursor:pointer;flex-shrink:0}
+        .accept-row span{font-size:13px;line-height:1.5;color:var(--ink-soft)}
+        .accept-row a{color:var(--or);text-decoration:none;font-weight:600}
+        .btn-primary{width:100%;padding:15px;background:linear-gradient(135deg,var(--or),var(--or2));border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--on-accent);cursor:pointer;transition:opacity .2s}
         .btn-primary:hover:not(:disabled){opacity:.9}
         .btn-primary:disabled{opacity:.5;cursor:not-allowed}
-        .btn-back{display:flex;align-items:center;gap:6px;background:none;border:none;color:rgba(255,255,255,.4);font-size:14px;cursor:pointer;margin-bottom:18px;padding:0}
-        .login-link{text-align:center;font-size:14px;color:rgba(255,255,255,.4);margin-top:22px}
-        .login-link a{color:#FFAA00;text-decoration:none;font-weight:600}
-        .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:8px}
+        .btn-back{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--ink-soft);font-size:14px;cursor:pointer;margin-bottom:18px;padding:0}
+        .login-link{text-align:center;font-size:14px;color:var(--ink-soft);margin-top:22px}
+        .login-link a{color:var(--or);text-decoration:none;font-weight:600}
+        .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(0,0,0,.3);border-top-color:var(--on-accent);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:8px}
         @keyframes spin{to{transform:rotate(360deg)}}
       `}</style>
 
@@ -192,11 +192,11 @@ export default function RegisterPage() {
             <>
               <h1 style={{
                 fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 800,
-                color: '#fff', marginBottom: 6, letterSpacing: '-.5px', textAlign: 'center',
+                color: 'var(--ink)', marginBottom: 6, letterSpacing: '-.5px', textAlign: 'center',
               }}>
                 Crée ton compte!
               </h1>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,.4)', marginBottom: 24, textAlign: 'center' }}>
+              <p style={{ fontSize: 14, color: 'var(--ink-soft)', marginBottom: 24, textAlign: 'center' }}>
                 Pour participer aux challenges artistiques
               </p>
 
@@ -286,7 +286,7 @@ export default function RegisterPage() {
               </button>
               <h1 style={{
                 fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 800,
-                color: '#fff', marginBottom: 16, letterSpacing: '-.5px',
+                color: 'var(--ink)', marginBottom: 16, letterSpacing: '-.5px',
               }}>
                 Vérifie ton numéro
               </h1>

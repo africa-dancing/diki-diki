@@ -5,43 +5,43 @@ import Navbar from '../components/Navbar';
 /*DKDK_CONTACT_V4*/
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 
-const OR = '#FFAA00';
-const OR2 = '#FF6B00';
+const OR = 'var(--or)';
+const OR2 = 'var(--or2)';
 const MAGENTA = '#7e0380';
-const BG = '#0a0a0f';
+const BG = 'var(--bg)';
 
 const s: Record<string, React.CSSProperties> = {
-  page:    { background: BG, minHeight: '100vh', color: '#e8e0d0', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },
+  page:    { background: BG, minHeight: '100vh', color: 'var(--ink)', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },
   badgeWrap: { padding: '16px', display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' as const },
   badge:   { background: `linear-gradient(135deg,${OR},${OR2})`, color: '#000', fontSize: 12, padding: '5px 12px', borderRadius: 20, fontWeight: 800 },
   hero:    { padding: '16px 24px 32px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' as const },
-  h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1.4rem,4vw,2rem)', lineHeight: 1.1, margin: '0 0 8px', color: '#fa0404' },
-  sub:     { color: 'rgba(255,255,255,0.6)', fontSize: 14, margin: 0 },
-  divider: { height: 1, background: 'rgba(255,255,255,0.06)', margin: '24px 0 32px' },
+  h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1.4rem,4vw,2rem)', lineHeight: 1.1, margin: '0 0 8px', color: 'var(--red)' },
+  sub:     { color: 'var(--ink-soft)', fontSize: 14, margin: 0 },
+  divider: { height: 1, background: 'var(--line)', margin: '24px 0 32px' },
   body:    { maxWidth: 760, margin: '0 auto', padding: '0 24px' },
 
   gridReseaux: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 },
   gridPanneaux:{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 40 },
 
-  card:    { background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '18px 10px', textAlign: 'center' as const, textDecoration: 'none', display: 'block', color: '#e8e0d0', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", width: '100%' },
-  cardReseau:{ background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '14px 8px', textAlign: 'center' as const, textDecoration: 'none', display: 'block', color: '#e8e0d0' },
+  card:    { background: 'var(--surface)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '18px 10px', textAlign: 'center' as const, textDecoration: 'none', display: 'block', color: 'var(--ink)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", width: '100%' },
+  cardReseau:{ background: 'var(--surface)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '14px 8px', textAlign: 'center' as const, textDecoration: 'none', display: 'block', color: 'var(--ink)' },
   cardIcon:{ fontSize: 24, marginBottom: 6 },
   cardIconSm:{ fontSize: 22, marginBottom: 4 },
-  cardT:   { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13, color: '#fff', marginBottom: 6 },
-  cardTsm: { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 11, color: '#fff' },
-  cardS:   { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 8 },
-  cardSsm: { fontSize: 9, color: 'rgba(255,255,255,0.4)', marginTop: 2 },
+  cardT:   { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13, color: 'var(--ink)', marginBottom: 6 },
+  cardTsm: { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 11, color: 'var(--ink)' },
+  cardS:   { fontSize: 11, color: 'var(--ink-dim)', marginBottom: 8 },
+  cardSsm: { fontSize: 9, color: 'var(--ink-dim)', marginTop: 2 },
   cardL:   { color: OR, fontSize: 12, fontWeight: 600 },
 
-  formBox: { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,170,0,0.12)', borderRadius: 16, padding: '32px' },
-  formH:   { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 19, color: '#fff', marginBottom: 24, textAlign: 'center' as const },
-  label:   { display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 6, fontWeight: 500 },
-  input:   { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,170,0,0.15)', borderRadius: 8, color: '#fff', fontSize: 15, padding: '12px 14px', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", marginBottom: 16 },
-  select:  { width: '100%', background: '#111', border: '1px solid rgba(255,170,0,0.15)', borderRadius: 8, color: '#fff', fontSize: 15, padding: '12px 14px', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", marginBottom: 16 },
-  textarea:{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,170,0,0.15)', borderRadius: 8, color: '#fff', fontSize: 15, padding: '12px 14px', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", marginBottom: 16, resize: 'vertical' as const, minHeight: 120 },
-  btn:     { width: '100%', background: `linear-gradient(90deg,${OR},${OR2})`, color: '#0a0a0f', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15, padding:'14px', cursor: 'pointer', fontFamily: "'Syne', sans-serif", lineHeight: 1.5 },
+  formBox: { background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.12)', borderRadius: 16, padding: '32px' },
+  formH:   { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 19, color: 'var(--ink)', marginBottom: 24, textAlign: 'center' as const },
+  label:   { display: 'block', fontSize: 13, color: 'var(--ink-soft)', marginBottom: 6, fontWeight: 500 },
+  input:   { width: '100%', background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.15)', borderRadius: 8, color: 'var(--ink)', fontSize: 15, padding: '12px 14px', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", marginBottom: 16 },
+  select:  { width: '100%', background: 'var(--bg-soft)', border: '1px solid rgba(255,170,0,0.15)', borderRadius: 8, color: 'var(--ink)', fontSize: 15, padding: '12px 14px', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", marginBottom: 16 },
+  textarea:{ width: '100%', background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.15)', borderRadius: 8, color: 'var(--ink)', fontSize: 15, padding: '12px 14px', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", marginBottom: 16, resize: 'vertical' as const, minHeight: 120 },
+  btn:     { width: '100%', background: `linear-gradient(90deg,${OR},${OR2})`, color: 'var(--on-accent)', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15, padding:'14px', cursor: 'pointer', fontFamily: "'Syne', sans-serif", lineHeight: 1.5 },
   btnEmail:{ display: 'block', fontSize: 13, fontWeight: 600, marginTop: 2 },
-  success: { background: 'rgba(0,200,100,0.08)', border: '1px solid rgba(0,200,100,0.2)', borderRadius: 10, padding: '20px', textAlign: 'center' as const, color: '#00c864' },
+  success: { background: 'rgba(0,200,100,0.08)', border: '1px solid rgba(0,200,100,0.2)', borderRadius: 10, padding: '20px', textAlign: 'center' as const, color: 'var(--green)' },
 };
 
 const subjects = [
