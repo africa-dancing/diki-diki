@@ -3,13 +3,46 @@
    Cible : Android Chrome ≤ 480px
    ============================================================ */
 
+/* ============================================================
+   THÈME JOUR / NUIT — variables de couleurs (design tokens)
+   Nuit = défaut. Jour = <html data-theme="light">.
+   Textes remontés en contraste pour la lisibilité.
+   ============================================================ */
+:root{
+  color-scheme: dark;
+  --bg:#0a0a0f; --bg-soft:#131019;
+  --surface:rgba(255,255,255,.055); --surface2:rgba(255,255,255,.085);
+  --line:rgba(255,255,255,.13); --line-strong:rgba(255,255,255,.20);
+  --ink:#f3eee4;                       /* texte principal, bien clair */
+  --ink-soft:rgba(243,238,228,.76);    /* sous-titres lisibles */
+  --ink-dim:rgba(243,238,228,.56);     /* mentions discrètes */
+  --or:#FFB224; --or2:#FF7A1A; --red:#ff4d4d; --green:#2fe06f; --purple:#a12aa3;
+  --nav-bg:rgba(9,7,10,.97);
+  --grad:linear-gradient(90deg,var(--or),var(--or2));
+  --on-accent:#150c00;
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --bg:#f6f1e8; --bg-soft:#fffdf8;
+  --surface:rgba(28,20,4,.042); --surface2:rgba(28,20,4,.075);
+  --line:rgba(28,20,4,.14); --line-strong:rgba(28,20,4,.22);
+  --ink:#1d160c;                        /* texte principal foncé */
+  --ink-soft:rgba(29,22,12,.74);        /* sous-titres lisibles */
+  --ink-dim:rgba(29,22,12,.52);
+  --or:#c85400; --or2:#e85d00; --red:#cf1020; --green:#0f9c4a; --purple:#8a1e8c;
+  --nav-bg:rgba(255,253,248,.96);
+}
+
 /* Empêche le scroll horizontal sur tout le site */
 html, body {
   overflow-x: hidden !important;
   max-width: 100vw !important;
   margin: 0 !important;
   padding: 0 !important;
-  background: #0a0a0f !important;
+  background: var(--bg) !important;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  transition: background .3s ease, color .3s ease;
 }
 
 /* Espace pour la navbar fixe (hauteur 56px) */

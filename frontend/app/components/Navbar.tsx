@@ -23,6 +23,25 @@ export default function Navbar() {
   const [search,     setSearch]     = useState('');
   const [token,      setToken]      = useState<string | null>(null);
   const [isAdmin,    setIsAdmin]    = useState(false);
+  const [theme,      setTheme]      = useState<'dark' | 'light'>('dark'); /*DKDK_THEME*/
+
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem('dkdk-theme') === 'light' ? 'light' : 'dark';
+      setTheme(savedTheme);
+      if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    } catch {}
+  }, []);
+
+  function toggleTheme() {
+    setTheme(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      else document.documentElement.removeAttribute('data-theme');
+      try { localStorage.setItem('dkdk-theme', next); } catch {}
+      return next;
+    });
+  }
 
   useEffect(() => {
     const t = localStorage.getItem('dkdk_token');
@@ -68,8 +87,9 @@ export default function Navbar() {
       {/* ── Navbar principale ── */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
-        background: 'rgba(6,0,0,0.97)',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        background: 'var(--nav-bg)',
+        backdropFilter: 'blur(8px)',
+        borderBottom: '1px solid var(--line)',
         padding: '0 12px 0 0',
         height: 56,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -83,6 +103,15 @@ export default function Navbar() {
           <style>{`@media (max-width: 640px){.dkdk-lang-desktop{display:none !important;}}`}</style>
 
           <button
+            onClick={toggleTheme}
+            aria-label="Basculer jour / nuit"
+            title="Jour / Nuit"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, fontSize: 18, lineHeight: 1 }}
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
+
+          <button
             onClick={() => { setSearchOpen(o => !o); setMenuOpen(false); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#00CC00', fontSize: 18 }}
           >
@@ -92,14 +121,14 @@ export default function Navbar() {
           {token ? (
             <button /*DKDK_NAV_SIGNUP*/
               onClick={() => router.push('/compte')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#FFAA00', fontSize: 20 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--or)', fontSize: 20 }}
             >
               👤
             </button>
           ) : (
             <button /*DKDK_NAV_SIGNUP*/
               onClick={() => router.push('/auth/register')}
-              style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', cursor: 'pointer', padding: '6px 12px', borderRadius: 20, color: '#000', fontSize: 12, fontWeight: 700, fontFamily: 'Syne, sans-serif', whiteSpace: 'nowrap' }}
+              style={{ background: 'linear-gradient(135deg,var(--or),var(--or2))', border: 'none', cursor: 'pointer', padding: '6px 12px', borderRadius: 20, color: '#000', fontSize: 12, fontWeight: 700, fontFamily: 'Syne, sans-serif', whiteSpace: 'nowrap' }}
             >
               S'inscrire
             </button>
@@ -118,18 +147,18 @@ export default function Navbar() {
 
       {/* ── Barre de recherche ── */}
       {searchOpen && (
-        <div style={{ background: '#0a0a0f', padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.08)', position: 'sticky', top: 56, zIndex: 99 }}>
-          <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 50, padding: '7px 14px' }}>
-            <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>🔍</span>
+        <div style={{ background: 'var(--bg)', padding: '8px 12px', borderBottom: '1px solid var(--line)', position: 'sticky', top: 56, zIndex: 99 }}>
+          <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface)', border: '1px solid var(--line-strong)', borderRadius: 50, padding: '7px 14px' }}>
+            <span style={{ color: 'var(--ink-dim)', fontSize: 14 }}>🔍</span>
             <input
               autoFocus
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Candidat, titre, artiste..."
-              style={{ background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: 13, flex: 1, fontFamily: 'DM Sans, sans-serif' }}
+              style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--ink)', fontSize: 13, flex: 1, fontFamily: 'DM Sans, sans-serif' }}
             />
             {search && (
-              <button type="submit" style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700, color: '#000', cursor: 'pointer' }}>OK</button>
+              <button type="submit" style={{ background: 'linear-gradient(135deg,var(--or),var(--or2))', border: 'none', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700, color: '#000', cursor: 'pointer' }}>OK</button>
             )}
           </form>
         </div>
@@ -153,8 +182,8 @@ export default function Navbar() {
           <div style={{
             position: 'fixed', top: 56, right: 0, bottom: 0,
             width: 280, maxWidth: '85vw',
-            background: '#0f0f0f',
-            borderLeft: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-soft)',
+            borderLeft: '1px solid var(--line)',
             padding: '20px 22px 24px',
             zIndex: 99,
             overflowY: 'auto',
@@ -177,31 +206,31 @@ export default function Navbar() {
               <Link
                 key={l.href} href={l.href}
                 onClick={() => setMenuOpen(false)}
-                style={{ color: isActive(l.href) ? '#FFAA00' : '#fff', fontSize: 14, fontWeight: isActive(l.href) ? 700 : 600, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid #1a1a1a', display: 'block' }}
+                style={{ color: isActive(l.href) ? 'var(--or)' : 'var(--ink)', fontSize: 14, fontWeight: isActive(l.href) ? 700 : 600, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid var(--line)', display: 'block' }}
               >
                 {l.label}
               </Link>
             ))}
 
-            <div style={{ padding: '14px 0 8px', fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '.1em', fontWeight: 700 }}>DISCIPLINES</div>
+            <div style={{ padding: '14px 0 8px', fontSize: 9, color: 'var(--ink-dim)', letterSpacing: '.1em', fontWeight: 700 }}>DISCIPLINES</div>
             {DISCIPLINES.map(d => (
               <Link
                 key={d.value}
                 href={`/home?discipline=${d.value}`}
                 onClick={() => setMenuOpen(false)}
-                style={{ color: '#FF0000', fontSize: 14, fontWeight: 700, textDecoration: 'none', padding: '10px 0', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', gap: 12 }}
+                style={{ color: '#FF0000', fontSize: 14, fontWeight: 700, textDecoration: 'none', padding: '10px 0', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 12 }}
               >
                 <span style={{ fontSize: 16 }}>{d.emoji}</span> {d.label}
               </Link>
             ))}
 
             {isAdmin && (
-              <Link href="/admin" onClick={() => setMenuOpen(false)} style={{ color: '#FFAA00', fontSize: 14, fontWeight: 700, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid #1a1a1a', display: 'block', marginTop: 6 }}>
+              <Link href="/admin" onClick={() => setMenuOpen(false)} style={{ color: 'var(--or)', fontSize: 14, fontWeight: 700, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid var(--line)', display: 'block', marginTop: 6 }}>
                 ⚙️ Admin
               </Link>
             )}
             {token && (
-              <Link href="/account" onClick={() => setMenuOpen(false)} style={{ color: '#fff', fontSize: 14, fontWeight: 600, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid #1a1a1a', display: 'block' }} /*DKDK_NAV_ACCOUNT*/>
+              <Link href="/account" onClick={() => setMenuOpen(false)} style={{ color: 'var(--ink)', fontSize: 14, fontWeight: 600, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid var(--line)', display: 'block' }} /*DKDK_NAV_ACCOUNT*/>
                 ⚙️ Paramètres du compte
               </Link>
             )}
@@ -213,7 +242,7 @@ export default function Navbar() {
                 Se déconnecter
               </button>
             ) : (
-              <Link href="/auth/login" onClick={() => setMenuOpen(false)} style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, textDecoration: 'none', padding: '12px 0', display: 'block', marginTop: 6 }}>
+              <Link href="/auth/login" onClick={() => setMenuOpen(false)} style={{ color: 'var(--ink-soft)', fontSize: 14, textDecoration: 'none', padding: '12px 0', display: 'block', marginTop: 6 }}>
                 Connexion
               </Link>
             )}

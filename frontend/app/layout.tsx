@@ -38,8 +38,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${syne.variable} ${dmSans.variable}`}>
-      <body><SplashScreen />{children}<BackgroundMusic /></body>
+    <html lang="fr" className={`${syne.variable} ${dmSans.variable}`} suppressHydrationWarning>
+      <body>
+        {/* Applique le thème Jour/Nuit avant le rendu pour éviter tout clignotement */}
+        <script dangerouslySetInnerHTML={{ __html: "(function(){try{if(localStorage.getItem('dkdk-theme')==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();" }} />
+        <SplashScreen />{children}<BackgroundMusic />
+      </body>
     </html>
   );
 }

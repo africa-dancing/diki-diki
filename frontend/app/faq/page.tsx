@@ -5,27 +5,27 @@ import TranslateWidget from '../components/TranslateWidget';
 import { useState } from 'react';
 import Link from 'next/link';
 
-const OR = '#FFAA00';
-const OR2 = '#FF6B00';
-const BG = '#0a0a0f';
+const OR = 'var(--or)';
+const OR2 = 'var(--or2)';
+const BG = 'var(--bg)';
 
 const s: Record<string, React.CSSProperties> = {
-  page:    { background: BG, minHeight: '100vh', color: '#e8e0d0', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },/*DKDK_FAQ_PADTOP*/
-  header:  { borderBottom: `1px solid rgb(249, 246, 246)`, padding: '20px 12px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  page:    { background: BG, minHeight: '100vh', color: 'var(--ink)', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },/*DKDK_FAQ_PADTOP*/
+  header:  { borderBottom: `1px solid var(--line)`, padding: '20px 12px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   logo:    { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: OR, textDecoration: 'none', letterSpacing: 1 },
   back:    { color: 'rgb(26, 255, 0)', fontSize: 13, textDecoration: 'none' },
   hero:    { padding: '40px 24px 36px', background: 'radial-gradient(ellipse 55% 42px at 50% 16px,hsl(339, 98%, 49%) 0%,transparent 72%)', textAlign: 'center' as const },/*DKDK_FAQ_HALO*/
-  badge:   { display: 'inline-block', background: `linear-gradient(90deg,${OR},${OR2})`, color: '#0a0a0f', fontSize: 11, fontWeight: 700, letterSpacing: 2, padding: '4px 12px', borderRadius: 4, marginBottom: 16, textTransform: 'uppercase' as const },
-  h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 32, color: '#fa0404', margin: '0 0 8px', lineHeight: 1.2, textTransform: 'uppercase' as const, textAlign: 'center' as const },
-  sub:     { color: 'rgba(255,255,255,0.5)', fontSize: 15, marginBottom: 0, textAlign: 'center' as const },
-  divider: { height: 1, background: 'rgba(10, 7, 0, 0.15)', margin: '32px 0' },
+  badge:   { display: 'inline-block', background: `linear-gradient(90deg,${OR},${OR2})`, color: 'var(--on-accent)', fontSize: 11, fontWeight: 700, letterSpacing: 2, padding: '4px 12px', borderRadius: 4, marginBottom: 16, textTransform: 'uppercase' as const },
+  h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 32, color: 'var(--red)', margin: '0 0 8px', lineHeight: 1.2, textTransform: 'uppercase' as const, textAlign: 'center' as const },
+  sub:     { color: 'var(--ink-soft)', fontSize: 15, marginBottom: 0, textAlign: 'center' as const },
+  divider: { height: 1, background: 'var(--line)', margin: '32px 0' },
   body:    { maxWidth: 760, margin: '0 auto', padding: '0 24px' },
   catTitle:{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 14, color: OR, letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 12, marginTop: 32 },
-  item:    { borderBottom: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' },
-  q:       { width: '100%', background: 'none', border: 'none', color: '#fff', fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, textAlign: 'left' as const, padding: '16px 0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  a:       { fontSize: 14, lineHeight: 1.8, color: 'rgba(232,224,208,0.8)', padding: '0 0 16px' },
+  item:    { borderBottom: '1px solid var(--line)', overflow: 'hidden' },
+  q:       { width: '100%', background: 'none', border: 'none', color: 'var(--ink)', fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, textAlign: 'left' as const, padding: '16px 0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  a:       { fontSize: 14, lineHeight: 1.8, color: 'var(--ink-soft)', padding: '0 0 16px' },
   contact: { background: 'linear-gradient(135deg, rgba(126, 3, 128, 0.52), rgba(237,7,15))', border: '1px solid rgb(10, 0, 0)', borderRadius: 12, padding: '24px', marginTop: 48, textAlign: 'center' as const, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center' },
-  ctaBtn:  { display: 'block', width: 'fit-content', marginTop: 12, marginLeft: 'auto', marginRight: 'auto', background: `linear-gradient(90deg,${OR},${OR2})`, color: '#0a0a0f', fontWeight: 700, fontSize: 14, padding: '10px 24px', borderRadius: 8, textDecoration: 'none' },
+  ctaBtn:  { display: 'block', width: 'fit-content', marginTop: 12, marginLeft: 'auto', marginRight: 'auto', background: `linear-gradient(90deg,${OR},${OR2})`, color: 'var(--on-accent)', fontWeight: 700, fontSize: 14, padding: '10px 24px', borderRadius: 8, textDecoration: 'none' },
 };
 
 const faqs = [

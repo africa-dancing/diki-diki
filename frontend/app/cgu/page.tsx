@@ -1,37 +1,37 @@
 'use client';
 import Navbar from '../components/Navbar';
 
-const OR = '#FFAA00';
-const OR2 = '#FF6B00';
-const BG = '#0a0a0f';
+const OR = 'var(--or)';
+const OR2 = 'var(--or2)';
+const BG = 'var(--bg)';
 
 const MAJ = '5 septembre 2026';
 
 const s: Record<string, React.CSSProperties> = {
-  page:    { background: BG, minHeight: '100vh', color: '#e8e0d0', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },
+  page:    { background: BG, minHeight: '100vh', color: 'var(--ink)', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },
   hero:    { padding: '40px 24px 28px', background: 'radial-gradient(ellipse 55% 42px at 50% 16px,hsl(339, 98%, 49%) 0%,transparent 72%)', textAlign: 'center' as const },
-  badge:   { display: 'inline-block', background: `linear-gradient(90deg,${OR},${OR2})`, color: '#0a0a0f', fontSize: 11, fontWeight: 700, letterSpacing: 2, padding: '4px 12px', borderRadius: 4, marginBottom: 16, textTransform: 'uppercase' as const },
-  h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 30, color: '#fa0404', margin: '0 0 8px', lineHeight: 1.2, textTransform: 'uppercase' as const },
-  sub:     { color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: 0 },
-  maj:     { color: 'rgba(255,255,255,0.35)', fontSize: 12, marginTop: 10 },
-  divider: { height: 1, background: 'rgba(255,255,255,0.10)', margin: '28px 0' },
+  badge:   { display: 'inline-block', background: `linear-gradient(90deg,${OR},${OR2})`, color: 'var(--on-accent)', fontSize: 11, fontWeight: 700, letterSpacing: 2, padding: '4px 12px', borderRadius: 4, marginBottom: 16, textTransform: 'uppercase' as const },
+  h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 30, color: 'var(--red)', margin: '0 0 8px', lineHeight: 1.2, textTransform: 'uppercase' as const },
+  sub:     { color: 'var(--ink-soft)', fontSize: 14, margin: 0 },
+  maj:     { color: 'var(--ink-dim)', fontSize: 12, marginTop: 10 },
+  divider: { height: 1, background: 'var(--line)', margin: '28px 0' },
   body:    { maxWidth: 780, margin: '0 auto', padding: '0 24px' },
 
-  toc:     { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '18px 22px', marginBottom: 12 },
+  toc:     { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '18px 22px', marginBottom: 12 },
   tocTit:  { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13, color: OR, letterSpacing: 2, textTransform: 'uppercase' as const, margin: '0 0 12px' },
-  tocLink: { display: 'block', color: '#e8e0d0', textDecoration: 'none', fontSize: 15, padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' },
+  tocLink: { display: 'block', color: 'var(--ink)', textDecoration: 'none', fontSize: 15, padding: '7px 0', borderBottom: '1px solid var(--line)' },
 
-  note:    { background: 'rgba(255,170,0,0.08)', border: '1px solid rgba(255,170,0,0.35)', borderRadius: 10, padding: '14px 18px', margin: '18px 0', fontSize: 13.5, lineHeight: 1.7, color: 'rgba(232,224,208,0.92)' },
+  note:    { background: 'rgba(255,170,0,0.08)', border: '1px solid rgba(255,170,0,0.35)', borderRadius: 10, padding: '14px 18px', margin: '18px 0', fontSize: 13.5, lineHeight: 1.7, color: 'var(--ink-soft)' },
 
-  docTit:  { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 22, color: '#fff', textTransform: 'uppercase' as const, letterSpacing: 0.5, margin: '48px 0 4px', scrollMarginTop: 20 },
-  docSub:  { color: 'rgba(255,255,255,0.45)', fontSize: 13.5, margin: '0 0 8px' },
+  docTit:  { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 22, color: 'var(--ink)', textTransform: 'uppercase' as const, letterSpacing: 0.5, margin: '48px 0 4px', scrollMarginTop: 20 },
+  docSub:  { color: 'var(--ink-soft)', fontSize: 13.5, margin: '0 0 8px' },
   artH:    { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 15.5, color: OR, margin: '26px 0 8px' },
-  para:    { fontSize: 14, lineHeight: 1.85, color: 'rgba(232,224,208,0.82)', margin: '0 0 10px' },
+  para:    { fontSize: 14, lineHeight: 1.85, color: 'var(--ink-soft)', margin: '0 0 10px' },
   ph:      { background: 'rgba(237,7,15,0.18)', border: '1px dashed rgba(237,7,15,0.6)', borderRadius: 4, padding: '1px 6px', color: '#ffd7d7', fontSize: 13 },
 
   toTop:   { display: 'inline-block', color: 'rgb(26,255,0)', fontSize: 12, textDecoration: 'none', marginTop: 14 },
-  footer:  { maxWidth: 780, margin: '40px auto 0', padding: '0 24px', color: 'rgba(255,255,255,0.35)', fontSize: 12.5, lineHeight: 1.7, textAlign: 'center' as const },
-  print:   { background: 'none', border: '1px solid rgba(255,255,255,0.25)', color: '#e8e0d0', fontSize: 12.5, padding: '7px 16px', borderRadius: 8, cursor: 'pointer', marginTop: 14, fontFamily: "'DM Sans', sans-serif" },
+  footer:  { maxWidth: 780, margin: '40px auto 0', padding: '0 24px', color: 'var(--ink-dim)', fontSize: 12.5, lineHeight: 1.7, textAlign: 'center' as const },
+  print:   { background: 'none', border: '1px solid rgba(255,255,255,0.25)', color: 'var(--ink)', fontSize: 12.5, padding: '7px 16px', borderRadius: 8, cursor: 'pointer', marginTop: 14, fontFamily: "'DM Sans', sans-serif" },
 };
 
 // ── Rendu d'un paragraphe : surligne les 〔placeholders à compléter〕 ───────────
