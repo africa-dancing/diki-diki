@@ -36,16 +36,11 @@ export default function MediathequePage() {
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#f0f0f0', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
       <Navbar />
-      <div style={{ padding: '16px 24px 10px', background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
-        <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.75rem,3vw,1.9rem)', lineHeight: 1.1, whiteSpace: 'nowrap', background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Mediatheque <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Diki-Diki</span>
-        </h1>
-      </div>
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px' }}>
 
         <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '20px', marginBottom: 20, textAlign: 'center' }}>
-          <h1 style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 800, color: '#fefefe', marginBottom: 6 }}>Le repertoire musical</h1>
-          <div style={{ fontSize: 12, color: '#fff', lineHeight: 1.6 }}>Decouvre les morceaux du continent, propose les tiens pour les challenges.</div>
+          <h1 style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 800, color: '#fefefe', marginBottom: 6 }}>Médiathèque <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Diki-Diki</span></h1>
+          <div style={{ fontSize: 12, color: '#fff', lineHeight: 1.6 }}>Découvre le répertoire musical du continent, et propose les tiens pour les challenges futurs.</div>
         </div>
 
         <Link href='/mediatheque/ajouter' style={{ display: 'block', textAlign: 'center', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', fontWeight: 800, fontFamily: 'Syne,sans-serif', fontSize: 15, padding: '14px', borderRadius: 14, textDecoration: 'none', marginBottom: 20 }}>
