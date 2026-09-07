@@ -218,15 +218,15 @@ export default function RechargePage() {
 
   /* ── Écran succès ── */
   if (success) return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0f', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, fontFamily: 'DM Sans, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, fontFamily: 'DM Sans, sans-serif' }}>
       <div style={{ fontSize: 60 }}>✅</div>
       <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 24, fontWeight: 800, color: '#4ade80' }}>Rechargement réussi !</div>
-      <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
+      <div style={{ fontSize: 14, color: 'var(--ink-soft)', textAlign: 'center' }}>
         {fmt(amount)} F CFA → +{fmt(units)} unités sur Compte Voter & Soutenir
       </div>
       <button
         onClick={() => router.push(retourUrl || '/compte')}
-        style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 50, padding: '12px 28px', fontSize: 14, fontWeight: 700, color: '#000', cursor: 'pointer', marginTop: 8 }}
+        style={{ background: 'linear-gradient(135deg,#FF6B00,#FFD700)', border: 'none', borderRadius: 50, padding: '12px 28px', fontSize: 14, fontWeight: 700, color: '#000', cursor: 'pointer', marginTop: 8 }}
       >
         Retourner à mon compte →
       </button>
@@ -236,24 +236,24 @@ export default function RechargePage() {
   /* ── Styles réutilisables ── */
   const sectionTitle: React.CSSProperties = {
     fontSize: 10, fontWeight: 700, letterSpacing: '.1em',
-    color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 10,
+    color: 'var(--ink-dim)', textTransform: 'uppercase', marginBottom: 10,
   };
 
   const phoneInput: React.CSSProperties = {
-    width: '100%', background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12,
-    padding: '13px 16px', fontSize: 14, color: '#f0f0f0',
+    width: '100%', background: 'var(--surface)',
+    border: '1px solid var(--line)', borderRadius: 12,
+    padding: '13px 16px', fontSize: 14, color: 'var(--ink)',
     outline: 'none', fontFamily: 'DM Sans, sans-serif', boxSizing: 'border-box',
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'radial-gradient(ellipse 70% 90px at 50% 18px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, #0a0a0f', color: '#f0f0f0', fontFamily: 'DM Sans, sans-serif', paddingTop: 56 }}>
+    <div style={{ minHeight: '100vh', background: 'radial-gradient(ellipse 70% 90px at 50% 18px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, var(--bg)', color: 'var(--ink)', fontFamily: 'DM Sans, sans-serif', paddingTop: 56 }}>
 
-      {/* ── TOPBAR ── */}
+      {/* ── TOPBAR (toujours sombre — comme sur les autres pages, pour le logo) ── */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
         background: 'rgba(8,8,15,0.97)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        borderBottom: '1px solid rgba(255,170,0,0.12)',
         padding: '0 24px 0 0', height: 56,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
@@ -265,7 +265,7 @@ export default function RechargePage() {
         {/* Annuler à droite */}
         <button
           onClick={() => router.push(retourUrl || '/compte')}
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 50, padding: '7px 18px', fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
+          style={{ background: 'var(--nav-surface)', border: '1px solid var(--nav-line)', borderRadius: 50, padding: '7px 18px', fontSize: 12, fontWeight: 600, color: 'var(--nav-ink-soft)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
         >
           ✕ Annuler
         </button>
@@ -285,20 +285,20 @@ export default function RechargePage() {
 
         {/* ── Soldes ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
-          <div style={{ background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.2)', borderRadius: 14, padding: '14px 16px' }}>
-            <div style={{ fontSize: 9, color: 'rgba(255,170,0,0.6)', fontWeight: 700, letterSpacing: '.1em', marginBottom: 5 }}>COMPTE DE RETRAIT</div>{/*DKDK_RENAME_RETRAIT*/}
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, color: '#FFAA00' }}>{fmt(initialBalance)} F</div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 3 }}>Dépôts · Retraits · Gains</div>
+          <div style={{ background: 'rgba(255,170,0,0.10)', border: '1px solid rgba(255,170,0,0.32)', borderRadius: 14, padding: '14px 16px' }}>
+            <div style={{ fontSize: 9, color: 'var(--or)', fontWeight: 800, letterSpacing: '.1em', marginBottom: 5 }}>COMPTE DE RETRAIT</div>{/*DKDK_RENAME_RETRAIT*/}
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, color: 'var(--or)' }}>{fmt(initialBalance)} F</div>
+            <div style={{ fontSize: 10, color: 'var(--ink-dim)', marginTop: 3 }}>Dépôts · Retraits · Gains</div>
           </div>
-          <div style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 14, padding: '14px 16px' }}>
-            <div style={{ fontSize: 9, color: 'rgba(99,102,241,0.8)', fontWeight: 700, letterSpacing: '.1em', marginBottom: 5 }}>COMPTE VOTER & SOUTENIR</div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, color: '#818cf8' }}>{fmt(rechargeUnits)} unités</div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 3 }}><StarRed /> Voter · ❤️ Liker</div>
+          <div style={{ background: 'rgba(99,102,241,0.10)', border: '1px solid rgba(99,102,241,0.32)', borderRadius: 14, padding: '14px 16px' }}>
+            <div style={{ fontSize: 9, color: '#4f46e5', fontWeight: 800, letterSpacing: '.1em', marginBottom: 5 }}>COMPTE VOTER & SOUTENIR</div>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, color: '#4f46e5' }}>{fmt(rechargeUnits)} unités</div>
+            <div style={{ fontSize: 10, color: 'var(--ink-dim)', marginTop: 3 }}><StarRed /> Voter · ❤️ Liker</div>
           </div>
         </div>
 
         {/* ── Info unités ── */}
-        <div style={{ background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.18)', borderRadius: 12, padding: '11px 14px', fontSize: 12, color: 'rgba(255,170,0,0.85)', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 8, lineHeight: 1.5 }}>
+        <div style={{ background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.18)', borderRadius: 12, padding: '11px 14px', fontSize: 12, color: 'var(--or)', fontWeight: 600, marginBottom: 28, display: 'flex', alignItems: 'center', gap: 8, lineHeight: 1.5 }}>
           <span style={{ flexShrink: 0 }}>💡</span>
           <span><strong>{`1 unité = ${unitValue} F CFA`}</strong> — chaque unité devient <StarRed /> étoile (voter) ou ❤️ cœur (liker) selon ton choix</span>
         </div>
@@ -313,17 +313,17 @@ export default function RechargePage() {
                 key={a}
                 onClick={() => { setSelectedAmount(a); setCustomAmount(''); }}
                 style={{
-                  background: isSel ? 'linear-gradient(135deg,rgba(255,170,0,0.18),rgba(255,107,0,0.12))' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${isSel ? '#FFAA00' : 'rgba(255,255,255,0.08)'}`,
+                  background: isSel ? 'linear-gradient(135deg,rgba(255,170,0,0.18),rgba(255,107,0,0.12))' : 'var(--surface)',
+                  border: `1px solid ${isSel ? 'var(--or)' : 'var(--line)'}`,
                   borderRadius: 12, padding: '13px 8px',
                   cursor: 'pointer', textAlign: 'center',
                   transition: 'all .2s', fontFamily: 'DM Sans, sans-serif',
                 }}
               >
-                <div style={{ fontSize: 13, fontWeight: 700, color: isSel ? '#FFAA00' : 'rgba(255,255,255,0.7)' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: isSel ? 'var(--or)' : 'var(--ink-soft)' }}>
                   {fmt(a)} F
                 </div>
-                <div style={{ fontSize: 10, color: isSel ? 'rgba(255,170,0,0.6)' : 'rgba(255,255,255,0.3)', marginTop: 2 }}>
+                <div style={{ fontSize: 10, color: isSel ? 'var(--or)' : 'var(--ink-dim)', marginTop: 2 }}>
                   {fmt(Math.floor(a / unitValue))} unités
                 </div>
               </button>
@@ -347,10 +347,10 @@ export default function RechargePage() {
           }}
           style={{
             width: "100%", boxSizing: "border-box", marginBottom: 10,
-            background: customAmount ? "linear-gradient(135deg,rgba(255,170,0,0.18),rgba(255,107,0,0.12))" : "rgba(255,255,255,0.04)",
-            border: `1px solid ${customAmount ? "#FFAA00" : "rgba(255,255,255,0.08)"}`,
+            background: customAmount ? "linear-gradient(135deg,rgba(255,170,0,0.18),rgba(255,107,0,0.12))" : "var(--surface)",
+            border: `1px solid ${customAmount ? "var(--or)" : "var(--line)"}`,
             borderRadius: 12, padding: "13px 12px", fontSize: 13, fontWeight: 700,
-            color: customAmount ? "#FFAA00" : "rgba(255,255,255,0.7)",
+            color: customAmount ? "var(--or)" : "var(--ink-soft)",
             fontFamily: "DM Sans, sans-serif", outline: "none",
           }}
         />
@@ -367,8 +367,8 @@ export default function RechargePage() {
                 key={m.id}
                 onClick={() => setMethod(m.id)}
                 style={{
-                  background: isSel ? 'rgba(255,170,0,0.08)' : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${isSel ? '#FFAA00' : 'rgba(255,255,255,0.08)'}`,
+                  background: isSel ? 'rgba(255,170,0,0.08)' : 'var(--surface)',
+                  border: `1px solid ${isSel ? 'var(--or)' : 'var(--line)'}`,
                   borderRadius: 14, padding: '14px 8px',
                   cursor: 'pointer', textAlign: 'center',
                   transition: 'all .2s',
@@ -376,7 +376,7 @@ export default function RechargePage() {
                 }}
               >
                 {m.logo}
-                <div style={{ fontSize: 11, fontWeight: 600, color: isSel ? '#FFAA00' : 'rgba(255,255,255,0.5)' }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: isSel ? 'var(--or)' : 'var(--ink-soft)' }}>
                   {m.label}
                 </div>
               </div>
@@ -399,7 +399,7 @@ export default function RechargePage() {
             />
           </div>
         ) : (
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '12px 16px', fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: 24 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px 16px', fontSize: 12, color: 'var(--ink-soft)', textAlign: 'center', marginBottom: 24 }}>
             🔒 Redirection vers la page de paiement sécurisée FedaPay
           </div>
         )}
@@ -408,37 +408,37 @@ export default function RechargePage() {
         {/*DKDK_VERIF_NUM*/}
         {besoinVerif && (
           <div style={{ background: 'rgba(255,170,0,0.07)', border: '1px solid rgba(255,170,0,0.3)', borderRadius: 14, padding: '18px 20px', marginBottom: 18 }}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 15, color: '#FFAA00', marginBottom: 6 }}>
+            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 15, color: 'var(--or)', marginBottom: 6 }}>
               Verifie ton numero
             </div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: 14 }}>
+            <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 14 }}>
               Avant de recharger, nous devons confirmer que ce numero est bien le tien.
               Tu ne le feras qu une seule fois.
             </div>
 
             {!otpEnvoye ? (
               <button onClick={envoyerCode} disabled={verifLoad}
-                style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 10, color: '#0a0a0f', fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 700, cursor: verifLoad ? 'wait' : 'pointer', opacity: verifLoad ? 0.6 : 1 }}>
+                style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', border: 'none', borderRadius: 10, color: '#0a0a0f', fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 700, cursor: verifLoad ? 'wait' : 'pointer', opacity: verifLoad ? 0.6 : 1 }}>
                 {verifLoad ? 'Envoi...' : 'Recevoir le code par SMS'}
               </button>
             ) : (
               <div>
                 <input value={codeOtp} onChange={e => setCodeOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="Code a 6 chiffres" inputMode="numeric" maxLength={6}
-                  style={{ width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, color: '#FFAA00', fontFamily: 'DM Sans, sans-serif', fontSize: 18, fontWeight: 700, letterSpacing: '0.2em', textAlign: 'center', outline: 'none', marginBottom: 10 }} />
+                  style={{ width: '100%', padding: '12px 14px', background: 'var(--surface)', border: '1px solid var(--line-strong)', borderRadius: 10, color: 'var(--or)', fontFamily: 'DM Sans, sans-serif', fontSize: 18, fontWeight: 700, letterSpacing: '0.2em', textAlign: 'center', outline: 'none', marginBottom: 10 }} />
                 <button onClick={validerCode} disabled={verifLoad}
-                  style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 10, color: '#0a0a0f', fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 700, cursor: verifLoad ? 'wait' : 'pointer', opacity: verifLoad ? 0.6 : 1 }}>
+                  style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', border: 'none', borderRadius: 10, color: '#0a0a0f', fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 700, cursor: verifLoad ? 'wait' : 'pointer', opacity: verifLoad ? 0.6 : 1 }}>
                   {verifLoad ? 'Verification...' : 'Valider'}
                 </button>
                 <button onClick={envoyerCode} disabled={verifLoad}
-                  style={{ width: '100%', padding: '8px', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans, sans-serif', fontSize: 12, cursor: 'pointer', marginTop: 4 }}>
+                  style={{ width: '100%', padding: '8px', background: 'transparent', border: 'none', color: 'var(--ink-soft)', fontFamily: 'DM Sans, sans-serif', fontSize: 12, cursor: 'pointer', marginTop: 4 }}>
                   Renvoyer le code
                 </button>
               </div>
             )}
 
             {verifMsg && (
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 10, lineHeight: 1.5 }}>{verifMsg}</div>
+              <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10, lineHeight: 1.5 }}>{verifMsg}</div>
             )}
           </div>
         )}
@@ -450,15 +450,15 @@ export default function RechargePage() {
         )}
 
         {/* ── Résumé ── */}
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '14px 16px', marginBottom: 14 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 16px', marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
-            <span style={{ color: 'rgba(255,255,255,0.4)' }}>Montant</span>
-            <span style={{ fontWeight: 700, color: '#fff' }}>{amount > 0 ? `${fmt(amount)} F CFA` : '—'}</span>
+            <span style={{ color: 'var(--ink-soft)' }}>Montant</span>
+            <span style={{ fontWeight: 700, color: 'var(--ink)' }}>{amount > 0 ? `${fmt(amount)} F CFA` : '—'}</span>
           </div>
-          <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '10px 0' }} />
+          <div style={{ height: 1, background: 'var(--line)', margin: '10px 0' }} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
-            <span style={{ color: 'rgba(255,255,255,0.4)' }}>Unités créditées</span>
-            <span style={{ fontWeight: 700, color: '#FFAA00' }}>{units > 0 ? `${fmt(units)} unités` : '—'}</span>
+            <span style={{ color: 'var(--ink-soft)' }}>Unités créditées</span>
+            <span style={{ fontWeight: 700, color: 'var(--or)' }}>{units > 0 ? `${fmt(units)} unités` : '—'}</span>
           </div>
         </div>
 
@@ -469,11 +469,11 @@ export default function RechargePage() {
           style={{
             width: '100%',
             background: loading || !amount || amount < minRecharge
-              ? 'rgba(255,255,255,0.06)'
-              : 'linear-gradient(135deg,#FFAA00,#FF6B00)',
+              ? 'var(--surface2)'
+              : 'linear-gradient(135deg,#FF6B00,#FFD700)',
             border: 'none', borderRadius: 14,
             padding: '16px', fontSize: 15, fontWeight: 800,
-            color: loading || !amount || amount < minRecharge ? 'rgba(255,255,255,0.25)' : '#000',
+            color: loading || !amount || amount < minRecharge ? 'var(--ink-dim)' : '#000',
             cursor: loading || !amount || amount < minRecharge ? 'not-allowed' : 'pointer',
             fontFamily: 'Syne, sans-serif',
             transition: 'all .2s',
@@ -482,7 +482,7 @@ export default function RechargePage() {
           {loading ? '⏳ Traitement en cours…' : amount >= minRecharge ? `⚡ Recharger ${fmt(amount)} F` : '⚡ Recharger'}
         </button>
 
-        <div style={{ textAlign: 'center', fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 12 }}>
+        <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--ink-dim)', marginTop: 12 }}>
           🔒 Paiement sécurisé via FedaPay · IGEJPS · RCCM RB/COT/25 A 109871
         </div>
 
