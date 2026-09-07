@@ -322,6 +322,8 @@ function AppelCard({ appel }: { appel: Appel }) {
         <Chip>Format <b style={{ color: 'var(--or)' }}>C{appel.max_participants}</b></Chip>
         <Chip><b style={{ color: 'var(--or)' }}>{appel.max_participants}</b> candidats</Chip>
         <Chip><b style={{ color: 'var(--or)' }}>{nEtapes}</b> étape{nEtapes > 1 ? 's' : ''}</Chip>
+        <Chip>🏆 <b style={{ color: 'var(--green)' }}>{cfg.champions}</b> gagnant{cfg.champions > 1 ? 's' : ''}</Chip>
+        <Chip><b style={{ color: 'var(--red)' }}>{appel.max_participants - cfg.champions}</b> éliminé{(appel.max_participants - cfg.champions) > 1 ? 's' : ''}</Chip>
         {appel.modele && <Chip>Modèle <b style={{ color: 'var(--or)' }}>{appel.modele}</b></Chip>}
       </div>
 
