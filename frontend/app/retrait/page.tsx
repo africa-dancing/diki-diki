@@ -76,8 +76,8 @@ export default function RetraitPage() {
   };
 
   const OR = 'var(--or)';
-  const card: React.CSSProperties = { background:'var(--surface)', border:'1px solid var(--line)', borderRadius:18, padding:'18px 20px', marginBottom:14 };
-  const lbl: React.CSSProperties  = { display:'block', fontSize:11, fontWeight:600, color:'var(--ink-dim)', marginBottom:7, textTransform:'uppercase', letterSpacing:'.5px' };
+  const card: React.CSSProperties = { background:'var(--surface2)', border:'1px solid var(--line-strong)', borderRadius:18, padding:'18px 20px', marginBottom:14 };
+  const lbl: React.CSSProperties  = { display:'block', fontSize:11.5, fontWeight:700, color:'var(--ink-soft)', marginBottom:7, textTransform:'uppercase', letterSpacing:'.5px' };
   const inp: React.CSSProperties  = { width:'100%', background:'var(--surface)', border:'1px solid var(--line)', borderRadius:12, padding:'11px 14px', fontSize:14, color:'var(--ink)', outline:'none', fontFamily:'DM Sans, sans-serif', boxSizing:'border-box' as const };
   const btnP: React.CSSProperties = { background:'linear-gradient(135deg,var(--or),var(--or2))', border:'none', borderRadius:50, padding:'12px 24px', fontSize:14, fontWeight:700, color:'var(--on-accent)', cursor:'pointer', fontFamily:'DM Sans, sans-serif' };
   const btnS: React.CSSProperties = { background:'transparent', border:'1px solid var(--line-strong)', borderRadius:50, padding:'11px 20px', fontSize:13, color:'var(--ink-soft)', cursor:'pointer', fontFamily:'DM Sans, sans-serif' };
@@ -120,12 +120,12 @@ export default function RetraitPage() {
         </div>
 
         {/* Compte de Retrait */}
-        <div style={{ background:'rgba(56,130,220,0.08)', border:'1px solid rgba(56,130,220,0.25)', borderRadius:16, padding:'16px 18px', marginBottom:14 }}>
+        <div style={{ background:'rgba(37,99,235,0.12)', border:'1px solid rgba(37,99,235,0.35)', borderRadius:16, padding:'16px 18px', marginBottom:14 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
-              <div style={{ fontSize:10, color:'rgba(56,130,220,0.8)', fontWeight:700, letterSpacing:'.08em', marginBottom:4 }}>COMPTE DE RETRAIT — disponible</div>
-              <div style={{ fontSize:26, fontWeight:800, color:'#60a5fa', fontFamily:'Syne,sans-serif' }}>{fmt(initialBalance)} F CFA</div>
-              <div style={{ fontSize:11, color:'var(--ink-dim)', marginTop:3 }}>
+              <div style={{ fontSize:10.5, color:'#1d4ed8', fontWeight:800, letterSpacing:'.08em', marginBottom:4 }}>COMPTE DE RETRAIT — disponible</div>
+              <div style={{ fontSize:26, fontWeight:800, color:'#1d4ed8', fontFamily:'Syne,sans-serif' }}>{fmt(initialBalance)} F CFA</div>
+              <div style={{ fontSize:11.5, color:'var(--ink-soft)', marginTop:3 }}>
                 dont {fmt(totalEarned)} F issus de tes gains candidat
               </div>
             </div>
@@ -134,7 +134,7 @@ export default function RetraitPage() {
         </div>
 
         {/* Info Compte Voter & Soutenir */}
-        <div style={{ background:'rgba(255,80,80,0.05)', border:'1px solid rgba(255,80,80,0.18)', borderRadius:10, padding:'10px 14px', marginBottom:14, fontSize:12, color:'rgba(255,120,120,0.8)' }}>
+        <div style={{ background:'rgba(220,20,32,0.10)', border:'1px solid rgba(220,20,32,0.35)', borderRadius:10, padding:'10px 14px', marginBottom:14, fontSize:12.5, fontWeight:600, color:'#e10600' }}>
           🔒 Le Compte Voter &amp; Soutenir (étoiles/cœurs) ne permet pas de retrait. Seul le Compte de Retrait peut être retiré.
         </div>
 
@@ -200,8 +200,8 @@ export default function RetraitPage() {
 
         {/* Récapitulatif — seulement si le pays est actif */}
         {country.enabled && amountNum >= MIN && amountNum <= initialBalance && (
-          <div style={{ background:'var(--surface)', border:'1px solid var(--line)', borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:'var(--ink-soft)', marginBottom:10, textTransform:'uppercase', letterSpacing:'.06em' }}>Récapitulatif</div>
+          <div style={{ background:'var(--surface2)', border:'1px solid var(--line-strong)', borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
+            <div style={{ fontSize:12, fontWeight:800, color:'var(--ink)', marginBottom:10, textTransform:'uppercase', letterSpacing:'.06em' }}>Récapitulatif</div>
             {[
               { lbl:'Montant demandé',            val:`${fmt(amountNum)} ${CUR}`,                          color:'var(--ink)' },
               { lbl:'Frais de retrait (FedaPay)', val:`${fmt(FEE)} ${CUR}`,                         color:'var(--ink-soft)' },
@@ -210,7 +210,7 @@ export default function RetraitPage() {
               { lbl:'Délai de traitement',        val:'quelques minutes',                                  color:'var(--ink-soft)' },
             ].map((r, i) => (
               <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderTop: i>0 ? '1px solid var(--line)' : 'none' }}>
-                <span style={{ fontSize:12, color:'var(--ink-dim)' }}>{r.lbl}</span>
+                <span style={{ fontSize:12, color:'var(--ink-soft)' }}>{r.lbl}</span>
                 <span style={{ fontSize:12, fontWeight:i>=2?700:400, color:r.color }}>{r.val}</span>
               </div>
             ))}

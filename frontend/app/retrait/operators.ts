@@ -26,7 +26,7 @@ export interface Brand {
 // Identité visuelle par opérateur (couleurs de marque approximatives, à affiner).
 export const BRANDS: Record<string, Brand> = {
   mtn:        { label: 'MTN MoMo',       bg: '#FFCC00', fg: '#12126E' },
-  moov:       { label: 'Moov Money',     bg: '#F58220', fg: '#ffffff' },
+  moov:       { label: 'Moov Money',     bg: '#0693E3', fg: '#ffffff' },
   orange:     { label: 'Orange Money',   bg: '#FF7900', fg: '#ffffff' },
   wave:       { label: 'Wave',           bg: '#12B5E5', fg: '#ffffff' },
   celtiis:    { label: 'Celtiis Cash',   bg: '#E2001A', fg: '#ffffff' },
