@@ -382,56 +382,56 @@ export default function SubmitPage() {
   if (!user) return null;
 
   const STEPS = ['Catégorie', 'Discipline', 'Détails', 'Vidéo'];
-  const OR = '#FFAA00';
+  const OR = 'var(--or)';
 
   const btnPrimary: React.CSSProperties = {
-    background: 'linear-gradient(135deg,#FFAA00,#FF6B00)',
+    background: 'linear-gradient(135deg,#FF6B00,#FFD700)',
     border: 'none', borderRadius: 12,
     padding: '12px 18px', fontSize: 14, fontWeight: 700,
-    color: '#000', cursor: 'pointer', flex: 1,
+    color: '#150c00', cursor: 'pointer', flex: 1,
     fontFamily: 'DM Sans, sans-serif',
   };
   const btnBack: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--surface)',
+    border: '1px solid var(--line)',
     borderRadius: 12, padding: '11px 18px',
     fontSize: 13, fontWeight: 600,
-    color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
+    color: 'var(--ink-soft)', cursor: 'pointer',
     fontFamily: 'DM Sans, sans-serif',
   };
   const inp: React.CSSProperties = {
-    width: '100%', background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12,
-    padding: '11px 14px', fontSize: 14, color: '#fff',
+    width: '100%', background: 'var(--surface)',
+    border: '1px solid var(--line)', borderRadius: 12,
+    padding: '11px 14px', fontSize: 14, color: 'var(--ink)',
     outline: 'none', fontFamily: 'DM Sans, sans-serif',
     boxSizing: 'border-box',
   };
   const lbl: React.CSSProperties = {
     display: 'block', fontSize: 11, fontWeight: 600,
-    color: 'rgba(255,255,255,0.4)', marginBottom: 6,
+    color: 'var(--ink-soft)', marginBottom: 6,
     textTransform: 'uppercase', letterSpacing: '.5px',
   };
   const cardStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'var(--surface)',
+    border: '1px solid var(--line)',
     borderRadius: 20, padding: 22,
   };
   const selectCard = (active: boolean): React.CSSProperties => ({
-    background: active ? 'rgba(255,170,0,0.12)' : 'rgba(255,255,255,0.04)',
-    border: `1px solid ${active ? 'rgba(255,170,0,0.5)' : 'rgba(255,255,255,0.08)'}`,
+    background: active ? 'rgba(255,170,0,0.10)' : 'var(--surface)',
+    border: `1px solid ${active ? 'var(--or)' : 'var(--line)'}`,
     borderRadius: 14, padding: '14px 10px',
     textAlign: 'center', cursor: 'pointer', transition: 'all .2s',
   });
 
   return (
-    <div style={{ minHeight: '100vh', background: 'radial-gradient(ellipse 70% 90px at 50% 18px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, #0a0a0f', fontFamily: 'DM Sans, sans-serif', paddingBottom: 80, paddingTop: 56 }}>
+    <div style={{ minHeight: '100vh', background: 'radial-gradient(ellipse 70% 90px at 50% 18px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, var(--bg)', color: 'var(--ink)', fontFamily: 'DM Sans, sans-serif', paddingBottom: 80, paddingTop: 56 }}>
 
       {/* ── Topbar ── */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, background: 'rgba(8,8,15,0.95)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,170,0,0.12)', padding: '0 20px 0 0', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link href="/home" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 7 }}>
           <LogoDikiDiki width={130} />
         </Link>
-        <button onClick={() => router.push('/home')} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 14px', color: 'rgba(255,255,255,0.5)', fontSize: 12, cursor: 'pointer' }}>
+        <button onClick={() => router.push('/home')} style={{ background: 'var(--nav-surface)', border: '1px solid var(--nav-line)', borderRadius: 8, padding: '6px 14px', color: 'var(--nav-ink-soft)', fontSize: 12, cursor: 'pointer' }}>
           ✕ Annuler
         </button>
       </div>
@@ -458,8 +458,8 @@ export default function SubmitPage() {
             <div style={{ display: 'flex', gap: 6 }}>
               {STEPS.map((s, i) => (
                 <div key={s} style={{ flex: 1 }}>
-                  <div style={{ height: 4, borderRadius: 2, background: i < step ? OR : 'rgba(255,255,255,0.08)', transition: 'background .3s' }} />
-                  <div style={{ fontSize: 9, color: i < step ? OR : 'rgba(255,255,255,0.25)', marginTop: 4, textAlign: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.3px' }}>{s}</div>
+                  <div style={{ height: 4, borderRadius: 2, background: i < step ? OR : 'var(--line)', transition: 'background .3s' }} />
+                  <div style={{ fontSize: 9, color: i < step ? OR : 'var(--ink-dim)', marginTop: 4, textAlign: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.3px' }}>{s}</div>
                 </div>
               ))}
             </div>
@@ -469,15 +469,15 @@ export default function SubmitPage() {
         {/* ─── ÉTAPE 1 : CATÉGORIE ─── */}
         {step === 1 && (
           <div style={cardStyle}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 4, fontFamily: 'Syne, sans-serif' }}>Choisissez une catégorie</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20 }}>Dans quelle famille entre votre prestation ?</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginBottom: 4, fontFamily: 'Syne, sans-serif' }}>Choisissez une catégorie</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginBottom: 20 }}>Dans quelle famille entre votre prestation ?</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
               {categories.length === 0 ? (
-                <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 24, color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>⏳ Chargement…</div>
+                <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 24, color: 'var(--ink-dim)', fontSize: 13 }}>⏳ Chargement…</div>
               ) : categories.map(cat => (
                 <div key={cat.id} onClick={() => setSelectedCategory(cat)} style={selectCard(selectedCategory?.id === cat.id)}>
                   <div style={{ fontSize: 30, marginBottom: 8 }}>{cat.emoji}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#fff', fontFamily: 'Syne, sans-serif' }}>{cat.name}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', fontFamily: 'Syne, sans-serif' }}>{cat.name}</div>
                 </div>
               ))}
             </div>
@@ -492,17 +492,17 @@ export default function SubmitPage() {
           <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
               <span style={{ fontSize: 22 }}>{selectedCategory?.emoji}</span>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', fontFamily: 'Syne, sans-serif' }}>{selectedCategory?.name}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', fontFamily: 'Syne, sans-serif' }}>{selectedCategory?.name}</div>
             </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20 }}>Choisissez votre discipline</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginBottom: 20 }}>Choisissez votre discipline</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
               {disciplines.length === 0 ? (
-                <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 24, color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>⏳ Chargement…</div>
+                <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 24, color: 'var(--ink-dim)', fontSize: 13 }}>⏳ Chargement…</div>
               ) : disciplines.map(d => (
                 <div key={d.id} onClick={() => setSelectedDiscipline(d)} style={selectCard(selectedDiscipline?.id === d.id)}>
                   <div style={{ fontSize: 28, marginBottom: 8 }}>{d.emoji}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#fff', fontFamily: 'Syne, sans-serif' }}>{d.name}</div>
-                  {d.description && <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 4, lineHeight: 1.3 }} dangerouslySetInnerHTML={{ __html: d.description }} />}
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', fontFamily: 'Syne, sans-serif' }}>{d.name}</div>
+                  {d.description && <div style={{ fontSize: 10, color: 'var(--ink-soft)', marginTop: 4, lineHeight: 1.3 }} dangerouslySetInnerHTML={{ __html: d.description }} />}
                 </div>
               ))}
             </div>
@@ -520,53 +520,53 @@ export default function SubmitPage() {
           <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <span style={{ fontSize: 20 }}>{selectedDiscipline?.emoji}</span>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', fontFamily: 'Syne, sans-serif' }}>{selectedDiscipline?.name}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', fontFamily: 'Syne, sans-serif' }}>{selectedDiscipline?.name}</div>
             </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20 }}>Renseignez les détails de votre prestation</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginBottom: 20 }}>Renseignez les détails de votre prestation</div>
 
             {/* Sujet */}
             {selectedDiscipline?.id === 'instrument' && champs.length === 0 && ( /*DKDK_INSTR_SELECT*/
               <div style={{ marginBottom: 16 }}>
-                <label style={lbl}>Sujet / Morceau <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
+                <label style={lbl}>Sujet / Morceau <span style={{ color: 'var(--ink-dim)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
                 <select value={selectedSubject?.name || ''} onChange={(e) => {
                   const v = e.target.value;
                   if (!v) { setSelectedSubject(null); return; }
                   if (v === '__autre__') { setSelectedSubject({ id: 'autre', name: autreInstrument || '', discipline_id: 'instrument' }); return; }
                   setSelectedSubject({ id: v, name: v, discipline_id: 'instrument' });
-                }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13, fontFamily: 'DM Sans, sans-serif', outline: 'none', cursor: 'pointer' }}>
-                  <option value='' style={{ background: '#1a1a24', color: '#fff' }}>&mdash; Choisis ton instrument &mdash;</option>
-                  <optgroup label='🥁 Tambours et peaux' style={{ background: '#0d0d14', color: '#FFAA00', fontWeight: 800, fontSize: '13px' }}>
-                  <option value='Djembé' style={{ background: '#1a1a24', color: '#fff' }}>Djembé</option>
-                  <option value='Tama (tambour parlant)' style={{ background: '#1a1a24', color: '#fff' }}>Tama (tambour parlant)</option>
-                  <option value='Doundounba' style={{ background: '#1a1a24', color: '#fff' }}>Doundounba</option>
-                  <option value='Bendir' style={{ background: '#1a1a24', color: '#fff' }}>Bendir</option>
-                  <option value='Ngoma' style={{ background: '#1a1a24', color: '#fff' }}>Ngoma</option>
-                  <option value='Drums' style={{ background: '#1a1a24', color: '#fff' }}>Drums</option>
-                  <option value='Batterie' style={{ background: '#1a1a24', color: '#fff' }}>Batterie</option>
+                }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--line-strong)', color: 'var(--ink)', fontSize: 13, fontFamily: 'DM Sans, sans-serif', outline: 'none', cursor: 'pointer' }}>
+                  <option value='' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>&mdash; Choisis ton instrument &mdash;</option>
+                  <optgroup label='🥁 Tambours et peaux' style={{ background: 'var(--bg-soft)', color: 'var(--or)', fontWeight: 800, fontSize: '13px' }}>
+                  <option value='Djembé' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Djembé</option>
+                  <option value='Tama (tambour parlant)' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Tama (tambour parlant)</option>
+                  <option value='Doundounba' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Doundounba</option>
+                  <option value='Bendir' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Bendir</option>
+                  <option value='Ngoma' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Ngoma</option>
+                  <option value='Drums' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Drums</option>
+                  <option value='Batterie' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Batterie</option>
                   </optgroup>
-                  <optgroup label='🎸 Cordes' style={{ background: '#0d0d14', color: '#FFAA00', fontWeight: 800, fontSize: '13px' }}>
-                  <option value='Kora' style={{ background: '#1a1a24', color: '#fff' }}>Kora</option>
-                  <option value='N’goni' style={{ background: '#1a1a24', color: '#fff' }}>N’goni</option>
-                  <option value='Guembri (ou sintir)' style={{ background: '#1a1a24', color: '#fff' }}>Guembri (ou sintir)</option>
-                  <option value='Bolon' style={{ background: '#1a1a24', color: '#fff' }}>Bolon</option>
-                  <option value='Imzad' style={{ background: '#1a1a24', color: '#fff' }}>Imzad</option>
+                  <optgroup label='🎸 Cordes' style={{ background: 'var(--bg-soft)', color: 'var(--or)', fontWeight: 800, fontSize: '13px' }}>
+                  <option value='Kora' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Kora</option>
+                  <option value='N’goni' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>N’goni</option>
+                  <option value='Guembri (ou sintir)' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Guembri (ou sintir)</option>
+                  <option value='Bolon' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Bolon</option>
+                  <option value='Imzad' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Imzad</option>
                   </optgroup>
-                  <optgroup label='🥄 Percussions solides' style={{ background: '#0d0d14', color: '#FFAA00', fontWeight: 800, fontSize: '13px' }}>
-                  <option value='Balafon' style={{ background: '#1a1a24', color: '#fff' }}>Balafon</option>
-                  <option value='Mbira / Kalimba / Sanza' style={{ background: '#1a1a24', color: '#fff' }}>Mbira / Kalimba / Sanza</option>
-                  <option value='Shekere' style={{ background: '#1a1a24', color: '#fff' }}>Shekere</option>
-                  <option value='Karkabou' style={{ background: '#1a1a24', color: '#fff' }}>Karkabou</option>
-                  <option value='Tambour-fente (ekwe)' style={{ background: '#1a1a24', color: '#fff' }}>Tambour-fente (ekwe)</option>
+                  <optgroup label='🥄 Percussions solides' style={{ background: 'var(--bg-soft)', color: 'var(--or)', fontWeight: 800, fontSize: '13px' }}>
+                  <option value='Balafon' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Balafon</option>
+                  <option value='Mbira / Kalimba / Sanza' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Mbira / Kalimba / Sanza</option>
+                  <option value='Shekere' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Shekere</option>
+                  <option value='Karkabou' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Karkabou</option>
+                  <option value='Tambour-fente (ekwe)' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Tambour-fente (ekwe)</option>
                   </optgroup>
-                  <optgroup label='🎺 Vents' style={{ background: '#0d0d14', color: '#FFAA00', fontWeight: 800, fontSize: '13px' }}>
-                  <option value='Algaïta' style={{ background: '#1a1a24', color: '#fff' }}>Algaïta</option>
-                  <option value='Flûtes en bambou ou roseau' style={{ background: '#1a1a24', color: '#fff' }}>Flûtes en bambou ou roseau</option>
-                  <option value='Trompes et cors' style={{ background: '#1a1a24', color: '#fff' }}>Trompes et cors</option>
+                  <optgroup label='🎺 Vents' style={{ background: 'var(--bg-soft)', color: 'var(--or)', fontWeight: 800, fontSize: '13px' }}>
+                  <option value='Algaïta' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Algaïta</option>
+                  <option value='Flûtes en bambou ou roseau' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Flûtes en bambou ou roseau</option>
+                  <option value='Trompes et cors' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Trompes et cors</option>
                   </optgroup>
-                  <option value='__autre__' style={{ background: '#1a1a24', color: '#fff' }}>Autre&hellip;</option>
+                  <option value='__autre__' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>Autre&hellip;</option>
                 </select>
                 {selectedSubject?.id === 'autre' && (
-                  <input type='text' placeholder='Precise ton instrument' value={autreInstrument} onChange={(e) => { setAutreInstrument(e.target.value); setSelectedSubject({ id: 'autre', name: e.target.value, discipline_id: 'instrument' }); }} style={{ width: '100%', marginTop: 8, padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13, boxSizing: 'border-box' }} />
+                  <input type='text' placeholder='Precise ton instrument' value={autreInstrument} onChange={(e) => { setAutreInstrument(e.target.value); setSelectedSubject({ id: 'autre', name: e.target.value, discipline_id: 'instrument' }); }} style={{ width: '100%', marginTop: 8, padding: '10px 12px', borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--line-strong)', color: 'var(--ink)', fontSize: 13, boxSizing: 'border-box' }} />
                 )}
               </div>
             )}
@@ -599,15 +599,15 @@ export default function SubmitPage() {
                         } else {
                           setSelectedSubject(null);
                         }
-                      }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13, fontFamily: 'DM Sans, sans-serif', outline: 'none', cursor: 'pointer' }}>
-                        <option value='' style={{ background: '#1a1a24', color: '#fff' }}>&mdash; Choisis l&apos;epreuve &mdash;</option>
+                      }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--line-strong)', color: 'var(--ink)', fontSize: 13, fontFamily: 'DM Sans, sans-serif', outline: 'none', cursor: 'pointer' }}>
+                        <option value='' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>&mdash; Choisis l&apos;epreuve &mdash;</option>
                         {eps.map((e) => (
-                          <option key={e.id} value={e.id} style={{ background: '#1a1a24', color: '#fff' }}>{e.libelle}</option>
+                          <option key={e.id} value={e.id} style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>{e.libelle}</option>
                         ))}
                       </select>
 
                       {ec && ec.regle ? (
-                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 8, lineHeight: 1.5 }}>{ec.regle}</div>
+                        <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 8, lineHeight: 1.5 }}>{ec.regle}</div>
                       ) : null}
 
                       {opts.length > 0 && (
@@ -617,10 +617,10 @@ export default function SubmitPage() {
                             const v = e.target.value;
                             if (!v) { setSelectedSubject(null); return; }
                             setSelectedSubject({ id: ec.id + ':' + v, name: v, discipline_id: selectedDiscipline!.id });
-                          }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 13, fontFamily: 'DM Sans, sans-serif', outline: 'none', cursor: 'pointer' }}>
-                            <option value='' style={{ background: '#1a1a24', color: '#fff' }}>&mdash; Choisis &mdash;</option>
+                          }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--line-strong)', color: 'var(--ink)', fontSize: 13, fontFamily: 'DM Sans, sans-serif', outline: 'none', cursor: 'pointer' }}>
+                            <option value='' style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>&mdash; Choisis &mdash;</option>
                             {opts.map((o) => (
-                              <option key={o} value={o} style={{ background: '#1a1a24', color: '#fff' }}>{o}</option>
+                              <option key={o} value={o} style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>{o}</option>
                             ))}
                           </select>
                         </div>
@@ -631,14 +631,14 @@ export default function SubmitPage() {
 
                 {subjects.length > 0 && champs.length === 0 && selectedDiscipline?.id !== 'instrument' && (
               <div style={{ marginBottom: 16 }}>
-                <label style={lbl}>Sujet / Morceau <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
+                <label style={lbl}>Sujet / Morceau <span style={{ color: 'var(--ink-dim)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {subjects.map(s => (
                     <div key={s.id} onClick={() => setSelectedSubject(prev => prev?.id === s.id ? null : s)}
                       style={{ padding: '7px 14px', borderRadius: 24, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                        background: selectedSubject?.id === s.id ? 'rgba(255,170,0,0.15)' : 'rgba(255,255,255,0.06)',
-                        border: `1px solid ${selectedSubject?.id === s.id ? OR : 'rgba(255,255,255,0.1)'}`,
-                        color: selectedSubject?.id === s.id ? OR : 'rgba(255,255,255,0.6)', transition: 'all .2s',
+                        background: selectedSubject?.id === s.id ? 'rgba(255,170,0,0.15)' : 'var(--surface)',
+                        border: `1px solid ${selectedSubject?.id === s.id ? OR : 'var(--line)'}`,
+                        color: selectedSubject?.id === s.id ? OR : 'var(--ink-soft)', transition: 'all .2s',
                       }}>
                       {s.name}
                     </div>
@@ -653,9 +653,9 @@ export default function SubmitPage() {
                 <label style={lbl}>{c.titre}{c.obligatoire ? ' *' : ''}</label>
                 {c.type === 'liste' ? (
                   <select style={inp} value={champValues[c.id] || ''} onChange={e => setChampValues(v => ({ ...v, [c.id]: e.target.value }))}>
-                    <option value="" style={{ color: '#000', background: '#fff' }}>Choisir...</option>
+                    <option value="" style={{ color: 'var(--ink)', background: 'var(--bg-soft)' }}>Choisir...</option>
                     {(champChoix[c.id] || []).map((ch: any) => (
-                      <option key={ch.id} value={ch.valeur} style={{ color: '#000', background: '#fff' }}>{ch.valeur}</option>
+                      <option key={ch.id} value={ch.valeur} style={{ color: 'var(--ink)', background: 'var(--bg-soft)' }}>{ch.valeur}</option>
                     ))}
                   </select>
                 ) : c.type === 'texte' ? (
@@ -664,9 +664,9 @@ export default function SubmitPage() {
                   <>
                     <input style={inp} type="text" placeholder="Rechercher un titre..." value={musiqueFiltre} onChange={e => setMusiqueFiltre(e.target.value)} />
                     <select style={{ ...inp, marginTop: 6 }} value={champValues[c.id] || ''} onChange={e => setChampValues(v => ({ ...v, [c.id]: e.target.value }))}>
-                      <option value="" style={{ color: '#000', background: '#fff' }}>Choisir...</option>
+                      <option value="" style={{ color: 'var(--ink)', background: 'var(--bg-soft)' }}>Choisir...</option>
                       {musiques.filter((m: any) => { const q = musiqueFiltre.toLowerCase(); return !q || String(m.titre || '').toLowerCase().includes(q) || String(m.artiste || '').toLowerCase().includes(q); }).map((m: any) => (
-                        <option key={m.id} value={m.titre} style={{ color: '#000', background: '#fff' }}>{m.titre}{m.artiste ? ' - ' + m.artiste : ''}</option>
+                        <option key={m.id} value={m.titre} style={{ color: 'var(--ink)', background: 'var(--bg-soft)' }}>{m.titre}{m.artiste ? ' - ' + m.artiste : ''}</option>
                       ))}
                     </select>
                     <div style={{ marginTop: 8 }}>
@@ -674,7 +674,7 @@ export default function SubmitPage() {
                     </div>
                     {musiqueOpen && (
                     <div style={{ marginTop: 8 }}>
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 4 }}>Morceau absent de la liste ? Ajoutez-le :</div>
+                      <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginBottom: 4 }}>Morceau absent de la liste ? Ajoutez-le :</div>
                       <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
                         <input style={inp} type="text" placeholder="Rechercher (MusicBrainz)..." value={musiqueRech} onChange={e => setMusiqueRech(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') lookupMusiqueBib(); }} />
                         <button type="button" disabled={musiqueLookupBusy} style={{ ...inp, width: 130, cursor: 'pointer', color: OR, fontWeight: 700 }} onClick={lookupMusiqueBib}>{musiqueLookupBusy ? '...' : 'Rechercher'}</button>
@@ -682,7 +682,7 @@ export default function SubmitPage() {
                       <input style={inp} type="text" placeholder="Titre" value={musiqueNouvTitre} onChange={e => setMusiqueNouvTitre(e.target.value)} />
                       <input style={{ ...inp, marginTop: 6 }} type="text" placeholder="Artiste" value={musiqueNouvArtiste} onChange={e => setMusiqueNouvArtiste(e.target.value)} />
                       <button type="button" disabled={musiqueBusy} style={{ ...inp, marginTop: 6, cursor: 'pointer', color: OR, fontWeight: 700 }} onClick={() => ajouterMusique(c.id)}>{musiqueBusy ? 'Ajout...' : '+ Ajouter a la bibliotheque'}</button>
-                      {musiqueMsg && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>{musiqueMsg}</div>}
+                      {musiqueMsg && <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 4 }}>{musiqueMsg}</div>}
                     </div>)}
                   </>
                 )}
@@ -690,23 +690,23 @@ export default function SubmitPage() {
             ))}
             {/*DKDK_HIDE_MUSIC_FIELDS*/ ['chant','danse','instrument','acapella'].includes(selectedDiscipline?.id || '') && !champs.some((c: any) => c.type === 'musique') && (<>
                 <div style={{ marginBottom: 12 }}>
-              <label style={lbl}>Titre de la piste <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
+              <label style={lbl}>Titre de la piste <span style={{ color: 'var(--ink-dim)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
               <input style={inp} type="text" placeholder="Ex : Afrobeat Battle" value={trackTitle} onChange={e => setTrackTitle(e.target.value)} />
             </div>
 
             <div style={{ marginBottom: 12 }}>
-              <label style={lbl}>Artiste / Groupe <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
+              <label style={lbl}>Artiste / Groupe <span style={{ color: 'var(--ink-dim)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
               <input style={inp} type="text" placeholder="Ex : DJ Kossi" value={trackArtist} onChange={e => setTrackArtist(e.target.value)} />
             </div>
                 </>)}
 
             <div style={{ marginBottom: 12 }}>
-              <label style={lbl}>Titre de la vidéo <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
+              <label style={lbl}>Titre de la vidéo <span style={{ color: 'var(--ink-dim)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
               <input style={inp} type="text" placeholder={`Ma prestation de ${selectedDiscipline?.name}…`} value={title} onChange={e => setTitle(e.target.value)} />
             </div>
 
             <div style={{ marginBottom: 20 }}>
-              <label style={lbl}>Description <span style={{ color: 'rgba(255,255,255,0.25)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
+              <label style={lbl}>Description <span style={{ color: 'var(--ink-dim)', textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optionnel)</span></label>
               <textarea style={{ ...inp, resize: 'vertical', minHeight: 70 }} rows={2} placeholder="Décrivez votre prestation…" value={description} onChange={e => setDescription(e.target.value)} maxLength={500} />
             </div>
 
@@ -723,10 +723,10 @@ export default function SubmitPage() {
             {/* Récap */}
             <div style={{ background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.2)', borderRadius: 12, padding: '10px 14px', marginBottom: 20, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 11, color: OR, fontWeight: 600 }}>{selectedCategory?.emoji} {selectedCategory?.name}</span>
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>→</span>
+              <span style={{ fontSize: 11, color: 'var(--ink-dim)' }}>→</span>
               <span style={{ fontSize: 11, color: OR, fontWeight: 600 }}>{selectedDiscipline?.emoji} {selectedDiscipline?.name}</span>
               {recapSubject && <>
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>→</span>
+                <span style={{ fontSize: 11, color: 'var(--ink-dim)' }}>→</span>
                 {/*DKDK_RECAP_SPORT*/}
                     <span style={{ fontSize: 11, color: OR, fontWeight: 600 }}>
                       {selectedDiscipline?.category_id === 'sport'
@@ -736,16 +736,16 @@ export default function SubmitPage() {
               </>}
             </div>
 
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 16, fontFamily: 'Syne, sans-serif' }}>🎥 Votre vidéo</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginBottom: 16, fontFamily: 'Syne, sans-serif' }}>🎥 Votre vidéo</div>
 
             {/* Mode tabs */}
-            <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
               {(['file'] as UploadMode[]).map(mode => (
                 <button key={mode}
                   onClick={() => { setUploadMode(mode); setFile(null); setPreview(null); setVideoUrl(''); setError(''); }}
                   style={{ flex: 1, padding: '9px', fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, border: 'none', borderRadius: 8, cursor: 'pointer', transition: 'all .2s',
                     background: uploadMode === mode ? 'rgba(255,170,0,0.12)' : 'transparent',
-                    color: uploadMode === mode ? OR : 'rgba(255,255,255,0.4)',
+                    color: uploadMode === mode ? OR : 'var(--ink-soft)',
                     outline: uploadMode === mode ? '1px solid rgba(255,170,0,0.25)' : 'none',
                   }}>
                   {mode === 'url' ? '🔗 Lien vidéo' : '📁 Upload fichier'}
@@ -757,24 +757,24 @@ export default function SubmitPage() {
               <div style={{ marginBottom: 16 }}>
                 <label style={lbl}>Lien de la vidéo *</label>
                 <input style={inp} type="url" placeholder="https://youtube.com/watch?v=…" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} />
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 6 }}>✅ YouTube, TikTok, Instagram Reels, Vimeo acceptés</div>
+                <div style={{ fontSize: 11, color: 'var(--ink-dim)', marginTop: 6 }}>✅ YouTube, TikTok, Instagram Reels, Vimeo acceptés</div>
               </div>
             )}
 
             {uploadMode === 'file' && (
               !file ? (
-                <div onClick={() => fileRef.current?.click()} style={{ border: '1.5px dashed rgba(255,255,255,0.12)', borderRadius: 14, padding: '2.5rem 1rem', textAlign: 'center', cursor: 'pointer', background: 'rgba(255,255,255,0.02)', marginBottom: 16 }}>
+                <div onClick={() => fileRef.current?.click()} style={{ border: '1.5px dashed var(--line-strong)', borderRadius: 14, padding: '2.5rem 1rem', textAlign: 'center', cursor: 'pointer', background: 'var(--surface)', marginBottom: 16 }}>
                   <div style={{ fontSize: 36, marginBottom: 10 }}>🎬</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 4 }}>Cliquez pour choisir votre vidéo</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>MP4 ou MOV · Max 500 MB · Max 10 minutes</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>Cliquez pour choisir votre vidéo</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-dim)' }}>MP4 ou MOV · Max 500 MB · Max 10 minutes</div>
                   <input ref={fileRef} type="file" accept="video/mp4,video/quicktime" onChange={handleFileChange} style={{ display: 'none' }} />
                 </div>
               ) : (
-                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
                   <video ref={videoRef} src={preview!} controls onLoadedMetadata={handleVideoLoaded} style={{ width: '100%', maxHeight: 220, background: '#000' }} />
                   <div style={{ padding: '12px 16px' }}>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: '#fff', marginBottom: 3 }}>{file.name}</div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{(file.size / (1024 * 1024)).toFixed(1)} MB{duration > 0 ? ` · ${Math.floor(duration / 60)}m${Math.round(duration % 60)}s` : ''}</div>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', marginBottom: 3 }}>{file.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--ink-dim)' }}>{(file.size / (1024 * 1024)).toFixed(1)} MB{duration > 0 ? ` · ${Math.floor(duration / 60)}m${Math.round(duration % 60)}s` : ''}</div>
                     <button onClick={() => { setFile(null); setPreview(null); setError(''); }}
                       style={{ marginTop: 8, background: 'none', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 6, padding: '4px 10px', fontSize: 11, color: '#f87171', cursor: 'pointer' }}>
                       ✕ Changer la vidéo
@@ -798,11 +798,11 @@ export default function SubmitPage() {
 
             {uploading && (
               <div style={{ marginBottom: 14 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink-soft)', marginBottom: 6 }}>
                   <span>Enregistrement…</span><span>{progress}%</span>
                 </div>
-                <div style={{ height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 2 }}>
-                  <div style={{ height: 4, width: `${progress}%`, background: 'linear-gradient(90deg,#FFAA00,#FF6B00)', borderRadius: 2, transition: 'width .3s ease' }} />
+                <div style={{ height: 4, background: 'var(--line)', borderRadius: 2 }}>
+                  <div style={{ height: 4, width: `${progress}%`, background: 'linear-gradient(90deg,#FF6B00,#FFD700)', borderRadius: 2, transition: 'width .3s ease' }} />
                 </div>
               </div>
             )}
@@ -833,7 +833,7 @@ export default function SubmitPage() {
 
             {/* Rappel du flux */}
             <div style={{ background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.2)', borderRadius: 14, padding: '14px 18px', marginBottom: 24, textAlign: 'left' }}>
-              <div style={{ fontSize: 12, color: '#FFAA00', fontWeight: 700, marginBottom: 10 }}>Prochaines étapes :</div>
+              <div style={{ fontSize: 12, color: 'var(--or)', fontWeight: 700, marginBottom: 10 }}>Prochaines étapes :</div>
               {[
                 { n: '1', icon: '👤', text: 'Va dans ton compte → Mes vidéos' },
                 { n: '2', icon: '🏆', text: 'Clique sur "Soumettre pour validation" et choisis un challenge' },
@@ -841,8 +841,8 @@ export default function SubmitPage() {
                 { n: '4', icon: '✅', text: 'Vidéo approuvée → visible sur la plateforme' },
               ].map(step => (
                 <div key={step.n} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: '#FFAA00', minWidth: 16 }}>{step.n}</span>
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{step.icon} {step.text}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--or)', minWidth: 16 }}>{step.n}</span>
+                  <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{step.icon} {step.text}</span>
                 </div>
               ))}
             </div>
@@ -851,7 +851,7 @@ export default function SubmitPage() {
               <button onClick={reset} style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: 50, padding: '10px 18px', fontSize: 13, fontWeight: 600, color: '#4ade80', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
                 + Ajouter une autre vidéo
               </button>
-              <button onClick={() => router.push('/compte')} style={{ background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', border: 'none', borderRadius: 50, padding: '10px 22px', fontSize: 13, fontWeight: 700, color: '#000', cursor: 'pointer', fontFamily: 'Syne, sans-serif' }}>
+              <button onClick={() => router.push('/compte')} style={{ background: 'linear-gradient(135deg,#FF6B00,#FFD700)', border: 'none', borderRadius: 50, padding: '10px 22px', fontSize: 13, fontWeight: 700, color: '#150c00', cursor: 'pointer', fontFamily: 'Syne, sans-serif' }}>
                 Mes vidéos →
               </button>
             </div>
@@ -864,21 +864,21 @@ export default function SubmitPage() {
         {[{ label: 'Accueil', Icon: HomeIcon, route: '/home' }, { label: 'Recharger', Icon: RechargeIcon, route: '/recharge' }].map(item => (
           <button key={item.label} onClick={() => router.push(item.route)}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', flex: 1 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#7e0380', border: '0.5px solid rgba(255,170,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFAA00' }}><item.Icon /></div>
-            <span style={{ fontSize: 9, fontWeight: 700, color: '#FFAA00', textTransform: 'uppercase', letterSpacing: '.4px', fontFamily: 'DM Sans, sans-serif' }}>{item.label}</span>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#7e0380', border: '0.5px solid rgba(255,170,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--nav-or)' }}><item.Icon /></div>
+            <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--nav-or)', textTransform: 'uppercase', letterSpacing: '.4px', fontFamily: 'DM Sans, sans-serif' }}>{item.label}</span>
           </button>
         ))}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, flex: 1, marginTop: -10 }}>
-          <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#7e0380', border: '2px solid #FFAA00', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 24, color: '#FFAA00', fontWeight: 700, lineHeight: 1 }}>+</span>
+          <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#7e0380', border: '2px solid var(--nav-or)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: 24, color: 'var(--nav-or)', fontWeight: 700, lineHeight: 1 }}>+</span>
           </div>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#FFAA00', textTransform: 'uppercase', letterSpacing: '.4px', fontFamily: 'DM Sans, sans-serif' }}>Ajouter</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--nav-or)', textTransform: 'uppercase', letterSpacing: '.4px', fontFamily: 'DM Sans, sans-serif' }}>Ajouter</span>
         </div>
         {[{ label: 'Retrait', Icon: BilletIcon, route: '/retrait' }, { label: 'Compte', Icon: UserIcon, route: '/compte' }].map(item => (
           <button key={item.label} onClick={() => router.push(item.route)}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', flex: 1 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#7e0380', border: '0.5px solid rgba(255,170,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFAA00' }}><item.Icon /></div>
-            <span style={{ fontSize: 9, fontWeight: 700, color: '#FFAA00', textTransform: 'uppercase', letterSpacing: '.4px', fontFamily: 'DM Sans, sans-serif' }}>{item.label}</span>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#7e0380', border: '0.5px solid rgba(255,170,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--nav-or)' }}><item.Icon /></div>
+            <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--nav-or)', textTransform: 'uppercase', letterSpacing: '.4px', fontFamily: 'DM Sans, sans-serif' }}>{item.label}</span>
           </button>
         ))}
       </div>

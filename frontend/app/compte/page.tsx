@@ -48,31 +48,31 @@ const TABS: {id:TabId;emoji:string;label:string}[] = [
   {id:'settings',    emoji:'🔒', label:'Confidentialité'},
 ];
 
-const card: React.CSSProperties = { background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:18,padding:'18px 20px',marginBottom:12 };
-const btnPrimary: React.CSSProperties = { background:'linear-gradient(135deg,#FFAA00,#FF6B00)',border:'none',borderRadius:50,padding:'9px 20px',fontSize:13,fontWeight:700,color:'#000',cursor:'pointer',fontFamily:'DM Sans, sans-serif' };
-const btnSecondary: React.CSSProperties = { background:'transparent',border:'1px solid rgba(255,255,255,0.15)',borderRadius:50,padding:'9px 18px',fontSize:13,color:'rgba(255,255,255,0.9)',cursor:'pointer',fontFamily:'DM Sans, sans-serif' };
+const card: React.CSSProperties = { background:'var(--surface)',border:'1px solid var(--line)',borderRadius:18,padding:'18px 20px',marginBottom:12 };
+const btnPrimary: React.CSSProperties = { background:'linear-gradient(135deg,#FF6B00,#FFD700)',border:'none',borderRadius:50,padding:'9px 20px',fontSize:13,fontWeight:700,color:'#150c00',cursor:'pointer',fontFamily:'DM Sans, sans-serif' };
+const btnSecondary: React.CSSProperties = { background:'transparent',border:'1px solid var(--line-strong)',borderRadius:50,padding:'9px 18px',fontSize:13,color:'var(--ink)',cursor:'pointer',fontFamily:'DM Sans, sans-serif' };
 
 function StatusBadge({status}:{status:UserVideo['status']}) {
   const cfg = {
-    draft:    {bg:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.9)',border:'rgba(255,255,255,0.15)',label:'📝 Brouillon'},
+    draft:    {bg:'var(--surface)',color:'var(--ink)',border:'var(--line-strong)',label:'📝 Brouillon'},
     approved: {bg:'rgba(74,222,128,0.12)', color:'#4ade80',             border:'rgba(74,222,128,0.25)',label:'✓ Approuvée'},
-    pending:  {bg:'rgba(255,170,0,0.1)',   color:'#FFAA00',             border:'rgba(255,170,0,0.25)', label:'⏳ En attente'},
+    pending:  {bg:'rgba(255,170,0,0.1)',   color:'var(--or)',           border:'rgba(255,170,0,0.25)', label:'⏳ En attente'},
     rejected: {bg:'rgba(248,113,113,0.1)', color:'#f87171',             border:'rgba(248,113,113,0.25)',label:'✕ Rejetée'},
   }[status];
   return <span style={{fontSize:10,fontWeight:700,padding:'3px 10px',borderRadius:20,background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,whiteSpace:'nowrap'as const}}>{cfg.label}</span>;
 }
 
 function Toggle({on,onToggle}:{on:boolean;onToggle:()=>void}) {
-  return <div onClick={onToggle} style={{width:48,height:26,borderRadius:13,background:on?'#FFAA00':'rgba(255,255,255,0.1)',display:'flex',alignItems:'center',padding:3,cursor:'pointer',flexShrink:0,transition:'background 0.25s'}}><div style={{width:20,height:20,borderRadius:'50%',background:on?'#fff':'rgba(255,255,255,0.45)',marginLeft:on?'auto':0,transition:'margin 0.25s'}}/></div>;
+  return <div onClick={onToggle} style={{width:48,height:26,borderRadius:13,background:on?'var(--or)':'var(--line-strong)',display:'flex',alignItems:'center',padding:3,cursor:'pointer',flexShrink:0,transition:'background 0.25s'}}><div style={{width:20,height:20,borderRadius:'50%',background:on?'#fff':'var(--ink-soft)',marginLeft:on?'auto':0,transition:'margin 0.25s'}}/></div>;
 }
 
 // ✅ icon prop changé de string à React.ReactNode pour supporter <StarRed />
 function PrivacyRow({icon,label,desc,on,onToggle}:{icon:React.ReactNode;label:string;desc:string;on:boolean;onToggle:()=>void}) {
   return (
-    <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:14,padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:16}}>
+    <div style={{background:'var(--surface)',border:'1px solid var(--line)',borderRadius:14,padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:16}}>
       <div style={{display:'flex',alignItems:'center',gap:12,flex:1}}>
         <span style={{fontSize:20}}>{icon}</span>
-        <div><div style={{fontSize:14,fontWeight:600,color:'#fff',marginBottom:2}}>{label}</div><div style={{fontSize:11,color:'rgba(255,255,255,0.35)',lineHeight:1.5}}>{desc}</div></div>
+        <div><div style={{fontSize:14,fontWeight:600,color:'var(--ink)',marginBottom:2}}>{label}</div><div style={{fontSize:11,color:'var(--ink-dim)',lineHeight:1.5}}>{desc}</div></div>
       </div>
       <Toggle on={on} onToggle={onToggle}/>
     </div>
@@ -88,8 +88,8 @@ function ConfidentialiteSection({earnings}:{earnings:number}) {
   return (
     <div>
       <div style={{background:'linear-gradient(135deg,rgba(255,170,0,0.1),rgba(255,107,0,0.06))',border:'1px solid rgba(255,170,0,0.3)',borderRadius:16,padding:'16px 18px',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12,gap:16}}>
-        <div style={{display:'flex',alignItems:'center',gap:12}}><span style={{fontSize:24}}>💰</span><div><div style={{fontSize:14,fontWeight:700,color:'#FFAA00',marginBottom:2}}>Montant encaissé</div><div style={{fontSize:11,color:'rgba(255,255,255,0.85)'}}>Total des votes reçus · Visible par tous</div></div></div>
-        <div style={{textAlign:'right'}}><div style={{fontSize:22,fontWeight:800,color:'#FFAA00',fontFamily:'Syne, sans-serif'}}>{earnings.toLocaleString('fr-FR')} F</div><span style={{background:'rgba(255,170,0,0.15)',border:'1px solid rgba(255,170,0,0.3)',borderRadius:20,padding:'2px 8px',fontSize:10,color:'#FFAA00',fontWeight:700}}>PUBLIC</span></div>
+        <div style={{display:'flex',alignItems:'center',gap:12}}><span style={{fontSize:24}}>💰</span><div><div style={{fontSize:14,fontWeight:700,color:'var(--or)',marginBottom:2}}>Montant encaissé</div><div style={{fontSize:11,color:'var(--ink-soft)'}}>Total des votes reçus · Visible par tous</div></div></div>
+        <div style={{textAlign:'right'}}><div style={{fontSize:22,fontWeight:800,color:'var(--or)',fontFamily:'Syne, sans-serif'}}>{earnings.toLocaleString('fr-FR')} F</div><span style={{background:'rgba(255,170,0,0.15)',border:'1px solid rgba(255,170,0,0.3)',borderRadius:20,padding:'2px 8px',fontSize:10,color:'var(--or)',fontWeight:700}}>PUBLIC</span></div>
       </div>
       <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:16}}>
         <PrivacyRow icon="👤" label="Nom affiché"         desc="Ton nom sur ton profil public"            on={privacy.name_visible}     onToggle={()=>toggle('name_visible')}/>
@@ -109,35 +109,35 @@ function ConfidentialiteSection({earnings}:{earnings:number}) {
 }
 
 function SuivreBtn({active,onToggle,size='sm'}:{active:boolean;onToggle:()=>void;size?:'sm'|'md'}) {
-  return <button onClick={onToggle} style={{background:'rgba(255,255,255,0.9)',border:'none',cursor:'pointer',padding:'3px 8px',borderRadius:20,display:'inline-flex',alignItems:'center',gap:'3px'}}><span style={{fontSize:size==='md'?'11px':'10px',fontWeight:600,color:active?'#FF0000':'#000',userSelect:'none'as const}}>{active?'Voté':'Voter'}</span><span style={{fontSize:size==='md'?'20px':'17px',lineHeight:1,color:active?'#FF0000':'#000'}}>{active?'★':'☆'}</span></button>;
+  return <button onClick={onToggle} style={{background:'#fff',border:'none',cursor:'pointer',padding:'3px 8px',borderRadius:20,display:'inline-flex',alignItems:'center',gap:'3px'}}><span style={{fontSize:size==='md'?'11px':'10px',fontWeight:600,color:active?'#FF0000':'#000',userSelect:'none'as const}}>{active?'Voté':'Voter'}</span><span style={{fontSize:size==='md'?'20px':'17px',lineHeight:1,color:active?'#FF0000':'#000'}}>{active?'★':'☆'}</span></button>;
 }
 
 function CandidateCard({cand,isWinner,isLoser,voteState,loading,contest,isFav,onToggleFav,onVote}:{cand:Candidate;isWinner:boolean;isLoser:boolean;voteState:VoteState;loading:boolean;contest:Contest;isFav:boolean;onToggleFav:()=>void;onVote:()=>void}) {
   const [pop,setPop]=useState(false);
   const vid=cand.video?.id;
   function handleVote(){if(voteState.voted||loading||contest.status!=='active'||!vid)return;setPop(true);setTimeout(()=>setPop(false),400);onVote();}
-  const bc=isWinner?'#4ade80':isLoser?'#f87171':'rgba(255,255,255,.08)';
-  const bg=isWinner?'rgba(74,222,128,.06)':isLoser?'rgba(248,113,113,.06)':'rgba(255,255,255,.03)';
-  const vc=isWinner?'#4ade80':isLoser?'#f87171':'#fff';
-  const bar=isWinner?'#4ade80':isLoser?'#f87171':'#FFAA00';
+  const bc=isWinner?'#4ade80':isLoser?'#f87171':'var(--line)';
+  const bg=isWinner?'rgba(74,222,128,.06)':isLoser?'rgba(248,113,113,.06)':'var(--surface)';
+  const vc=isWinner?'#4ade80':isLoser?'#f87171':'var(--ink)';
+  const bar=isWinner?'#4ade80':isLoser?'#f87171':'var(--or)';
   return (
     <div style={{flex:1,background:bg,border:`1px solid ${bc}`,borderRadius:'16px',padding:'16px 12px',display:'flex',flexDirection:'column',alignItems:'center',gap:'12px',position:'relative'}}>
       {isWinner&&<div style={{position:'absolute',top:'-10px',left:'50%',transform:'translateX(-50%)',background:'#4ade80',color:'#000',fontSize:'10px',fontWeight:700,padding:'2px 10px',borderRadius:'20px',whiteSpace:'nowrap'}}>✓ Votre vote</div>}
       {isLoser &&<div style={{position:'absolute',top:'-10px',left:'50%',transform:'translateX(-50%)',background:'rgba(248,113,113,.2)',color:'#f87171',fontSize:'10px',fontWeight:700,padding:'2px 10px',borderRadius:'20px',border:'0.5px solid rgba(248,113,113,.3)',whiteSpace:'nowrap'}}>Non choisi</div>}
-      <div onClick={()=>vid&&window.open(`/watch/${vid}`,'_blank')} style={{width:'100%',aspectRatio:'16/9',background:'rgba(255,255,255,.06)',borderRadius:'12px',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',cursor:'pointer'}}>
+      <div onClick={()=>vid&&window.open(`/watch/${vid}`,'_blank')} style={{width:'100%',aspectRatio:'16/9',background:'var(--surface)',borderRadius:'12px',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',cursor:'pointer'}}>
         {cand.video?.thumbnail_url?<img src={cand.video.thumbnail_url} alt={cand.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{fontSize:'32px'}}>{DISC_EMOJI[contest.discipline]||'🎭'}</div>}
         <div style={{position:'absolute',width:'36px',height:'36px',borderRadius:'50%',background:'rgba(0,0,0,.6)',border:'2px solid rgba(255,255,255,.8)',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{width:0,height:0,borderTop:'6px solid transparent',borderBottom:'6px solid transparent',borderLeft:'11px solid #fff',marginLeft:'3px'}}/></div>
       </div>
       <div style={{textAlign:'center',width:'100%'}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',marginBottom:'2px'}}><span style={{fontSize:'14px',fontWeight:700,color:'#fff',fontFamily:'Syne,sans-serif'}}>{cand.stage_name||cand.name}</span><SuivreBtn active={isFav} onToggle={onToggleFav}/></div>
-        {cand.track_title&&<div style={{fontSize:'11px',color:'rgba(255,255,255,.4)'}}>🎵 {cand.track_title}{cand.track_artist&&` — ${cand.track_artist}`}</div>}
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',marginBottom:'2px'}}><span style={{fontSize:'14px',fontWeight:700,color:'var(--ink)',fontFamily:'Syne,sans-serif'}}>{cand.stage_name||cand.name}</span><SuivreBtn active={isFav} onToggle={onToggleFav}/></div>
+        {cand.track_title&&<div style={{fontSize:'11px',color:'var(--ink-soft)'}}>🎵 {cand.track_title}{cand.track_artist&&` — ${cand.track_artist}`}</div>}
       </div>
       <div style={{width:'100%',textAlign:'center'}}>
         <div style={{fontSize:'28px',fontWeight:800,color:vc,fontFamily:'Syne,sans-serif',lineHeight:1}}>{cand.votes.toLocaleString('fr-FR')}</div>
-        <div style={{fontSize:'11px',color:'#000',marginTop:'3px',fontWeight:600}}>{cand.percentage}% des votes</div>
-        <div style={{width:'100%',height:'5px',background:'rgba(255,255,255,.08)',borderRadius:'3px',marginTop:'8px'}}><div style={{height:'5px',borderRadius:'3px',width:`${cand.percentage}%`,background:bar,transition:'width .6s'}}/></div>
+        <div style={{fontSize:'11px',color:'var(--ink-soft)',marginTop:'3px',fontWeight:600}}>{cand.percentage}% des votes</div>
+        <div style={{width:'100%',height:'5px',background:'var(--line)',borderRadius:'3px',marginTop:'8px'}}><div style={{height:'5px',borderRadius:'3px',width:`${cand.percentage}%`,background:bar,transition:'width .6s'}}/></div>
       </div>
-      <button onClick={handleVote} disabled={voteState.voted||loading||contest.status!=='active'||!vid} style={{width:'100%',padding:'11px',background:voteState.voted?(isWinner?'rgba(74,222,128,.15)':'rgba(255,255,255,.05)'):'#FFAA00',border:voteState.voted?(isWinner?'0.5px solid rgba(74,222,128,.3)':'0.5px solid rgba(255,255,255,.1)'):'none',borderRadius:'12px',fontFamily:'Syne,sans-serif',fontSize:'13px',fontWeight:700,color:voteState.voted?(isWinner?'#4ade80':'rgba(255,255,255,.3)'):'#000',cursor:voteState.voted||loading||!vid?'not-allowed':'pointer',transform:pop?'scale(1.05)':'scale(1)',transition:'all .2s'}}>
+      <button onClick={handleVote} disabled={voteState.voted||loading||contest.status!=='active'||!vid} style={{width:'100%',padding:'11px',background:voteState.voted?(isWinner?'rgba(74,222,128,.15)':'var(--surface)'):'linear-gradient(135deg,#FF6B00,#FFD700)',border:voteState.voted?(isWinner?'0.5px solid rgba(74,222,128,.3)':'0.5px solid var(--line)'):'none',borderRadius:'12px',fontFamily:'Syne,sans-serif',fontSize:'13px',fontWeight:700,color:voteState.voted?(isWinner?'#4ade80':'var(--ink-dim)'):'#150c00',cursor:voteState.voted||loading||!vid?'not-allowed':'pointer',transform:pop?'scale(1.05)':'scale(1)',transition:'all .2s'}}>
         {loading?'...':voteState.voted?(isWinner?'✓ Voté':'Non choisi'):!vid?'Pas de vidéo':'👍 Voter · 10 F CFA'}
       </button>
     </div>
@@ -176,18 +176,18 @@ function EditProfileModal({profile,onClose,onSaved}:{profile:UserProfile;onClose
   const [form,setForm]=useState({name:profile.name,country:profile.country??'',photo_url:profile.photo_url??'',bio:profile.bio??''});
   const [saving,setSaving]=useState(false);const [err,setErr]=useState('');const [done,setDone]=useState(false);
   const save=async()=>{if(!form.name.trim()){setErr('Le nom est requis.');return;}setSaving(true);setErr('');try{const res=await fetch(`${API}/users/${profile.id}/profile`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({name:form.name.trim(),country:form.country,photo_url:form.photo_url,bio:form.bio})});const d=await res.json();if(!res.ok)throw new Error(d.message??'Erreur');onSaved({...profile,...form});setDone(true);setTimeout(onClose,1200);}catch(e:any){setErr(e.message);}finally{setSaving(false);}};
-  const inp:React.CSSProperties={width:'100%',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:12,padding:'11px 14px',fontSize:14,color:'#fff',outline:'none',fontFamily:'DM Sans,sans-serif',boxSizing:'border-box'};
-  const lbl:React.CSSProperties={display:'block',fontSize:11,fontWeight:600,color:'rgba(255,255,255,0.9)',marginBottom:6,textTransform:'uppercase',letterSpacing:'.5px'};
+  const inp:React.CSSProperties={width:'100%',background:'var(--surface)',border:'1px solid var(--line)',borderRadius:12,padding:'11px 14px',fontSize:14,color:'var(--ink)',outline:'none',fontFamily:'DM Sans,sans-serif',boxSizing:'border-box'};
+  const lbl:React.CSSProperties={display:'block',fontSize:11,fontWeight:600,color:'var(--ink-soft)',marginBottom:6,textTransform:'uppercase',letterSpacing:'.5px'};
   return (
     <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:16}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:'#12121e',border:'1px solid rgba(255,170,0,0.25)',borderRadius:20,width:'100%',maxWidth:460,overflow:'hidden'}}>
-        <div style={{background:'linear-gradient(135deg,rgba(255,170,0,0.1),rgba(255,107,0,0.06))',borderBottom:'1px solid rgba(255,170,0,0.15)',padding:'16px 20px',display:'flex',alignItems:'center',justifyContent:'space-between'}}><div style={{fontSize:17,fontWeight:800,color:'#fff',fontFamily:'Syne,sans-serif'}}>✏️ Modifier mon profil</div><button onClick={onClose} style={{width:28,height:28,borderRadius:'50%',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.9)',fontSize:14,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button></div>
+      <div onClick={e=>e.stopPropagation()} style={{background:'var(--bg-soft)',border:'1px solid rgba(255,170,0,0.25)',borderRadius:20,width:'100%',maxWidth:460,overflow:'hidden'}}>
+        <div style={{background:'linear-gradient(135deg,rgba(255,170,0,0.1),rgba(255,107,0,0.06))',borderBottom:'1px solid rgba(255,170,0,0.15)',padding:'16px 20px',display:'flex',alignItems:'center',justifyContent:'space-between'}}><div style={{fontSize:17,fontWeight:800,color:'var(--ink)',fontFamily:'Syne,sans-serif'}}>✏️ Modifier mon profil</div><button onClick={onClose} style={{width:28,height:28,borderRadius:'50%',background:'var(--surface)',border:'1px solid var(--line)',color:'var(--ink)',fontSize:14,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button></div>
         {done?(<div style={{padding:40,textAlign:'center'}}><div style={{fontSize:44,marginBottom:10}}>✅</div><p style={{color:'#4ade80',fontWeight:700}}>Profil mis à jour !</p></div>):(
           <div style={{padding:'20px',display:'flex',flexDirection:'column',gap:14}}>
-            <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:4}}>{form.photo_url?<img src={form.photo_url} alt="avatar" style={{width:52,height:52,borderRadius:'50%',objectFit:'cover',border:'2px solid rgba(255,170,0,0.3)'}}/>:<div style={{width:52,height:52,borderRadius:'50%',background:'rgba(255,170,0,0.15)',border:'2px solid rgba(255,170,0,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:700,color:'#FFAA00'}}>{form.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'}</div>}<div style={{flex:1}}><label style={lbl}>Photo (URL)</label><input style={inp} type="url" placeholder="https://…" value={form.photo_url} onChange={e=>setForm(f=>({...f,photo_url:e.target.value}))}/></div></div>
+            <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:4}}>{form.photo_url?<img src={form.photo_url} alt="avatar" style={{width:52,height:52,borderRadius:'50%',objectFit:'cover',border:'2px solid rgba(255,170,0,0.3)'}}/>:<div style={{width:52,height:52,borderRadius:'50%',background:'rgba(255,170,0,0.15)',border:'2px solid rgba(255,170,0,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:700,color:'var(--or)'}}>{form.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'}</div>}<div style={{flex:1}}><label style={lbl}>Photo (URL)</label><input style={inp} type="url" placeholder="https://…" value={form.photo_url} onChange={e=>setForm(f=>({...f,photo_url:e.target.value}))}/></div></div>
             <div><label style={lbl}>Nom affiché *</label><input style={inp} type="text" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/></div>
             <div><label style={lbl}>Pays</label><select style={{...inp,cursor:'pointer'}} value={form.country} onChange={e=>setForm(f=>({...f,country:e.target.value}))}><option value="">— Sélectionner —</option>{COUNTRIES.map(c=><option key={c.code} value={c.code}>{c.flag} {c.name}</option>)}</select></div>
-            <div><label style={lbl}>Bio (facultatif)</label><textarea style={{...inp,resize:'vertical',minHeight:70}} placeholder="Quelques mots sur toi…" value={form.bio} onChange={e=>setForm(f=>({...f,bio:e.target.value}))} maxLength={200}/><div style={{textAlign:'right',fontSize:10,color:'rgba(255,255,255,0.8)',marginTop:3}}>{form.bio.length}/200</div></div>
+            <div><label style={lbl}>Bio (facultatif)</label><textarea style={{...inp,resize:'vertical',minHeight:70}} placeholder="Quelques mots sur toi…" value={form.bio} onChange={e=>setForm(f=>({...f,bio:e.target.value}))} maxLength={200}/><div style={{textAlign:'right',fontSize:10,color:'var(--ink-soft)',marginTop:3}}>{form.bio.length}/200</div></div>
             {err&&<div style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.25)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#f87171'}}>⚠️ {err}</div>}
             <div style={{display:'flex',gap:10,justifyContent:'flex-end',paddingTop:4}}><button onClick={onClose} style={btnSecondary}>Annuler</button><button onClick={save} disabled={saving} style={{...btnPrimary,opacity:saving?0.6:1}}>{saving?'⏳ Enregistrement…':'💾 Enregistrer'}</button></div>
           </div>
@@ -203,24 +203,24 @@ function MesVideosSection({videos,loading,onRefresh,router}:{videos:UserVideo[];
   return (
     <div>
       <div style={{background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',borderRadius:18,padding:'22px 20px',marginBottom:18,textAlign:'center'}}><div style={{fontSize:38,marginBottom:8}}>🎬</div><div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:20,color:'#fff',marginBottom:6}}>Mes vidéos</div><div style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.6,marginBottom:16}}>{videos.length} vidéo{videos.length!==1?'s':''} · Gère tes prestations et engage-les dans un challenge</div><button onClick={()=>router.push('/submit')} style={btnPrimary}>🎬 + Ajouter une vidéo</button></div>
-      {loading?(<div style={{textAlign:'center',padding:'40px 20px',color:'rgba(255,255,255,0.8)',fontSize:13}}>⏳ Chargement…</div>):videos.length===0?(
+      {loading?(<div style={{textAlign:'center',padding:'40px 20px',color:'var(--ink-soft)',fontSize:13}}>⏳ Chargement…</div>):videos.length===0?(
         <div style={{...card,textAlign:'center',padding:'40px 20px',background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',border:'none'}}><div style={{fontSize:40,marginBottom:12}}>🎬</div><p style={{color:'rgba(255,255,255,0.9)',fontSize:14,marginBottom:16}}>Tu n'as pas encore ajouté de vidéo.</p><button onClick={()=>router.push('/submit')} style={btnPrimary}>Ajouter ma première vidéo</button></div>
       ):(
         <>
           {others.map(v=>(
             <div key={v.id} style={card}>
               <div style={{display:'flex',alignItems:'flex-start',gap:12}}>
-                <div style={{width:46,height:46,borderRadius:10,background:'rgba(255,255,255,0.06)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{DISC_EMOJI[v.discipline??'']??'🎬'}</div>
+                <div style={{width:46,height:46,borderRadius:10,background:'var(--surface)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{DISC_EMOJI[v.discipline??'']??'🎬'}</div>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}><span style={{fontSize:14,fontWeight:700,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{v.title}</span><StatusBadge status={v.status}/></div>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}><span style={{fontSize:14,fontWeight:700,color:'var(--ink)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{v.title}</span><StatusBadge status={v.status}/></div>
                   {/* ✅ ⭐ → <StarRed /> */}
-                  <div style={{fontSize:11,color:'rgba(255,255,255,0.85)',marginBottom:v.status==='rejected'||v.status==='approved'?8:0}}>
+                  <div style={{fontSize:11,color:'var(--ink-soft)',marginBottom:v.status==='rejected'||v.status==='approved'?8:0}}>
                     {DISC_FR[v.discipline??'']??v.discipline}
                     {v.views!==undefined&&` · 👁 ${v.views.toLocaleString('fr-FR')}`}
                     {v.vote_count!==undefined&&v.vote_count>0&&<> · <StarRed /> {v.vote_count}</>}
                   </div>
                   {v.status==='rejected'&&v.rejection_reason&&<div style={{background:'rgba(248,113,113,0.07)',border:'1px solid rgba(248,113,113,0.18)',borderRadius:8,padding:'6px 10px',fontSize:11,color:'#f87171',marginBottom:8}}>Motif : {v.rejection_reason}</div>}
-                  {v.status==='approved'&&<div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button onClick={()=>router.push(`/watch/${v.id}`)} style={sm('rgba(255,255,255,0.6)','transparent','rgba(255,255,255,0.15)')}>▶ Regarder</button><button onClick={()=>router.push('/challenges/creer?video='+v.id)} style={sm('#FFAA00','rgba(255,170,0,0.1)','rgba(255,170,0,0.3)')}>🏆 Engager dans un challenge</button></div>}
+                  {v.status==='approved'&&<div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button onClick={()=>router.push(`/watch/${v.id}`)} style={sm('var(--ink-soft)','transparent','var(--line-strong)')}>▶ Regarder</button><button onClick={()=>router.push('/challenges/creer?video='+v.id)} style={sm('var(--or)','rgba(255,170,0,0.1)','rgba(255,170,0,0.3)')}>🏆 Engager dans un challenge</button></div>}
                 </div>
               </div>
             </div>
@@ -246,8 +246,8 @@ function EducationSection({router}:{router:any}) {
         </div>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
-        {MATIERES.map(m=>(<div key={m} onClick={()=>router.push('/education')} style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:'12px 14px',fontSize:13,color:'rgba(255,255,255,0.6)',cursor:'pointer',transition:'all .2s'}} onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(255,170,0,0.3)')} onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(255,255,255,0.07)')}>{m}</div>))}
-        <div onClick={()=>router.push('/education')} style={{background:'rgba(255,170,0,0.05)',border:'1px solid rgba(255,170,0,0.15)',borderRadius:12,padding:'12px 14px',fontSize:13,color:'rgba(255,170,0,0.6)',cursor:'pointer',gridColumn:'span 2',textAlign:'center'}}>+13 autres matières →</div>
+        {MATIERES.map(m=>(<div key={m} onClick={()=>router.push('/education')} style={{background:'var(--surface)',border:'1px solid var(--line)',borderRadius:12,padding:'12px 14px',fontSize:13,color:'var(--ink-soft)',cursor:'pointer',transition:'all .2s'}} onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(255,170,0,0.3)')} onMouseLeave={e=>(e.currentTarget.style.borderColor='var(--line)')}>{m}</div>))}
+        <div onClick={()=>router.push('/education')} style={{background:'rgba(255,170,0,0.05)',border:'1px solid rgba(255,170,0,0.15)',borderRadius:12,padding:'12px 14px',fontSize:13,color:'var(--or)',cursor:'pointer',gridColumn:'span 2',textAlign:'center'}}>+13 autres matières →</div>
       </div>
     </div>
   );
@@ -301,10 +301,10 @@ export default function ComptePage() {
   const handleLogout=()=>{localStorage.removeItem('dkdk_token');localStorage.removeItem('dkdk_user');router.push('/home');};
 
   return (
-    <div style={{minHeight:'100vh',background:'#0a0a0f',color:'#f0f0f0',fontFamily:'DM Sans,sans-serif',paddingBottom:60}}>
+    <div style={{minHeight:'100vh',background:'var(--bg)',color:'var(--ink)',fontFamily:'DM Sans,sans-serif',paddingBottom:60}}>
       <Navbar /> {/*DKDK_COMPTE_NAVBAR*/}
-      <div style={{background:'#0a0a0f',borderBottom:'1px solid rgb(7,7,7)',padding:'0 20px',display:'flex',gap:2,overflowX:'auto',scrollbarWidth:'none'}}>
-        {TABS.map(tab=>{ /*DKDK_TAB_EDU_SOON*/ const _soon = tab.id==='education'; return (<button key={tab.id} onClick={()=>{ if(!_soon) setActiveTab(tab.id); }} disabled={_soon} style={{display:'flex',alignItems:'center',gap:6,padding:'14px 16px',background:'none',border:'none',borderBottom:`2px solid ${activeTab===tab.id?'#FFAA00':'transparent'}`,color:_soon?'rgba(255,255,255,0.25)':(activeTab===tab.id?'#FFAA00':'rgba(255,255,255,0.4)'),fontSize:13,fontWeight:activeTab===tab.id?700:400,cursor:_soon?'not-allowed':'pointer',whiteSpace:'nowrap',transition:'all .2s',fontFamily:'DM Sans,sans-serif'}}><span>{tab.emoji}</span><span>{tab.label}</span>{_soon && (<span style={{background:'rgba(255,170,0,0.15)',color:'#FFAA00',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:20,marginLeft:2}}>bientôt</span>)}</button>); })}<button onClick={()=>router.push('/home')} style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:6,padding:'14px 16px',background:'none',border:'none',color:'rgba(255,255,255,0.55)',fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',fontFamily:'DM Sans,sans-serif'}} /*DKDK_BTN_ACCUEIL*/>&#8592; &#127968; Accueil</button>
+      <div style={{background:'var(--bg)',borderBottom:'1px solid var(--line)',padding:'0 20px',display:'flex',gap:2,overflowX:'auto',scrollbarWidth:'none'}}>
+        {TABS.map(tab=>{ /*DKDK_TAB_EDU_SOON*/ const _soon = tab.id==='education'; return (<button key={tab.id} onClick={()=>{ if(!_soon) setActiveTab(tab.id); }} disabled={_soon} style={{display:'flex',alignItems:'center',gap:6,padding:'14px 16px',background:'none',border:'none',borderBottom:`2px solid ${activeTab===tab.id?'var(--or)':'transparent'}`,color:_soon?'var(--ink-dim)':(activeTab===tab.id?'var(--or)':'var(--ink-soft)'),fontSize:13,fontWeight:activeTab===tab.id?700:400,cursor:_soon?'not-allowed':'pointer',whiteSpace:'nowrap',transition:'all .2s',fontFamily:'DM Sans,sans-serif'}}><span>{tab.emoji}</span><span>{tab.label}</span>{_soon && (<span style={{background:'rgba(255,170,0,0.15)',color:'var(--or)',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:20,marginLeft:2}}>bientôt</span>)}</button>); })}<button onClick={()=>router.push('/home')} style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:6,padding:'14px 16px',background:'none',border:'none',color:'var(--ink-soft)',fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',fontFamily:'DM Sans,sans-serif'}} /*DKDK_BTN_ACCUEIL*/>&#8592; &#127968; Accueil</button>
       </div>
 
       {/*DKDK_HALO*/}
@@ -312,14 +312,14 @@ export default function ComptePage() {
       <div style={{maxWidth:660,margin:'0 auto',padding:'20px 16px'}}>
         {activeTab==='dashboard'&&<DashboardSection profile={profile} balance={balance} votesEmis={votesEmis} totalEarned={totalEarned} videoCount={userVideos.length} onEditProfile={()=>setShowEdit(true)}/>}
         {activeTab==='videos'&&<MesVideosSection videos={userVideos} loading={videosLoading} router={router} onRefresh={()=>{const t=getToken();const d=t?decodeToken(t):null;if(d?.userId)fetchVideos(d.userId);}}/>}
-        {activeTab==='competitions'&&(loading?<div style={{textAlign:'center',padding:'40px',color:'rgba(255,255,255,0.8)'}}>⏳ Chargement…</div>:<ParcoursSection/>/*DKDK_USE_PARCOURS*/)}
+        {activeTab==='competitions'&&(loading?<div style={{textAlign:'center',padding:'40px',color:'var(--ink-soft)'}}>⏳ Chargement…</div>:<ParcoursSection/>/*DKDK_USE_PARCOURS*/)}
         {activeTab==='education'&&<EducationSection router={router}/>}
         {activeTab==='finances'&&<FinancesSection balance={balance} totalEarned={totalEarned} router={router}/>}
         {activeTab==='settings'&&(
           <div>
             <div style={{background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',borderRadius:18,padding:'22px 20px',marginBottom:18,textAlign:'center'}}><div style={{fontSize:38,marginBottom:8}}>⚙️</div><div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:20,color:'#fff',marginBottom:6}}>Paramètres</div><div style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.6}}>Gère ta confidentialité et ton compte</div></div>
-            <div style={card}><div style={{fontSize:15,fontWeight:700,color:'#fff',marginBottom:16,fontFamily:'Syne,sans-serif'}}>🔒 Confidentialité</div><ConfidentialiteSection earnings={totalEarned}/></div>
-            <div style={{...card,marginTop:12}}><div style={{fontSize:15,fontWeight:700,color:'#fff',marginBottom:12,fontFamily:'Syne,sans-serif'}}>⚙️ Compte</div><button onClick={handleLogout} style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.25)',borderRadius:50,padding:'10px 20px',fontSize:13,fontWeight:600,color:'#f87171',cursor:'pointer',fontFamily:'DM Sans,sans-serif'}}>🚪 Se déconnecter</button></div>
+            <div style={card}><div style={{fontSize:15,fontWeight:700,color:'var(--ink)',marginBottom:16,fontFamily:'Syne,sans-serif'}}>🔒 Confidentialité</div><ConfidentialiteSection earnings={totalEarned}/></div>
+            <div style={{...card,marginTop:12}}><div style={{fontSize:15,fontWeight:700,color:'var(--ink)',marginBottom:12,fontFamily:'Syne,sans-serif'}}>⚙️ Compte</div><button onClick={handleLogout} style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.25)',borderRadius:50,padding:'10px 20px',fontSize:13,fontWeight:600,color:'#f87171',cursor:'pointer',fontFamily:'DM Sans,sans-serif'}}>🚪 Se déconnecter</button></div>
           </div>
         )}
       </div>

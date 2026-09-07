@@ -34,7 +34,7 @@ export default function MediathequePage() {
   }, [filtre]);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#f0f0f0', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
       <Navbar />
       <div style={{ padding: '16px 24px 32px', minHeight: 64, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)' }} />
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px' }}>
@@ -50,32 +50,32 @@ export default function MediathequePage() {
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
           {CONTINENTS.map(c => (
-            <button key={c} onClick={() => setFiltre(c)} style={{ padding: '8px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: filtre === c ? `1px solid ${OR}` : '1px solid rgba(255,255,255,0.15)', background: filtre === c ? OR : 'rgba(255,255,255,0.05)', color: filtre === c ? '#000' : 'rgba(255,255,255,0.6)' }}>{c}</button>
+            <button key={c} onClick={() => setFiltre(c)} style={{ padding: '8px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: filtre === c ? `1px solid ${OR}` : '1px solid var(--line)', background: filtre === c ? OR : 'var(--surface)', color: filtre === c ? '#000' : 'var(--ink-soft)' }}>{c}</button>
           ))}
         </div>
 
-        {loading && <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.3)' }}>Chargement...</div>}
+        {loading && <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--ink-dim)' }}>Chargement...</div>}
 
         {!loading && musiques.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '60px 20px', background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 16 }}>
+          <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--surface)', border: '1px dashed var(--line)', borderRadius: 16 }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>{'\u{1F3B5}'}</div>
             <div style={{ fontSize: 15, fontWeight: 700, fontFamily: 'Syne,sans-serif', marginBottom: 6 }}>Aucun morceau pour le moment</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>Sois le premier a proposer un morceau !</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>Sois le premier a proposer un morceau !</div>
           </div>
         )}
 
         {!loading && musiques.map(m => (
-          <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '14px', marginBottom: 12 }}>
+          <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px', marginBottom: 12 }}>
             <div style={{ width: 54, height: 54, borderRadius: 10, background: m.cover_url ? `url(${m.cover_url}) center/cover` : 'linear-gradient(135deg,#FF6B00,#FFD700)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 800, color: 'rgb(126,3,128)', flexShrink: 0 }}>{!m.cover_url && '\u266A'}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', fontFamily: 'Syne,sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.titre}</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>{m.artiste}{m.album ? ` - ${m.album}` : ''}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', fontFamily: 'Syne,sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.titre}</div>
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>{m.artiste}{m.album ? ` - ${m.album}` : ''}</div>
               <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                 {m.danse && <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: 'rgba(255,170,0,0.15)', color: OR, fontWeight: 700 }}>{m.danse}</span>}
                 {m.pays_origine && <img src={`https://flagcdn.com/${m.pays_origine.toLowerCase()}.svg`} alt={m.pays_origine} title={m.pays_origine} style={{ width: 18, height: 'auto', borderRadius: 3, objectFit: 'cover', verticalAlign: 'middle' }} />}
               </div>
             </div>
-            {m.duree_sec ? <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>{fmtDuree(m.duree_sec)}</div> : null}
+            {m.duree_sec ? <div style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0 }}>{fmtDuree(m.duree_sec)}</div> : null}
             {/*DKDK_PARTICIPER*/}
             <Link href={`/challenges/creer?track=${m.id}`} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', whiteSpace: 'nowrap' }}>Participer</Link>
           </div>

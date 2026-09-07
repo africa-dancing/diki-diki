@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
-const OR  = '#FFAA00';
+const OR  = 'var(--or)';
 
 interface BracketItem {
   id: string; code: string | null; title: string;
@@ -35,7 +35,7 @@ export default function ChallengesListPage() {
   }, []);
 
   return (
-    <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f0', fontFamily:'DM Sans,sans-serif', paddingBottom:80 }}>
+    <div style={{ minHeight:'100vh', background:'var(--bg)', color:'var(--ink)', fontFamily:'DM Sans,sans-serif', paddingBottom:80 }}>
       <Navbar />
 
       {/*DKDK_MAGENTA_HERO — halo magenta colle a la top-bar (comme /challenges/creer)*/}
@@ -59,30 +59,30 @@ export default function ChallengesListPage() {
         </Link>
 
         {loading && (
-          <div style={{ textAlign:'center' as const, padding:'60px 0', color:'rgba(255,255,255,0.3)' }}>{'\u23F3'} Chargement{'\u2026'}</div>
+          <div style={{ textAlign:'center' as const, padding:'60px 0', color:'var(--ink-dim)' }}>{'\u23F3'} Chargement{'\u2026'}</div>
         )}
 
         {!loading && error && (
-          <div style={{ textAlign:'center' as const, padding:'60px 0', color:'rgba(255,255,255,0.4)', fontSize:13 }}>
+          <div style={{ textAlign:'center' as const, padding:'60px 0', color:'var(--ink-soft)', fontSize:13 }}>
             {'\u26A0\uFE0F'} Impossible de charger les challenges.<br/>R{'\u00E9'}essaie dans un instant.
           </div>
         )}
 
         {!loading && !error && brackets.length === 0 && (
-          <div style={{ textAlign:'center' as const, padding:'60px 20px', background:'rgba(255,255,255,0.03)', border:'1px dashed rgba(255,255,255,0.15)', borderRadius:16 }}>
+          <div style={{ textAlign:'center' as const, padding:'60px 20px', background:'var(--surface)', border:'1px dashed var(--line-strong)', borderRadius:16 }}>
             <div style={{ fontSize:40, marginBottom:12 }}>{'\u{1F3C6}'}</div>
             <div style={{ fontSize:15, fontWeight:700, fontFamily:'Syne,sans-serif', marginBottom:6 }}>Aucun challenge ouvert pour le moment</div>
-            <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>Reviens bient{'\u00F4'}t, de nouveaux tournois arrivent !</div>
+            <div style={{ fontSize:12, color:'var(--ink-soft)' }}>Reviens bient{'\u00F4'}t, de nouveaux tournois arrivent !</div>
           </div>
         )}
 
         {!loading && !error && brackets.map(b => {
-          const st = STATUS_CFG[b.status] ?? { label: b.status, color: 'rgba(255,255,255,0.4)', bg: 'rgba(255,255,255,0.05)' };
+          const st = STATUS_CFG[b.status] ?? { label: b.status, color: 'var(--ink-soft)', bg: 'var(--surface)' };
           const count = b.bracket_participants?.[0]?.count ?? 0;
           const tags = [b.discipline, b.categorie, b.style].filter(Boolean);
           return (
             <Link key={b.id} href={`/challenges/${b.id}`} style={{ textDecoration:'none', color:'inherit' }}>
-              <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,170,0,0.2)', borderRadius:16, padding:'16px', marginBottom:12, cursor:'pointer' }}>
+              <div style={{ background:'var(--surface)', border:'1px solid rgba(255,170,0,0.2)', borderRadius:16, padding:'16px', marginBottom:12, cursor:'pointer' }}>
 
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, flexWrap:'wrap', marginBottom:8 }}>
                   {/*DKDK_FIX_CODE_UNIQUE \u2014 badge = code genere si lance, sinon le format derive du nombre de candidats*/}
@@ -90,7 +90,7 @@ export default function ChallengesListPage() {
                   <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:20, background:st.bg, color:st.color }}>{st.label}</span>
                 </div>
 
-                <div style={{ fontFamily:'Syne,sans-serif', fontSize:17, fontWeight:800, color:'#fff', marginBottom:8 }}>{b.title}</div>
+                <div style={{ fontFamily:'Syne,sans-serif', fontSize:17, fontWeight:800, color:'var(--ink)', marginBottom:8 }}>{b.title}</div>
 
                 <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:12 }}>
                   {tags.map(t => (
@@ -99,10 +99,10 @@ export default function ChallengesListPage() {
                 </div>
 
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, flexWrap:'wrap' }}>
-                  <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)' }}>
-                    {'\u{1F465}'} <strong style={{ color:'#fff' }}>{count}</strong> / {b.max_participants} candidats
+                  <div style={{ fontSize:11, color:'var(--ink-soft)' }}>
+                    {'\u{1F465}'} <strong style={{ color:'var(--ink)' }}>{count}</strong> / {b.max_participants} candidats
                   </div>
-                  <div style={{ fontSize:13, fontWeight:800, color:'#f7c205', fontFamily:'Syne,sans-serif' }}>
+                  <div style={{ fontSize:13, fontWeight:800, color:'var(--or)', fontFamily:'Syne,sans-serif' }}>
                     {'\u{1F3C6}'} {Number(b.total_cagnotte).toLocaleString('fr-FR')} F
                   </div>
                 </div>
