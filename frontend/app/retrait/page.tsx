@@ -75,21 +75,21 @@ export default function RetraitPage() {
     finally { setLoading(false); }
   };
 
-  const OR = '#FFAA00';
-  const card: React.CSSProperties = { background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:18, padding:'18px 20px', marginBottom:14 };
-  const lbl: React.CSSProperties  = { display:'block', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.4)', marginBottom:7, textTransform:'uppercase', letterSpacing:'.5px' };
-  const inp: React.CSSProperties  = { width:'100%', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, padding:'11px 14px', fontSize:14, color:'#fff', outline:'none', fontFamily:'DM Sans, sans-serif', boxSizing:'border-box' as const };
-  const btnP: React.CSSProperties = { background:'linear-gradient(135deg,#FFAA00,#FF6B00)', border:'none', borderRadius:50, padding:'12px 24px', fontSize:14, fontWeight:700, color:'#000', cursor:'pointer', fontFamily:'DM Sans, sans-serif' };
-  const btnS: React.CSSProperties = { background:'transparent', border:'1px solid rgba(255,255,255,0.15)', borderRadius:50, padding:'11px 20px', fontSize:13, color:'rgba(255,255,255,0.5)', cursor:'pointer', fontFamily:'DM Sans, sans-serif' };
+  const OR = 'var(--or)';
+  const card: React.CSSProperties = { background:'var(--surface)', border:'1px solid var(--line)', borderRadius:18, padding:'18px 20px', marginBottom:14 };
+  const lbl: React.CSSProperties  = { display:'block', fontSize:11, fontWeight:600, color:'var(--ink-dim)', marginBottom:7, textTransform:'uppercase', letterSpacing:'.5px' };
+  const inp: React.CSSProperties  = { width:'100%', background:'var(--surface)', border:'1px solid var(--line)', borderRadius:12, padding:'11px 14px', fontSize:14, color:'var(--ink)', outline:'none', fontFamily:'DM Sans, sans-serif', boxSizing:'border-box' as const };
+  const btnP: React.CSSProperties = { background:'linear-gradient(135deg,var(--or),var(--or2))', border:'none', borderRadius:50, padding:'12px 24px', fontSize:14, fontWeight:700, color:'var(--on-accent)', cursor:'pointer', fontFamily:'DM Sans, sans-serif' };
+  const btnS: React.CSSProperties = { background:'transparent', border:'1px solid var(--line-strong)', borderRadius:50, padding:'11px 20px', fontSize:13, color:'var(--ink-soft)', cursor:'pointer', fontFamily:'DM Sans, sans-serif' };
 
   if (success) return (
-    <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f0', fontFamily:'DM Sans, sans-serif' }}>
+    <div style={{ minHeight:'100vh', background:'var(--bg)', color:'var(--ink)', fontFamily:'DM Sans, sans-serif' }}>
       <div style={{ maxWidth:520, margin:'0 auto', padding:'80px 16px', textAlign:'center' }}>
         <div style={{ fontSize:64, marginBottom:16 }}>💸</div>
         <div style={{ fontFamily:'Syne,sans-serif', fontSize:22, fontWeight:900, color:'#4ade80', marginBottom:8 }}>Demande de retrait envoyée !</div>
-        <div style={{ fontSize:14, color:'rgba(255,255,255,0.5)', marginBottom:6 }}>{fmt(amountNum)} {CUR} en cours de traitement</div>
-        <div style={{ fontSize:13, color:'rgba(255,255,255,0.35)', marginBottom:28, lineHeight:1.7 }}>
-          Ton virement est en cours, tu devrais le recevoir en <strong style={{ color:'#fff' }}>quelques minutes</strong>.<br/>
+        <div style={{ fontSize:14, color:'var(--ink-soft)', marginBottom:6 }}>{fmt(amountNum)} {CUR} en cours de traitement</div>
+        <div style={{ fontSize:13, color:'var(--ink-dim)', marginBottom:28, lineHeight:1.7 }}>
+          Ton virement est en cours, tu devrais le recevoir en <strong style={{ color:'var(--ink)' }}>quelques minutes</strong>.<br/>
           Nouveau solde Compte de Retrait : <strong style={{ color:OR }}>{fmt(initialBalance)} {CUR}</strong>
         </div>
         <button onClick={() => router.push('/compte')} style={btnP}>Retourner à mon compte</button>
@@ -98,7 +98,7 @@ export default function RetraitPage() {
   );
 
   return (
-    <div style={{ minHeight:'100vh', background:'radial-gradient(ellipse 70% 90px at 50% 18px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, #0a0a0f', color:'#f0f0f0', fontFamily:'DM Sans, sans-serif', paddingBottom:60, paddingTop:56 }}>
+    <div style={{ minHeight:'100vh', background:'radial-gradient(ellipse 70% 90px at 50% 18px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, #0a0a0f', color:'var(--ink)', fontFamily:'DM Sans, sans-serif', paddingBottom:60, paddingTop:56 }}>
 
       {/* Topbar */}
       <div style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, background:'rgba(8,8,15,0.97)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(255,170,0,0.12)', padding:'0 20px 0 0', height:56, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
@@ -107,7 +107,7 @@ export default function RetraitPage() {
             <LogoDikiDiki width={130} />
           </span>
         </Link>
-        <button onClick={() => router.push('/compte')} style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, padding:'6px 14px', color:'rgba(255,255,255,0.5)', fontSize:12, cursor:'pointer' }}>
+        <button onClick={() => router.push('/compte')} style={{ background:'var(--nav-surface)', border:'1px solid var(--nav-line)', borderRadius:8, padding:'6px 14px', color:'var(--nav-ink-soft)', fontSize:12, cursor:'pointer' }}>
           ✕ Annuler
         </button>
       </div>
@@ -115,8 +115,8 @@ export default function RetraitPage() {
       <div style={{ maxWidth:520, margin:'0 auto', padding:'24px 16px' }}>
         <div style={{ background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', borderRadius:18, padding:'22px 20px', marginBottom:20, textAlign:'center' }}>
           <div style={{ fontSize:38, marginBottom:8 }}>💸</div>
-          <div style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:20, color:'#fff', marginBottom:6 }}>Retirer mes gains</div>
-          <div style={{ fontSize:13, color:'rgba(255,255,255,0.85)', lineHeight:1.6 }}>Transfert depuis ton Compte de Retrait vers ton Mobile Money</div>
+          <div style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:20, color:'var(--ink)', marginBottom:6 }}>Retirer mes gains</div>
+          <div style={{ fontSize:13, color:'var(--ink-soft)', lineHeight:1.6 }}>Transfert depuis ton Compte de Retrait vers ton Mobile Money</div>
         </div>
 
         {/* Compte de Retrait */}
@@ -125,7 +125,7 @@ export default function RetraitPage() {
             <div>
               <div style={{ fontSize:10, color:'rgba(56,130,220,0.8)', fontWeight:700, letterSpacing:'.08em', marginBottom:4 }}>COMPTE DE RETRAIT — disponible</div>
               <div style={{ fontSize:26, fontWeight:800, color:'#60a5fa', fontFamily:'Syne,sans-serif' }}>{fmt(initialBalance)} F CFA</div>
-              <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginTop:3 }}>
+              <div style={{ fontSize:11, color:'var(--ink-dim)', marginTop:3 }}>
                 dont {fmt(totalEarned)} F issus de tes gains candidat
               </div>
             </div>
@@ -147,7 +147,7 @@ export default function RetraitPage() {
             style={{ ...inp, appearance:'none', WebkitAppearance:'none', cursor:'pointer' }}
           >
             {COUNTRIES.map(c => (
-              <option key={c.iso} value={c.iso} style={{ background:'#12121a', color:'#fff' }}>
+              <option key={c.iso} value={c.iso} style={{ background:'#12121a', color:'var(--ink)' }}>
                 {c.flag} {c.name}{c.enabled ? '' : ' — bientôt'}
               </option>
             ))}
@@ -176,7 +176,7 @@ export default function RetraitPage() {
               const selected = method === id;
               return (
                 <div key={id} onClick={() => { setMethod(id); setConfirmed(false); }}
-                  style={{ background:b.bg, border:`2px solid ${selected?'#fff':'transparent'}`, borderRadius:14, padding:'14px 6px', textAlign:'center' as const, cursor:'pointer', transition:'all .2s', boxShadow: selected?'0 0 0 1px rgba(255,255,255,0.35)':'none', minHeight:56, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  style={{ background:b.bg, border:`2px solid ${selected?'var(--ink)':'transparent'}`, borderRadius:14, padding:'14px 6px', textAlign:'center' as const, cursor:'pointer', transition:'all .2s', boxShadow: selected?'0 0 0 1px var(--ink-dim)':'none', minHeight:56, display:'flex', alignItems:'center', justifyContent:'center' }}>
                   <div style={{ fontSize:12, fontWeight:800, color:b.fg, lineHeight:1.2 }}>{b.label}</div>
                 </div>
               );
@@ -200,17 +200,17 @@ export default function RetraitPage() {
 
         {/* Récapitulatif — seulement si le pays est actif */}
         {country.enabled && amountNum >= MIN && amountNum <= initialBalance && (
-          <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.5)', marginBottom:10, textTransform:'uppercase', letterSpacing:'.06em' }}>Récapitulatif</div>
+          <div style={{ background:'var(--surface)', border:'1px solid var(--line)', borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'var(--ink-soft)', marginBottom:10, textTransform:'uppercase', letterSpacing:'.06em' }}>Récapitulatif</div>
             {[
-              { lbl:'Montant demandé',            val:`${fmt(amountNum)} ${CUR}`,                          color:'#fff' },
-              { lbl:'Frais de retrait (FedaPay)', val:`${fmt(FEE)} ${CUR}`,                         color:'rgba(255,255,255,0.85)' },
+              { lbl:'Montant demandé',            val:`${fmt(amountNum)} ${CUR}`,                          color:'var(--ink)' },
+              { lbl:'Frais de retrait (FedaPay)', val:`${fmt(FEE)} ${CUR}`,                         color:'var(--ink-soft)' },
               { lbl:'Vous recevrez',              val:`${fmt(Math.max(0, amountNum - FEE))} ${CUR}`, color:OR },
-              { lbl:'Solde après retrait',        val:`${fmt(initialBalance - amountNum)} ${CUR}`,          color:'rgba(255,255,255,0.5)' },
-              { lbl:'Délai de traitement',        val:'quelques minutes',                                  color:'rgba(255,255,255,0.5)' },
+              { lbl:'Solde après retrait',        val:`${fmt(initialBalance - amountNum)} ${CUR}`,          color:'var(--ink-soft)' },
+              { lbl:'Délai de traitement',        val:'quelques minutes',                                  color:'var(--ink-soft)' },
             ].map((r, i) => (
-              <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderTop: i>0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>{r.lbl}</span>
+              <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderTop: i>0 ? '1px solid var(--line)' : 'none' }}>
+                <span style={{ fontSize:12, color:'var(--ink-dim)' }}>{r.lbl}</span>
                 <span style={{ fontSize:12, fontWeight:i>=2?700:400, color:r.color }}>{r.val}</span>
               </div>
             ))}
@@ -235,7 +235,7 @@ export default function RetraitPage() {
           <button onClick={() => router.push('/compte')} style={btnS}>Annuler</button>
           <button onClick={handleWithdraw} disabled={!isValid || loading}
             style={{ ...btnP, flex:1, opacity: !isValid || loading ? 0.5 : 1,
-              background: confirmed ? 'linear-gradient(135deg,#f87171,#ef4444)' : 'linear-gradient(135deg,#FFAA00,#FF6B00)',
+              background: confirmed ? 'linear-gradient(135deg,#f87171,#ef4444)' : 'linear-gradient(135deg,var(--or),var(--or2))',
             }}>
             {loading ? '⏳ Traitement…' : confirmed ? `✅ Confirmer le retrait de ${fmt(amountNum)} ${CUR}` : `💸 Retirer ${amountNum ? fmt(amountNum) + ' ' + CUR : ''}`}
           </button>
