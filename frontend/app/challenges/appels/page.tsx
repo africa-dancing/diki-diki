@@ -352,8 +352,23 @@ function AppelCard({ appel }: { appel: Appel }) {
                   </div>
                 )}
               </div>
+              <div style={{ textAlign: 'right', flex: 'none' }}>
+                <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--or)', lineHeight: 1.1 }}>{fmt(cfg.objectif)} F</div>
+                <div style={{ fontSize: 10, color: 'var(--ink-dim)', letterSpacing: '.04em', textTransform: 'uppercase' }}>objectif</div>
+              </div>
             </div>
           ))}
+          {/* Cumul des objectifs (indicatif) */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '11px 14px', background: 'var(--surface)', borderTop: '1px solid var(--line-strong)',
+          }}>
+            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600 }}>
+              Cumul des objectifs · {nEtapes} étape{nEtapes > 1 ? 's' : ''}{' '}
+              <span style={{ color: 'var(--ink-dim)' }}>(à titre indicatif)</span>
+            </span>
+            <b style={{ fontSize: 14.5, color: 'var(--ink)' }}>{fmt(cfg.objectif * nEtapes)} F</b>
+          </div>
         </div>
       )}
 
