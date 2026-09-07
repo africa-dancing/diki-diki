@@ -39,6 +39,7 @@ interface Appel {
   appel_deadline: string | null;
   createur_nom: string | null;
   createur_pays: string | null;
+  officiel?: boolean;
   acceptes: number;
   en_revision: number;
   en_attente: number;
@@ -269,10 +270,11 @@ function EmptyState() {
 }
 
 function AppelCard({ appel }: { appel: Appel }) {
-  const cfg   = cfgFor(appel.max_participants);
-  const nom   = appel.createur_nom || 'Créateur';
-  const label = appel.createur_nom || appel.title || 'Créateur';
-  const disc  = appel.discipline || 'talent';
+  const cfg     = cfgFor(appel.max_participants);
+  const officiel = !!appel.officiel;
+  const nom     = officiel ? 'Officiel Création' : (appel.createur_nom || 'Créateur');
+  const ava     = officiel ? 'DKM' : initials(appel.createur_nom || appel.title || 'Créateur');
+  const disc    = appel.discipline || 'talent';
   const nEtapes = appel.etapes?.length ?? 0;
   const cd    = countdown(appel.appel_deadline);
   const open  = cd !== 'Appel clos';
@@ -296,13 +298,26 @@ function AppelCard({ appel }: { appel: Appel }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{
           width: 44, height: 44, borderRadius: '50%', flex: 'none',
-          display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 16,
-          color: ON_ACCENT, background: SOLID,
-        }}>{initials(label)}</div>
+          display: 'grid', placeItems: 'center', fontWeight: 800,
+          fontSize: officiel ? 13 : 16,
+          color: officiel ? ON_ACCENT : 'var(--ink)',
+          background: officiel ? SOLID : 'var(--surface2)',
+          border: officiel ? 'none' : '1px solid var(--line-strong)',
+        }}>{ava}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <b style={{ fontWeight: 700, fontSize: 16 }}>{nom}</b>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+            <b style={{ fontWeight: 700, fontSize: 16 }}>{nom}</b>
+            {officiel && (
+              <span style={{
+                fontSize: 9.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
+                color: ON_ACCENT, background: SOLID, borderRadius: 6, padding: '2px 7px',
+              }}>Officiel</span>
+            )}
+          </div>
           <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
-            Créateur{appel.createur_pays ? ` · ${appel.createur_pays}` : ''}
+            {officiel
+              ? 'Publication officielle · Diki-Diki'
+              : `Créateur${appel.createur_pays ? ` · ${appel.createur_pays}` : ''}`}
           </div>
         </div>
         <span style={{
@@ -317,7 +332,9 @@ function AppelCard({ appel }: { appel: Appel }) {
       {/* Phrase d'invite */}
       <p style={{ fontSize: 15.5, lineHeight: 1.5, margin: '16px 0 4px' }}>
         <span style={{ fontSize: 20, verticalAlign: -2 }}>🎧</span>{' '}
-        Je suis <b>{nom}</b>, et je t&apos;invite dans mon challenge de <b>{disc}</b>.
+        {officiel
+          ? <>Défi <b>officiel Diki-Diki</b> — challenge de <b>{disc}</b>. Rejoins l&apos;Arène !</>
+          : <>Je suis <b>{nom}</b>, et je t&apos;invite dans mon challenge de <b>{disc}</b>.</>}
       </p>
 
       {/* Chips */}

@@ -429,7 +429,7 @@ bracketRouter.get('/appels', async (_req: Request, res: Response) => {
     const creatorIds = [...new Set(brackets.map((b: any) => b.createur_id).filter(Boolean))];
     let userById: Record<string, any> = {};
     if (creatorIds.length) {
-      const { data: us } = await supabase.from('users').select('id, name').in('id', creatorIds);
+      const { data: us } = await supabase.from('users').select('id, name, role').in('id', creatorIds);
       userById = Object.fromEntries((us || []).map((u: any) => [u.id, u]));
     }
 
@@ -447,6 +447,7 @@ bracketRouter.get('/appels', async (_req: Request, res: Response) => {
         id: b.id, title: b.title, discipline: b.discipline, modele: b.modele,
         max_participants: b.max_participants, appel_deadline: b.appel_deadline,
         createur_nom: u?.name ?? null, createur_pays: null,
+        officiel: u?.role === 'admin', /*DKDK_OFFICIEL — appel créé par le modérateur*/
         acceptes, en_revision, en_attente, etapes,
       };
     });
@@ -484,15 +485,17 @@ bracketRouter.get('/:bracket_id/appel', async (req: Request, res: Response) => {
       trackById = Object.fromEntries((mus || []).map((t: any) => [t.id, t]));
     }
     let createur_nom: string | null = null;
+    let officiel = false;
     if (b.createur_id) {
-      const { data: u } = await supabase.from('users').select('name').eq('id', b.createur_id).maybeSingle();
+      const { data: u } = await supabase.from('users').select('name, role').eq('id', b.createur_id).maybeSingle();
       createur_nom = u?.name ?? null;
+      officiel = u?.role === 'admin'; /*DKDK_OFFICIEL*/
     }
     const bp = parts || [];
     res.json({ success: true, data: {
       id: b.id, title: b.title, discipline: b.discipline, modele: b.modele,
       max_participants: b.max_participants, appel_deadline: b.appel_deadline, status: b.status,
-      createur_nom, createur_pays: null,
+      createur_nom, createur_pays: null, officiel,
       acceptes: bp.filter((p: any) => p.reponse_appel === 'accepte').length,
       en_revision: bp.filter((p: any) => p.reponse_appel === 'revision').length,
       en_attente: bp.filter((p: any) => p.reponse_appel === 'en_attente').length,
