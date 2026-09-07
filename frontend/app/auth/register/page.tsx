@@ -131,7 +131,8 @@ export default function RegisterPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        .reg-bg{min-height:100vh;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;font-family:'DM Sans',sans-serif;position:relative;overflow:hidden}
+        /* Écran d'inscription : toujours SOMBRE (hors Jour/Nuit), comme la barre du haut — le logo reste sur fond sombre */
+        .reg-bg{--bg:#0a0a0f;--bg-soft:#131019;--surface:rgba(255,255,255,.055);--line:rgba(255,255,255,.13);--line-strong:rgba(255,255,255,.20);--ink:#f3eee4;--ink-soft:rgba(243,238,228,.76);--ink-dim:rgba(243,238,228,.56);--or:#FFB224;--or2:#FF7A1A;--red:#ff4d4d;--on-accent:#150c00;min-height:100vh;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;font-family:'DM Sans',sans-serif;position:relative;overflow:hidden}
         .reg-bg::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(255,184,0,.03) 40px,rgba(255,184,0,.03) 41px),repeating-linear-gradient(-45deg,transparent,transparent 40px,rgba(255,184,0,.03) 40px,rgba(255,184,0,.03) 41px);pointer-events:none}
         .glow-tr{position:fixed;top:-150px;right:-100px;width:450px;height:450px;background:radial-gradient(circle,rgba(255,107,0,.1) 0%,transparent 70%);pointer-events:none}
         .glow-bl{position:fixed;bottom:-150px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(255,184,0,.08) 0%,transparent 70%);pointer-events:none}
