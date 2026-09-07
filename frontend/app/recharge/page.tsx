@@ -35,6 +35,16 @@ const METHODS = [
     ),
   },
   {
+    id: 'celtiis', label: 'Celtiis Cash',
+    logo: (
+      <svg width="42" height="42" viewBox="0 0 44 44" fill="none">
+        <rect width="44" height="44" rx="10" fill="#E2001A"/>
+        <text x="22" y="20" textAnchor="middle" fill="#fff" fontSize="10.5" fontWeight="900" fontFamily="Arial,sans-serif">celtiis</text>
+        <text x="22" y="31" textAnchor="middle" fill="#FFD700" fontSize="7.5" fontWeight="700" fontFamily="Arial,sans-serif">CASH</text>
+      </svg>
+    ),
+  },
+  {
     id: 'card', label: 'Carte bancaire',
     logo: (
       <svg width="42" height="42" viewBox="0 0 44 44" fill="none">
@@ -378,11 +388,11 @@ export default function RechargePage() {
         {method !== 'card' ? (
           <div style={{ marginBottom: 24 }}>
             <div style={sectionTitle}>
-              Numéro {method === 'mtn' ? 'MTN MoMo' : 'Moov Money'}
+              Numéro {METHODS.find(x => x.id === method)?.label ?? 'Mobile Money'}
             </div>
             <input
               type="tel"
-              placeholder={method === 'mtn' ? '+229 01 XX XX XX XX' : '+229 02 XX XX XX XX'}
+              placeholder="+229 01 XX XX XX XX"
               value={phone}
               onChange={e => setPhone(e.target.value)}
               style={phoneInput}
