@@ -237,7 +237,8 @@ export default function RetraitPage() {
         <div style={{ display:'flex', gap:10 }}>
           <button onClick={() => router.push('/compte')} style={btnS}>Annuler</button>
           <button onClick={handleWithdraw} disabled={!isValid || loading}
-            style={{ ...btnP, flex:1, opacity: !isValid || loading ? 0.5 : 1,
+            style={{ ...btnP, flex:1, opacity: !isValid || loading ? 0.88 : 1,
+              cursor: !isValid || loading ? 'not-allowed' : 'pointer',
               background: confirmed ? 'linear-gradient(135deg,#f87171,#ef4444)' : ACCENT,
             }}>
             {loading ? '⏳ Traitement…' : confirmed ? `✅ Confirmer le retrait de ${fmt(amountNum)} ${CUR}` : `💸 Retirer ${amountNum ? fmt(amountNum) + ' ' + CUR : ''}`}
