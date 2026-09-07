@@ -7,8 +7,6 @@ import TickerBand from '../components/TickerBand';
 import TranslateWidget from '../components/TranslateWidget';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
-const OR  = '#FFAA00';
-const OR2 = '#FF6B00';
 
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
 function decodeToken(t: string) {
@@ -25,8 +23,8 @@ const TABS: { id: Tab; emoji: string; label: string }[] = [
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   return (
-    <div onClick={onToggle} style={{ width:44, height:24, borderRadius:12, background:on?OR:'rgba(255,255,255,0.1)', display:'flex', alignItems:'center', padding:2, cursor:'pointer', flexShrink:0, transition:'background .25s' }}>
-      <div style={{ width:20, height:20, borderRadius:'50%', background:on?'#fff':'rgba(255,255,255,0.4)', marginLeft:on?'auto':0, transition:'margin .25s' }}/>
+    <div onClick={onToggle} style={{ width:44, height:24, borderRadius:12, background:on?'var(--or)':'var(--line)', display:'flex', alignItems:'center', padding:2, cursor:'pointer', flexShrink:0, transition:'background .25s' }}>
+      <div style={{ width:20, height:20, borderRadius:'50%', background:on?'#fff':'var(--ink-soft)', marginLeft:on?'auto':0, transition:'margin .25s' }}/>
     </div>
   );
 }
@@ -115,13 +113,13 @@ export default function AccountPage() {
     finally { setSaving(false); }
   };
 
-  const inp: React.CSSProperties = { width:'100%', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'11px 14px', fontSize:14, color:'#fff', outline:'none', fontFamily:'DM Sans,sans-serif', boxSizing:'border-box' as const };
-  const lbl: React.CSSProperties = { display:'block', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.4)', marginBottom:6, textTransform:'uppercase' as const, letterSpacing:'.5px' };
-  const card: React.CSSProperties = { background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:'20px', marginBottom:14 };
-  const btnPrimary: React.CSSProperties = { background:`linear-gradient(135deg,${OR},${OR2})`, border:'none', borderRadius:50, padding:'10px 24px', fontSize:13, fontWeight:700, color:'#000', cursor:'pointer' };
+  const inp: React.CSSProperties = { width:'100%', background:'var(--surface)', border:'1px solid var(--line)', borderRadius:10, padding:'11px 14px', fontSize:14, color:'var(--ink)', outline:'none', fontFamily:'DM Sans,sans-serif', boxSizing:'border-box' as const };
+  const lbl: React.CSSProperties = { display:'block', fontSize:11, fontWeight:600, color:'var(--ink-soft)', marginBottom:6, textTransform:'uppercase' as const, letterSpacing:'.5px' };
+  const card: React.CSSProperties = { background:'var(--surface)', border:'1px solid var(--line)', borderRadius:14, padding:'20px', marginBottom:14 };
+  const btnPrimary: React.CSSProperties = { background:'linear-gradient(135deg,#FF6B00,#FFD700)', border:'none', borderRadius:50, padding:'10px 24px', fontSize:13, fontWeight:700, color:'#000', cursor:'pointer' };
 
   return (
-    <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f0', fontFamily:'DM Sans,sans-serif', paddingBottom:80 }}>
+    <div style={{ minHeight:'100vh', background:'var(--bg)', color:'var(--ink)', fontFamily:'DM Sans,sans-serif', paddingBottom:80 }}>
 
       {/* Header = Navbar de HOME */}
       <Navbar /> {/*DKDK_ACCOUNT_UNIFORM*/}
@@ -129,10 +127,10 @@ export default function AccountPage() {
       
 
       {/* Header */}
-      <div style={{ background:'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)' /*DKDK_HALO*/, borderBottom:'1px solid rgba(255,255,255,0.06)', padding:'20px' }}>
+      <div style={{ background:'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)' /*DKDK_HALO*/, borderBottom:'1px solid var(--line)', padding:'20px' }}>
         <div style={{ maxWidth:680, margin:'0 auto', textAlign:'center' }}> {/*DKDK_CENTER_TITLE*/}
-          <h1 style={{ fontFamily:'Syne,sans-serif', fontSize:20, fontWeight:800, color:'#fff', marginBottom:4 }}>⚙️ Paramètres du compte</h1>
-          <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>Gérez vos informations de connexion et la sécurité de votre compte</div>
+          <h1 style={{ fontFamily:'Syne,sans-serif', fontSize:20, fontWeight:800, color:'var(--ink)', marginBottom:4 }}>⚙️ Paramètres du compte</h1>
+          <div style={{ fontSize:12, color:'var(--ink-soft)' }}>Gérez vos informations de connexion et la sécurité de votre compte</div>
         </div>
       </div>
 
@@ -140,7 +138,7 @@ export default function AccountPage() {
       <div style={{ maxWidth:680, margin:'0 auto', padding:'16px 20px 0', display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none' }}>
         {TABS.map(t => (
           <button key={t.id} onClick={()=>{ setTab(t.id); setSuccess(''); setError(''); }}
-            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:50, fontFamily:'DM Sans,sans-serif', fontSize:12, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' as const, border: tab===t.id ? '1px solid rgba(255,170,0,0.5)' : '1px solid rgba(255,255,255,0.1)', background: tab===t.id ? 'rgba(255,170,0,0.12)' : 'rgba(255,255,255,0.04)', color: tab===t.id ? OR : 'rgba(255,255,255,0.55)', transition:'all .2s' }}>
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:50, fontFamily:'DM Sans,sans-serif', fontSize:12, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' as const, border: tab===t.id ? '1px solid var(--or)' : '1px solid var(--line)', background: tab===t.id ? 'rgba(255,170,0,0.10)' : 'var(--surface)', color: tab===t.id ? 'var(--or)' : 'var(--ink-soft)', transition:'all .2s' }}>
             {t.emoji} {t.label}
           </button>
         ))}
@@ -156,20 +154,20 @@ export default function AccountPage() {
         {tab==='email' && (
           <div>
             <div style={card}>
-              <div style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:16, fontFamily:'Syne,sans-serif' }}>📧 Adresse email actuelle</div>
-              <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'12px 16px', fontSize:14, color:'rgba(255,255,255,0.6)', marginBottom:20, display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginBottom:16, fontFamily:'Syne,sans-serif' }}>📧 Adresse email actuelle</div>
+              <div style={{ background:'var(--surface)', border:'1px solid var(--line)', borderRadius:10, padding:'12px 16px', fontSize:14, color:'var(--ink-soft)', marginBottom:20, display:'flex', alignItems:'center', gap:8 }}>
                 <span>📬</span><span>{email || '—'}</span>
               </div>
-              <div style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:12, fontFamily:'Syne,sans-serif' }}>Modifier l'email</div>
+              <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginBottom:12, fontFamily:'Syne,sans-serif' }}>Modifier l'email</div>
               <div style={{ marginBottom:14 }}>
                 <label style={lbl}>Nouvel email *</label>
                 <input style={inp} type="email" placeholder="nouveau@email.com" value={newEmail} onChange={e=>setNewEmail(e.target.value)}/>
               </div>
-              <div style={{ background:'rgba(255,170,0,0.04)', border:'1px solid rgba(255,170,0,0.15)', borderRadius:8, padding:'10px 14px', fontSize:12, color:'rgba(255,170,0,0.7)', marginBottom:16 }}>
+              <div style={{ background:'rgba(255,170,0,0.06)', border:'1px solid var(--or)', borderRadius:8, padding:'10px 14px', fontSize:12, color:'var(--ink-soft)', marginBottom:16 }}>
                 ℹ️ Un email de confirmation sera envoyé à la nouvelle adresse.
               </div>
               <div style={{ display:'flex', justifyContent:'flex-end' }}>
-                <button onClick={handleEmailChange} disabled={saving||!newEmail} style={{...btnPrimary, opacity:!newEmail||saving?0.5:1}}>
+                <button onClick={handleEmailChange} disabled={saving||!newEmail} style={{...btnPrimary, opacity:!newEmail||saving?0.88:1, cursor:!newEmail||saving?'not-allowed':'pointer'}}>
                   {saving?'⏳…':'📧 Mettre à jour l\'email'}
                 </button>
               </div>
@@ -181,7 +179,7 @@ export default function AccountPage() {
         {tab==='password' && (
           <div>
             <div style={card}>
-              <div style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:16, fontFamily:'Syne,sans-serif' }}>🔑 Changer le mot de passe</div>
+              <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginBottom:16, fontFamily:'Syne,sans-serif' }}>🔑 Changer le mot de passe</div>
               {[
                 { label:'Mot de passe actuel *', val:oldPwd, set:setOldPwd, show:showOld, toggle:()=>setShowOld(s=>!s), ph:'Ton mot de passe actuel' },
                 { label:'Nouveau mot de passe *', val:newPwd, set:setNewPwd, show:showNew, toggle:()=>setShowNew(s=>!s), ph:'Min. 8 caractères' },
@@ -191,7 +189,7 @@ export default function AccountPage() {
                   <label style={lbl}>{f.label}</label>
                   <div style={{ position:'relative' as const }}>
                     <input style={{...inp, paddingRight:44}} type={f.show?'text':'password'} placeholder={f.ph} value={f.val} onChange={e=>f.set(e.target.value)}/>
-                    <button onClick={f.toggle} style={{ position:'absolute' as const, right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', fontSize:16, cursor:'pointer', color:'rgba(255,255,255,0.4)' }}>
+                    <button onClick={f.toggle} style={{ position:'absolute' as const, right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', fontSize:16, cursor:'pointer', color:'var(--ink-soft)' }}>
                       {f.show?'🙈':'👁'}
                     </button>
                   </div>
@@ -201,22 +199,22 @@ export default function AccountPage() {
               {/* Force du mot de passe */}
               {newPwd && (
                 <div style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginBottom:5 }}>Force du mot de passe</div>
-                  <div style={{ height:4, background:'rgba(255,255,255,0.08)', borderRadius:2 }}>
-                    <div style={{ height:4, borderRadius:2, width: newPwd.length<6?'25%':newPwd.length<8?'50%':newPwd.length<12?'75%':'100%', background: newPwd.length<6?'#f87171':newPwd.length<8?OR:newPwd.length<12?'#4ade80':'#00ff88', transition:'all .3s' }}/>
+                  <div style={{ fontSize:11, color:'var(--ink-soft)', marginBottom:5 }}>Force du mot de passe</div>
+                  <div style={{ height:4, background:'var(--line)', borderRadius:2 }}>
+                    <div style={{ height:4, borderRadius:2, width: newPwd.length<6?'25%':newPwd.length<8?'50%':newPwd.length<12?'75%':'100%', background: newPwd.length<6?'#f87171':newPwd.length<8?'var(--or)':newPwd.length<12?'#4ade80':'#00ff88', transition:'all .3s' }}/>
                   </div>
-                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.3)', marginTop:4 }}>
+                  <div style={{ fontSize:10, color:'var(--ink-dim)', marginTop:4 }}>
                     {newPwd.length<6?'Trop court':newPwd.length<8?'Faible':newPwd.length<12?'Bon':'Excellent'}
                   </div>
                 </div>
               )}
 
-              <div style={{ background:'rgba(255,170,0,0.04)', border:'1px solid rgba(255,170,0,0.15)', borderRadius:8, padding:'10px 14px', fontSize:12, color:'rgba(255,170,0,0.7)', marginBottom:16, lineHeight:1.6 }}>
+              <div style={{ background:'rgba(255,170,0,0.06)', border:'1px solid var(--or)', borderRadius:8, padding:'10px 14px', fontSize:12, color:'var(--ink-soft)', marginBottom:16, lineHeight:1.6 }}>
                 ℹ️ Conseils : Min. 8 caractères, mélange majuscules, chiffres et symboles.
               </div>
 
               <div style={{ display:'flex', justifyContent:'flex-end' }}>
-                <button onClick={handlePasswordChange} disabled={saving} style={{...btnPrimary, opacity:saving?0.5:1}}>
+                <button onClick={handlePasswordChange} disabled={saving} style={{...btnPrimary, opacity:saving?0.88:1, cursor:saving?'not-allowed':'pointer'}}>
                   {saving?'⏳…':'🔑 Changer le mot de passe'}
                 </button>
               </div>
@@ -228,13 +226,13 @@ export default function AccountPage() {
         {tab==='security' && (
           <div>
             <div style={card}>
-              <div style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:16, fontFamily:'Syne,sans-serif' }}>🛡️ Paramètres de sécurité</div>
+              <div style={{ fontSize:15, fontWeight:700, color:'var(--ink)', marginBottom:16, fontFamily:'Syne,sans-serif' }}>🛡️ Paramètres de sécurité</div>
 
               {/* Téléphone */}
               <div style={{ marginBottom:20 }}>
                 <label style={lbl}>Numéro de téléphone</label>
                 <input style={inp} type="tel" placeholder="+229 01 XX XX XX XX" value={phone} onChange={e=>setPhone(e.target.value)}/>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:5 }}>Utilisé pour la vérification par SMS</div>
+                <div style={{ fontSize:11, color:'var(--ink-dim)', marginTop:5 }}>Utilisé pour la vérification par SMS</div>
               </div>
 
               {/* Toggles */}
@@ -242,12 +240,12 @@ export default function AccountPage() {
                 { key:'2fa',   icon:'📱', label:'Authentification à deux facteurs (2FA)', desc:'Reçois un code SMS à chaque connexion', val:twoFA,     set:setTwoFA     },
                 { key:'alert', icon:'🔔', label:'Alertes de connexion',                   desc:'Reçois un email quand quelqu\'un se connecte à ton compte', val:loginAlert, set:setLoginAlert },
               ].map(row => (
-                <div key={row.key} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'14px 16px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, marginBottom:10 }}>
+                <div key={row.key} style={{ background:'var(--surface)', border:'1px solid var(--line)', borderRadius:12, padding:'14px 16px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, marginBottom:10 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:12, flex:1 }}>
                     <span style={{ fontSize:20 }}>{row.icon}</span>
                     <div>
-                      <div style={{ fontSize:13, fontWeight:600, color:'#fff', marginBottom:2 }}>{row.label}</div>
-                      <div style={{ fontSize:11, color:'rgba(255,255,255,0.35)' }}>{row.desc}</div>
+                      <div style={{ fontSize:13, fontWeight:600, color:'var(--ink)', marginBottom:2 }}>{row.label}</div>
+                      <div style={{ fontSize:11, color:'var(--ink-soft)' }}>{row.desc}</div>
                     </div>
                   </div>
                   <Toggle on={row.val} onToggle={()=>row.set(s=>!s)}/>
@@ -255,13 +253,13 @@ export default function AccountPage() {
               ))}
 
               {/* Sessions actives */}
-              <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'14px 16px', marginTop:10, marginBottom:16 }}>
+              <div style={{ background:'var(--surface)', border:'1px solid var(--line)', borderRadius:12, padding:'14px 16px', marginTop:10, marginBottom:16 }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                     <span style={{ fontSize:20 }}>💻</span>
                     <div>
-                      <div style={{ fontSize:13, fontWeight:600, color:'#fff', marginBottom:2 }}>Sessions actives</div>
-                      <div style={{ fontSize:11, color:'rgba(255,255,255,0.35)' }}>Déconnecter tous les autres appareils</div>
+                      <div style={{ fontSize:13, fontWeight:600, color:'var(--ink)', marginBottom:2 }}>Sessions actives</div>
+                      <div style={{ fontSize:11, color:'var(--ink-soft)' }}>Déconnecter tous les autres appareils</div>
                     </div>
                   </div>
                   <button onClick={async()=>{ await fetch(`${API}/users/sessions`, {method:'DELETE',headers:{Authorization:`Bearer ${getToken()}`}}); flash('✅ Toutes les autres sessions fermées.'); }}
@@ -272,7 +270,7 @@ export default function AccountPage() {
               </div>
 
               <div style={{ display:'flex', justifyContent:'flex-end' }}>
-                <button onClick={handleSecuritySave} disabled={saving} style={{...btnPrimary, opacity:saving?0.5:1}}>
+                <button onClick={handleSecuritySave} disabled={saving} style={{...btnPrimary, opacity:saving?0.88:1, cursor:saving?'not-allowed':'pointer'}}>
                   {saving?'⏳…':'💾 Enregistrer'}
                 </button>
               </div>
@@ -286,7 +284,7 @@ export default function AccountPage() {
             {/* Désactiver le compte */}
             <div style={{ background:'rgba(251,146,60,0.06)', border:'1px solid rgba(251,146,60,0.2)', borderRadius:14, padding:'20px', marginBottom:14 }}>
               <div style={{ fontSize:15, fontWeight:700, color:'#fb923c', marginBottom:8, fontFamily:'Syne,sans-serif' }}>⏸ Désactiver temporairement</div>
-              <div style={{ fontSize:13, color:'rgba(255,255,255,0.5)', marginBottom:14, lineHeight:1.6 }}>
+              <div style={{ fontSize:13, color:'var(--ink-soft)', marginBottom:14, lineHeight:1.6 }}>
                 Ton compte sera masqué et inaccessible. Tu pourras le réactiver en te reconnectant.
               </div>
               <button onClick={async()=>{ await fetch(`${API}/users/deactivate`,{method:'PUT',headers:{Authorization:`Bearer ${getToken()}`}}); localStorage.removeItem('dkdk_token'); router.push('/home'); }}
@@ -298,18 +296,18 @@ export default function AccountPage() {
             {/* Supprimer le compte */}
             <div style={{ background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.25)', borderRadius:14, padding:'20px' }}>
               <div style={{ fontSize:15, fontWeight:700, color:'#f87171', marginBottom:8, fontFamily:'Syne,sans-serif' }}>🗑️ Supprimer définitivement</div>
-              <div style={{ fontSize:13, color:'rgba(255,255,255,0.5)', marginBottom:16, lineHeight:1.6 }}>
+              <div style={{ fontSize:13, color:'var(--ink-soft)', marginBottom:16, lineHeight:1.6 }}>
                 ⚠️ Action irréversible. Toutes tes données, vidéos et historique seront définitivement supprimés.<br/>
                 <br/>
-                <span style={{ color:'rgba(251,146,60,0.8)', fontWeight:600 }}>💰 Compte de Retrait :</span>{/*DKDK_RENAME_RETRAIT_ACC*/} <span style={{ color:'rgba(255,255,255,0.45)' }}>ton solde restant en F CFA sera remboursé automatiquement vers ton dernier moyen de paiement sous 7 jours ouvrés.</span><br/>
-                <span style={{ color:'rgba(248,113,113,0.8)', fontWeight:600 }}>⭐ Compte Soutenir :</span> <span style={{ color:'rgba(255,255,255,0.45)' }}>tes unités non utilisées (étoiles et cœurs) seront définitivement perdues — elles ne sont pas remboursables.</span>
+                <span style={{ color:'rgba(251,146,60,0.8)', fontWeight:600 }}>💰 Compte de Retrait :</span>{/*DKDK_RENAME_RETRAIT_ACC*/} <span style={{ color:'var(--ink-soft)' }}>ton solde restant en F CFA sera remboursé automatiquement vers ton dernier moyen de paiement sous 7 jours ouvrés.</span><br/>
+                <span style={{ color:'rgba(248,113,113,0.8)', fontWeight:600 }}>⭐ Compte Soutenir :</span> <span style={{ color:'var(--ink-soft)' }}>tes unités non utilisées (étoiles et cœurs) seront définitivement perdues — elles ne sont pas remboursables.</span>
               </div>
               <div style={{ marginBottom:14 }}>
                 <label style={{...lbl, color:'rgba(248,113,113,0.6)'}}>Tape <strong style={{color:'#f87171'}}>SUPPRIMER</strong> pour confirmer</label>
                 <input style={{...inp, border:'1px solid rgba(248,113,113,0.3)', background:'rgba(248,113,113,0.05)'}} type="text" placeholder="SUPPRIMER" value={deleteText} onChange={e=>setDeleteText(e.target.value)}/>
               </div>
               <button onClick={handleDeleteAccount} disabled={saving||deleteText!=='SUPPRIMER'}
-                style={{ background:deleteText==='SUPPRIMER'?'rgba(248,113,113,0.15)':'rgba(255,255,255,0.04)', border:`1px solid ${deleteText==='SUPPRIMER'?'rgba(248,113,113,0.5)':'rgba(255,255,255,0.1)'}`, borderRadius:50, padding:'9px 20px', fontSize:13, fontWeight:600, color:deleteText==='SUPPRIMER'?'#f87171':'rgba(255,255,255,0.3)', cursor:deleteText==='SUPPRIMER'?'pointer':'not-allowed' }}>
+                style={{ background:deleteText==='SUPPRIMER'?'rgba(248,113,113,0.15)':'var(--surface)', border:`1px solid ${deleteText==='SUPPRIMER'?'rgba(248,113,113,0.5)':'var(--line)'}`, borderRadius:50, padding:'9px 20px', fontSize:13, fontWeight:600, color:deleteText==='SUPPRIMER'?'#f87171':'var(--ink-dim)', cursor:deleteText==='SUPPRIMER'?'pointer':'not-allowed' }}>
                 {saving?'⏳ Suppression…':'🗑️ Supprimer définitivement mon compte'}
               </button>
             </div>

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
-const OR = '#FFAA00';
+const OR = 'var(--or)';
 const CATEGORIES = ['Arts de la scene', 'Musique', 'Arts de la parole'];
 const MODES = [{ val: 'normal', label: 'Normal' }, { val: 'improvisation', label: 'Improvisation' }];
 const DISCIPLINES = ['Danse', 'Chant', 'A cappella', 'Instrument', 'Humour', 'Poesie'];
@@ -225,8 +225,8 @@ export default function CreerChallengePage() {
                 <div key={i}>
                   <label style={labelStyle}>Vidéo {i + 2} du bloc</label>
                   <select style={inputStyle} value={blocVideos[i] || ''} onChange={e => { const nv = [...blocVideos]; nv[i] = e.target.value; setBlocVideos(nv); }}>
-                    <option value='' style={{ background: '#1a1a1f' }}>-- Choisir une vidéo --</option>
-                    {videos.filter(v => !dejaPris.includes(v.id)).map(v => <option key={v.id} value={v.id} style={{ background: '#1a1a1f' }}>{v.title || v.id.slice(0, 8)}</option>)}
+                    <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir une vidéo --</option>
+                    {videos.filter(v => !dejaPris.includes(v.id)).map(v => <option key={v.id} value={v.id} style={{ background: 'var(--bg-soft)' }}>{v.title || v.id.slice(0, 8)}</option>)}
                   </select>
                 </div>
               );
@@ -327,11 +327,11 @@ export default function CreerChallengePage() {
     }
   };
 
-  const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: 14, marginBottom: 16 } as const;
+  const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--line)', color: 'var(--ink)', fontSize: 14, marginBottom: 16 } as const;
   const labelStyle = { fontSize: 13, fontWeight: 700, color: OR, marginBottom: 6, display: 'block' } as const;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#f0f0f0', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
       <Navbar />
       {/*DKDK_MAGENTA_HERO — halo magenta sous la top-bar (meme effet que la page Contact)*/}
       <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
@@ -347,7 +347,7 @@ export default function CreerChallengePage() {
         <label style={labelStyle}>Que veux-tu créer ?</label>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           {[{ v: 'artistique', l: 'Discipline artistique' }, { v: 'sport', l: 'Sport' }].map(o => (
-            <button key={o.v} onClick={() => { setTypeCreation(o.v as any); setMsg(''); }} style={{ flex: 1, minWidth: 140, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: typeCreation === o.v ? `1px solid ${OR}` : '1px solid rgba(255,255,255,0.15)', background: typeCreation === o.v ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'rgba(255,255,255,0.05)', color: typeCreation === o.v ? '#000' : 'rgba(255,255,255,0.6)' }}>{o.l}</button>
+            <button key={o.v} onClick={() => { setTypeCreation(o.v as any); setMsg(''); }} style={{ flex: 1, minWidth: 140, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: typeCreation === o.v ? `1px solid ${OR}` : '1px solid var(--line)', background: typeCreation === o.v ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'var(--surface)', color: typeCreation === o.v ? '#150c00' : 'var(--ink-soft)' }}>{o.l}</button>
           ))}
         </div>
 
@@ -356,29 +356,29 @@ export default function CreerChallengePage() {
         <label style={labelStyle}>Mode</label>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           {MODES.map(m => (
-            <button key={m.val} onClick={() => setMode(m.val)} style={{ flex: 1, minWidth: 120, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: mode === m.val ? `1px solid ${OR}` : '1px solid rgba(255,255,255,0.15)', background: mode === m.val ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'rgba(255,255,255,0.05)', color: mode === m.val ? '#000' : 'rgba(255,255,255,0.6)' }}>{m.label}</button>
+            <button key={m.val} onClick={() => setMode(m.val)} style={{ flex: 1, minWidth: 120, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: mode === m.val ? `1px solid ${OR}` : '1px solid var(--line)', background: mode === m.val ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'var(--surface)', color: mode === m.val ? '#150c00' : 'var(--ink-soft)' }}>{m.label}</button>
           ))}
         </div>
         {/*DKDK_CATEG_REMOVED — categorie toujours Loisirs, plus de selecteur*/}
 
         <label style={labelStyle}>Modèle de challenge</label>
         <select style={inputStyle} value={modele} onChange={e => { setModele(e.target.value); if (e.target.value === 'parcours') setNiveau(1); }}>
-          <option value='parcours' style={{ background: '#1a1a1f' }}>Parcours d'étapes</option>
-          <option value='bloc' style={{ background: '#1a1a1f' }}>Bloc groupé</option>
+          <option value='parcours' style={{ background: 'var(--bg-soft)' }}>Parcours d'étapes</option>
+          <option value='bloc' style={{ background: 'var(--bg-soft)' }}>Bloc groupé</option>
         </select>
         {modele === 'bloc' && (<>
         <label style={labelStyle}>Niveau (nombre de vidéos)</label>
         <select style={inputStyle} value={niveau} onChange={e => setNiveau(parseInt(e.target.value, 10))}>
-          <option value={1} style={{ background: '#1a1a1f' }}>Niveau 1 — 1 vidéo</option>
-          <option value={2} style={{ background: '#1a1a1f' }}>Niveau 2 — 2 vidéos</option>
-          <option value={3} style={{ background: '#1a1a1f' }}>Niveau 3 — 3 vidéos</option>
-          <option value={4} style={{ background: '#1a1a1f' }}>Niveau 4 — 4 vidéos</option>
+          <option value={1} style={{ background: 'var(--bg-soft)' }}>Niveau 1 — 1 vidéo</option>
+          <option value={2} style={{ background: 'var(--bg-soft)' }}>Niveau 2 — 2 vidéos</option>
+          <option value={3} style={{ background: 'var(--bg-soft)' }}>Niveau 3 — 3 vidéos</option>
+          <option value={4} style={{ background: 'var(--bg-soft)' }}>Niveau 4 — 4 vidéos</option>
         </select>
         </>)}
         <label style={labelStyle}>Format du challenge</label>
         <select style={inputStyle} value={formatCode} onChange={e => setFormatCode(e.target.value)}>
-          <option value='' style={{ background: '#1a1a1f' }}>-- Choisir un format --</option>
-          {formats.filter((ff: any) => !(modele === 'bloc' && niveau === 1 && ff.code === 'C2')).map((ff: any) => <option key={ff.code} value={ff.code} style={{ background: '#1a1a1f' }}>{ff.libelle}</option>)}
+          <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir un format --</option>
+          {formats.filter((ff: any) => !(modele === 'bloc' && niveau === 1 && ff.code === 'C2')).map((ff: any) => <option key={ff.code} value={ff.code} style={{ background: 'var(--bg-soft)' }}>{ff.libelle}</option>)}
         </select>
 
         <label style={labelStyle}>Discipline</label>
@@ -388,8 +388,8 @@ export default function CreerChallengePage() {
           const opt = disciplines.find((d: any) => d.id === e.target.value);
           choisirDiscipline(e.target.value, opt ? opt.name : '');
         }}>
-          <option value='' style={{ background: '#1a1a1f' }}>-- Choisir une discipline --</option>
-          {disciplines.map((d: any) => <option key={d.id} value={d.id} style={{ background: '#1a1a1f' }}>{d.name}</option>)}
+          <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir une discipline --</option>
+          {disciplines.map((d: any) => <option key={d.id} value={d.id} style={{ background: 'var(--bg-soft)' }}>{d.name}</option>)}
         </select>
 
         {/*DKDK_MUSIQUE_COND — musique seulement si la discipline utilise un morceau*/}
@@ -397,9 +397,9 @@ export default function CreerChallengePage() {
           <>
             <label style={labelStyle}>Musique imposee</label>
             <select style={inputStyle} value={trackId} onChange={e => setTrackId(e.target.value)}>
-              <option value='' style={{ background: '#1a1a1f' }}>-- Choisir une musique --</option>
-              {musiques.map((m: any) => <option key={m.id} value={m.id} style={{ background: '#1a1a1f' }}>{m.titre} - {m.artiste}</option>)}
-              <option value='__nouveau__' style={{ background: '#1a1a1f', color: '#e11d8f' }}>+ Mon morceau n'est pas dans la liste</option>
+              <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir une musique --</option>
+              {musiques.map((m: any) => <option key={m.id} value={m.id} style={{ background: 'var(--bg-soft)' }}>{m.titre} - {m.artiste}</option>)}
+              <option value='__nouveau__' style={{ background: 'var(--bg-soft)', color: '#e11d8f' }}>+ Mon morceau n'est pas dans la liste</option>
             </select>
             {/*DKDK_NOUVEAU_MORCEAU*/}
             {trackId === '__nouveau__' && (
@@ -415,8 +415,8 @@ export default function CreerChallengePage() {
           <div key={ch.id}>
             <label style={labelStyle}>{ch.titre}</label>
             <select style={inputStyle} value={champsValeurs[ch.id] || ''} onChange={e => setChampsValeurs({ ...champsValeurs, [ch.id]: e.target.value })}>
-              <option value='' style={{ background: '#1a1a1f' }}>-- Choisir --</option>
-              {(ch.choix || []).map((cx: any) => <option key={cx.id} value={cx.id} style={{ background: '#1a1a1f' }}>{cx.valeur}</option>)}
+              <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir --</option>
+              {(ch.choix || []).map((cx: any) => <option key={cx.id} value={cx.id} style={{ background: 'var(--bg-soft)' }}>{cx.valeur}</option>)}
             </select>
             {/*DKDK_AUTRE_UI*/}
             {(() => {
@@ -434,34 +434,34 @@ export default function CreerChallengePage() {
         {typeCreation === 'sport' && (<>
         <label style={labelStyle}>Type de challenge</label>
         <select style={inputStyle} value={formatCode} onChange={e => setFormatCode(e.target.value)}>
-          <option value='' style={{ background: '#1a1a1f' }}>-- Choisir un type --</option>
-          {formats.map((ff: any) => <option key={ff.code} value={ff.code} style={{ background: '#1a1a1f' }}>{ff.libelle}</option>)}
+          <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir un type --</option>
+          {formats.map((ff: any) => <option key={ff.code} value={ff.code} style={{ background: 'var(--bg-soft)' }}>{ff.libelle}</option>)}
         </select>
 
         <label style={labelStyle}>Art</label>
         <select style={inputStyle} value={sportArt} onChange={e => { setSportArt(e.target.value); setSportEpreuveNom(''); setSportDiff(''); }}>
-          <option value='' style={{ background: '#1a1a1f' }}>-- Choisir un art --</option>
-          {sportArts.map((a: any) => <option key={a.slug} value={a.slug} style={{ background: '#1a1a1f' }}>{a.emoji} {a.name}</option>)}
+          <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir un art --</option>
+          {sportArts.map((a: any) => <option key={a.slug} value={a.slug} style={{ background: 'var(--bg-soft)' }}>{a.emoji} {a.name}</option>)}
         </select>
 
         {sportArt && (<>
           <label style={labelStyle}>Épreuve</label>
           <select style={inputStyle} value={sportEpreuveNom} onChange={e => { setSportEpreuveNom(e.target.value); setSportDiff(''); }}>
-            <option value='' style={{ background: '#1a1a1f' }}>-- Choisir une épreuve --</option>
-            {sportEpreuveNoms.map((nom: string) => <option key={nom} value={nom} style={{ background: '#1a1a1f' }}>{nom}</option>)}
+            <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir une épreuve --</option>
+            {sportEpreuveNoms.map((nom: string) => <option key={nom} value={nom} style={{ background: 'var(--bg-soft)' }}>{nom}</option>)}
           </select>
         </>)}
 
         {sportEpreuveNom && sportHasDiff && (<>
           <label style={labelStyle}>Niveau de difficulté</label>
           <select style={inputStyle} value={sportDiff} onChange={e => setSportDiff(e.target.value)}>
-            <option value='' style={{ background: '#1a1a1f' }}>-- Choisir un niveau --</option>
-            {sportDiffOptions.map((o: any) => <option key={o.slug} value={o.slug} style={{ background: '#1a1a1f' }}>{o.label}</option>)}
+            <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir un niveau --</option>
+            {sportDiffOptions.map((o: any) => <option key={o.slug} value={o.slug} style={{ background: 'var(--bg-soft)' }}>{o.label}</option>)}
           </select>
         </>)}
 
         {sportEpreuveNom && sportRegle && (
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: -6, marginBottom: 16, lineHeight: 1.5, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 12px', background: 'rgba(255,255,255,0.03)' }}>
+          <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: -6, marginBottom: 16, lineHeight: 1.5, border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', background: 'var(--surface)' }}>
             📋 {sportRegle}
           </div>
         )}
@@ -469,26 +469,26 @@ export default function CreerChallengePage() {
 
         <label style={labelStyle}>Ta vidéo (approuvée)</label>
         {videos.length === 0 ? (
-          <div style={{ ...inputStyle, color: 'rgba(255,255,255,0.4)' }}>Aucune vidéo approuvée. Soumets et fais approuver une vidéo d'abord.</div>
+          <div style={{ ...inputStyle, color: 'var(--ink-soft)' }}>Aucune vidéo approuvée. Soumets et fais approuver une vidéo d'abord.</div>
         ) : (
           <select style={inputStyle} value={videoId} onChange={e => setVideoId(e.target.value)}>
-            {videos.map(v => <option key={v.id} value={v.id} style={{ background: '#1a1a1f' }}>{v.title || v.id.slice(0, 8)}</option>)}
+            {videos.map(v => <option key={v.id} value={v.id} style={{ background: 'var(--bg-soft)' }}>{v.title || v.id.slice(0, 8)}</option>)}
           </select>
         )}
 
         {/*DKDK_PAIEMENT_UI2 — message A : video deja engagee ailleurs*/}
         {paiementRequis && videoId && (
-          <div style={{ color: '#FFAA00', fontSize: 13, marginBottom: 16, textAlign: 'center', border: '1px solid rgba(255,170,0,0.35)', borderRadius: 10, padding: '10px', background: 'rgba(255,170,0,0.08)' }}>
+          <div style={{ color: 'var(--or)', fontSize: 13, marginBottom: 16, textAlign: 'center', border: '1px solid var(--or)', borderRadius: 10, padding: '10px', background: 'rgba(255,170,0,0.08)' }}>
             ⚠️ Cette vidéo est déjà engagée dans un autre challenge — l'inscrire ici coûte {montantInscription.toLocaleString('fr-FR')} F.
           </div>
         )}
         {msg && <div style={{ color: '#FF6B6B', fontSize: 13, marginBottom: 16, textAlign: 'center' }}>{msg}</div>}
 
-        <button onClick={submit} disabled={submitting} style={{ width: '100%', padding: '14px', borderRadius: 14, fontSize: 15, fontWeight: 800, fontFamily: 'Syne,sans-serif', cursor: submitting ? 'wait' : 'pointer', border: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', opacity: submitting ? 0.6 : 1 }}>
+        <button onClick={submit} disabled={submitting} style={{ width: '100%', padding: '14px', borderRadius: 14, fontSize: 15, fontWeight: 800, fontFamily: 'Syne,sans-serif', cursor: submitting ? 'not-allowed' : 'pointer', border: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#150c00', opacity: submitting ? 0.88 : 1 }}>
           {submitting ? 'En cours...' : (existeDeja ? 'Rejoindre le challenge' : 'Créer le challenge')}
         </button>
 
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 16, lineHeight: 1.6, textAlign: 'center' }}>
+        <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 16, lineHeight: 1.6, textAlign: 'center' }}>
           Conditions : compte vérifié · au moins une vidéo approuvée · avoir rechargé 1000 unités au moins une fois. Tu deviens le 1er inscrit.
         </div>
       </div>
