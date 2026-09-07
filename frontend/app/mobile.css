@@ -14,8 +14,8 @@
   --surface:rgba(255,255,255,.055); --surface2:rgba(255,255,255,.085);
   --line:rgba(255,255,255,.13); --line-strong:rgba(255,255,255,.20);
   --ink:#f3eee4;                       /* texte principal, bien clair */
-  --ink-soft:rgba(243,238,228,.76);    /* sous-titres lisibles */
-  --ink-dim:rgba(243,238,228,.56);     /* mentions discrètes */
+  --ink-soft:rgba(243,238,228,.90);    /* sous-titres — renforcé pour lisibilité */
+  --ink-dim:rgba(243,238,228,.72);     /* mentions discrètes — renforcé */
   --or:#FFB224; --or2:#FF7A1A; --red:#ff4d4d; --green:#2fe06f; --purple:#a12aa3;
   --grad:linear-gradient(90deg,var(--or),var(--or2));
   --on-accent:#150c00;
@@ -31,8 +31,8 @@
   --surface:rgba(28,20,4,.042); --surface2:rgba(28,20,4,.075);
   --line:rgba(28,20,4,.14); --line-strong:rgba(28,20,4,.22);
   --ink:#1d160c;                        /* texte principal foncé */
-  --ink-soft:rgba(29,22,12,.74);        /* sous-titres lisibles */
-  --ink-dim:rgba(29,22,12,.52);
+  --ink-soft:rgba(29,22,12,.90);        /* sous-titres — renforcé pour lisibilité */
+  --ink-dim:rgba(29,22,12,.72);         /* mentions discrètes — renforcé */
   --or:#c85400; --or2:#e85d00; --red:#cf1020; --green:#0f9c4a; --purple:#8a1e8c;
   /* La barre du haut n'est PAS redéfinie ici : elle reste sombre en mode Jour. */
 }
