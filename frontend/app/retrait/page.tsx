@@ -98,7 +98,7 @@ export default function RetraitPage() {
   );
 
   return (
-    <div style={{ minHeight:'100vh', background:'radial-gradient(ellipse 70% 90px at 50% 18px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, #0a0a0f', color:'var(--ink)', fontFamily:'DM Sans, sans-serif', paddingBottom:60, paddingTop:56 }}>
+    <div style={{ minHeight:'100vh', background:'radial-gradient(ellipse 70% 90px at 50% 18px,hsl(339, 98%, 49%) 0%,transparent 70%) no-repeat, var(--bg)', color:'var(--ink)', fontFamily:'DM Sans, sans-serif', paddingBottom:60, paddingTop:56 }}>
 
       {/* Topbar */}
       <div style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, background:'rgba(8,8,15,0.97)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(255,170,0,0.12)', padding:'0 20px 0 0', height:56, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
@@ -147,7 +147,7 @@ export default function RetraitPage() {
             style={{ ...inp, appearance:'none', WebkitAppearance:'none', cursor:'pointer' }}
           >
             {COUNTRIES.map(c => (
-              <option key={c.iso} value={c.iso} style={{ background:'#12121a', color:'var(--ink)' }}>
+              <option key={c.iso} value={c.iso} style={{ background:'var(--bg-soft)', color:'var(--ink)' }}>
                 {c.flag} {c.name}{c.enabled ? '' : ' — bientôt'}
               </option>
             ))}
