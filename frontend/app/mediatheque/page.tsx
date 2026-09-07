@@ -65,13 +65,13 @@ export default function MediathequePage() {
         )}
 
         {!loading && musiques.map(m => (
-          <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px', marginBottom: 12 }}>
+          <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'var(--surface2)', border: '1px solid var(--line-strong)', borderRadius: 14, padding: '14px', marginBottom: 12 }}>
             <div style={{ width: 54, height: 54, borderRadius: 10, background: m.cover_url ? `url(${m.cover_url}) center/cover` : 'linear-gradient(135deg,#FF6B00,#FFD700)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 800, color: 'rgb(126,3,128)', flexShrink: 0 }}>{!m.cover_url && '\u266A'}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', fontFamily: 'Syne,sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.titre}</div>
-              <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>{m.artiste}{m.album ? ` - ${m.album}` : ''}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{m.artiste}{m.album ? ` - ${m.album}` : ''}</div>
               <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                {m.danse && <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: 'rgba(255,170,0,0.15)', color: OR, fontWeight: 700 }}>{m.danse}</span>}
+                {m.danse && <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: 'rgba(225,6,0,0.14)', border: '1px solid rgba(225,6,0,0.35)', color: '#e10600', fontWeight: 800 }}>{m.danse}</span>}
                 {m.pays_origine && <img src={`https://flagcdn.com/${m.pays_origine.toLowerCase()}.svg`} alt={m.pays_origine} title={m.pays_origine} style={{ width: 18, height: 'auto', borderRadius: 3, objectFit: 'cover', verticalAlign: 'middle' }} />}
               </div>
             </div>

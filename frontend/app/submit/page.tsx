@@ -481,7 +481,7 @@ export default function SubmitPage() {
                 </div>
               ))}
             </div>
-            <button style={{ ...btnPrimary, width: '100%', flex: 'unset', opacity: selectedCategory ? 1 : 0.4 }} disabled={!selectedCategory} onClick={() => setStep(2)}>
+            <button style={{ ...btnPrimary, width: '100%', flex: 'unset', opacity: selectedCategory ? 1 : 0.88 }} disabled={!selectedCategory} onClick={() => setStep(2)}>
               Continuer → {selectedCategory?.name || 'Choisissez une catégorie'}
             </button>
           </div>
@@ -508,7 +508,7 @@ export default function SubmitPage() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button style={btnBack} onClick={() => setStep(1)}>← Retour</button>
-              <button style={{ ...btnPrimary, opacity: selectedDiscipline ? 1 : 0.4 }} disabled={!selectedDiscipline} onClick={() => setStep(3)}>
+              <button style={{ ...btnPrimary, opacity: selectedDiscipline ? 1 : 0.88 }} disabled={!selectedDiscipline} onClick={() => setStep(3)}>
                 Continuer → {selectedDiscipline?.name || 'Choisissez'}
               </button>
             </div>
@@ -810,7 +810,7 @@ export default function SubmitPage() {
             <div style={{ display: 'flex', gap: 8 }}>
               <button style={btnBack} onClick={() => setStep(3)} disabled={uploading}>← Retour</button>
               <button
-                style={{ ...btnPrimary, opacity: isStep4Valid() && !uploading ? 1 : 0.4 }}
+                style={{ ...btnPrimary, opacity: isStep4Valid() && !uploading ? 1 : 0.88 }}
                 disabled={!isStep4Valid() || uploading || !!error}
                 onClick={handleSave}
               >
