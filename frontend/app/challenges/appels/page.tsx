@@ -272,7 +272,7 @@ function EmptyState() {
 function AppelCard({ appel }: { appel: Appel }) {
   const cfg     = cfgFor(appel.max_participants);
   const officiel = !!appel.officiel;
-  const nom     = officiel ? 'Officiel Création' : (appel.createur_nom || 'Créateur');
+  const nom     = officiel ? 'Création' : (appel.createur_nom || 'Créateur');
   const ava     = officiel ? 'DKM' : initials(appel.createur_nom || appel.title || 'Créateur');
   const disc    = appel.discipline || 'talent';
   const nEtapes = appel.etapes?.length ?? 0;
