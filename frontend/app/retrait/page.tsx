@@ -76,10 +76,13 @@ export default function RetraitPage() {
   };
 
   const OR = 'var(--or)';
+  // Dégradé de marque FIXE pour le bouton principal (jaune-orangé vif),
+  // indépendant du thème Jour/Nuit — sinon en mode Jour --or vire à l'orange brûlé.
+  const ACCENT = 'linear-gradient(135deg,#FF6B00,#FFD700)';
   const card: React.CSSProperties = { background:'var(--surface2)', border:'1px solid var(--line-strong)', borderRadius:18, padding:'18px 20px', marginBottom:14 };
   const lbl: React.CSSProperties  = { display:'block', fontSize:11.5, fontWeight:700, color:'var(--ink-soft)', marginBottom:7, textTransform:'uppercase', letterSpacing:'.5px' };
   const inp: React.CSSProperties  = { width:'100%', background:'var(--surface)', border:'1px solid var(--line)', borderRadius:12, padding:'11px 14px', fontSize:14, color:'var(--ink)', outline:'none', fontFamily:'DM Sans, sans-serif', boxSizing:'border-box' as const };
-  const btnP: React.CSSProperties = { background:'linear-gradient(135deg,var(--or),var(--or2))', border:'none', borderRadius:50, padding:'12px 24px', fontSize:14, fontWeight:700, color:'var(--on-accent)', cursor:'pointer', fontFamily:'DM Sans, sans-serif' };
+  const btnP: React.CSSProperties = { background:ACCENT, border:'none', borderRadius:50, padding:'12px 24px', fontSize:14, fontWeight:700, color:'#150c00', cursor:'pointer', fontFamily:'DM Sans, sans-serif' };
   const btnS: React.CSSProperties = { background:'transparent', border:'1px solid var(--line-strong)', borderRadius:50, padding:'11px 20px', fontSize:13, color:'var(--ink-soft)', cursor:'pointer', fontFamily:'DM Sans, sans-serif' };
 
   if (success) return (
@@ -235,7 +238,7 @@ export default function RetraitPage() {
           <button onClick={() => router.push('/compte')} style={btnS}>Annuler</button>
           <button onClick={handleWithdraw} disabled={!isValid || loading}
             style={{ ...btnP, flex:1, opacity: !isValid || loading ? 0.5 : 1,
-              background: confirmed ? 'linear-gradient(135deg,#f87171,#ef4444)' : 'linear-gradient(135deg,var(--or),var(--or2))',
+              background: confirmed ? 'linear-gradient(135deg,#f87171,#ef4444)' : ACCENT,
             }}>
             {loading ? '⏳ Traitement…' : confirmed ? `✅ Confirmer le retrait de ${fmt(amountNum)} ${CUR}` : `💸 Retirer ${amountNum ? fmt(amountNum) + ' ' + CUR : ''}`}
           </button>
