@@ -28,7 +28,7 @@ const METHODS = [
     id: 'moov', label: 'Moov Money',
     logo: (
       <svg width="42" height="42" viewBox="0 0 44 44" fill="none">
-        <rect width="44" height="44" rx="10" fill="#00A650"/>
+        <rect width="44" height="44" rx="10" fill="#0693E3"/>
         <text x="22" y="20" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="900" fontFamily="Arial,sans-serif">moov</text>
         <text x="22" y="31" textAnchor="middle" fill="#FFD700" fontSize="7.5" fontWeight="700" fontFamily="Arial,sans-serif">MONEY</text>
       </svg>
