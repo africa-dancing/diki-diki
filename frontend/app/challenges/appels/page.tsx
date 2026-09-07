@@ -101,31 +101,34 @@ export default function MurDesAppelsPage() {
     }}>
       <Navbar />
 
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px' }}>
-
-        {/* HERO */}
-        <section style={{
-          background: HERO, borderRadius: 18, padding: '32px 22px',
-          textAlign: 'center', color: '#fff', margin: '18px 0 8px',
-          boxShadow: '0 24px 60px -30px rgba(237,28,36,0.45)',
-        }}>
-          <span style={{
-            display: 'inline-block', background: SOLID, color: ON_ACCENT,
-            fontWeight: 800, fontSize: 11, letterSpacing: '0.16em',
-            textTransform: 'uppercase', padding: '5px 12px', borderRadius: 6,
-          }}>Rejoins l&apos;Arène</span>
-          <h1 style={{
-            fontWeight: 800, fontSize: 'clamp(28px,7vw,42px)', lineHeight: 1.05,
-            margin: '14px 0 10px', letterSpacing: '-0.5px', color: '#fff',
-          }}>Le Mur des appels</h1>
-          <p style={{
-            color: 'rgba(255,255,255,0.9)', fontSize: 15, maxWidth: '46ch',
-            margin: '0 auto', lineHeight: 1.5,
+      {/* HERO — halo magenta collé à la barre + panneau compact (aligné sur /challenges) */}
+      <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 4px' }}>
+          <section style={{
+            background: HERO, border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '20px',
+            textAlign: 'center', color: '#fff', boxShadow: '0 8px 40px rgba(225,29,143,0.35)',
           }}>
-            Un artiste lance son challenge et fixe les morceaux, étape par étape.
-            À toi d&apos;accepter… ou de proposer mieux.
-          </p>
-        </section>
+            <span style={{
+              display: 'inline-block', background: SOLID, color: ON_ACCENT,
+              fontWeight: 800, fontSize: 11, letterSpacing: '0.16em',
+              textTransform: 'uppercase', padding: '5px 12px', borderRadius: 6,
+            }}>Rejoins l&apos;Arène</span>
+            <h1 style={{
+              fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, lineHeight: 1.1,
+              margin: '12px 0 8px', color: '#fff',
+            }}>Le Mur des appels</h1>
+            <p style={{
+              color: 'rgba(255,255,255,0.9)', fontSize: 13, maxWidth: '46ch',
+              margin: '0 auto', lineHeight: 1.5,
+            }}>
+              Un artiste lance son challenge et fixe les morceaux, étape par étape.
+              À toi d&apos;accepter… ou de proposer mieux.
+            </p>
+          </section>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px' }}>
 
         {/* AGRÉGATS */}
         {aggregates && (
