@@ -202,6 +202,7 @@ export default function Navbar() {
                 { href: '/mediatheque',   label: 'Médiathèque' },
                 { href: '/submit',        label: 'Ajouter une vidéo', hide: !token },
                 { href: '/challenges',    label: 'Challenges' },
+                { href: '/challenges/appels', label: 'Mur des appels' },
             ].filter(l => !l.hide).map(l => (
               <Link
                 key={l.href} href={l.href}

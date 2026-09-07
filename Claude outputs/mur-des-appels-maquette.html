@@ -1,0 +1,308 @@
+<title>Le Mur des appels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap">
+<style>
+  /* ===== NUIT (défaut) ===== */
+  :root{
+    --bg:#0a0a0f; --bg2:#0f0d14; --surface:rgba(255,255,255,.045); --surface2:rgba(255,255,255,.07);
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14);
+    --ink:#ece6da; --ink-soft:rgba(236,230,218,.62); --ink-dim:rgba(236,230,218,.40);
+    --or:#FFAA00; --or2:#FF6B00; --red:#fa2d2d; --green:#25e06a; --purple:#8a1e8c;
+    --glow:rgba(237,28,36,.10);
+    --grad:linear-gradient(92deg,var(--or),var(--or2));
+    --on-accent:#150c00;
+    --display:'Syne',sans-serif; --body:'DM Sans',system-ui,sans-serif; --r:16px;
+  }
+  /* ===== JOUR (inversion) ===== */
+  :root[data-theme="light"]{
+    --bg:#f6f1e8; --bg2:#fffdf8; --surface:rgba(28,20,4,.038); --surface2:rgba(28,20,4,.065);
+    --line:rgba(28,20,4,.11); --line2:rgba(28,20,4,.18);
+    --ink:#1d160c; --ink-soft:rgba(29,22,12,.66); --ink-dim:rgba(29,22,12,.44);
+    --or:#d95f00; --or2:#FF6B00; --red:#d5121a; --green:#0f9c4a; --purple:#8a1e8c;
+    --glow:rgba(237,28,36,.055);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:radial-gradient(120% 70% at 50% -10%,var(--glow),transparent 60%),var(--bg);
+    color:var(--ink);font-family:var(--body);line-height:1.5;padding:0 16px 80px;transition:background .35s ease,color .35s ease}
+  .wrap{max-width:720px;margin:0 auto}
+  a{color:inherit}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  header{padding:26px 4px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:.5px;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hgroup{display:flex;align-items:center;gap:10px}
+  .maq{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);
+    border:1px solid var(--line2);border-radius:999px;padding:5px 10px}
+  .toggle{display:inline-flex;align-items:center;gap:7px;cursor:pointer;border:1px solid var(--line2);
+    background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font-family:var(--body);
+    font-size:12.5px;font-weight:600}
+  .toggle:hover{border-color:var(--or)}
+  .toggle:focus-visible{outline:2px solid var(--or);outline-offset:2px}
+  .toggle .ic{font-size:14px;line-height:1}
+
+  .hero{padding:22px 4px 8px;text-align:center}
+  .eyebrow{display:inline-block;background:var(--grad);color:var(--on-accent);font-weight:800;font-size:11px;
+    letter-spacing:.16em;text-transform:uppercase;padding:5px 12px;border-radius:6px}
+  h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,7vw,44px);line-height:1.04;
+    margin:14px 0 8px;text-wrap:balance;letter-spacing:-.5px}
+  h1 em{font-style:normal;color:var(--red)}
+  .lede{color:var(--ink-soft);font-size:15px;max-width:46ch;margin:0 auto}
+
+  .how{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0 10px}
+  .how .step{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 12px}
+  .how .n{font-family:var(--display);font-weight:800;font-size:13px;color:var(--or);letter-spacing:.05em}
+  .how p{margin:6px 0 0;font-size:12.5px;color:var(--ink-soft);line-height:1.45}
+  @media(max-width:560px){.how{grid-template-columns:1fr}.how .step{display:flex;gap:10px;align-items:baseline}.how p{margin:0}}
+
+  .create{display:flex;align-items:center;gap:12px;margin:18px 0 26px;
+    background:linear-gradient(180deg,rgba(255,170,0,.12),rgba(255,107,0,.04));
+    border:1px dashed rgba(255,140,0,.5);border-radius:14px;padding:14px 16px}
+  .create .plus{font-family:var(--display);font-weight:800;font-size:22px;color:var(--or);line-height:1}
+  .create .t{flex:1}
+  .create .t b{font-family:var(--display);font-weight:700;font-size:15px}
+  .create .t span{display:block;font-size:12.5px;color:var(--ink-soft)}
+  .btn{font-family:var(--display);font-weight:700;border:none;cursor:pointer;border-radius:10px;font-size:13.5px;padding:10px 16px;white-space:nowrap}
+  .btn:focus-visible{outline:2px solid var(--or);outline-offset:2px}
+  .btn-solid{background:var(--grad);color:var(--on-accent)}
+
+  .seclabel{font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--or);margin:8px 4px 14px;display:flex;align-items:center;gap:10px}
+  .seclabel::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .card{background:linear-gradient(180deg,var(--bg2),var(--bg));border:1px solid var(--line);border-radius:var(--r);
+    padding:20px;margin-bottom:16px;position:relative;overflow:hidden}
+  .card.open{border-color:rgba(255,150,0,.4);box-shadow:0 0 0 1px rgba(255,150,0,.12),0 24px 60px -30px rgba(237,28,36,.45)}
+  .card.open::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--grad)}
+
+  .crow{display:flex;align-items:center;gap:12px}
+  .ava{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;
+    font-family:var(--display);font-weight:800;font-size:16px;color:var(--on-accent);background:var(--grad)}
+  .who{flex:1;min-width:0}
+  .who b{font-family:var(--display);font-weight:700;font-size:16px;display:flex;align-items:center;gap:7px}
+  .who .sub{font-size:12.5px;color:var(--ink-soft)}
+  .state{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--green);
+    border:1px solid color-mix(in srgb,var(--green) 40%,transparent);background:color-mix(in srgb,var(--green) 10%,transparent);
+    border-radius:999px;padding:4px 10px;white-space:nowrap}
+  .state.soon{color:var(--or);border-color:color-mix(in srgb,var(--or) 40%,transparent);background:color-mix(in srgb,var(--or) 12%,transparent)}
+
+  .invite{font-size:15.5px;line-height:1.5;margin:16px 0 4px}
+  .invite .hi{font-size:20px;vertical-align:-2px}
+  .invite b{color:var(--ink)}
+
+  .facts{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .chip{font-size:12px;font-weight:600;color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:6px 11px}
+  .chip b{color:var(--or);font-weight:700}
+
+  .steps{margin:16px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .steps .sh{font-family:var(--display);font-weight:700;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-soft);padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .step-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .step-row:last-child{border-bottom:none}
+  .step-row .k{font-family:var(--display);font-weight:800;font-size:12px;color:var(--on-accent);background:var(--grad);border-radius:7px;padding:5px 8px;white-space:nowrap}
+  .step-row .m{flex:1;min-width:0}
+  .step-row .m .title{font-weight:600;font-size:14.5px}
+  .step-row .m .art{font-size:12.5px;color:var(--ink-soft)}
+  .step-row .rev{font-size:11px;font-weight:700;color:var(--or);border:1px solid color-mix(in srgb,var(--or) 45%,transparent);border-radius:999px;padding:4px 9px;white-space:nowrap}
+
+  .money{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin:14px 0;font-size:13px;line-height:1.55;color:var(--ink-soft)}
+  .money .ic{font-size:17px;line-height:1.2}
+  .money b{color:var(--ink)}
+
+  .slots{margin:16px 0 6px}
+  .slots .sh{font-family:var(--display);font-weight:700;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px;display:flex;justify-content:space-between}
+  .slots .sh .c{color:var(--ink-dim)}
+  .prog{height:6px;border-radius:999px;background:var(--surface2);overflow:hidden;margin-bottom:12px}
+  .prog i{display:block;height:100%;width:50%;background:var(--grad);border-radius:999px}
+  .slots .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  @media(max-width:460px){.slots .grid{grid-template-columns:repeat(2,1fr)}}
+  .slot{border:1px solid var(--line);border-radius:11px;padding:11px 10px;text-align:center;background:var(--surface)}
+  .slot .a{width:34px;height:34px;border-radius:50%;margin:0 auto 7px;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:13px}
+  .slot .nm{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .slot .tg{font-size:10px;font-weight:700;letter-spacing:.04em;margin-top:3px}
+  .slot.ok .a{background:var(--grad);color:var(--on-accent)}
+  .slot.ok .tg{color:var(--green)}
+  .slot.host .a{background:var(--grad);color:var(--on-accent)}
+  .slot.host .tg{color:var(--or)}
+  .slot.wait{border-style:dashed;border-color:var(--line2)}
+  .slot.wait .a{background:color-mix(in srgb,var(--or) 14%,transparent);color:var(--or)}
+  .slot.wait .tg{color:var(--or)}
+  .slot.free{border-style:dashed;opacity:.8}
+  .slot.free .a{background:var(--surface2);color:var(--ink-dim)}
+  .slot.free .tg{color:var(--ink-dim)}
+
+  .waitnote{font-size:12px;color:var(--ink-soft);background:color-mix(in srgb,var(--or) 7%,transparent);
+    border:1px solid color-mix(in srgb,var(--or) 24%,transparent);border-radius:10px;padding:9px 12px;margin:12px 0}
+  .waitnote b{color:var(--or)}
+
+  .actions{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-top:16px}
+  @media(max-width:460px){.actions{grid-template-columns:1fr}}
+  .btn-accept{background:var(--grad);color:var(--on-accent);padding:14px}
+  .btn-revise{background:transparent;color:var(--ink);border:1px solid var(--line2);padding:14px}
+  .btn-revise:hover{border-color:var(--or);color:var(--or)}
+  .btn[aria-pressed="true"].btn-accept{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green);border:1px solid color-mix(in srgb,var(--green) 55%,transparent)}
+
+  .revise{margin-top:14px;border:1px solid color-mix(in srgb,var(--or) 34%,transparent);border-radius:12px;padding:15px;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--or) 7%,transparent),transparent)}
+  .revise[hidden]{display:none}
+  .revise h4{font-family:var(--display);font-weight:700;font-size:14px;margin:0 0 4px}
+  .revise p.h{font-size:12.5px;color:var(--ink-soft);margin:0 0 12px}
+  .field{margin-bottom:11px}
+  .field label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px}
+  select,input[type=text]{width:100%;background:var(--surface);border:1px solid var(--line2);border-radius:9px;color:var(--ink);font-family:var(--body);font-size:14px;padding:11px 12px;outline:none;appearance:none}
+  select:focus,input:focus{border-color:var(--or)}
+  .field .hint{font-size:11.5px;color:var(--ink-dim);margin-top:5px}
+  .unanim{font-size:12px;color:var(--ink-soft);display:flex;gap:8px;align-items:flex-start;margin:4px 0 12px}
+  .unanim .ic{color:var(--or)}
+  .revise .send{display:flex;gap:10px}
+  .btn-send{background:var(--grad);color:var(--on-accent);flex:1;padding:12px}
+  .btn-ghost{background:transparent;border:1px solid var(--line2);color:var(--ink-soft);padding:12px}
+  .revok{margin-top:12px;font-size:12.5px;color:var(--green);background:color-mix(in srgb,var(--green) 9%,transparent);border:1px solid color-mix(in srgb,var(--green) 32%,transparent);border-radius:9px;padding:10px 12px}
+  .revok[hidden]{display:none}
+
+  .teaser{cursor:pointer}
+  .teaser .invite{font-size:14px;margin:12px 0 0;color:var(--ink-soft)}
+  .teaser .facts{margin-top:12px}
+
+  footer{max-width:720px;margin:26px auto 0;color:var(--ink-dim);font-size:12px;text-align:center;line-height:1.6}
+  footer b{color:var(--ink-soft)}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="brand">DIKI-DIKI</span>
+    <div class="hgroup">
+      <button class="toggle" id="themeBtn" aria-label="Basculer jour / nuit"><span class="ic" id="themeIc" aria-hidden="true">☀️</span><span id="themeTxt">Jour</span></button>
+      <span class="maq">Maquette</span>
+    </div>
+  </header>
+
+  <section class="hero">
+    <span class="eyebrow">Rejoins l'Arène</span>
+    <h1>Le Mur des <em>appels</em></h1>
+    <p class="lede">Un artiste lance son challenge et fixe les morceaux, étape par étape. À toi d'accepter… ou de proposer mieux.</p>
+  </section>
+
+  <div class="how" aria-label="Comment ça marche">
+    <div class="step"><div class="n">1 · Le créateur</div><p>fixe les morceaux de chaque étape et publie son appel.</p></div>
+    <div class="step"><div class="n">2 · Toi</div><p>tu cliques <b>Accepter</b>, ou tu <b>demandes une révision</b> d'une étape.</p></div>
+    <div class="step"><div class="n">3 · Tous d'accord</div><p>une seule décision par étape, et le challenge démarre.</p></div>
+  </div>
+
+  <div class="create">
+    <span class="plus">＋</span>
+    <div class="t"><b>Lance ton propre appel</b><span>Choisis ta discipline, tes morceaux par étape, et invite l'Afrique.</span></div>
+    <button class="btn btn-solid">Créer</button>
+  </div>
+
+  <div class="seclabel">Appels ouverts</div>
+
+  <article class="card open">
+    <div class="crow">
+      <div class="ava">AD</div>
+      <div class="who"><b>Awa Danse <span aria-hidden="true">🇨🇮</span></b><div class="sub">Créatrice · Abidjan, Côte d'Ivoire</div></div>
+      <span class="state soon">Ferme dans 22 h</span>
+    </div>
+
+    <p class="invite"><span class="hi" aria-hidden="true">🎧</span> <b>Je suis Awa Danse</b>, et je t'invite dans mon <b>challenge de danse — Coupé‑décalé</b>. Deux étapes, deux morceaux, un seul podium. Viens montrer ton feeling !</p>
+
+    <div class="facts">
+      <span class="chip">Format <b>C4</b></span>
+      <span class="chip"><b>4</b> candidats</span>
+      <span class="chip"><b>2</b> étapes</span>
+      <span class="chip">Modèle <b>Parcours</b></span>
+    </div>
+
+    <div class="steps">
+      <div class="sh">Les morceaux imposés, par étape</div>
+      <div class="step-row"><span class="k">Étape 1</span><div class="m"><div class="title">Coup du marteau</div><div class="art">DJ Arafat</div></div></div>
+      <div class="step-row"><span class="k">Étape 2</span><div class="m"><div class="title">Premier Gaou</div><div class="art">Magic System</div></div><span class="rev">1 révision en débat</span></div>
+    </div>
+
+    <div class="money"><span class="ic" aria-hidden="true">💰</span><div><b>Objectif par étape : 4 000 000 F</b> à réunir en votes. À la fin, la cagnotte (moins la commission) est <b>partagée entre les 2 champions — 65 % / 35 %</b>, et <b>les éliminés reçoivent une prime</b>. Ton gain dépend du soutien du public.</div></div>
+
+    <div class="slots">
+      <div class="sh"><span>Les places</span><span class="c">2 acceptées · 4 attendues</span></div>
+      <div class="prog"><i></i></div>
+      <div class="grid">
+        <div class="slot host"><div class="a">AD</div><div class="nm">Awa Danse</div><div class="tg">Créatrice</div></div>
+        <div class="slot ok"><div class="a">KB</div><div class="nm">Koffi B.</div><div class="tg">✓ Accepté</div></div>
+        <div class="slot wait"><div class="a">ZT</div><div class="nm">Zota</div><div class="tg">Révision…</div></div>
+        <div class="slot free"><div class="a">?</div><div class="nm">Place libre</div><div class="tg">En attente</div></div>
+      </div>
+    </div>
+
+    <div class="waitnote"><b>Zota</b> a demandé une révision de l'Étape 2 — elle ne changera que si <b>tout le monde est d'accord</b>. En attendant, <b>2 artistes guettent une place</b>.</div>
+
+    <div class="actions">
+      <button class="btn btn-accept" id="acceptBtn" aria-pressed="false">✋ ACCEPTER &amp; rejoindre</button>
+      <button class="btn btn-revise" id="reviseBtn" aria-expanded="false">✍️ Demander une révision</button>
+    </div>
+
+    <div class="revise" id="revisePanel" hidden>
+      <h4>Propose une autre version d'une étape</h4>
+      <p class="h">Vise l'étape que tu veux changer et propose ton morceau. Puise dans la médiathèque pour que tout le monde reconnaisse le titre.</p>
+      <div class="field"><label for="revEtape">Étape à réviser</label>
+        <select id="revEtape"><option>Étape 2 — actuellement « Premier Gaou · Magic System »</option><option>Étape 1 — actuellement « Coup du marteau · DJ Arafat »</option></select></div>
+      <div class="field"><label for="revMorceau">Ton morceau proposé</label>
+        <input id="revMorceau" type="text" placeholder="🔎 Rechercher dans la médiathèque…" value="Sonon — Ariel Sheney">
+        <div class="hint">Choisi dans la médiathèque · reconnu par l'Agent Reconnaissance Musicale.</div></div>
+      <div class="unanim"><span class="ic" aria-hidden="true">🤝</span><span>Une révision n'est adoptée que si <b>tous les candidats l'acceptent</b>. Sinon, l'étape garde sa valeur.</span></div>
+      <div class="send"><button class="btn btn-send" id="sendBtn">Envoyer la proposition</button><button class="btn btn-ghost" id="cancelBtn">Annuler</button></div>
+      <div class="revok" id="revOk" hidden>✓ Proposition envoyée — en attente de l'accord de tous les candidats.</div>
+    </div>
+  </article>
+
+  <div class="seclabel">D'autres appels</div>
+
+  <article class="card teaser">
+    <div class="crow"><div class="ava" style="background:linear-gradient(92deg,#8a1e8c,#ED1C24)">YS</div>
+      <div class="who"><b>Yao le Sappeur <span aria-hidden="true">🇨🇩</span></b><div class="sub">Créateur · Kinshasa, RD Congo</div></div>
+      <span class="state soon">Ferme dans 2 j</span></div>
+    <p class="invite"><b>Challenge de chant — Gospel.</b> 6 voix, 3 étapes, un seul frisson. Qui portera la louange ?</p>
+    <div class="facts"><span class="chip">Format <b>C6</b></span><span class="chip"><b>6</b> candidats</span><span class="chip"><b>3</b> étapes</span><span class="chip">Objectif/étape <b>5 000 000 F</b></span></div>
+  </article>
+
+  <article class="card teaser">
+    <div class="crow"><div class="ava" style="background:linear-gradient(92deg,#25e06a,#0891b2)">AS</div>
+      <div class="who"><b>Aïcha Slam <span aria-hidden="true">🇸🇳</span></b><div class="sub">Créatrice · Dakar, Sénégal</div></div>
+      <span class="state">Complet — démarre bientôt</span></div>
+    <p class="invite"><b>Duel de poésie — Slam engagé.</b> Deux plumes, un thème, le public tranche.</p>
+    <div class="facts"><span class="chip">Format <b>C2</b></span><span class="chip"><b>2</b> candidats</span><span class="chip"><b>1</b> étape</span><span class="chip">Objectif <b>2 500 000 F</b></span></div>
+  </article>
+
+  <footer><b>Maquette « Le Mur des appels »</b> — pour valider l'allure et le déroulé.<br>Contenu d'exemple. Les montants affichés sont des <b>objectifs à réunir</b>, jamais des gains promis.</footer>
+</div>
+
+<script>
+  (function(){
+    var root = document.documentElement, btn = document.getElementById('themeBtn'),
+        ic = document.getElementById('themeIc'), txt = document.getElementById('themeTxt');
+    function apply(mode){
+      if(mode==='light'){ root.setAttribute('data-theme','light'); ic.textContent='🌙'; txt.textContent='Nuit'; }
+      else { root.removeAttribute('data-theme'); ic.textContent='☀️'; txt.textContent='Jour'; }
+    }
+    var saved='dark'; try{ saved = localStorage.getItem('dkdk-theme') || 'dark'; }catch(e){}
+    apply(saved);
+    btn.addEventListener('click', function(){
+      var next = root.getAttribute('data-theme')==='light' ? 'dark' : 'light';
+      apply(next); try{ localStorage.setItem('dkdk-theme', next); }catch(e){}
+    });
+
+    var accept=document.getElementById('acceptBtn'), revise=document.getElementById('reviseBtn'),
+        panel=document.getElementById('revisePanel'), cancel=document.getElementById('cancelBtn'),
+        send=document.getElementById('sendBtn'), revOk=document.getElementById('revOk');
+    accept.addEventListener('click', function(){
+      var on = accept.getAttribute('aria-pressed')==='true';
+      accept.setAttribute('aria-pressed', on?'false':'true');
+      accept.textContent = on ? '✋ ACCEPTER & rejoindre' : '✓ Tu as accepté — bienvenue !';
+    });
+    function toggleP(s){ panel.hidden=!s; revise.setAttribute('aria-expanded', s?'true':'false'); if(s) panel.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+    revise.addEventListener('click', function(){ toggleP(panel.hidden); });
+    cancel.addEventListener('click', function(){ toggleP(false); revOk.hidden=true; });
+    send.addEventListener('click', function(){ revOk.hidden=false; });
+    document.querySelectorAll('.teaser').forEach(function(t){ t.addEventListener('click', function(){ t.style.borderColor='rgba(255,150,0,.4)'; }); });
+  })();
+</script>

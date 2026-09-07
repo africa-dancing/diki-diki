@@ -390,6 +390,119 @@ bracketRouter.get('/candidats/:userId/challenges', async (req: Request, res: Res
   }
 });
 
+// ===== MUR DES APPELS (Le Mur des appels) — lecture publique /*DKDK_MUR_APPELS*/
+// Liste des challenges en ralliement (status='appel') + agrégats d'en-tête.
+// ⚠️ Placé AVANT '/:bracket_id' pour ne pas être capté comme un id.
+bracketRouter.get('/appels', async (_req: Request, res: Response) => {
+  try {
+    const supabase = getSupabase();
+    const { data: bks, error } = await supabase
+      .from('brackets')
+      .select('id, title, discipline, modele, max_participants, createur_id, appel_deadline, created_at')
+      .eq('status', 'appel')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    const brackets = bks || [];
+    if (!brackets.length) {
+      return res.json({ success: true, data: { aggregates: { appels_ouverts: 0, places_a_saisir: 0, candidats_engages: 0, disciplines: 0 }, appels: [] } });
+    }
+    const ids = brackets.map((b: any) => b.id);
+
+    const { data: sujets } = await supabase
+      .from('bracket_round_sujets')
+      .select('bracket_id, round_number, libelle, track_id')
+      .in('bracket_id', ids)
+      .order('round_number', { ascending: true });
+
+    const trackIds = [...new Set((sujets || []).map((s: any) => s.track_id).filter(Boolean))];
+    let trackById: Record<string, any> = {};
+    if (trackIds.length) {
+      const { data: mus } = await supabase.from('musiques').select('id, titre, artiste').in('id', trackIds);
+      trackById = Object.fromEntries((mus || []).map((t: any) => [t.id, t]));
+    }
+
+    const { data: parts } = await supabase
+      .from('bracket_participants')
+      .select('bracket_id, reponse_appel')
+      .in('bracket_id', ids);
+
+    const creatorIds = [...new Set(brackets.map((b: any) => b.createur_id).filter(Boolean))];
+    let userById: Record<string, any> = {};
+    if (creatorIds.length) {
+      const { data: us } = await supabase.from('users').select('id, name').in('id', creatorIds);
+      userById = Object.fromEntries((us || []).map((u: any) => [u.id, u]));
+    }
+
+    const appels = brackets.map((b: any) => {
+      const bp = (parts || []).filter((p: any) => p.bracket_id === b.id);
+      const acceptes = bp.filter((p: any) => p.reponse_appel === 'accepte').length;
+      const en_revision = bp.filter((p: any) => p.reponse_appel === 'revision').length;
+      const en_attente = bp.filter((p: any) => p.reponse_appel === 'en_attente').length;
+      const etapes = (sujets || []).filter((s: any) => s.bracket_id === b.id).map((s: any) => {
+        const t = s.track_id ? trackById[s.track_id] : null;
+        return { round_number: s.round_number, libelle: s.libelle, track_titre: t?.titre ?? null, track_artiste: t?.artiste ?? null };
+      });
+      const u = b.createur_id ? userById[b.createur_id] : null;
+      return {
+        id: b.id, title: b.title, discipline: b.discipline, modele: b.modele,
+        max_participants: b.max_participants, appel_deadline: b.appel_deadline,
+        createur_nom: u?.name ?? null, createur_pays: null,
+        acceptes, en_revision, en_attente, etapes,
+      };
+    });
+
+    const aggregates = {
+      appels_ouverts: appels.length,
+      places_a_saisir: appels.reduce((s: number, a: any) => s + Math.max(0, a.max_participants - a.acceptes), 0),
+      candidats_engages: appels.reduce((s: number, a: any) => s + a.acceptes, 0),
+      disciplines: new Set(appels.map((a: any) => a.discipline).filter(Boolean)).size,
+    };
+    res.json({ success: true, data: { aggregates, appels } });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Détail d'un appel /*DKDK_MUR_APPELS*/
+bracketRouter.get('/:bracket_id/appel', async (req: Request, res: Response) => {
+  try {
+    const supabase = getSupabase();
+    const { bracket_id } = req.params;
+    const { data: b, error } = await supabase
+      .from('brackets')
+      .select('id, title, discipline, modele, max_participants, createur_id, appel_deadline, status, created_at')
+      .eq('id', bracket_id).single();
+    if (error) throw error;
+    const [{ data: sujets }, { data: parts }] = await Promise.all([
+      supabase.from('bracket_round_sujets').select('round_number, libelle, track_id').eq('bracket_id', bracket_id).order('round_number', { ascending: true }),
+      supabase.from('bracket_participants').select('reponse_appel').eq('bracket_id', bracket_id),
+    ]);
+    const trackIds = [...new Set((sujets || []).map((s: any) => s.track_id).filter(Boolean))];
+    let trackById: Record<string, any> = {};
+    if (trackIds.length) {
+      const { data: mus } = await supabase.from('musiques').select('id, titre, artiste').in('id', trackIds);
+      trackById = Object.fromEntries((mus || []).map((t: any) => [t.id, t]));
+    }
+    let createur_nom: string | null = null;
+    if (b.createur_id) {
+      const { data: u } = await supabase.from('users').select('name').eq('id', b.createur_id).maybeSingle();
+      createur_nom = u?.name ?? null;
+    }
+    const bp = parts || [];
+    res.json({ success: true, data: {
+      id: b.id, title: b.title, discipline: b.discipline, modele: b.modele,
+      max_participants: b.max_participants, appel_deadline: b.appel_deadline, status: b.status,
+      createur_nom, createur_pays: null,
+      acceptes: bp.filter((p: any) => p.reponse_appel === 'accepte').length,
+      en_revision: bp.filter((p: any) => p.reponse_appel === 'revision').length,
+      en_attente: bp.filter((p: any) => p.reponse_appel === 'en_attente').length,
+      etapes: (sujets || []).map((s: any) => { const t = s.track_id ? trackById[s.track_id] : null; return { round_number: s.round_number, libelle: s.libelle, track_titre: t?.titre ?? null, track_artiste: t?.artiste ?? null }; }),
+    }});
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 bracketRouter.get('/:bracket_id', async (req: Request, res: Response) => {
   try {
     const { data, error } = await getSupabase()
