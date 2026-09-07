@@ -9,6 +9,44 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
 function fmt(n: number) { return n.toLocaleString('fr-FR'); }
 
+// ── Logos opérateurs — mêmes icônes que la page RECHARGE ─────────────────────
+const OP_LOGOS: Record<string, JSX.Element> = {
+  mtn: (
+    <svg width="40" height="40" viewBox="0 0 44 44" fill="none">
+      <circle cx="22" cy="22" r="22" fill="#FFCC00"/>
+      <text x="22" y="19" textAnchor="middle" fill="#00008B" fontSize="11" fontWeight="900" fontFamily="Arial,sans-serif">MTN</text>
+      <text x="22" y="30" textAnchor="middle" fill="#00008B" fontSize="8" fontWeight="700" fontFamily="Arial,sans-serif">MoMo</text>
+    </svg>
+  ),
+  moov: (
+    <svg width="40" height="40" viewBox="0 0 44 44" fill="none">
+      <rect width="44" height="44" rx="10" fill="#0693E3"/>
+      <text x="22" y="20" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="900" fontFamily="Arial,sans-serif">moov</text>
+      <text x="22" y="31" textAnchor="middle" fill="#FFD700" fontSize="7.5" fontWeight="700" fontFamily="Arial,sans-serif">MONEY</text>
+    </svg>
+  ),
+  celtiis: (
+    <svg width="40" height="40" viewBox="0 0 44 44" fill="none">
+      <rect width="44" height="44" rx="10" fill="#E2001A"/>
+      <text x="22" y="20" textAnchor="middle" fill="#fff" fontSize="10.5" fontWeight="900" fontFamily="Arial,sans-serif">celtiis</text>
+      <text x="22" y="31" textAnchor="middle" fill="#FFD700" fontSize="7.5" fontWeight="700" fontFamily="Arial,sans-serif">CASH</text>
+    </svg>
+  ),
+};
+
+// Icône de repli pour les opérateurs sans logo dédié (autres pays) :
+// pastille à la couleur de marque avec l'initiale du nom.
+function opLogo(id: string, b: { label: string; bg: string; fg: string }): JSX.Element {
+  if (OP_LOGOS[id]) return OP_LOGOS[id];
+  const short = b.label.replace(/\s*(Money|Cash|Pesa|Mpamba|MoMo)\s*/gi, '').trim().slice(0, 7) || b.label.slice(0, 7);
+  return (
+    <svg width="40" height="40" viewBox="0 0 44 44" fill="none">
+      <rect width="44" height="44" rx="10" fill={b.bg}/>
+      <text x="22" y="26" textAnchor="middle" fill={b.fg} fontSize={short.length > 5 ? 8 : 10} fontWeight="900" fontFamily="Arial,sans-serif">{short}</text>
+    </svg>
+  );
+}
+
 export default function RetraitPage() {
   const router = useRouter();
   const [initialBalance, setInitialBalance]   = useState(0);
@@ -179,8 +217,9 @@ export default function RetraitPage() {
               const selected = method === id;
               return (
                 <div key={id} onClick={() => { setMethod(id); setConfirmed(false); }}
-                  style={{ background:b.bg, border:`2px solid ${selected?'var(--ink)':'transparent'}`, borderRadius:14, padding:'14px 6px', textAlign:'center' as const, cursor:'pointer', transition:'all .2s', boxShadow: selected?'0 0 0 1px var(--ink-dim)':'none', minHeight:56, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <div style={{ fontSize:12, fontWeight:800, color:b.fg, lineHeight:1.2 }}>{b.label}</div>
+                  style={{ background: selected ? 'rgba(255,170,0,0.10)' : 'var(--surface)', border:`1px solid ${selected ? 'var(--or)' : 'var(--line)'}`, borderRadius:14, padding:'14px 8px', textAlign:'center' as const, cursor:'pointer', transition:'all .2s', display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
+                  {opLogo(id, b)}
+                  <div style={{ fontSize:11, fontWeight:700, color: selected ? 'var(--or)' : 'var(--ink-soft)', lineHeight:1.2 }}>{b.label}</div>
                 </div>
               );
             })}
