@@ -9,9 +9,11 @@ import { COUNTRIES, BRANDS } from '../retrait/operators'; /*DKDK_RECHARGE_MULTIP
 // ✅ Étoile rouge — identique au logo
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
 
-// Pays où la recharge est ouverte : Bénin (FedaPay) + marchés PawaPay en FCFA
-// (même règle 100 F = 1 unité). Les monnaies non-FCFA seront ajoutées plus tard.
-const RECHARGE_COUNTRIES = COUNTRIES.filter(c => ['BJ', 'CM', 'CG', 'GA'].includes(c.iso));
+// Pays où la recharge est ouverte : TOUS les pays en FCFA (même règle 100 F = 1 unité).
+//  · XOF (Afrique de l'Ouest) → FedaPay : Bénin, Côte d'Ivoire, Togo, Burkina, Sénégal, Niger
+//  · XAF (Afrique centrale)   → PawaPay : Cameroun, Congo, Gabon
+// Les pays à autre monnaie (Kenya, Zambie…) seront ajoutés quand leur tarif sera fixé.
+const RECHARGE_COUNTRIES = COUNTRIES.filter(c => c.currency === 'XOF' || c.currency === 'XAF');
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
