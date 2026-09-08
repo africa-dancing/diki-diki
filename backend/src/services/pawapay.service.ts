@@ -72,3 +72,38 @@ export async function pawapayStatus(payoutId: string) {
   const res = await axios.get(`${PAWAPAY_BASE}/v2/payouts/${payoutId}`, { headers: _headers() });
   return res.data;
 }
+
+// ─── DÉPÔTS (collection / recharge) — PawaPay API v2 ─────────────────────────
+// Doc : POST /v2/deposits, GET /v2/deposits/{id}. Déclenche un push Mobile Money
+// (STK) sur le téléphone du payeur ; aucune redirection navigateur.
+// Réponse v2 : { depositId, status: 'ACCEPTED'|'REJECTED'|'DUPLICATE_IGNORED', created }.
+export async function pawapayDeposit(params: {
+  amount:   number;
+  currency: string;
+  phone:    string;
+  provider: string;
+  customerMessage?: string;
+}) {
+  const depositId = crypto.randomUUID();
+  const body: any = {
+    depositId,
+    amount:   String(params.amount),
+    currency: params.currency,
+    payer: {
+      type: 'MMO',
+      accountDetails: {
+        phoneNumber: sanitizeMsisdn(params.phone),
+        provider:    params.provider,
+      },
+    },
+  };
+  if (params.customerMessage) body.customerMessage = params.customerMessage.slice(0, 22); // PawaPay limite ~22 car.
+  const res = await axios.post(`${PAWAPAY_BASE}/v2/deposits`, body, { headers: _headers() });
+  return { depositId, status: res.data?.status, raw: res.data };
+}
+
+// Statut réel d'un dépôt (source de vérité). status: COMPLETED | FAILED | PROCESSING | ...
+export async function pawapayDepositStatus(depositId: string) {
+  const res = await axios.get(`${PAWAPAY_BASE}/v2/deposits/${depositId}`, { headers: _headers() });
+  return res.data;
+}

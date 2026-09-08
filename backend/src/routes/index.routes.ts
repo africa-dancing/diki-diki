@@ -31,6 +31,8 @@ paymentRouter.post('/withdraw', requireAuth, requireVerified, paymentCtrl.withdr
 paymentRouter.post('/webhook',  paymentCtrl.webhook);
 paymentRouter.post('/pawapay-callback', paymentCtrl.pawapayCallback); /*DKDK_PAWAPAY_CALLBACK*/
 paymentRouter.post('/pawapay-test', requireAuth, requireAdmin, paymentCtrl.pawapayTest); /*DKDK_PAWAPAY_TEST (admin, sandbox)*/
+paymentRouter.post('/pawapay-deposit-test', requireAuth, requireAdmin, paymentCtrl.pawapayDepositTest); /*DKDK_PAWAPAY_DEPOSIT_TEST (admin, sandbox)*/
+paymentRouter.get('/pawapay-deposit-test/:depositId', requireAuth, requireAdmin, paymentCtrl.pawapayDepositTestStatus); /*DKDK_PAWAPAY_DEPOSIT_STATUS (admin, sandbox)*/
 export { paymentRouter };
 
 // ─── Wallet ──────────────────────────────────────────────────

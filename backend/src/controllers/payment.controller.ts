@@ -1,7 +1,7 @@
 import * as _dkdkCrypto from 'crypto'; /*DKDK_SIG_OBSERVE*/
 import { Request, Response } from 'express';
 import { initiatePayment, verifyPayment, withdrawPayment, paymentProvider, retraitRule, retraitFee } from '../services/payment.service';
-import { pawaProvider, pawapayPayout, pawapayStatus } from '../services/pawapay.service';
+import { pawaProvider, pawapayPayout, pawapayStatus, pawapayDeposit, pawapayDepositStatus } from '../services/pawapay.service';
 import { supabase } from '../../config/supabase';
 
 const MIN_RETRAIT = 500; /*DKDK_MIN_RETRAIT_500*/
@@ -525,5 +525,44 @@ export async function pawapayTest(req: Request, res: Response) {
       status: e?.response?.status,
       detail: e?.response?.data || e?.message,
     });
+  }
+}
+
+// ─── TEST sandbox PawaPay — DÉPÔT / recharge (ADMIN) ─────────────────────────
+// Déclenche un dépôt (collection) de test en sandbox, SANS créditer aucun wallet.
+// Sert uniquement à valider l'intégration de la recharge PawaPay avant le LIVE.
+export async function pawapayDepositTest(req: Request, res: Response) {
+  try {
+    const { amount, country, operator, phone } = req.body || {};
+    const iso = String(country || '').toUpperCase();
+    const _prov = pawaProvider(iso, operator);
+    if (!_prov) return res.status(400).json({ error: 'BAD_PROVIDER', message: 'country/operator invalides pour PawaPay' });
+    const _rule = retraitRule(iso);
+    const r = await pawapayDeposit({
+      amount:   Number(amount) || 100,
+      currency: _rule.currency,
+      phone:    String(phone || ''),
+      provider: _prov,
+      customerMessage: 'Diki-Diki test',
+    });
+    return res.status(200).json({ ok: true, provider: _prov, currency: _rule.currency, ...r });
+  } catch (e: any) {
+    return res.status(500).json({
+      error:  'PAWA_DEPOSIT_TEST_FAILED',
+      status: e?.response?.status,
+      detail: e?.response?.data || e?.message,
+    });
+  }
+}
+
+// Statut d'un dépôt de test (ADMIN) — pour vérifier COMPLETED/FAILED en sandbox.
+export async function pawapayDepositTestStatus(req: Request, res: Response) {
+  try {
+    const id = String(req.params.depositId || '');
+    if (!id) return res.status(400).json({ error: 'NO_ID' });
+    const data = await pawapayDepositStatus(id);
+    return res.status(200).json({ ok: true, data });
+  } catch (e: any) {
+    return res.status(500).json({ error: 'PAWA_DEPOSIT_STATUS_FAILED', status: e?.response?.status, detail: e?.response?.data || e?.message });
   }
 }
