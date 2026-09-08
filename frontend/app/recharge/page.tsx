@@ -4,9 +4,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LogoDikiDiki from '../components/LogoDikiDiki';
 import { useAnalytics } from '../hooks/useAnalytics'; /*DKDK_HEARTBEAT*/
+import { COUNTRIES, BRANDS } from '../retrait/operators'; /*DKDK_RECHARGE_MULTIPAYS*/
 
 // ✅ Étoile rouge — identique au logo
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
+
+// Pays où la recharge est ouverte : Bénin (FedaPay) + marchés PawaPay en FCFA
+// (même règle 100 F = 1 unité). Les monnaies non-FCFA seront ajoutées plus tard.
+const RECHARGE_COUNTRIES = COUNTRIES.filter(c => ['BJ', 'CM', 'CG', 'GA'].includes(c.iso));
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
@@ -77,6 +82,13 @@ export default function RechargePage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error,   setError]   = useState('');
+  /*DKDK_RECHARGE_PAYS*/
+  const [countryIso, setCountryIso] = useState('BJ');
+  const [pawaWait,   setPawaWait]   = useState(false); // écran « Confirme sur ton téléphone »
+  const country = COUNTRIES.find(c => c.iso === countryIso) || COUNTRIES[0];
+  const isPawa  = country.provider === 'pawapay';
+  // Opérateurs proposés selon le pays (Bénin garde ses logos, les autres viennent de BRANDS).
+  const payOperators: string[] = isPawa ? country.operators : ['mtn', 'moov', 'celtiis'];
 
   /*DKDK_VERIF_NUM*/
   // Le SMS de verification coute 17 F. Il ne part donc PAS a
@@ -180,7 +192,7 @@ export default function RechargePage() {
       const res = await fetch(`${API}/payments/initiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ amount, method, operator: method, phone: phone.trim() }), /*DKDK_OPERATOR_FIELD*/
+        body: JSON.stringify({ amount, method, operator: method, phone: phone.trim(), country: countryIso }), /*DKDK_OPERATOR_FIELD DKDK_RECHARGE_PAYS*/
       });
       const data = await res.json();
       /*DKDK_VERIF_NUM*/
@@ -207,14 +219,43 @@ export default function RechargePage() {
       }
       /*DKDK_CLEAR_VOTE_CTX*/ // Une recharge n'est pas un vote : on purge tout contexte de retour de vote pour eviter un mauvais libelle au callback.
       try { localStorage.removeItem('dkdk_pending_return'); } catch {}
+      // FedaPay (Bénin) : redirection vers le checkout hébergé.
       if (data.paymentUrl || data.payment_url) { window.location.href = (data.paymentUrl || data.payment_url); return; } /*DKDK_PAYMENT_URL*/
-      /*DKDK_NO_FAKE_SUCCESS*/
-      // Le backend renvoie TOUJOURS paymentUrl en cas de succes (redirection ci-dessus).
-      // Arriver ici signifie donc une anomalie : surtout ne pas annoncer un succes.
+      // PawaPay : pas de redirection — l'utilisateur confirme le paiement sur son téléphone.
+      // On sonde le solde : le callback crédite le compte dès que le paiement est confirmé.
+      if (data.provider === 'pawapay' || data.depositId) { /*DKDK_PAWAPAY_WAIT*/
+        const before = initialBalance;
+        setPawaWait(true);
+        let tries = 0;
+        const poll = setInterval(async () => {
+          tries++;
+          try {
+            const rb = await fetch(`${API}/users/balance`, { headers: { Authorization: `Bearer ${getToken()}` } });
+            const db = rb.ok ? await rb.json() : null;
+            const bal = (db && typeof db.balance === 'number') ? db.balance : before;
+            if (bal > before) { clearInterval(poll); setInitialBalance(bal); setPawaWait(false); setSuccess(true); }
+          } catch {}
+          if (tries >= 24) clearInterval(poll); // ~1,5 min de sondage
+        }, 4000);
+        return;
+      }
       throw new Error('Reponse inattendue du serveur. Aucun montant n a ete debite.');
     } catch (e: any) { setError(e.message); }
     finally { setLoading(false); }
   };
+
+  /* ── Écran d'attente PawaPay : « Confirme sur ton téléphone » ── */
+  if (pawaWait) return (
+    <div style={{ minHeight:'100vh', background:'var(--bg)', color:'var(--ink)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:16, padding:'0 24px', textAlign:'center', fontFamily:'DM Sans, sans-serif' }}>
+      <div style={{ fontSize:56 }}>📲</div>
+      <div style={{ fontFamily:'Syne, sans-serif', fontSize:22, fontWeight:800 }}>Confirme sur ton téléphone</div>
+      <div style={{ fontSize:14, color:'var(--ink-soft)', maxWidth:'42ch', lineHeight:1.6 }}>
+        Une demande de paiement Mobile Money de <strong style={{ color:'var(--ink)' }}>{fmt(amount)} F CFA</strong> vient d'être envoyée sur ton téléphone ({country.flag} {country.name}). Valide-la avec ton code Mobile Money — ton compte sera crédité automatiquement dès la confirmation.
+      </div>
+      <div style={{ fontSize:12.5, color:'var(--ink-dim)' }}>⏳ En attente de la confirmation…</div>
+      <button onClick={() => setPawaWait(false)} style={{ marginTop:8, background:'transparent', border:'1px solid var(--line-strong)', borderRadius:50, padding:'10px 20px', color:'var(--ink-soft)', cursor:'pointer', fontFamily:'DM Sans, sans-serif' }}>Fermer</button>
+    </div>
+  );
 
   /* ── Écran succès ── */
   if (success) return (
@@ -357,15 +398,39 @@ export default function RechargePage() {
 
         
 
+        {/* ── Pays ── */}
+        <div style={sectionTitle}>Pays de paiement</div>
+        <select
+          value={countryIso}
+          onChange={e => {
+            const iso = e.target.value;
+            setCountryIso(iso);
+            const c = COUNTRIES.find(x => x.iso === iso);
+            const ops = (c && c.provider === 'pawapay') ? c.operators : ['mtn', 'moov', 'celtiis'];
+            setMethod(ops[0] || 'mtn');
+            setError('');
+          }}
+          style={{ ...phoneInput, marginBottom: 20, appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer' }}
+        >
+          {RECHARGE_COUNTRIES.map(c => (
+            <option key={c.iso} value={c.iso} style={{ background: 'var(--bg-soft)', color: 'var(--ink)' }}>
+              {c.flag} {c.name}
+            </option>
+          ))}
+        </select>
+
         {/* ── Mode de paiement ── */}
         <div style={sectionTitle}>Mode de paiement</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 20 }}>
-          {METHODS.filter(m => m.id !== 'card').map(m => { /*DKDK_HIDE_CARD*/
-            const isSel = method === m.id;
+          {payOperators.map(id => {
+            const isSel = method === id;
+            const meth = METHODS.find(m => m.id === id); // logo dédié (Bénin : mtn/moov/celtiis)
+            const b = BRANDS[id];
+            const label = meth?.label || b?.label || id;
             return (
               <div
-                key={m.id}
-                onClick={() => setMethod(m.id)}
+                key={id}
+                onClick={() => setMethod(id)}
                 style={{
                   background: isSel ? 'rgba(255,170,0,0.08)' : 'var(--surface)',
                   border: `1px solid ${isSel ? 'var(--or)' : 'var(--line)'}`,
@@ -375,9 +440,13 @@ export default function RechargePage() {
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                 }}
               >
-                {m.logo}
+                {meth?.logo || (
+                  <div style={{ width: 42, height: 42, borderRadius: 10, background: b?.bg || 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: b?.fg || 'var(--ink)', fontWeight: 800, fontSize: 11 }}>
+                    {(b?.label || id).slice(0, 3).toUpperCase()}
+                  </div>
+                )}
                 <div style={{ fontSize: 11, fontWeight: 600, color: isSel ? 'var(--or)' : 'var(--ink-soft)' }}>
-                  {m.label}
+                  {label}
                 </div>
               </div>
             );
@@ -388,11 +457,11 @@ export default function RechargePage() {
         {method !== 'card' ? (
           <div style={{ marginBottom: 24 }}>
             <div style={sectionTitle}>
-              Numéro {METHODS.find(x => x.id === method)?.label ?? 'Mobile Money'}
+              Numéro {METHODS.find(x => x.id === method)?.label || BRANDS[method]?.label || 'Mobile Money'}
             </div>
             <input
               type="tel"
-              placeholder="+229 01 XX XX XX XX"
+              placeholder={`${country.prefix} …`}
               value={phone}
               onChange={e => setPhone(e.target.value)}
               style={phoneInput}
