@@ -41,6 +41,27 @@ export async function initiate(req: Request, res: Response) {
 
     var _names = splitName(user?.name);
 
+    // ── Routage prestataire : PawaPay pour les marchés non-FedaPay ──────────
+    // Si le front envoie un pays PawaPay, on crée un DÉPÔT (push Mobile Money)
+    // au lieu du checkout FedaPay. Pas d'URL : l'utilisateur confirme sur son tel.
+    const _country = String(req.body.country || '').toUpperCase();
+    if (_country && paymentProvider(_country) === 'pawapay') {
+      const _prov = pawaProvider(_country, operator);
+      if (!_prov) return res.status(400).json({ error: 'BAD_PROVIDER', message: 'Opérateur non pris en charge pour ce pays.' });
+      const _rule = retraitRule(_country);
+      const dep = await pawapayDeposit({
+        amount, currency: _rule.currency, phone, provider: _prov,
+        customerMessage: 'Diki-Diki recharge',
+      });
+      const { error: _ppErr } = await supabase.from('transactions').insert({
+        user_id: userId, type: 'credit', amount, net_amount: amount,
+        phone, operator, ref: dep.depositId, status: 'pending',
+        provider: 'pawapay', currency: _rule.currency,
+      });
+      if (_ppErr) return res.status(500).json({ error: 'TX_INSERT_FAILED', detail: _ppErr.message });
+      return res.status(200).json({ success: true, provider: 'pawapay', depositId: dep.depositId, status: dep.status });
+    }
+
     const result = await initiatePayment({
       amount,
       phone,
@@ -466,6 +487,36 @@ export async function withdraw(req: Request, res: Response) {
 export async function pawapayCallback(req: Request, res: Response) {
   try {
     const _b: any = req.body || {};
+
+    // ── Callback de DÉPÔT (recharge) : on crédite le wallet sur COMPLETED ────
+    const _depositId = String(_b.depositId || _b.deposit_id || '');
+    if (_depositId) {
+      let _dstatus = String(_b.status || '').toUpperCase();
+      try { const s = await pawapayDepositStatus(_depositId); if (s && s.status) _dstatus = String(s.status).toUpperCase(); } catch (_e) { /* fallback sur le corps */ }
+
+      let _dnew: string | null = null;
+      if (_dstatus === 'COMPLETED') _dnew = 'success';
+      else if (_dstatus === 'FAILED' || _dstatus === 'REJECTED' || _dstatus === 'CANCELLED') _dnew = 'failed';
+
+      if (_dnew) {
+        console.log('[PAWAPAY_DEPOSIT_CB] depositId=' + _depositId + ' | statut=' + _dstatus + ' -> ' + _dnew);
+        const { data: _dtx } = await supabase
+          .from('transactions')
+          .select('id, user_id, amount, status')
+          .eq('ref', _depositId)
+          .maybeSingle();
+        if (_dtx && _dtx.status !== 'success' && _dtx.status !== 'failed') {
+          if (_dnew === 'success') {
+            await supabase.rpc('credit_wallet', { p_user_id: _dtx.user_id, p_amount: _dtx.amount });
+          }
+          await supabase.from('transactions').update({ status: _dnew }).eq('id', _dtx.id);
+        }
+      } else {
+        console.log('[PAWAPAY_DEPOSIT_CB] depositId=' + _depositId + ' | statut=' + _dstatus + ' (non terminal, ignore)');
+      }
+      return res.status(200).json({ received: true });
+    }
+
     const _payoutId = String(_b.payoutId || _b.payout_id || '');
     if (!_payoutId) return res.status(200).json({ received: true });
 
