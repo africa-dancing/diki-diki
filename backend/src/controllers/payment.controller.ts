@@ -502,12 +502,18 @@ export async function pawapayCallback(req: Request, res: Response) {
         console.log('[PAWAPAY_DEPOSIT_CB] depositId=' + _depositId + ' | statut=' + _dstatus + ' -> ' + _dnew);
         const { data: _dtx } = await supabase
           .from('transactions')
-          .select('id, user_id, amount, status')
+          .select('id, user_id, amount, currency, status')
           .eq('ref', _depositId)
           .maybeSingle();
         if (_dtx && _dtx.status !== 'success' && _dtx.status !== 'failed') {
           if (_dnew === 'success') {
-            await supabase.rpc('credit_wallet', { p_user_id: _dtx.user_id, p_amount: _dtx.amount });
+            // Le wallet est en F CFA. On convertit le montant payé (monnaie locale)
+            // en nombre de votes via le prix local d'une unité, puis en F CFA (1 unité = 100 F).
+            const _unitPrice: Record<string, number> = { XOF: 100, XAF: 100, CDF: 500 };
+            const _up    = _unitPrice[String(_dtx.currency || 'XOF').toUpperCase()] || 100;
+            const _units = Math.floor((_dtx.amount || 0) / _up);
+            const _fcfa  = _units * 100;
+            await supabase.rpc('credit_wallet', { p_user_id: _dtx.user_id, p_amount: _fcfa });
           }
           await supabase.from('transactions').update({ status: _dnew }).eq('id', _dtx.id);
         }

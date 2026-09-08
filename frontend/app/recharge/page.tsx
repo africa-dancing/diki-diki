@@ -9,11 +9,16 @@ import { COUNTRIES, BRANDS } from '../retrait/operators'; /*DKDK_RECHARGE_MULTIP
 // ✅ Étoile rouge — identique au logo
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
 
-// Pays où la recharge est ouverte : TOUS les pays en FCFA (même règle 100 F = 1 unité).
-//  · XOF (Afrique de l'Ouest) → FedaPay : Bénin, Côte d'Ivoire, Togo, Burkina, Sénégal, Niger
-//  · XAF (Afrique centrale)   → PawaPay : Cameroun, Congo, Gabon
-// Les pays à autre monnaie (Kenya, Zambie…) seront ajoutés quand leur tarif sera fixé.
-const RECHARGE_COUNTRIES = COUNTRIES.filter(c => c.currency === 'XOF' || c.currency === 'XAF');
+// Prix d'UNE unité (1 vote) par monnaie. Pour ouvrir un nouveau pays, il suffit
+// d'ajouter le prix de sa monnaie ici.
+//  · XOF / XAF (FCFA) = 100  (règle historique 100 F = 1 unité)
+//  · CDF (franc congolais, RDC) = 500  (fixé avec Ifèdé le 08/09/2026)
+const UNIT_PRICE: Record<string, number> = { XOF: 100, XAF: 100, CDF: 500 };
+
+// Pays où la recharge est ouverte = ceux dont la monnaie a un prix défini ci-dessus.
+//  XOF → FedaPay (Bénin, Côte d'Ivoire, Togo, Burkina, Sénégal, Niger)
+//  XAF → PawaPay (Cameroun, Congo, Gabon) · CDF → PawaPay (RD Congo)
+const RECHARGE_COUNTRIES = COUNTRIES.filter(c => UNIT_PRICE[c.currency] !== undefined);
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
@@ -91,6 +96,10 @@ export default function RechargePage() {
   const isPawa  = country.provider === 'pawapay';
   // Opérateurs proposés selon le pays (Bénin garde ses logos, les autres viennent de BRANDS).
   const payOperators: string[] = isPawa ? country.operators : ['mtn', 'moov', 'celtiis'];
+  // Prix d'un vote + libellé de la monnaie + montant minimum, selon le pays choisi.
+  const unitValueEff = UNIT_PRICE[country.currency] ?? unitValue; // ex. 100 (FCFA) ou 500 (CDF)
+  const curLabel     = country.currency === 'CDF' ? 'FC' : 'F CFA';
+  const minEff       = Math.max(minRecharge, unitValueEff); // au moins le prix d'1 vote
 
   /*DKDK_VERIF_NUM*/
   // Le SMS de verification coute 17 F. Il ne part donc PAS a
@@ -133,7 +142,7 @@ export default function RechargePage() {
   }, [router]);
 
   const amount = customAmount ? parseInt(customAmount.replace(/\D/g, '')) || 0 : selectedAmount;
-  /*DKDK_UNIT_CALC*/ const units  = Math.floor(amount / unitValue);
+  /*DKDK_UNIT_CALC*/ const units  = Math.floor(amount / unitValueEff);
 
   /*DKDK_VERIF_NUM*/
   // Envoie le SMS de verification. C est le SEUL endroit de toute la
@@ -187,7 +196,7 @@ export default function RechargePage() {
   };
 
   const handleRecharge = async () => {
-    if (!amount || amount < minRecharge) { setError('Montant minimum : ${minRecharge} F CFA.'); return; }
+    if (!amount || amount < minEff) { setError(`Montant minimum : ${fmt(minEff)} ${curLabel}.`); return; }
     if (method !== 'card' && !phone.trim()) { setError('Numéro de téléphone requis.'); return; }
     setLoading(true); setError('');
     try {
@@ -252,7 +261,7 @@ export default function RechargePage() {
       <div style={{ fontSize:56 }}>📲</div>
       <div style={{ fontFamily:'Syne, sans-serif', fontSize:22, fontWeight:800 }}>Confirme sur ton téléphone</div>
       <div style={{ fontSize:14, color:'var(--ink-soft)', maxWidth:'42ch', lineHeight:1.6 }}>
-        Une demande de paiement Mobile Money de <strong style={{ color:'var(--ink)' }}>{fmt(amount)} F CFA</strong> vient d'être envoyée sur ton téléphone ({country.flag} {country.name}). Valide-la avec ton code Mobile Money — ton compte sera crédité automatiquement dès la confirmation.
+        Une demande de paiement Mobile Money de <strong style={{ color:'var(--ink)' }}>{fmt(amount)} {curLabel}</strong> vient d'être envoyée sur ton téléphone ({country.flag} {country.name}). Valide-la avec ton code Mobile Money — ton compte sera crédité automatiquement dès la confirmation.
       </div>
       <div style={{ fontSize:12.5, color:'var(--ink-dim)' }}>⏳ En attente de la confirmation…</div>
       <button onClick={() => setPawaWait(false)} style={{ marginTop:8, background:'transparent', border:'1px solid var(--line-strong)', borderRadius:50, padding:'10px 20px', color:'var(--ink-soft)', cursor:'pointer', fontFamily:'DM Sans, sans-serif' }}>Fermer</button>
@@ -265,7 +274,7 @@ export default function RechargePage() {
       <div style={{ fontSize: 60 }}>✅</div>
       <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 24, fontWeight: 800, color: '#4ade80' }}>Rechargement réussi !</div>
       <div style={{ fontSize: 14, color: 'var(--ink-soft)', textAlign: 'center' }}>
-        {fmt(amount)} F CFA → +{fmt(units)} unités sur Compte Voter & Soutenir
+        {fmt(amount)} {curLabel} → +{fmt(units)} unités sur Compte Voter & Soutenir
       </div>
       <button
         onClick={() => router.push(retourUrl || '/compte')}
@@ -343,7 +352,7 @@ export default function RechargePage() {
         {/* ── Info unités ── */}
         <div style={{ background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.18)', borderRadius: 12, padding: '11px 14px', fontSize: 12, color: 'var(--or)', fontWeight: 600, marginBottom: 28, display: 'flex', alignItems: 'center', gap: 8, lineHeight: 1.5 }}>
           <span style={{ flexShrink: 0 }}>💡</span>
-          <span><strong>{`1 unité = ${unitValue} F CFA`}</strong> — chaque unité devient <StarRed /> étoile (voter) ou ❤️ cœur (liker) selon ton choix</span>
+          <span><strong>{`1 unité = ${unitValueEff} ${curLabel}`}</strong> — chaque unité devient <StarRed /> étoile (voter) ou ❤️ cœur (liker) selon ton choix</span>
         </div>
 
         {/* ── Montants ── */}
@@ -364,10 +373,10 @@ export default function RechargePage() {
                 }}
               >
                 <div style={{ fontSize: 13, fontWeight: 700, color: isSel ? 'var(--or)' : 'var(--ink-soft)' }}>
-                  {fmt(a)} F
+                  {fmt(a)} {curLabel}
                 </div>
                 <div style={{ fontSize: 10, color: isSel ? 'var(--or)' : 'var(--ink-dim)', marginTop: 2 }}>
-                  {fmt(Math.floor(a / unitValue))} unités
+                  {fmt(Math.floor(a / unitValueEff))} unités
                 </div>
               </button>
             );
@@ -376,7 +385,7 @@ export default function RechargePage() {
         {/*DKDK_CUSTOM_AMOUNT*/}
         <input
           inputMode="numeric"
-          placeholder={`Autre montant (${fmt(minRecharge)} – 1 000 000 F, multiples de 100)`}
+          placeholder={`Autre montant (${fmt(minEff)} – 1 000 000 ${curLabel}, multiples de 100)`}
           value={customAmount}
           onChange={e => setCustomAmount(e.target.value.replace(/\D/g, ""))}
           onBlur={() => {
@@ -384,7 +393,7 @@ export default function RechargePage() {
             let v = parseInt(customAmount.replace(/\D/g, "")) || 0;
             if (v > 1000000) v = 1000000;
             v = Math.round(v / 100) * 100;
-            if (v > 0 && v < minRecharge) v = minRecharge;
+            if (v > 0 && v < minEff) v = minEff;
             setCustomAmount(v > 0 ? String(v) : "");
             if (v > 0) setSelectedAmount(0);
           }}
@@ -524,7 +533,7 @@ export default function RechargePage() {
         <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 16px', marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
             <span style={{ color: 'var(--ink-soft)' }}>Montant</span>
-            <span style={{ fontWeight: 700, color: 'var(--ink)' }}>{amount > 0 ? `${fmt(amount)} F CFA` : '—'}</span>
+            <span style={{ fontWeight: 700, color: 'var(--ink)' }}>{amount > 0 ? `${fmt(amount)} ${curLabel}` : '—'}</span>
           </div>
           <div style={{ height: 1, background: 'var(--line)', margin: '10px 0' }} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
@@ -536,21 +545,21 @@ export default function RechargePage() {
         {/* ── CTA ── */}
         <button
           onClick={handleRecharge}
-          disabled={loading || !amount || amount < minRecharge}
+          disabled={loading || !amount || amount < minEff}
           style={{
             width: '100%',
-            background: loading || !amount || amount < minRecharge
+            background: loading || !amount || amount < minEff
               ? 'var(--surface2)'
               : 'linear-gradient(135deg,#FF6B00,#FFD700)',
             border: 'none', borderRadius: 14,
             padding: '16px', fontSize: 15, fontWeight: 800,
-            color: loading || !amount || amount < minRecharge ? 'var(--ink-dim)' : '#000',
-            cursor: loading || !amount || amount < minRecharge ? 'not-allowed' : 'pointer',
+            color: loading || !amount || amount < minEff ? 'var(--ink-dim)' : '#000',
+            cursor: loading || !amount || amount < minEff ? 'not-allowed' : 'pointer',
             fontFamily: 'Syne, sans-serif',
             transition: 'all .2s',
           }}
         >
-          {loading ? '⏳ Traitement en cours…' : amount >= minRecharge ? `⚡ Recharger ${fmt(amount)} F` : '⚡ Recharger'}
+          {loading ? '⏳ Traitement en cours…' : amount >= minEff ? `⚡ Recharger ${fmt(amount)} ${curLabel}` : '⚡ Recharger'}
         </button>
 
         <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--ink-dim)', marginTop: 12 }}>
