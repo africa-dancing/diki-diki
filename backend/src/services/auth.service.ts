@@ -7,12 +7,13 @@ import jwt             from 'jsonwebtoken';
 import bcrypt          from 'bcryptjs';
 import axios           from 'axios';
 import admin           from 'firebase-admin';
+import * as crypto     from 'crypto';
 
 // ─── OTP stocké en mémoire (remplace Redis) ──────────────────
-const otpStore = new Map<string, { otp: string; expiresAt: number }>();
+const otpStore = new Map<string, { otp: string; expiresAt: number; attempts: number }>();
 const redis = {
   setex: async (key: string, ttl: number, value: string) => {
-    otpStore.set(key, { otp: value, expiresAt: Date.now() + ttl * 1000 });
+    otpStore.set(key, { otp: value, expiresAt: Date.now() + ttl * 1000, attempts: 0 });
   },
   get: async <T>(key: string): Promise<T | null> => {
     const entry = otpStore.get(key);
@@ -32,8 +33,20 @@ const JWT_EXPIRES_IN = '7d';
 const OTP_TTL        = 600; // 10 minutes
 
 // ─── Helpers ─────────────────────────────────────────────────
+// SÉCURITÉ (H2) : code à 6 chiffres via générateur cryptographique (pas Math.random).
 function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return String(crypto.randomInt(100000, 1000000));
+}
+
+// SÉCURITÉ (H2) : plafond d'essais par code. Après MAX_OTP_ATTEMPTS essais faux,
+// le code est invalidé (l'utilisateur doit en redemander un). Contre le brute-force du code SMS.
+const MAX_OTP_ATTEMPTS = 5;
+function registerOtpAttempt(key: string): boolean {
+  const e = otpStore.get(key);
+  if (!e) return false;
+  e.attempts = (e.attempts || 0) + 1;
+  if (e.attempts >= MAX_OTP_ATTEMPTS) { otpStore.delete(key); return false; }
+  return true;
 }
 
 async function sendSMSOTP(phone: string, otp: string): Promise<void> {
@@ -148,7 +161,10 @@ export async function registerUser(data: {
 export async function verifyOTP(phone: string, otp: string) {
   const stored = await redis.get<string>(`otp:${phone}`);
   if (!stored) throw new Error('OTP_EXPIRED');
-  if (String(stored) !== String(otp)) throw new Error('OTP_INVALID');
+  if (String(stored) !== String(otp)) {
+    const canRetry = registerOtpAttempt(`otp:${phone}`); // H2 : plafond d'essais
+    throw new Error(canRetry ? 'OTP_INVALID' : 'OTP_LOCKED');
+  }
 
   const { data: user, error } = await supabase
     .from('users')
@@ -295,7 +311,10 @@ export async function oneTapSend(phone: string) {
 export async function oneTapVerify(phone: string, otp: string) {
   const stored = await redis.get<string>(`otp:${phone}`);
   if (!stored) throw new Error('OTP_EXPIRED');
-  if (String(stored) !== String(otp)) throw new Error('OTP_INVALID');
+  if (String(stored) !== String(otp)) {
+    const canRetry = registerOtpAttempt(`otp:${phone}`); // H2 : plafond d'essais
+    throw new Error(canRetry ? 'OTP_INVALID' : 'OTP_LOCKED');
+  }
 
   const { data: user, error } = await supabase
     .from('users')
@@ -352,7 +371,10 @@ export async function attachPhoneVerify(userId: string, otp: string) {
   const stored = await redis.get<string>(`attach:${userId}`);
   if (!stored) throw new Error('OTP_EXPIRED');
   const [phone, code] = String(stored).split('|');
-  if (String(code) !== String(otp)) throw new Error('OTP_INVALID');
+  if (String(code) !== String(otp)) {
+    const canRetry = registerOtpAttempt(`attach:${userId}`); // H2 : plafond d'essais
+    throw new Error(canRetry ? 'OTP_INVALID' : 'OTP_LOCKED');
+  }
 
   const { error } = await supabase
     .from('users')

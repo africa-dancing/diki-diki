@@ -81,9 +81,9 @@ import * as tickerCtrl from '../controllers/ticker.controller';
 
 const tickerRouter = TickerRouter();
 tickerRouter.get('/',       tickerCtrl.getTicker);
-tickerRouter.post('/',      requireAuth, tickerCtrl.addTicker);
-tickerRouter.delete('/:id', requireAuth, tickerCtrl.removeTicker);
-tickerRouter.put('/:id',    requireAuth, tickerCtrl.updateTicker);
+tickerRouter.post('/',      requireAuth, requireAdmin, tickerCtrl.addTicker);   // H5
+tickerRouter.delete('/:id', requireAuth, requireAdmin, tickerCtrl.removeTicker); // H5
+tickerRouter.put('/:id',    requireAuth, requireAdmin, tickerCtrl.updateTicker);  // H5
 export { tickerRouter };
 
 // ─── Stats (Admin) ───────────────────────────────────────────
