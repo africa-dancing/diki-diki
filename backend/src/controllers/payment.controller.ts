@@ -331,14 +331,18 @@ export async function webhook(req: Request, res: Response) { /*DKDK_WEBHOOK_VOTE
           .select('id, user_id, amount, type, metadata, status')
           .eq('ref', String(transaction_id))
           .single();
-        if (tx && tx.status !== 'success') {
-          // Crediter le wallet du montant paye (flux unifie)
-          await supabase.rpc('credit_wallet', {
-            p_user_id: tx.user_id,
-            p_amount:  tx.amount,
+        if (tx && tx.status !== 'success' && tx.status !== 'failed') {
+          // SÉCURITÉ (B5) : crédit du wallet + bascule 'success' en UNE transaction DB
+          // atomique (fonction credit_deposit_once). Si FedaPay renvoie le webhook
+          // plusieurs fois, un seul appel crédite → plus de double-crédit.
+          // FedaPay encaisse en XOF = F CFA (1:1), donc montant crédité = tx.amount.
+          const { data: _cr } = await supabase.rpc('credit_deposit_once', {
+            p_ref:  String(transaction_id),
+            p_fcfa: tx.amount,
           });
-          if (tx.type === 'vote' && tx.metadata) {
-            // Vote paye directement : le RPC va debiter ce credit et enregistrer le vote
+          const _crediteMaintenant = !!_cr && (_cr as any).ok === true && (_cr as any).already !== true;
+          if (_crediteMaintenant && tx.type === 'vote' && tx.metadata) {
+            // On ne vote qu'une fois : seul l'appel qui a réellement crédité déclenche le vote.
             await supabase.rpc('vote_bracket_pool', {
               p_user_id:        tx.user_id,
               p_participant_id: tx.metadata.participant_id,
@@ -347,11 +351,6 @@ export async function webhook(req: Request, res: Response) { /*DKDK_WEBHOOK_VOTE
               p_type:           tx.metadata.p_type,
             });
           }
-          // Marquer la transaction comme reussie
-          await supabase
-            .from('transactions')
-            .update({ status: 'success' })
-            .eq('id', tx.id);
         }
       }
     }
@@ -387,42 +386,28 @@ export async function withdraw(req: Request, res: Response) {
       .eq('id', userId)
       .single();
     if (!user) return res.status(404).json({ error: 'USER_NOT_FOUND' });
-    // 3. Solde retirable calcule depuis transactions (JAMAIS wallets.balance)
-    //    gains reels moins retraits deja engages (pending inclus = anti double-retrait)
-    const { data: gains } = await supabase
-      .from('transactions')
-      .select('amount')
-      .eq('user_id', userId)
-      .in('type', ['bracket_win', 'soutien_gain'])
-      .eq('status', 'success');
-    const { data: retraits } = await supabase
-      .from('transactions')
-      .select('amount')
-      .eq('user_id', userId)
-      .eq('type', 'payout')
-      .in('status', ['pending', 'sent', 'success']);
-    const totalGains = (gains || []).reduce(function (s, t) { return s + (t.amount || 0); }, 0);
-    const totalRetraits = (retraits || []).reduce(function (s, t) { return s + (t.amount || 0); }, 0);
-    const soldeRetirable = totalGains - totalRetraits;
-    if (soldeRetirable < amount) {
+    // 3+4. SÉCURITÉ (B4) : recalcul du solde retirable ET création du payout en UNE
+    // opération atomique, sous verrou par utilisateur (fonction SQL create_payout_if_solvent).
+    // Deux requêtes de retrait simultanées ne peuvent plus passer le contrôle en même
+    // temps → plus de double retrait. Le calcul (gains success − payouts engagés) est
+    // strictement le même qu'avant, juste rendu atomique.
+    const { data: _sol, error: _solErr } = await supabase.rpc('create_payout_if_solvent', {
+      p_user_id:  userId,
+      p_amount:   amount,
+      p_operator: operator,
+      p_phone:    phone,
+    });
+    if (_solErr) {
+      console.error('[WITHDRAW] create_payout_if_solvent a échoué :', _solErr.message);
+      return res.status(500).json({ error: 'WITHDRAW_FAILED' });
+    }
+    if (!_sol || (_sol as any).ok !== true) {
       return res.status(400).json({
         error: 'INSUFFICIENT_BALANCE',
         message: 'Solde retirable insuffisant pour ce retrait',
       });
     }
-    // 4. Enregistrer la transaction payout en attente (on ne touche PAS au wallet)
-    const { data: tx } = await supabase
-      .from('transactions')
-      .insert({
-        user_id: userId,
-        amount,
-        type:    'payout',
-        status:  'pending',
-        operator,
-        phone,
-      })
-      .select()
-      .single();
+    const tx = { id: (_sol as any).tx_id };
     // 5. Lancer le payout selon le prestataire (FedaPay francophone / PawaPay le reste)
     const _provider = paymentProvider(_country);
     const _fee = retraitFee(_country, amount);
@@ -491,32 +476,49 @@ export async function pawapayCallback(req: Request, res: Response) {
     // ── Callback de DÉPÔT (recharge) : on crédite le wallet sur COMPLETED ────
     const _depositId = String(_b.depositId || _b.deposit_id || '');
     if (_depositId) {
-      let _dstatus = String(_b.status || '').toUpperCase();
-      try { const s = await pawapayDepositStatus(_depositId); if (s && s.status) _dstatus = String(s.status).toUpperCase(); } catch (_e) { /* fallback sur le corps */ }
+      // SÉCURITÉ (B5) : on ne fait JAMAIS confiance au statut envoyé dans le corps de la
+      // requête. On exige le vrai statut redemandé à PawaPay. Si la vérification échoue,
+      // on ne crédite RIEN et on laisse PawaPay renvoyer le callback plus tard.
+      let _dstatus = '';
+      try {
+        const s = await pawapayDepositStatus(_depositId);
+        if (s && s.status) _dstatus = String(s.status).toUpperCase();
+      } catch (_e) {
+        console.error('[PAWAPAY_DEPOSIT_CB] verification impossible -> aucun credit | ' + _depositId);
+        return res.status(200).json({ received: true, note: 'verify_failed' });
+      }
+      if (!_dstatus) {
+        return res.status(200).json({ received: true, note: 'no_status' });
+      }
 
-      let _dnew: string | null = null;
-      if (_dstatus === 'COMPLETED') _dnew = 'success';
-      else if (_dstatus === 'FAILED' || _dstatus === 'REJECTED' || _dstatus === 'CANCELLED') _dnew = 'failed';
-
-      if (_dnew) {
-        console.log('[PAWAPAY_DEPOSIT_CB] depositId=' + _depositId + ' | statut=' + _dstatus + ' -> ' + _dnew);
+      if (_dstatus === 'COMPLETED') {
+        // Devises réellement gérées UNIQUEMENT. Toute autre devise -> aucun crédit
+        // (sinon risque de créer de la monnaie). Transaction marquée 'failed' pour revue manuelle.
+        const _unitPrice: Record<string, number> = { XOF: 100, XAF: 100, CDF: 500 };
         const { data: _dtx } = await supabase
           .from('transactions')
           .select('id, user_id, amount, currency, status')
           .eq('ref', _depositId)
           .maybeSingle();
-        if (_dtx && _dtx.status !== 'success' && _dtx.status !== 'failed') {
-          if (_dnew === 'success') {
-            // Le wallet est en F CFA. On convertit le montant payé (monnaie locale)
-            // en nombre de votes via le prix local d'une unité, puis en F CFA (1 unité = 100 F).
-            const _unitPrice: Record<string, number> = { XOF: 100, XAF: 100, CDF: 500 };
-            const _up    = _unitPrice[String(_dtx.currency || 'XOF').toUpperCase()] || 100;
+        if (_dtx) {
+          const _cur = String(_dtx.currency || '').toUpperCase();
+          if (!(_cur in _unitPrice)) {
+            console.error('[PAWAPAY_DEPOSIT_CB] devise non geree -> credit refuse: ' + _cur + ' | ' + _depositId);
+            await supabase.from('transactions').update({ status: 'failed' })
+              .eq('id', _dtx.id).not('status', 'in', '(success,failed)');
+          } else {
+            const _up    = _unitPrice[_cur];
             const _units = Math.floor((_dtx.amount || 0) / _up);
             const _fcfa  = _units * 100;
-            await supabase.rpc('credit_wallet', { p_user_id: _dtx.user_id, p_amount: _fcfa });
+            // Crédit du wallet + bascule 'success' en UNE transaction DB atomique
+            // (fonction credit_deposit_once) → plus de double-crédit sur callback répété.
+            await supabase.rpc('credit_deposit_once', { p_ref: _depositId, p_fcfa: _fcfa });
+            console.log('[PAWAPAY_DEPOSIT_CB] credit ' + _fcfa + ' F CFA | ' + _cur + ' | ' + _depositId);
           }
-          await supabase.from('transactions').update({ status: _dnew }).eq('id', _dtx.id);
         }
+      } else if (_dstatus === 'FAILED' || _dstatus === 'REJECTED' || _dstatus === 'CANCELLED') {
+        await supabase.from('transactions').update({ status: 'failed' })
+          .eq('ref', _depositId).not('status', 'in', '(success,failed)');
       } else {
         console.log('[PAWAPAY_DEPOSIT_CB] depositId=' + _depositId + ' | statut=' + _dstatus + ' (non terminal, ignore)');
       }
@@ -526,12 +528,20 @@ export async function pawapayCallback(req: Request, res: Response) {
     const _payoutId = String(_b.payoutId || _b.payout_id || '');
     if (!_payoutId) return res.status(200).json({ received: true });
 
-    // Statut authentifie : on interroge PawaPay directement (jamais confiance au corps brut).
-    let _status = String(_b.status || '').toUpperCase();
+    // SÉCURITÉ (B5) : jamais confiance au corps de la requête. On exige le vrai statut
+    // redemandé à PawaPay ; si la vérification échoue, on ne change RIEN (un faux
+    // 'FAILED' ne doit pas libérer un solde). PawaPay renverra le callback plus tard.
+    let _status = '';
     try {
       const s = await pawapayStatus(_payoutId);
       if (s && s.status) _status = String(s.status).toUpperCase();
-    } catch (_e) { /* si l'appel echoue, on retombe sur le statut du corps */ }
+    } catch (_e) {
+      console.error('[PAWAPAY_CB] verification impossible -> statut inchange | ' + _payoutId);
+      return res.status(200).json({ received: true, note: 'verify_failed' });
+    }
+    if (!_status) {
+      return res.status(200).json({ received: true, note: 'no_status' });
+    }
 
     let _newStatus: string | null = null;
     if (_status === 'COMPLETED') _newStatus = 'success';
