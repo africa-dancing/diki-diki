@@ -3,7 +3,10 @@ import express   from 'express';
 import cors      from 'cors';
 import helmet    from 'helmet';
 import rateLimit from 'express-rate-limit';
-import educationRouter from './routes/education.routes';
+// SÉCURITÉ (B3) : module éducation débranché pour le lancement (endpoints /v1/education/*
+// non authentifiés = vol possible sans compte). Le code reste dans le dépôt.
+// Pour le réactiver plus tard, une fois sécurisé : décommenter cette ligne ET la ligne app.use('/v1/education', ...) plus bas.
+// import educationRouter from './routes/education.routes';
 
 import {
   authRouter,
@@ -77,7 +80,8 @@ app.use('/v1/monitoring',    monitoringRouter);
 app.use('/v1/sport',         sportRouter);  /*DKDK_SPORT_MOUNT*/  /*DKDK_MONITORING_MOUNT*/
 app.use('/v1/pays-monnaies', paysMonnaiesRouter); /*DKDK_PAYS_MONNAIES_MOUNT*/      
 app.use('/v1/contact',      contactRouter); /*DKDK_CONTACT_MOUNT*/
-app.use('/v1/education',     educationRouter);     // ✅ ici, après app = express()
+// SÉCURITÉ (B3) : porte fermée pour le lancement. Décommenter (ici + l'import en haut) une fois le module sécurisé.
+// app.use('/v1/education',     educationRouter);
 
 // ── Fallback ───────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ error: 'ROUTE_NOT_FOUND' }));
