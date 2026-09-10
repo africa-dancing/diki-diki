@@ -22,7 +22,12 @@ const redis = {
   del: async (key: string) => { otpStore.delete(key); },
 };
 
-const JWT_SECRET     = process.env.JWT_SECRET || 'pac-secret-change-me';
+// SÉCURITÉ (B1) : aucune valeur par défaut. Fail-closed si le secret manque.
+const _jwtSecret     = process.env.JWT_SECRET;
+if (!_jwtSecret) {
+  throw new Error('FATAL: JWT_SECRET est absent des variables d\'environnement. Le serveur refuse de demarrer.');
+}
+const JWT_SECRET: string = _jwtSecret;
 const JWT_EXPIRES_IN = '7d';
 const OTP_TTL        = 600; // 10 minutes
 

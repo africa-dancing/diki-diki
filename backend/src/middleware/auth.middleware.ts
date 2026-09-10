@@ -2,7 +2,14 @@ import { supabase } from '../../config/supabase';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'pac-secret-change-me';
+// SÉCURITÉ (B1) : aucune valeur par défaut. Si JWT_SECRET est absent de
+// l'environnement, le serveur DOIT refuser de démarrer plutôt que de signer
+// et d'accepter des jetons avec un secret public connu (forge d'admin possible).
+const _jwtSecret = process.env.JWT_SECRET;
+if (!_jwtSecret) {
+  throw new Error('FATAL: JWT_SECRET est absent des variables d\'environnement. Le serveur refuse de demarrer.');
+}
+const JWT_SECRET: string = _jwtSecret;
 
 export interface AuthRequest extends Request {
   user?: { userId: string; role: string };

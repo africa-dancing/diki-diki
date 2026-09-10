@@ -42,7 +42,7 @@ export const walletRouter = makeRouter();
 // ─── Users (Admin) ───────────────────────────────────────────
 import { Router as UserRouter } from 'express';
 const userRouter = UserRouter();
-userRouter.get('/', requireAuth, async (req: any, res) => {
+userRouter.get('/', requireAuth, requireAdmin, async (req: any, res) => {
   try {
     const { data, error } = await supabase
       .from('users')
