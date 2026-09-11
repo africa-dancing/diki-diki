@@ -103,7 +103,9 @@ export async function initiateVotePayment(req: Request, res: Response) {
     if (!participant_id || !vote_type || !phone) {
       return res.status(400).json({ error: 'MISSING_FIELDS' });
     }
-    const voteQty = Number.isInteger(qty) && qty >= 1 ? qty : 1;
+    // SÉCURITÉ (H4) : quantité de votes bornée. Sans plafond, un qty énorme
+    // produirait un montant démesuré (200 × qty). On clampe à 1..1000 (jamais d'erreur).
+    const voteQty = Number.isInteger(qty) && qty >= 1 ? Math.min(qty, 1000) : 1;
     if (vote_type !== 'star' && vote_type !== 'heart') {
       return res.status(400).json({ error: 'INVALID_VOTE_TYPE' });
     }

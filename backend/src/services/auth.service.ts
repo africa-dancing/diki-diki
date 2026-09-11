@@ -232,7 +232,8 @@ export async function loginUser(identifier: string, password: string) {
 // ─── SOCIAL AUTH (Google + Facebook) ─────────────────────────
 export async function socialAuth(
   provider: 'google' | 'facebook',
-  token:    string
+  token:    string,
+  accepted?: boolean
 ) {
   let socialId:  string;
   let email:     string;
@@ -265,6 +266,8 @@ export async function socialAuth(
 
   if (!user) {
     isNewUser = true;
+    // SÉCURITÉ (H6) : acceptation des CGU/Règlement exigée à la CRÉATION d'un compte.
+    if (accepted !== true) throw new Error('CGU_NOT_ACCEPTED');
     /*DKDK_SOCIAL_ONETAP_RPC_FIX*/
     const { data: newUser, error } = await supabase
       .rpc('register_user_complete', {
@@ -292,13 +295,16 @@ export async function socialAuth(
 
 // ─── ONE-TAP : Envoyer OTP (compte implicite si nouveau) ────────
 /*DKDK_ONETAP_SEND*/
-export async function oneTapSend(phone: string) {
+export async function oneTapSend(phone: string, accepted?: boolean) {
   // Verifier si l'utilisateur existe
   const { data: existing } = await supabase
     .from('users').select('id, name').eq('phone', phone).maybeSingle();
 
   // Creer un compte implicite si inexistant
   if (!existing) {
+    // SÉCURITÉ (H6) : acceptation des CGU/Règlement exigée à la CRÉATION d'un compte.
+    // Les votants déjà inscrits ne sont pas concernés (aucune création ici).
+    if (accepted !== true) throw new Error('CGU_NOT_ACCEPTED');
     const suffix = Math.floor(1000 + Math.random() * 9000);
     /*DKDK_SOCIAL_ONETAP_RPC_FIX*/
     const { error } = await supabase

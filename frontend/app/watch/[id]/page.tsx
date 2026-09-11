@@ -416,7 +416,7 @@ export default function WatchPage() {
     try {
       const res = await fetch(API + '/auth/one-tap', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: oneTapPhone }),
+        body: JSON.stringify({ phone: oneTapPhone, accepted: true }), /*DKDK_H6_CGU*/
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Erreur');
@@ -938,6 +938,12 @@ export default function WatchPage() {
                   style={{ width:'100%', background:'linear-gradient(135deg,#FFAA00,#FF6B00)', border:'none', borderRadius:50, padding:'10px', fontSize:14, fontWeight:700, color:'#000', cursor:'pointer', fontFamily:'DM Sans, sans-serif', opacity:oneTapLoading ? 0.6 : 1 }}>
                   {oneTapLoading ? '⏳…' : 'Recevoir le code →'}
                 </button>
+                {/*DKDK_H6_CGU*/}
+                <p style={{ fontSize:11, color:'rgba(255,255,255,0.4)', textAlign:'center', marginTop:10, lineHeight:1.5 }}>
+                  En continuant, vous acceptez les{' '}
+                  <a href="/cgu" target="_blank" style={{ color:'#FFAA00', textDecoration:'underline' }}>CGU</a> et le{' '}
+                  <a href="/cgu" target="_blank" style={{ color:'#FFAA00', textDecoration:'underline' }}>Règlement</a>.
+                </p>
               </>
             ) : oneTapStep === 'otp' ? (
               <>

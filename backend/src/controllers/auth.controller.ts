@@ -75,7 +75,8 @@ export async function login(req: Request, res: Response) {
 export async function socialAuth(req: Request, res: Response) {
   try {
     const { provider, token } = socialSchema.parse(req.body);
-    const result              = await authService.socialAuth(provider, token);
+    const accepted            = req.body?.accepted === true; // H6
+    const result              = await authService.socialAuth(provider, token, accepted);
     res.json(result);
   } catch (err: any) {
     if (err.name === 'ZodError')
@@ -100,7 +101,8 @@ export async function resendOTP(req: Request, res: Response) {
 export async function oneTapSend(req: Request, res: Response) {
   try {
     const { phone } = phoneSchema.parse(req.body);
-    const result    = await authService.oneTapSend(phone);
+    const accepted  = req.body?.accepted === true; // H6
+    const result    = await authService.oneTapSend(phone, accepted);
     res.json(result);
   } catch (err: any) {
     if (err.name === 'ZodError')
