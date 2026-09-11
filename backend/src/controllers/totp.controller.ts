@@ -6,11 +6,15 @@
 import { Response } from 'express';
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
+import jwt from 'jsonwebtoken';
 import { supabase } from '../../config/supabase';
 import { AuthRequest } from '../middleware/auth.middleware';
 
 // Tolerance : accepte le code precedent et le suivant (decalage d'horloge).
 authenticator.options = { window: 1 };
+
+// JWT_SECRET est garanti present : le serveur refuse de demarrer sans (voir auth.middleware, B1).
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 // --- 1) Preparer : genere un secret + un QR code -------------------
 // Le secret n'est PAS encore actif : il faut le confirmer via /activate.
@@ -86,12 +90,12 @@ export async function verifyTotp(req: AuthRequest, res: Response) {
     if (!code) return res.status(400).json({ success: false, error: 'Code requis.' });
 
     const { data: user, error } = await supabase
-      .from('users').select('totp_secret').eq('id', userId).single();
+      .from('users').select('totp_secret, role').eq('id', userId).single();
 
     if (error || !user) return res.status(404).json({ success: false, error: 'Utilisateur introuvable.' });
 
     if (!user.totp_secret) {
-      // Pas de TOTP configure : on ne bloque pas (garde-fou).
+      // Pas de TOTP configure : rien a verifier (la connexion a deja donne un vrai jeton).
       return res.json({ success: true, totp_required: false });
     }
 
@@ -100,7 +104,10 @@ export async function verifyTotp(req: AuthRequest, res: Response) {
       return res.status(403).json({ success: false, error: 'Code incorrect.' });
     }
 
-    return res.json({ success: true, totp_required: true });
+    // SÉCURITÉ (H1) : code valide → on délivre le VRAI jeton complet (7 j), qui remplace
+    // le jeton "en attente" reçu à la connexion. C'est ce jeton qui ouvre l'admin.
+    const fullToken = jwt.sign({ userId, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    return res.json({ success: true, totp_required: true, token: fullToken });
   } catch (e: any) {
     console.error('[TOTP] verify :', e?.message ?? e);
     return res.status(500).json({ success: false, error: 'Erreur serveur.' });

@@ -192,7 +192,7 @@ export async function loginUser(identifier: string, password: string) {
 
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, email, phone, name, role, password, is_verified, avatar_url, country, wallet')
+    .select('id, email, phone, name, role, password, is_verified, avatar_url, country, wallet, totp_secret')
     .eq(isEmail ? 'email' : 'phone', identifier)
     .single();
 
@@ -206,13 +206,26 @@ export async function loginUser(identifier: string, password: string) {
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) throw new Error('INVALID_CREDENTIALS');
 
+  const { password: _omit, totp_secret: _omitTotp, ...safeUser } = user;
+
+  // SÉCURITÉ (H1) : si le compte est admin/modérateur ET a un TOTP configuré, on ne
+  // délivre qu'un jeton EN ATTENTE (inutilisable pour l'admin, court : 10 min). Le vrai
+  // jeton complet n'est donné qu'après validation du code (POST /auth/totp/verify).
+  const _isAdminRole = user.role === 'admin' || user.role === 'moderateur';
+  if (_isAdminRole && (user as any).totp_secret) {
+    const pendingToken = jwt.sign(
+      { userId: user.id, role: user.role, totp_pending: true },
+      JWT_SECRET,
+      { expiresIn: '10m' }
+    );
+    return { token: pendingToken, totp_pending: true, user: safeUser };
+  }
+
   const token = jwt.sign(
     { userId: user.id, role: user.role },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
   );
-
-  const { password: _omit, ...safeUser } = user;
   return { token, user: safeUser };
 }
 

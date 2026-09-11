@@ -68,21 +68,10 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         token:    data.token,
       };
 
-      // Ce compte exige-t-il un second facteur ?
-      let totpRequis = false;
-      try {
-        const st = await fetch(API + '/auth/totp/status', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        });
-        const sd = await st.json();
-        totpRequis = !!sd.totp_enabled;
-      } catch {
-        // Si le statut est injoignable, on n'exige pas le TOTP :
-        // mieux vaut un acces mot de passe qu'un admin verrouille dehors.
-        totpRequis = false;
-      }
+      // SÉCURITÉ (H1) : c'est le BACKEND qui tranche. S'il renvoie totp_pending,
+      // le jeton reçu est "en attente" (inutilisable pour l'admin) tant que le code
+      // n'est pas validé. On ne se fie plus à un appel de statut séparé.
+      const totpRequis = !!data.totp_pending;
 
       if (!totpRequis) {
         // Pas de TOTP configure : session ouverte directement.
@@ -119,8 +108,11 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: data.error || 'Code incorrect.' };
       }
 
-      setAdmin(pendingAuth);
-      sessionStorage.setItem('dkdk_admin', JSON.stringify(pendingAuth));
+      // SÉCURITÉ (H1) : on remplace le jeton "en attente" par le VRAI jeton complet
+      // renvoyé par le backend après validation du code.
+      const fullUser = { ...pendingAuth, token: data.token || pendingAuth.token };
+      setAdmin(fullUser);
+      sessionStorage.setItem('dkdk_admin', JSON.stringify(fullUser));
       setPendingAuth(null);
       return { success: true };
     } catch {

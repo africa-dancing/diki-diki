@@ -12,7 +12,7 @@ if (!_jwtSecret) {
 const JWT_SECRET: string = _jwtSecret;
 
 export interface AuthRequest extends Request {
-  user?: { userId: string; role: string };
+  user?: { userId: string; role: string; totp_pending?: boolean };
 }
 
 export async function requireAuth(
@@ -37,6 +37,10 @@ export function requireAdmin(
 ) {
   if (!['admin', 'moderateur'].includes(req.user?.role || '')) {
     return res.status(403).json({ error: 'ADMIN_ONLY' });
+  }
+  // SÉCURITÉ (H1) : un jeton "en attente de TOTP" ne donne AUCUN pouvoir admin.
+  if (req.user?.totp_pending) {
+    return res.status(401).json({ error: 'TOTP_REQUIRED' });
   }
   next();
 }
