@@ -1299,7 +1299,7 @@ export default function WatchPage() {
                 const setQty = isStar ? setStarsQty : setHeartsQty;
                 const votePalier = (u) => { setQty(u); onSend(u); }; /*DKDK_FIX_PALIER — envoyer la quantite du palier directement, pas via le state*/
                 return (
-                  <div style={{ background:'#FF0000', borderRadius:12, padding:11, marginBottom:6 }}>
+                  <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,170,0,0.18)', borderRadius:12, padding:11, marginBottom:6 }}>
                     <div style={{ display:'flex', gap:5, marginBottom:9 }}>
                       <button onClick={() => setActiveTab('stars')} style={{ flex:1, background: isStar ? '#FF8A00' : '#2b2b2b', color: isStar ? '#000' : '#fff', fontSize:12, textAlign:'center', borderRadius:6, padding:'7px 0', fontWeight:700, border:'none', cursor:'pointer', fontFamily:'DM Sans, sans-serif' }}>&#9733; Voter</button>
                       <button onClick={() => setActiveTab('hearts')} style={{ flex:1, background: !isStar ? '#FF8A00' : '#2b2b2b', color: !isStar ? '#000' : '#fff', fontSize:12, textAlign:'center', borderRadius:6, padding:'7px 0', fontWeight:700, border:'none', cursor:'pointer', fontFamily:'DM Sans, sans-serif' }}>&#9829; Liker</button>
@@ -1307,7 +1307,7 @@ export default function WatchPage() {
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
                       {paliers.map(u => (
                         <button key={u} onClick={() => votePalier(u)} disabled={voteLoading || likeLoading} style={{ background:'#2b2b2b', border:'none', borderRadius:8, padding:'9px 4px', textAlign:'center', cursor:'pointer', fontFamily:'DM Sans, sans-serif' }}>
-                          <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{u * (isStar ? voteAmount : heartAmount)} F</div>
+                          <div style={{ fontSize:14, fontWeight:700, color:'#FFAA00' }}>{u * (isStar ? voteAmount : heartAmount)} F</div>
                           <div style={{ fontSize:9, color:'#fff' }}>{u} unit&eacute;{u > 1 ? 's' : ''}</div>
                         </button>
                       ))}
@@ -1316,15 +1316,15 @@ export default function WatchPage() {
                       <div style={{ fontSize:9, color:'#000', marginBottom:5, fontWeight:600 }}>Ou choisis ta propre quantit&eacute; :</div>
                       <div style={{ display:'flex', gap:5, alignItems:'center' }}>
                         <input type="number" min={1} value={isStar ? starsQty : heartsQty} onChange={e => { const n = parseInt(e.target.value); setQty(!isNaN(n) && n > 0 ? n : 1); }} style={{ flex:1, background:'#f0f0f0', border:'1px solid #ccc', borderRadius:6, padding:6, color:'#000', fontSize:12, minWidth:0 }} />
-                        <button onClick={() => onSend()} disabled={voteLoading || likeLoading} style={{ background:'#FF0000', color:'#fff', fontSize:11, borderRadius:6, padding:'7px 14px', fontWeight:600, border:'none', cursor:'pointer', whiteSpace:'nowrap', fontFamily:'DM Sans, sans-serif' }}>Envoyer</button>
+                        <button onClick={() => onSend()} disabled={voteLoading || likeLoading} style={{ background:'linear-gradient(135deg,#FF6B00,#FFAA00)', color:'#150c00', fontSize:11, borderRadius:6, padding:'7px 14px', fontWeight:700, border:'none', cursor:'pointer', whiteSpace:'nowrap', fontFamily:'DM Sans, sans-serif' }}>Envoyer</button>
                       </div>
                     </div>
                   </div>
                 );
               })()}
 
-              {/* Saisie ± — ancien pave numerique : mobile uniquement (retire du PC en Passe 1) */}
-              {isMobile && (() => {
+              {/* Saisie ± — ancien pave numerique : RETIRE (doublon du bloc paliers ci-dessus). DKDK_KEYPAD_RETIRE */}
+              {false && (() => {
                 const isStar  = activeTab === 'stars';
                 const qty     = isStar ? starsQty : heartsQty;
                 const setQty  = isStar ? setStarsQty : setHeartsQty;
