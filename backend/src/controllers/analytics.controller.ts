@@ -187,3 +187,40 @@ export async function getSummary(_req: Request, res: Response) {
     return res.status(500).json({ error: 'Internal error' });
   }
 }
+
+/*DKDK_GEO_VOTES — Cagnotte / votes par pays (LECTURE SEULE, ne touche pas l'argent).
+  Agrège les transactions de type 'vote' au statut 'success' par metadata.pays :
+  montant encaissé (contribution brute à la cagnotte) + nombre de votes.*/
+export async function getVotesByCountry(_req: Request, res: Response) {
+  try {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('amount, metadata')
+      .eq('type', 'vote')
+      .eq('status', 'success');
+
+    if (error) {
+      console.error('[ANALYTICS] votes-by-country echoue :', error.message);
+      return res.status(500).json({ error: 'Lecture echouee' });
+    }
+
+    const agg: Record<string, { amount: number; count: number }> = {};
+    for (const t of (data || []) as any[]) {
+      const p = t.metadata && t.metadata.pays ? String(t.metadata.pays).toUpperCase() : '';
+      if (/^[A-Z]{2}$/.test(p)) {
+        if (!agg[p]) agg[p] = { amount: 0, count: 0 };
+        agg[p].amount += Number(t.amount) || 0;
+        agg[p].count  += 1;
+      }
+    }
+
+    const by_country = Object.entries(agg)
+      .map(([code, v]) => ({ code, amount: v.amount, count: v.count }))
+      .sort((a, b) => b.amount - a.amount);
+
+    const total = by_country.reduce((s, c) => s + c.amount, 0);
+    return res.json({ by_country, total });
+  } catch (e) {
+    return res.status(500).json({ error: 'Internal error' });
+  }
+}

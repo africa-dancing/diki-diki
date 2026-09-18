@@ -1,5 +1,6 @@
 import * as _dkdkCrypto from 'crypto'; /*DKDK_SIG_OBSERVE*/
 import { Request, Response } from 'express';
+import geoip from 'geoip-lite'; /*DKDK_GEO_VOTE — géoloc pays du votant (additif, hors calcul d'argent)*/
 import { initiatePayment, verifyPayment, withdrawPayment, paymentProvider, retraitRule, retraitFee } from '../services/payment.service';
 import { pawaProvider, pawapayPayout, pawapayStatus, pawapayDeposit, pawapayDepositStatus } from '../services/pawapay.service';
 import { supabase } from '../../config/supabase';
@@ -139,6 +140,14 @@ export async function initiateVotePayment(req: Request, res: Response) {
       firstName: _fanNames.firstName,
       lastName:  _fanNames.lastName,
     });
+    /*DKDK_GEO_VOTE — pays du votant (géoloc IP). Purement additif : n'entre dans
+      AUCUN calcul de montant, cagnotte, commission ou distribution. Sert seulement
+      aux statistiques "cagnotte par pays".*/
+    const _voteIp   = ((req.headers['x-forwarded-for'] as string) || '').split(',')[0].trim()
+                   || (req.socket && req.socket.remoteAddress) || '';
+    const _voteGeo  = _voteIp ? geoip.lookup(_voteIp) : null;
+    const _votePays = _voteGeo && _voteGeo.country && /^[A-Z]{2}$/.test(String(_voteGeo.country).toUpperCase())
+                    ? String(_voteGeo.country).toUpperCase() : null;
     const { error: txErr } = await supabase
       .from('transactions')
       .insert({
@@ -150,7 +159,7 @@ export async function initiateVotePayment(req: Request, res: Response) {
         ref:        String(result.transactionId),
         status:     'pending',
         /*DKDK_VOTE_META*/
-        metadata:   { participant_id, p_type: vote_type, qty: voteQty },
+        metadata:   { participant_id, p_type: vote_type, qty: voteQty, pays: _votePays },
       });
     if (txErr) return res.status(500).json({ error: 'TX_INSERT_FAILED', detail: txErr.message });
     return res.status(200).json({ success: true, paymentUrl: result.paymentUrl });

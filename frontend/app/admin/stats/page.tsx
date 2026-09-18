@@ -65,6 +65,7 @@ export default function AdminStatsPage() {
   const [pulse,   setPulse]   = useState(false);
   const [periode, setPeriode] = useState<'tout' | 'mois' | 'semaine'>('tout'); /*DKDK_REPARTITION_PERIODE*/
   const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
+  const [votesGeo, setVotesGeo] = useState<{ code: string; amount: number; count: number }[]>([]); /*DKDK_GEO_VOTES*/
 
   // Page Statistiques : on retire le padding-top global mais on LAISSE le defilement actif /*DKDK_STATS_SCROLL*/
   useEffect(() => {
@@ -106,6 +107,12 @@ export default function AdminStatsPage() {
       })
       .catch(() => setError('Impossible de charger les statistiques.'))
       .finally(() => setLoading(false));
+
+    /*DKDK_GEO_VOTES — cagnotte / votes par pays (chargé une fois)*/
+    fetch(`${API}/analytics/votes-by-country`, { headers: { Authorization: `Bearer ${admin.token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(res => { if (res && Array.isArray(res.by_country)) setVotesGeo(res.by_country); })
+      .catch(() => {});
   }, [admin?.token]);
 
   // Polling visiteurs temps réel toutes les 10s
@@ -263,6 +270,36 @@ export default function AdminStatsPage() {
                     <div style={{ fontSize:18, fontWeight:700, color:k.color, fontFamily:'Syne,sans-serif' }}>{k.val}</div>
                   </div>
                 ))}
+              </div>
+
+              {/* ── CAGNOTTE PAR PAYS ─────────────────────────────── DKDK_GEO_VOTES */}
+              <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'12px', marginBottom:10 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                  <span style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'Syne,sans-serif' }}>🌍 Cagnotte par pays (votes encaissés)</span>
+                  <span style={{ fontSize:10, color:'rgba(255,255,255,0.35)' }}>votes payés · tous statuts confirmés</span>
+                </div>
+                {votesGeo.length > 0 ? (() => {
+                  const maxA = Math.max(...votesGeo.map(c => c.amount), 1);
+                  const flag = (cc: string) => /^[A-Z]{2}$/.test(cc) ? cc.replace(/./g, ch => String.fromCodePoint(127397 + ch.charCodeAt(0))) : '🏳️';
+                  let rn: any = null; try { rn = new Intl.DisplayNames(['fr'], { type: 'region' }); } catch {}
+                  const nom = (cc: string) => { try { return rn?.of(cc) || cc; } catch { return cc; } };
+                  return votesGeo.slice(0, 15).map(c => (
+                    <div key={c.code} style={{ marginBottom:9 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
+                        <span style={{ color:'#a0a0c0' }}>{flag(c.code)} {nom(c.code)} <span style={{ color:'rgba(255,255,255,0.35)' }}>· {c.count} vote{c.count>1?'s':''}</span></span>
+                        <span style={{ color:OR, fontWeight:700 }}>{fmt(c.amount)} F</span>
+                      </div>
+                      <div style={{ height:6, background:'rgba(255,255,255,0.05)', borderRadius:3 }}>
+                        <div style={{ height:6, borderRadius:3, width:`${Math.round((c.amount / maxA) * 100)}%`, background:OR }} />
+                      </div>
+                    </div>
+                  ));
+                })() : (
+                  <div style={{ fontSize:12, color:'rgba(255,255,255,0.3)', textAlign:'center', padding:'16px 0' }}>Aucun vote encaissé avec un pays pour le moment.</div>
+                )}
+                <div style={{ fontSize:10.5, color:'rgba(255,255,255,0.4)', marginTop:8, lineHeight:1.5 }}>
+                  Montant brut des votes payés par pays (contribution à la cagnotte). Le pays est déduit de l'adresse IP au moment du vote — approximatif.
+                </div>
               </div>
 
               {/* Répartition RÉELLE + filtre par période + tableau par challenge — DKDK_REPARTITION_REELLE */}
