@@ -15,8 +15,8 @@ export default function BackgroundMusic() {
     onVis();
     return () => document.removeEventListener('visibilitychange', onVis);
   }, []);
-  const [audioUrl, setAudioUrl] = useState('/ambiance.mp3');
-  const [active, setActive] = useState(true);
+  const [audioUrl, setAudioUrl] = useState('');   /*DKDK_MUSIC_OFF_FIX — pas de fichier par défaut : sans URL réglée, aucune musique*/
+  const [active, setActive] = useState(false);    /*DKDK_MUSIC_OFF_FIX — coupée par défaut : ne joue que si l'admin l'active explicitement*/
   const [pagesExclues, setPagesExclues] = useState<string[]>([]);
 
   const [muted, setMuted]       = useState(false);   // coupé par l'utilisateur
@@ -67,16 +67,19 @@ export default function BackgroundMusic() {
 
   // Charge la config musique depuis settings (pilote par /admin)
   useEffect(() => {
-    fetch(`${API}/settings`)
+    fetch(`${API}/settings`, { cache: 'no-store' }) /*DKDK_MUSIC_OFF_FIX — pas de cache : un changement admin est pris en compte au rechargement*/
       .then(r => r.json())
       .then(res => {
         const rows = res?.data || [];
         const url = rows.find((s: any) => s.key === 'ambiance_audio_url');
         const act = rows.find((s: any) => s.key === 'ambiance_active');
         const exc = rows.find((s: any) => s.key === 'ambiance_pages_exclues');
-        if (url?.value) setAudioUrl(url.value);
-        if (act) setActive(act.value === '1' || act.value === 'true');
+        /*DKDK_MUSIC_OFF_FIX — URL vide (réglage effacé) = pas de musique ; on ne retombe plus sur /ambiance.mp3*/
+        setAudioUrl(url?.value ? String(url.value).trim() : '');
+        /*DKDK_MUSIC_OFF_FIX — active seulement si le réglage vaut explicitement 1/true ; absent ou vide = coupée*/
+        setActive(!!(act && (act.value === '1' || act.value === 'true')));
         if (exc?.value) setPagesExclues(String(exc.value).split(',').map((p: string) => p.trim()).filter(Boolean));
+        else setPagesExclues([]);
       })
       .catch(() => {});
   }, []);
@@ -146,7 +149,7 @@ export default function BackgroundMusic() {
 
   const attemptPlay = () => {
     const a = audioRef.current;
-    if (!a) return;
+    if (!a) return; /*DKDK_MUSIC_OFF_FIX — si coupée/sans URL, l'élément <audio> n'est pas monté (audioRef null) : on ne joue jamais*/
     if (mutedRef.current) { a.pause(); setPlaying(false); return; } /*DKDK_MUTEDREF_GUARD*/
     a.volume = volume;
     a.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
@@ -186,7 +189,7 @@ export default function BackgroundMusic() {
     setOpen(o => !o);
   };
 
-  if (!active) return null;
+  if (!active || !audioUrl) return null; /*DKDK_MUSIC_OFF_FIX — rien affiché (ni bouton ni bandeau) si coupée ou sans URL*/
 
   // Placement du mini-panneau selon la position du bouton (pour ne jamais sortir de l'écran)
   const openUp   = pos ? pos.y > (typeof window !== 'undefined' ? window.innerHeight / 2 : 400) : true;
