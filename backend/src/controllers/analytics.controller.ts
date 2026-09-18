@@ -2,6 +2,12 @@
 /*DKDK_ANALYTICS_DB*/
 // Sessions actives : en memoire (fenetre 60s, volatilite sans consequence).
 // Pages vues       : persistees dans public.page_views.
+/*DKDK_GEO*/
+// Géolocalisation pays : conversion IP -> code pays ISO (2 lettres) hors-ligne,
+// via geoip-lite (aucun appel réseau). On ne stocke plus l'IP (RGPD),
+// uniquement le pays. Si l'import ci-dessous provoque une erreur TypeScript,
+// remplacer par : import * as geoip from 'geoip-lite';
+import geoip from 'geoip-lite';
 import { Request, Response } from 'express';
 import { supabase } from '../../config/supabase';
 
@@ -24,13 +30,29 @@ setInterval(() => {
   }
 }, 30_000);
 
+/*DKDK_GEO_HELPER*/
+// Déduit le code pays ISO (2 lettres majuscules) à partir de la requête.
+// Railway transmet l'IP réelle du visiteur dans x-forwarded-for (1er élément).
+// Retourne null si non déterminable (IP privée/locale, lookup vide, etc.).
+function paysDepuisRequete(req: Request): string | null {
+  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
+          || (req.socket && req.socket.remoteAddress) || '';
+  if (!ip) return null;
+  const geo = ip ? geoip.lookup(ip) : null;
+  const code = geo && geo.country ? String(geo.country).toUpperCase() : '';
+  return /^[A-Z]{2}$/.test(code) ? code : null;
+}
+
 // --- Heartbeat : ping depuis le frontend --------------------------
 export async function heartbeat(req: Request, res: Response) {
   try {
     const { sessionId, page = '/', isLoggedIn = false } = req.body;
     if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
 
-    const country = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? null;
+    /*DKDK_GEO_CAPTURE*/
+    // Avant : on stockait par erreur l'IP dans "country". Désormais on stocke
+    // le vrai code pays (ISO 2 lettres), déduit de l'IP, et plus jamais l'IP.
+    const country = paysDepuisRequete(req);
     const userAgent = req.headers['user-agent'] ?? '';
 
     const existante = sessions.get(sessionId);
@@ -81,11 +103,24 @@ export async function getActiveVisitors(_req: Request, res: Response) {
     .slice(0, 5)
     .map(([page, count]) => ({ page, count }));
 
+  /*DKDK_GEO_ACTIVE*/
+  // Répartition par pays des visiteurs actifs (temps réel).
+  const parPays: Record<string, number> = {};
+  for (const s of actifs) {
+    if (s.country && /^[A-Z]{2}$/.test(s.country)) {
+      parPays[s.country] = (parPays[s.country] ?? 0) + 1;
+    }
+  }
+  const by_country = Object.entries(parPays)
+    .sort((a, b) => b[1] - a[1])
+    .map(([code, count]) => ({ code, count }));
+
   return res.json({
     total:     actifs.length,
     logged_in: actifs.filter(s => s.isLoggedIn).length,
     visitors:  actifs.filter(s => !s.isLoggedIn).length,
     top_pages: topPages,
+    by_country,
     sessions:  actifs.map(s => ({ page: s.page, isLoggedIn: s.isLoggedIn, lastSeen: s.lastSeen })),
   });
 }
@@ -101,9 +136,10 @@ export async function getSummary(_req: Request, res: Response) {
     const ilYaUneHeure = new Date(maintenant.getTime() - 3600_000);
 
     // Toutes les vues du jour (on les compte et on les repartit par heure)
+    /*DKDK_GEO_SUMMARY_SELECT*/ // on lit aussi "country" pour l'agrégation par pays
     const { data: vues, error } = await supabase
       .from('page_views')
-      .select('created_at')
+      .select('created_at, country')
       .gte('created_at', debutJour.toISOString());
 
     if (error) {
@@ -117,15 +153,26 @@ export async function getSummary(_req: Request, res: Response) {
     // a l'ancien compteur en memoire qui cumulait indefiniment).
     const parHeure: number[] = new Array(24).fill(0);
     let vuesDerniereHeure = 0;
+    /*DKDK_GEO_SUMMARY_AGG*/
+    const parPays: Record<string, number> = {};
 
     for (const l of lignes) {
       const d = new Date(l.created_at);
       parHeure[d.getHours()]++;
       if (d >= ilYaUneHeure) vuesDerniereHeure++;
+      // Agrégation par pays (on ignore les valeurs qui ne sont pas un code ISO,
+      // ex. anciennes lignes qui contenaient une IP).
+      const _c = (l as any).country;
+      if (_c && /^[A-Z]{2}$/.test(_c)) parPays[_c] = (parPays[_c] || 0) + 1;
     }
 
     const pic       = Math.max.apply(null, parHeure);
     const heurePic  = parHeure.indexOf(pic);
+
+    /*DKDK_GEO_SUMMARY_OUT*/
+    const by_country = Object.entries(parPays)
+      .sort((a, b) => b[1] - a[1])
+      .map(([code, count]) => ({ code, count }));
 
     return res.json({
       views_today:   lignes.length,
@@ -134,6 +181,7 @@ export async function getSummary(_req: Request, res: Response) {
       peak_hour:     heurePic + 'h00-' + (heurePic + 1) + 'h00',
       peak_visits:   pic,
       hourly_visits: parHeure,
+      by_country,
     });
   } catch (e) {
     return res.status(500).json({ error: 'Internal error' });
