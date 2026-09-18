@@ -336,8 +336,7 @@ export default function BracketPage() {
   };
 
   const [mesVideos, setMesVideos] = useState<any[]>([]); /*DKDK_CHOIX_VIDEO*/
-  const [formation, setFormation] = useState<'solo' | 'group'>('solo'); /*DKDK_FORMATION*/
-  const [insGroupName, setInsGroupName] = useState('');
+  const [insGroupName, setInsGroupName] = useState(''); /*DKDK_FORMATION — nom du groupe si challenge de groupes*/
   const [panneauOuvert, setPanneauOuvert] = useState(false);
   const handleInscribe = async () => {
     const token = getToken();
@@ -365,8 +364,8 @@ export default function BracketPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ bracket_id: params?.id, video_id, paiement_confirme,
-          formation: (bracket as any)?.allow_groups ? formation : 'solo', /*DKDK_FORMATION*/
-          group_name: ((bracket as any)?.allow_groups && formation === 'group') ? insGroupName.trim() : undefined }),
+          formation: (bracket as any)?.allow_groups ? 'group' : 'solo', /*DKDK_FORMATION — imposé par le type du challenge*/
+          group_name: (bracket as any)?.allow_groups ? insGroupName.trim() : undefined }),
       });
       const data = await res.json();
       if (!data.success) {
@@ -483,25 +482,28 @@ export default function BracketPage() {
               {panneauOuvert && (
                 <div style={{ marginTop:16, textAlign:'left' }}>
                   <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.75)', marginBottom:8 }}>Choisis la video a engager :</div>
-                  {/*DKDK_FORMATION — choix solo / groupe (si le challenge l'autorise), libellé adapté à la discipline*/}
-                  {(bracket as any)?.allow_groups && (() => {
+                  {/*DKDK_FORMATION — la formation est imposée par le TYPE du challenge (jamais de choix mixte)*/}
+                  {(() => {
+                    const isGroup = !!(bracket as any)?.allow_groups;
                     const disc = String(bracket?.discipline || '').toLowerCase();
                     const grpLabel = disc.includes('chant') ? 'Multi-voix'
                       : disc.includes('danse') ? 'En groupe'
                       : (disc.includes('instru') || disc.includes('musiq')) ? 'Ensemble'
                       : 'Groupe / Équipe';
-                    const pill = (active: boolean) => ({ flex:1, padding:'8px 10px', borderRadius:10, cursor:'pointer', textAlign:'center' as const, fontSize:13, fontWeight:700, border:'1px solid ' + (active ? 'rgba(255,170,0,0.6)' : 'rgba(255,255,255,0.15)'), background: active ? 'rgba(255,170,0,0.15)' : 'transparent', color: active ? '#FFAA00' : 'rgba(255,255,255,0.6)' });
+                    if (!isGroup) {
+                      return (
+                        <div style={{ marginBottom:12, fontSize:12, color:'rgba(255,255,255,0.55)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'8px 10px' }}>
+                          🎤 Challenge <b>solo</b> — inscription individuelle.
+                        </div>
+                      );
+                    }
                     return (
                       <div style={{ marginBottom:12 }}>
-                        <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)', marginBottom:6 }}>Formation :</div>
-                        <div style={{ display:'flex', gap:8 }}>
-                          <div onClick={() => setFormation('solo')} style={pill(formation === 'solo')}>Solo</div>
-                          <div onClick={() => setFormation('group')} style={pill(formation === 'group')}>{grpLabel}</div>
+                        <div style={{ fontSize:12, color:'#93c5fd', border:'1px solid rgba(96,165,250,0.4)', borderRadius:10, padding:'8px 10px', marginBottom:8 }}>
+                          👥 Challenge de <b>groupes</b> ({grpLabel}) — inscris ton groupe.
                         </div>
-                        {formation === 'group' && (
-                          <input placeholder="Nom du groupe" value={insGroupName} onChange={e => setInsGroupName(e.target.value)} maxLength={80}
-                            style={{ width:'100%', marginTop:8, padding:'10px 12px', borderRadius:10, border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.04)', color:'#fff', fontSize:13 }} />
-                        )}
+                        <input placeholder="Nom de ton groupe" value={insGroupName} onChange={e => setInsGroupName(e.target.value)} maxLength={80}
+                          style={{ width:'100%', padding:'10px 12px', borderRadius:10, border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.04)', color:'#fff', fontSize:13 }} />
                       </div>
                     );
                   })()}

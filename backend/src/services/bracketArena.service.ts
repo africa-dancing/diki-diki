@@ -29,20 +29,19 @@ export async function inscribeToArena(params: {
   formation?: string; group_name?: string; group_size?: number; /*DKDK_FORMATION*/
 }) {
   const { bracket_id, user_id, video_id, paiement_confirme } = params;
-  /*DKDK_FORMATION — solo par défaut ; le mode groupe n'est accepté que si le challenge l'autorise*/
-  const _formation = params.formation === 'group' ? 'group' : 'solo';
-  const _groupName = _formation === 'group' && params.group_name ? String(params.group_name).trim().slice(0, 80) : null;
-  const _groupSize = _formation === 'group' && Number.isFinite(Number(params.group_size)) && Number(params.group_size) > 0
-    ? Math.min(Math.floor(Number(params.group_size)), 50) : null;
 
   const { data: bracket, error: bErr } = await supabase
     .from('brackets').select('*').eq('id', bracket_id)
     .in('status', ['open', 'waiting_candidates']).single();
   if (bErr || !bracket) throw new Error('Ce challenge n est pas ouvert aux inscriptions.');
-  /*DKDK_FORMATION — garde-fou : le mode groupe n'est permis que si le challenge l'autorise*/
-  if (_formation === 'group' && !bracket.allow_groups) {
-    throw new Error('Ce challenge n autorise pas les groupes.');
-  }
+  /*DKDK_FORMATION — le TYPE du challenge impose la formation : solo↔solo, groupe↔groupe,
+    JAMAIS mélangé. On ne fait pas confiance au client : la formation découle de bracket.allow_groups
+    (true = challenge de groupes, false = challenge solo). Aucun choix individuel possible.*/
+  const _isGroupChallenge = !!bracket.allow_groups;
+  const _formation = _isGroupChallenge ? 'group' : 'solo';
+  const _groupName = _isGroupChallenge && params.group_name ? String(params.group_name).trim().slice(0, 80) : null;
+  const _groupSize = _isGroupChallenge && Number.isFinite(Number(params.group_size)) && Number(params.group_size) > 0
+    ? Math.min(Math.floor(Number(params.group_size)), 50) : null;
 
   const { count: before } = await supabase
     .from('bracket_participants').select('*', { count: 'exact', head: true })

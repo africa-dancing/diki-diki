@@ -41,8 +41,7 @@ export default function CreerChallengePage() {
   const [msg, setMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
   /*DKDK_FORMATION — autoriser les groupes + formation du créateur*/
-  const [allowGroups, setAllowGroups] = useState(false);
-  const [creatorGroup, setCreatorGroup] = useState(false);
+  const [allowGroups, setAllowGroups] = useState(false); /*DKDK_FORMATION — true = challenge de groupes*/
   const [groupName, setGroupName] = useState('');
   /*DKDK_SPORT_CREATE — creation explicite d'un challenge sport (art -> epreuve -> niveau de difficulte)*/
   const [typeCreation, setTypeCreation] = useState<'artistique' | 'sport'>('artistique');
@@ -204,9 +203,9 @@ export default function CreerChallengePage() {
             format_code: formatCode,
             mode: 'normal', modele: 'parcours', niveau: 1,
             video_ids: [videoId],
-            allow_groups: allowGroups, /*DKDK_FORMATION*/
-            formation: (allowGroups && creatorGroup) ? 'group' : 'solo',
-            group_name: (allowGroups && creatorGroup) ? groupName.trim() : undefined,
+            allow_groups: allowGroups, /*DKDK_FORMATION — true = challenge de groupes*/
+            formation: allowGroups ? 'group' : 'solo',
+            group_name: allowGroups ? groupName.trim() : undefined,
             sport: {
               art: artObj ? artObj.name : sportArt,
               art_slug: sportArt,
@@ -323,9 +322,9 @@ export default function CreerChallengePage() {
             modele, /*DKDK_ETAPE4*/
             niveau,
             video_ids: (modele === 'bloc' && niveau > 1) ? [videoId, ...blocVideos.slice(0, niveau - 1)] : [videoId],
-            allow_groups: allowGroups, /*DKDK_FORMATION*/
-            formation: (allowGroups && creatorGroup) ? 'group' : 'solo',
-            group_name: (allowGroups && creatorGroup) ? groupName.trim() : undefined,
+            allow_groups: allowGroups, /*DKDK_FORMATION — true = challenge de groupes*/
+            formation: allowGroups ? 'group' : 'solo',
+            group_name: allowGroups ? groupName.trim() : undefined,
           };
         })()),
       });
@@ -492,21 +491,22 @@ export default function CreerChallengePage() {
             ⚠️ Cette vidéo est déjà engagée dans un autre challenge — l'inscrire ici coûte {montantInscription.toLocaleString('fr-FR')} F.
           </div>
         )}
-        {/*DKDK_FORMATION — autoriser les groupes + formation du créateur*/}
+        {/*DKDK_FORMATION — TYPE du challenge : solo OU groupes (jamais mélangé)*/}
         <div style={{ border: '1px solid rgba(255,170,0,0.25)', borderRadius: 12, padding: '12px 14px', marginBottom: 16, background: 'rgba(255,170,0,0.05)' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, color: 'var(--ink,#fff)' }}>
-            <input type="checkbox" checked={allowGroups} onChange={e => { setAllowGroups(e.target.checked); if (!e.target.checked) setCreatorGroup(false); }} />
-            <span><b>Autoriser les groupes</b> — multi-voix (chant), troupe (danse), ensemble (instruments), équipe (sport)</span>
-          </label>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft,#ccc)', marginBottom: 8 }}>Type de challenge</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <div onClick={() => setAllowGroups(false)} style={{ flex: 1, padding: '10px', borderRadius: 10, textAlign: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 700, border: '1px solid ' + (!allowGroups ? 'rgba(255,170,0,0.6)' : 'rgba(255,255,255,0.15)'), background: !allowGroups ? 'rgba(255,170,0,0.15)' : 'transparent', color: !allowGroups ? '#FFAA00' : 'rgba(255,255,255,0.6)' }}>🎤 Solo</div>
+            <div onClick={() => setAllowGroups(true)} style={{ flex: 1, padding: '10px', borderRadius: 10, textAlign: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 700, border: '1px solid ' + (allowGroups ? 'rgba(96,165,250,0.6)' : 'rgba(255,255,255,0.15)'), background: allowGroups ? 'rgba(96,165,250,0.15)' : 'transparent', color: allowGroups ? '#93c5fd' : 'rgba(255,255,255,0.6)' }}>👥 Groupes</div>
+          </div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 8, lineHeight: 1.5 }}>
+            {allowGroups
+              ? 'Challenge de groupes : tous les candidats concourent en groupe (multi-voix, troupe, ensemble, équipe). Pas de solo.'
+              : 'Challenge solo : tous les candidats concourent individuellement. Pas de groupe.'}
+          </div>
           {allowGroups && (
-            <div style={{ marginTop: 10, paddingLeft: 28 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13, color: 'var(--ink-soft,#ccc)' }}>
-                <input type="checkbox" checked={creatorGroup} onChange={e => setCreatorGroup(e.target.checked)} />
-                <span>Je participe moi-même en groupe</span>
-              </label>
-              {creatorGroup && (
-                <input style={{ ...inputStyle, marginTop: 8 }} placeholder="Nom du groupe" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={80} />
-              )}
+            <div style={{ marginTop: 10 }}>
+              <label style={{ fontSize: 12, color: 'var(--ink-soft,#ccc)' }}>Nom de ton groupe (tu es le 1er inscrit)</label>
+              <input style={{ ...inputStyle, marginTop: 6 }} placeholder="Nom du groupe" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={80} />
             </div>
           )}
         </div>
