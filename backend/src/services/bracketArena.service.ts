@@ -26,13 +26,23 @@ async function getSetting(key: string, fallback: number): Promise<number> {
 export async function inscribeToArena(params: {
   bracket_id: string; user_id: string; video_id: string;
   paiement_confirme?: boolean; /*DKDK_INSCRIPTION_PAYANTE*/
+  formation?: string; group_name?: string; group_size?: number; /*DKDK_FORMATION*/
 }) {
   const { bracket_id, user_id, video_id, paiement_confirme } = params;
+  /*DKDK_FORMATION — solo par défaut ; le mode groupe n'est accepté que si le challenge l'autorise*/
+  const _formation = params.formation === 'group' ? 'group' : 'solo';
+  const _groupName = _formation === 'group' && params.group_name ? String(params.group_name).trim().slice(0, 80) : null;
+  const _groupSize = _formation === 'group' && Number.isFinite(Number(params.group_size)) && Number(params.group_size) > 0
+    ? Math.min(Math.floor(Number(params.group_size)), 50) : null;
 
   const { data: bracket, error: bErr } = await supabase
     .from('brackets').select('*').eq('id', bracket_id)
     .in('status', ['open', 'waiting_candidates']).single();
   if (bErr || !bracket) throw new Error('Ce challenge n est pas ouvert aux inscriptions.');
+  /*DKDK_FORMATION — garde-fou : le mode groupe n'est permis que si le challenge l'autorise*/
+  if (_formation === 'group' && !bracket.allow_groups) {
+    throw new Error('Ce challenge n autorise pas les groupes.');
+  }
 
   const { count: before } = await supabase
     .from('bracket_participants').select('*', { count: 'exact', head: true })
@@ -77,6 +87,7 @@ export async function inscribeToArena(params: {
 
   const { error: insErr } = await supabase.from('bracket_participants').insert({
     bracket_id, user_id, video_id, registered_at: new Date().toISOString(),
+    formation: _formation, group_name: _groupName, group_size: _groupSize, /*DKDK_FORMATION*/
   });
   if (insErr) {
     /*DKDK_INSCRIPTION_PAYANTE — remboursement si l'inscription echoue apres debit*/
@@ -256,8 +267,11 @@ export async function createArenaChallenge(params: {
   modele?: string; niveau?: number; video_ids?: string[]; /*DKDK_ETAPE4_SVC*/
   /*DKDK_SPORT_CREATE — creation explicite d'un challenge sport (art -> epreuve -> niveau de difficulte)*/
   sport?: { art: string; art_slug: string; epreuve: string; epreuve_slug: string; difficulte?: string; difficulte_slug?: string; regle?: string };
+  allow_groups?: boolean; /*DKDK_FORMATION — autoriser les groupes sur ce challenge*/
+  formation?: string; group_name?: string; group_size?: number; /*DKDK_FORMATION — formation du créateur (1er inscrit)*/
 }) {
   const { user_id, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs, paiement_confirme, modele, niveau, video_ids, sport } = params;
+  const _allowGroups = !!params.allow_groups; /*DKDK_FORMATION*/
   const modeVal = mode || 'normal';
 
   // Charger et valider le format choisi (obligatoire) /*DKDK_FORMAT_CREATION*/
@@ -326,6 +340,7 @@ export async function createArenaChallenge(params: {
         objectif_bloc: objectifBloc, /*DKDK_ETAPE4_OBJECTIF*/
         max_participants: maxParticipants, current_round: 1,
         total_cagnotte: 0, commission_pct: 0.5,
+        allow_groups: _allowGroups, /*DKDK_FORMATION*/
         created_at: new Date().toISOString(),
       }).select('id').single();
     if (cErr || !created) throw new Error('Erreur lors de la creation du challenge.');
@@ -339,7 +354,8 @@ export async function createArenaChallenge(params: {
     }
   }
 
-  const result = await inscribeToArena({ bracket_id: bracketId, user_id, video_id, paiement_confirme }); /*DKDK_FIX_PAIEMENT_CREATE*/
+  const result = await inscribeToArena({ bracket_id: bracketId, user_id, video_id, paiement_confirme,
+    formation: params.formation, group_name: params.group_name, group_size: params.group_size }); /*DKDK_FIX_PAIEMENT_CREATE*/ /*DKDK_FORMATION*/
   /*DKDK_ETAPE4_BLOCVIDS — enregistrer les videos supplementaires du bloc*/
   if (Array.isArray(video_ids) && video_ids.length > 1) {
     const { data: part } = await supabase.from('bracket_participants')

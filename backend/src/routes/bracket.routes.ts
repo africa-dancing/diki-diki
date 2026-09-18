@@ -251,11 +251,12 @@ bracketRouter.get('/admin/rapport', async (req: Request, res: Response) => {
 // Inscription a un challenge (user extrait du token)
 bracketRouter.post('/arena/inscribe', requireAuth, requireVerified, /*DKDK_INSCRIBE_VERIF*/ async (req: AuthRequest, res: Response) => {
   try {
-    const { bracket_id, video_id } = req.body;
+    const { bracket_id, video_id, formation, group_name, group_size } = req.body; /*DKDK_FORMATION*/
     if (!bracket_id || !video_id)
       return res.status(400).json({ success: false, error: 'Champs manquants.' });
     const result = await inscribeToArena({
       bracket_id, video_id, user_id: req.user!.userId,
+      formation, group_name, group_size, /*DKDK_FORMATION*/
     });
     res.json({ success: true, data: result });
   } catch (err: any) {
@@ -266,11 +267,12 @@ bracketRouter.post('/arena/inscribe', requireAuth, requireVerified, /*DKDK_INSCR
 // Creation d'un challenge par un utilisateur (3 gardes + anti-doublon + 1er inscrit)
 bracketRouter.post('/arena/create', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   try {
-    const { video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs, paiement_confirme, modele, niveau, video_ids, sport } = req.body; /*DKDK_ETAPE4_ROUTE*/ /*DKDK_ROUTE_B*/ /*DKDK_FIX_ROUTE_PAIEMENT*/ /*DKDK_SPORT_CREATE*/
+    const { video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs, paiement_confirme, modele, niveau, video_ids, sport, allow_groups, formation, group_name, group_size } = req.body; /*DKDK_ETAPE4_ROUTE*/ /*DKDK_ROUTE_B*/ /*DKDK_FIX_ROUTE_PAIEMENT*/ /*DKDK_SPORT_CREATE*/ /*DKDK_FORMATION*/
     if (!video_id || !categorie || !discipline || !format_code)
       return res.status(400).json({ success: false, error: 'Champs manquants (video, categorie, discipline, format).' });
     const result = await createArenaChallenge({
       user_id: req.user!.userId, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs, paiement_confirme, modele, niveau, video_ids, sport, /*DKDK_SPORT_CREATE*/
+      allow_groups, formation, group_name, group_size, /*DKDK_FORMATION*/
     });
     res.json({ success: true, data: result });
   } catch (err: any) {

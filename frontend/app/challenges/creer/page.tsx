@@ -40,6 +40,10 @@ export default function CreerChallengePage() {
   const [videoId, setVideoId] = useState('');
   const [msg, setMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  /*DKDK_FORMATION — autoriser les groupes + formation du créateur*/
+  const [allowGroups, setAllowGroups] = useState(false);
+  const [creatorGroup, setCreatorGroup] = useState(false);
+  const [groupName, setGroupName] = useState('');
   /*DKDK_SPORT_CREATE — creation explicite d'un challenge sport (art -> epreuve -> niveau de difficulte)*/
   const [typeCreation, setTypeCreation] = useState<'artistique' | 'sport'>('artistique');
   const [sportEpreuves, setSportEpreuves] = useState<any[]>([]);
@@ -200,6 +204,9 @@ export default function CreerChallengePage() {
             format_code: formatCode,
             mode: 'normal', modele: 'parcours', niveau: 1,
             video_ids: [videoId],
+            allow_groups: allowGroups, /*DKDK_FORMATION*/
+            formation: (allowGroups && creatorGroup) ? 'group' : 'solo',
+            group_name: (allowGroups && creatorGroup) ? groupName.trim() : undefined,
             sport: {
               art: artObj ? artObj.name : sportArt,
               art_slug: sportArt,
@@ -316,6 +323,9 @@ export default function CreerChallengePage() {
             modele, /*DKDK_ETAPE4*/
             niveau,
             video_ids: (modele === 'bloc' && niveau > 1) ? [videoId, ...blocVideos.slice(0, niveau - 1)] : [videoId],
+            allow_groups: allowGroups, /*DKDK_FORMATION*/
+            formation: (allowGroups && creatorGroup) ? 'group' : 'solo',
+            group_name: (allowGroups && creatorGroup) ? groupName.trim() : undefined,
           };
         })()),
       });
@@ -482,6 +492,24 @@ export default function CreerChallengePage() {
             ⚠️ Cette vidéo est déjà engagée dans un autre challenge — l'inscrire ici coûte {montantInscription.toLocaleString('fr-FR')} F.
           </div>
         )}
+        {/*DKDK_FORMATION — autoriser les groupes + formation du créateur*/}
+        <div style={{ border: '1px solid rgba(255,170,0,0.25)', borderRadius: 12, padding: '12px 14px', marginBottom: 16, background: 'rgba(255,170,0,0.05)' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, color: 'var(--ink,#fff)' }}>
+            <input type="checkbox" checked={allowGroups} onChange={e => { setAllowGroups(e.target.checked); if (!e.target.checked) setCreatorGroup(false); }} />
+            <span><b>Autoriser les groupes</b> — multi-voix (chant), troupe (danse), ensemble (instruments), équipe (sport)</span>
+          </label>
+          {allowGroups && (
+            <div style={{ marginTop: 10, paddingLeft: 28 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13, color: 'var(--ink-soft,#ccc)' }}>
+                <input type="checkbox" checked={creatorGroup} onChange={e => setCreatorGroup(e.target.checked)} />
+                <span>Je participe moi-même en groupe</span>
+              </label>
+              {creatorGroup && (
+                <input style={{ ...inputStyle, marginTop: 8 }} placeholder="Nom du groupe" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={80} />
+              )}
+            </div>
+          )}
+        </div>
         {msg && <div style={{ color: '#FF6B6B', fontSize: 13, marginBottom: 16, textAlign: 'center' }}>{msg}</div>}
 
         <button onClick={submit} disabled={submitting} style={{ width: '100%', padding: '14px', borderRadius: 14, fontSize: 15, fontWeight: 800, fontFamily: 'Syne,sans-serif', cursor: submitting ? 'not-allowed' : 'pointer', border: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#150c00', opacity: submitting ? 0.88 : 1 }}>

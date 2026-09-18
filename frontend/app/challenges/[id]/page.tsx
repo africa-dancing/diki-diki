@@ -297,6 +297,7 @@ export default function BracketPage() {
         starts_at: b.started_at ?? '',
         code: b.code, participants_count: b.bracket_participants?.[0]?.count ?? 0,
         max_participants: b.max_participants ?? 16,
+        allow_groups: !!b.allow_groups, /*DKDK_FORMATION*/
       } as any);
       setActiveRound(b.current_round || 1);
     }).catch(() => setBracket(null))
@@ -335,6 +336,8 @@ export default function BracketPage() {
   };
 
   const [mesVideos, setMesVideos] = useState<any[]>([]); /*DKDK_CHOIX_VIDEO*/
+  const [formation, setFormation] = useState<'solo' | 'group'>('solo'); /*DKDK_FORMATION*/
+  const [insGroupName, setInsGroupName] = useState('');
   const [panneauOuvert, setPanneauOuvert] = useState(false);
   const handleInscribe = async () => {
     const token = getToken();
@@ -361,7 +364,9 @@ export default function BracketPage() {
       const res = await fetch(`${API}/brackets/arena/inscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ bracket_id: params?.id, video_id, paiement_confirme }),
+        body: JSON.stringify({ bracket_id: params?.id, video_id, paiement_confirme,
+          formation: (bracket as any)?.allow_groups ? formation : 'solo', /*DKDK_FORMATION*/
+          group_name: ((bracket as any)?.allow_groups && formation === 'group') ? insGroupName.trim() : undefined }),
       });
       const data = await res.json();
       if (!data.success) {
@@ -478,6 +483,28 @@ export default function BracketPage() {
               {panneauOuvert && (
                 <div style={{ marginTop:16, textAlign:'left' }}>
                   <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.75)', marginBottom:8 }}>Choisis la video a engager :</div>
+                  {/*DKDK_FORMATION — choix solo / groupe (si le challenge l'autorise), libellé adapté à la discipline*/}
+                  {(bracket as any)?.allow_groups && (() => {
+                    const disc = String(bracket?.discipline || '').toLowerCase();
+                    const grpLabel = disc.includes('chant') ? 'Multi-voix'
+                      : disc.includes('danse') ? 'En groupe'
+                      : (disc.includes('instru') || disc.includes('musiq')) ? 'Ensemble'
+                      : 'Groupe / Équipe';
+                    const pill = (active: boolean) => ({ flex:1, padding:'8px 10px', borderRadius:10, cursor:'pointer', textAlign:'center' as const, fontSize:13, fontWeight:700, border:'1px solid ' + (active ? 'rgba(255,170,0,0.6)' : 'rgba(255,255,255,0.15)'), background: active ? 'rgba(255,170,0,0.15)' : 'transparent', color: active ? '#FFAA00' : 'rgba(255,255,255,0.6)' });
+                    return (
+                      <div style={{ marginBottom:12 }}>
+                        <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)', marginBottom:6 }}>Formation :</div>
+                        <div style={{ display:'flex', gap:8 }}>
+                          <div onClick={() => setFormation('solo')} style={pill(formation === 'solo')}>Solo</div>
+                          <div onClick={() => setFormation('group')} style={pill(formation === 'group')}>{grpLabel}</div>
+                        </div>
+                        {formation === 'group' && (
+                          <input placeholder="Nom du groupe" value={insGroupName} onChange={e => setInsGroupName(e.target.value)} maxLength={80}
+                            style={{ width:'100%', marginTop:8, padding:'10px 12px', borderRadius:10, border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.04)', color:'#fff', fontSize:13 }} />
+                        )}
+                      </div>
+                    );
+                  })()}
                   {mesVideos.map((v: any) => (
                     <div key={v.id} onClick={() => inscrireAvec(v.id)} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', marginBottom:6, borderRadius:12, cursor:'pointer', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)' }}>
                       <span style={{ flex:1, fontSize:13, color:'#fff' }}>{v.title || 'Sans titre'}</span>
