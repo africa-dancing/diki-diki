@@ -46,6 +46,7 @@ interface Summary {
   peak_hour:     string;
   peak_visits:   number;
   hourly_visits: number[];
+  by_country?:   { code: string; count: number }[]; /*DKDK_GEO_PANEL*/
 }
 
 const PAGE_LABELS: Record<string, string> = {
@@ -199,6 +200,33 @@ export default function AdminStatsPage() {
                   <span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span>
                 </div>
               </div>
+            </div>
+
+            {/* ── VISITEURS PAR PAYS (aujourd'hui) ─────────────── DKDK_GEO_PANEL */}
+            <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:12, padding:'14px', marginTop:14 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10 }}>
+                <span style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,0.6)' }}>🌍 Visiteurs par pays (aujourd'hui)</span>
+                <span style={{ fontSize:10, color:'rgba(255,255,255,0.3)' }}>vues du jour</span>
+              </div>
+              {summary?.by_country && summary.by_country.length > 0 ? (() => {
+                const maxC = Math.max(...summary.by_country.map(c => c.count), 1);
+                const flag = (cc: string) => /^[A-Z]{2}$/.test(cc) ? cc.replace(/./g, ch => String.fromCodePoint(127397 + ch.charCodeAt(0))) : '🏳️';
+                let rn: any = null; try { rn = new Intl.DisplayNames(['fr'], { type: 'region' }); } catch {}
+                const nom = (cc: string) => { try { return rn?.of(cc) || cc; } catch { return cc; } };
+                return summary.by_country.slice(0, 12).map(c => (
+                  <div key={c.code} style={{ marginBottom:8 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
+                      <span style={{ color:'rgba(255,255,255,0.6)' }}>{flag(c.code)} {nom(c.code)}</span>
+                      <span style={{ color:OR, fontWeight:700 }}>{c.count}</span>
+                    </div>
+                    <div style={{ height:6, background:'rgba(255,255,255,0.05)', borderRadius:3 }}>
+                      <div style={{ height:6, borderRadius:3, width:`${Math.round((c.count / maxC) * 100)}%`, background:OR }} />
+                    </div>
+                  </div>
+                ));
+              })() : (
+                <div style={{ fontSize:11, color:'rgba(255,255,255,0.2)', textAlign:'center', padding:'10px 0' }}>Pas encore de données de pays aujourd'hui</div>
+              )}
             </div>
           </div>
 
