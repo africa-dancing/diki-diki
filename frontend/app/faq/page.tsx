@@ -55,11 +55,11 @@ const faqs = [
       },
       {
         q: "Quels sont les formats de challenge ?",
-        a: `Il existe 6 formats, selon le nombre de candidats. Chaque format fixe le nombre d'étapes, de gagnants et d'éliminés :\n\n• C2 — 2 candidats · 1 étape · 1 gagnant · 1 éliminé\n• C4 — 4 candidats · 2 étapes · 2 gagnants · 2 éliminés\n• C6 — 6 candidats · 3 étapes · 3 gagnants · 3 éliminés\n• C8 — 8 candidats · 4 étapes · 3 gagnants · 5 éliminés\n• C12 — 12 candidats · 4 étapes · 3 gagnants · 9 éliminés\n• C16 — 16 candidats · 4 étapes · 3 gagnants · 13 éliminés\n\nLe total « gagnants + éliminés » est toujours égal au nombre de candidats.`,
+        a: `Il existe 6 formats, selon le nombre de candidats. Chaque format fixe le nombre d'étapes, de gagnants et d'éliminés :\n\n• C2 — 2 candidats · 1 étape · 1 gagnant · 1 éliminé\n• C4 — 4 candidats · 2 étapes · 3 gagnants · 1 éliminé\n• C6 — 6 candidats · 3 étapes · 3 gagnants · 3 éliminés\n• C8 — 8 candidats · 4 étapes · 3 gagnants · 5 éliminés\n• C12 — 12 candidats · 4 étapes · 3 gagnants · 9 éliminés\n• C16 — 16 candidats · 5 étapes · 3 gagnants · 13 éliminés\n\nEn modèle Parcours, la dernière étape est un « match de classement » : les finalistes s'affrontent une dernière fois, sans élimination, et le vote fixe l'ordre du podium (elle est comptée dans le nombre d'étapes ci-dessus). Le total « gagnants + éliminés » est toujours égal au nombre de candidats.`,
       },
       {
         q: "Parcours ou Bloc groupé : quelle différence ?",
-        a: `Un challenge suit l'un de deux modèles :\n\n• Parcours (élimination progressive) — étape par étape : à chaque étape le candidat fournit une vidéo, le public vote, et les moins votés sont éliminés. On recommence jusqu'au podium final.\n\n• Bloc groupé (classement final) — le candidat fournit toutes ses vidéos d'emblée ; il n'y a qu'un seul décompte à la fin, un seul classement.`,
+        a: `Un challenge suit l'un de deux modèles :\n\n• Parcours (élimination progressive) — étape par étape : à chaque étape le candidat fournit une vidéo, le public vote, et les moins votés sont éliminés. La dernière étape est un « match de classement » : les finalistes s'affrontent une dernière fois, sans élimination, et le vote départage l'ordre du podium (1er, 2e, 3e).\n\n• Bloc groupé (classement final) — le candidat fournit toutes ses vidéos d'emblée ; il n'y a qu'un seul décompte à la fin, un seul classement.`,
       },
       {
         q: "Un challenge en solo ou en groupe ?",
@@ -67,7 +67,7 @@ const faqs = [
       },
       {
         q: "Comment les gagnants et les éliminés sont-ils désignés ?",
-        a: `Uniquement par les votes du public. À chaque étape, les candidats sont classés par score ; les mieux classés continuent, les moins votés sont éliminés. Les scores repartent de zéro à chaque nouvelle étape.\n\nEn cas d'égalité à une place décisive, un court délai supplémentaire laisse les votes départager. Si l'égalité persiste, un classement de départage s'applique : le plus d'étoiles, puis le plus de cœurs, puis l'ordre d'inscription.`,
+        a: `Uniquement par les votes du public. À chaque étape, les candidats sont classés par score ; les mieux classés continuent, les moins votés sont éliminés. Les scores repartent de zéro à chaque nouvelle étape.\n\nLa dernière étape est un match de classement : plus personne n'est éliminé, et le vote de cette étape fixe l'ordre du podium (1er, 2e, 3e).\n\nEn cas d'égalité à une place décisive, un court délai supplémentaire laisse les votes départager. Si l'égalité persiste, un classement de départage s'applique : le plus d'étoiles, puis le plus de cœurs, puis l'ordre d'inscription.`,
       },
       {
         q: "Qui peut créer un challenge ?",
@@ -89,7 +89,7 @@ const faqs = [
     cat: '🗳️ Votes & Cagnotte',
     items: [
       { q: 'Comment fonctionne le vote ?', a: "Deux façons de soutenir :\n• ★ Étoile = 100 F CFA (poids +1 au classement)\n• ❤️ Cœur = 200 F CFA (poids +2 au classement)\n\nVous pouvez voter par paliers (100, 200, 500, 1 000 F) ou saisir une quantité libre. Chaque vote fait monter le score du candidat et alimente la cagnotte du challenge." },
-      { q: "Comment la cagnotte est-elle partagée ?", a: "La cagnotte, c'est l'ensemble des votes d'un challenge. La plateforme prélève une commission (50 %) ; le reste — le net — revient au podium, selon le format :\n\n• C2 (1 gagnant) : 100 %\n• C4 (2 gagnants) : 65 % / 35 %\n• C6, C8, C12, C16 (3 gagnants) : 60 % / 25 % / 15 %\n\nRègle intangible : on ne distribue jamais plus que ce qui a été collecté." },
+      { q: "Comment la cagnotte est-elle partagée ?", a: "La cagnotte, c'est l'ensemble des votes d'un challenge. La plateforme prélève une commission (50 %) ; le reste — le net — revient au podium, selon le format :\n\n• C2 (1 gagnant) : 100 %\n• C4, C6, C8, C12, C16 (3 gagnants) : 60 % / 25 % / 15 %\n\nRègle intangible : on ne distribue jamais plus que ce qui a été collecté." },
       { q: "Que gagne un candidat éliminé ?", a: "Toute participation est récompensée : chaque éliminé reçoit une prime de participation, égale à 20 % de ce que ses propres votes ont rapporté. Ces primes sont financées par la commission de la plateforme, pas par la part du podium." },
       { q: "L'objectif d'une étape, est-ce mon gain ?", a: "Non — c'est une confusion fréquente. L'objectif d'une étape est le montant à collecter pour qu'elle se ferme, pas un gain de candidat. Votre gain réel dépend de la cagnotte réellement collectée, moins la commission, partagée selon le podium." },
       { q: "Qu'est-ce que « Soutenir » un artiste ?", a: "En dehors des périodes de vote d'un challenge (entre deux étapes, ou pour une vidéo hors challenge), vous pouvez Soutenir directement un artiste. Le montant est fixé par la plateforme et affiché au moment de soutenir ; une part revient directement à l'artiste soutenu." },

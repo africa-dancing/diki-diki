@@ -119,7 +119,8 @@ Les vidéos et prestations mises en ligne demeurent la propriété de leurs aute
 • Cagnotte : la somme des votes d'un challenge.
 • Compte de votes : le solde rechargeable servant à voter ; il n'est pas retirable.
 • Compte de retrait : le solde constitué des gains (podium et primes) ; il est retirable.
-• Prime de participation : le gain versé à un candidat éliminé.` },
+• Prime de participation : le gain versé à un candidat éliminé.
+• Match de classement : la dernière étape d'un challenge Parcours, où les finalistes s'affrontent sans élimination pour fixer l'ordre du podium (1er, 2e, 3e).` },
       { h: "Article 3 — Acceptation et modification des CGU", b:
 `L'utilisateur reconnaît avoir pris connaissance des présentes CGU et les accepter. L'éditeur peut les modifier à tout moment pour les adapter à l'évolution de la Plateforme ou à la réglementation. La version applicable est celle en vigueur à la date d'utilisation ; la date de dernière mise à jour figure en tête de page. Les modifications substantielles sont portées à la connaissance des utilisateurs.` },
       { h: "Article 4 — Inscription et conditions d'accès", b:
@@ -177,18 +178,18 @@ Les votes sont fermes et définitifs : une fois exprimés, ils ne sont pas rembo
       { h: "Article 3 — Conditions de participation", b:
 `Pour concourir, le candidat doit : être âgé d'au moins 18 ans ; disposer d'un compte vérifié à son identité réelle ; avoir au moins une vidéo approuvée dont il est l'auteur ; et accepter le présent Règlement. La participation en tant que candidat est gratuite ; seuls les votants paient.` },
       { h: "Article 4 — Formats de challenge", b:
-`Un format est défini par son nombre de candidats. Il fixe le nombre d'étapes, l'objectif de cagnotte par étape, le nombre de gagnants et d'éliminés :
+`Un format est défini par son nombre de candidats. Il fixe le nombre d'étapes, l'enveloppe de cagnotte à collecter sur l'ensemble du challenge, le nombre de gagnants et d'éliminés :
 
-• C2 — 2 candidats · 1 étape · objectif 2 500 000 F · 1 gagnant · 1 éliminé
-• C4 — 4 candidats · 2 étapes · objectif 4 000 000 F · 2 gagnants · 2 éliminés
-• C6 — 6 candidats · 3 étapes · objectif 5 000 000 F · 3 gagnants · 3 éliminés
-• C8 — 8 candidats · 4 étapes · objectif 7 000 000 F · 3 gagnants · 5 éliminés
-• C12 — 12 candidats · 4 étapes · objectif 9 000 000 F · 3 gagnants · 9 éliminés
-• C16 — 16 candidats · 4 étapes · objectif 15 000 000 F · 3 gagnants · 13 éliminés
+• C2 — 2 candidats · 1 étape · enveloppe 2 500 000 F · 1 gagnant · 1 éliminé
+• C4 — 4 candidats · 2 étapes · enveloppe 8 000 000 F · 3 gagnants · 1 éliminé
+• C6 — 6 candidats · 3 étapes · enveloppe 15 000 000 F · 3 gagnants · 3 éliminés
+• C8 — 8 candidats · 4 étapes · enveloppe 28 000 000 F · 3 gagnants · 5 éliminés
+• C12 — 12 candidats · 4 étapes · enveloppe 36 000 000 F · 3 gagnants · 9 éliminés
+• C16 — 16 candidats · 5 étapes · enveloppe 75 000 000 F · 3 gagnants · 13 éliminés
 
-L'« objectif par étape » est le montant à collecter pour qu'une étape se ferme ; ce n'est pas le gain d'un candidat. Ces valeurs sont paramétrables par l'administrateur et le total « gagnants + éliminés » est toujours égal au nombre de candidats.` },
+En modèle Parcours, la dernière étape est un match de classement (sans élimination) et elle est comptée dans le nombre d'étapes ci-dessus. L'objectif à collecter n'est pas constant : il décroît d'une étape à l'autre, la dernière (le match de classement) étant la plus légère ; l'enveloppe est le total de ces objectifs. Ni l'enveloppe ni l'objectif d'une étape ne sont le gain d'un candidat : ce sont des montants à collecter pour qu'une étape se ferme. Ces valeurs sont paramétrables par l'administrateur et le total « gagnants + éliminés » est toujours égal au nombre de candidats.` },
       { h: "Article 5 — Modèles : Parcours et Bloc groupé", b:
-`• Parcours (élimination progressive) : le challenge se déroule en plusieurs étapes ; à chaque étape le candidat fournit une vidéo, le public vote, et les moins votés sont éliminés jusqu'au podium final. Les scores repartent de zéro à chaque étape.
+`• Parcours (élimination progressive) : le challenge se déroule en plusieurs étapes ; à chaque étape le candidat fournit une vidéo, le public vote, et les moins votés sont éliminés. Les scores repartent de zéro à chaque étape. La dernière étape est un match de classement : les finalistes s'affrontent sans élimination et le vote fixe l'ordre du podium (1er, 2e, 3e).
 • Bloc groupé (classement final) : le candidat fournit toutes ses vidéos d'emblée ; un seul décompte final établit le classement.` },
       { h: "Article 5 bis — Formation : Solo ou Groupes", b:
 `Chaque challenge est d'un seul type de formation, choisi librement par son créateur au moment de la création (Solo par défaut) :
@@ -205,14 +206,13 @@ Un groupe compte comme une seule inscription et occupe une seule place dans le f
 
 Le vote peut se faire par paliers (100, 200, 500, 1 000 F) ou par saisie libre. Un même envoi est limité à 1 000 unités au maximum ; le votant peut toutefois renouveler son soutien autant de fois qu'il le souhaite, tant que l'étape est ouverte et que son solde le permet. Chaque vote débite le Compte de votes, augmente le score du candidat, et alimente la cagnotte du challenge. Les votes sont fermes, définitifs et non remboursables, sauf annulation du challenge par l'éditeur.` },
       { h: "Article 7 — Cagnotte, commission et net", b:
-`La cagnotte d'un challenge est la somme de tous ses votes. La Plateforme prélève sur cette cagnotte une commission (actuellement 50 %, paramétrable par l'administrateur). Le solde après commission constitue le « net », destiné à être partagé entre les gagnants.` },
+`La cagnotte d'un challenge est la somme de tous ses votes. En modèle Parcours, chaque étape a un objectif à collecter qui décroît d'une étape à l'autre (la dernière, le match de classement, étant la plus légère) ; la somme de ces objectifs forme l'enveloppe du challenge. La Plateforme prélève sur cette cagnotte une commission (actuellement 50 %, paramétrable par l'administrateur). Le solde après commission constitue le « net », destiné à être partagé entre les gagnants.` },
       { h: "Article 8 — Fermeture d'une étape et départage", b:
-`Une étape se ferme dès que le montant collecté atteint son objectif ; le résultat est alors figé. En cas d'égalité de score à une place décisive, un délai supplémentaire laisse les votes départager les candidats ; si l'égalité persiste, un classement de départage s'applique (le plus d'étoiles, puis de cœurs, puis l'ordre d'inscription). Un même challenge ne peut donner lieu qu'à une seule distribution de cagnotte (verrou anti-double-versement).` },
+`Une étape se ferme dès que le montant collecté atteint son objectif ; le résultat est alors figé. En modèle Parcours, la dernière étape est un match de classement : aucun candidat n'y est éliminé, et son vote sert uniquement à fixer l'ordre du podium (1er, 2e, 3e). En cas d'égalité de score à une place décisive, un délai supplémentaire laisse les votes départager les candidats ; si l'égalité persiste, un classement de départage s'applique (le plus d'étoiles, puis de cœurs, puis l'ordre d'inscription). Un même challenge ne peut donner lieu qu'à une seule distribution de cagnotte (verrou anti-double-versement).` },
       { h: "Article 9 — Répartition du podium", b:
 `Le net est partagé entre les gagnants selon leur nombre :
 • 1 gagnant (C2) : 100 % ;
-• 2 gagnants (C4) : 65 % au 1er, 35 % au 2e ;
-• 3 gagnants (C6, C8, C12, C16) : 60 % au 1er, 25 % au 2e, 15 % au 3e.
+• 3 gagnants (C4, C6, C8, C12, C16) : 60 % au 1er, 25 % au 2e, 15 % au 3e.
 
 Ces pourcentages sont paramétrables par l'administrateur.` },
       { h: "Article 10 — Primes de participation", b:
@@ -276,7 +276,7 @@ export default function CGUPage() {
         <div style={s.badge}>Informations légales</div>
         <h1 style={s.h1}>Conditions & Règlement</h1>
         <p style={s.sub}>Mentions légales · CGU · Règlement des challenges · Confidentialité</p>
-        <p style={s.maj}>Dernière mise à jour : {MAJ} · Version 1.1</p>
+        <p style={s.maj}>Dernière mise à jour : {MAJ} · Version 1.2</p>
       </div>
 
       <div style={s.divider} />
