@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import geoip from 'geoip-lite'; /*DKDK_GEO_VOTE — géoloc pays du votant (additif, hors calcul d'argent)*/
 import { initiatePayment, verifyPayment, withdrawPayment, paymentProvider, retraitRule, retraitFee } from '../services/payment.service';
 import { pawaProvider, pawapayPayout, pawapayStatus, pawapayDeposit, pawapayDepositStatus } from '../services/pawapay.service';
+import { sendServerPurchase } from '../services/marketing.service'; /*DKDK_PIXEL_PURCHASE — conversion serveur (additif, non-bloquant)*/
 import { supabase } from '../../config/supabase';
 
 const MIN_RETRAIT = 500; /*DKDK_MIN_RETRAIT_500*/
@@ -362,6 +363,10 @@ export async function webhook(req: Request, res: Response) { /*DKDK_WEBHOOK_VOTE
               p_type:           tx.metadata.p_type,
             });
           }
+          /*DKDK_PIXEL_PURCHASE — argent réellement entré : Purchase serveur (fire-and-forget, ne bloque jamais le webhook)*/
+          if (_crediteMaintenant) {
+            sendServerPurchase({ userId: tx.user_id, value: tx.amount, currency: 'XOF', ref: String(transaction_id) }).catch(() => {});
+          }
         }
       }
     }
@@ -523,8 +528,12 @@ export async function pawapayCallback(req: Request, res: Response) {
             const _fcfa  = _units * 100;
             // Crédit du wallet + bascule 'success' en UNE transaction DB atomique
             // (fonction credit_deposit_once) → plus de double-crédit sur callback répété.
-            await supabase.rpc('credit_deposit_once', { p_ref: _depositId, p_fcfa: _fcfa });
+            const { data: _pcr } = await supabase.rpc('credit_deposit_once', { p_ref: _depositId, p_fcfa: _fcfa });
             console.log('[PAWAPAY_DEPOSIT_CB] credit ' + _fcfa + ' F CFA | ' + _cur + ' | ' + _depositId);
+            /*DKDK_PIXEL_PURCHASE — Purchase serveur, seulement si le crédit a réellement eu lieu maintenant (fire-and-forget)*/
+            if (_pcr && (_pcr as any).ok === true && (_pcr as any).already !== true) {
+              sendServerPurchase({ userId: _dtx.user_id, value: _fcfa, currency: 'XOF', ref: _depositId }).catch(() => {});
+            }
           }
         }
       } else if (_dstatus === 'FAILED' || _dstatus === 'REJECTED' || _dstatus === 'CANCELLED') {

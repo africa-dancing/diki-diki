@@ -246,9 +246,9 @@ Ces pourcentages sont paramétrables par l'administrateur.` },
 • Données financières : solde des comptes, historique des transactions (recharges, votes, gains, retraits), numéro Mobile Money de réception. Certaines transactions de vote peuvent porter un pays approximatif (déduit de l'adresse IP) à des fins de statistiques agrégées. La Plateforme ne collecte ni ne conserve les codes secrets (PIN) ni les données de carte : ils sont traités directement par le prestataire de paiement.
 • Données techniques : journaux de connexion, données d'appareil, cookies, et un pays approximatif déduit de l'adresse IP à des fins de mesure d'audience. Pour cette mesure d'audience, l'adresse IP n'est pas conservée : seule l'information de pays (approximative) est enregistrée.` },
       { h: "Article 3 — Finalités et bases légales", b:
-`Les données sont traitées pour : fournir et gérer le service (exécution du contrat) ; organiser les challenges, votes et versements (exécution du contrat) ; assurer la sécurité, la modération et la lutte contre la fraude (intérêt légitime) ; mesurer l'audience et comprendre la provenance géographique de manière approximative et agrégée, par pays (intérêt légitime) ; envoyer les notifications liées au service ; et respecter les obligations légales et comptables applicables.` },
+`Les données sont traitées pour : fournir et gérer le service (exécution du contrat) ; organiser les challenges, votes et versements (exécution du contrat) ; assurer la sécurité, la modération et la lutte contre la fraude (intérêt légitime) ; mesurer l'audience et comprendre la provenance géographique de manière approximative et agrégée, par pays (intérêt légitime) ; mesurer la performance de nos actions de communication et, le cas échéant, adresser des publicités ciblées ou de reciblage sur des plateformes tierces — **uniquement avec votre consentement** (voir Article 9) ; envoyer les notifications liées au service ; et respecter les obligations légales et comptables applicables.` },
       { h: "Article 4 — Destinataires et sous-traitants", b:
-`Les données sont accessibles au personnel habilité de l'éditeur et à ses sous-traitants techniques, tenus à la confidentialité : hébergement et base de données (Supabase, Vercel, Railway), stockage vidéo (Cloudflare), prestataires de paiement (FedaPay, PawaPay), mesure d'audience (Vercel Web Analytics), et services d'envoi de messages (SMS / e-mail). Les données ne sont ni vendues ni cédées à des tiers à des fins commerciales.` },
+`Les données sont accessibles au personnel habilité de l'éditeur et à ses sous-traitants techniques, tenus à la confidentialité : hébergement et base de données (Supabase, Vercel, Railway), stockage vidéo (Cloudflare), prestataires de paiement (FedaPay, PawaPay), mesure d'audience (Vercel Web Analytics), régies publicitaires et outils de mesure/reciblage (TikTok, Meta/Facebook), activés uniquement avec votre consentement, et services d'envoi de messages (SMS / e-mail). Les données ne sont ni vendues ni cédées à des tiers à des fins commerciales.` },
       { h: "Article 5 — Transferts hors du Bénin", b:
 `Certains prestataires d'hébergement sont situés hors du Bénin. Les transferts nécessaires au fonctionnement de la Plateforme sont encadrés par des garanties contractuelles appropriées auprès de ces prestataires.` },
       { h: "Article 6 — Durée de conservation", b:
@@ -258,7 +258,12 @@ Ces pourcentages sont paramétrables par l'administrateur.` },
       { h: "Article 8 — Vos droits", b:
 `Conformément à la loi n° 2017-20 du 20 avril 2018 portant Code du numérique en République du Bénin, l'utilisateur dispose des droits d'accès, de rectification, d'effacement, d'opposition et de limitation concernant ses données. Ces droits s'exercent en écrivant à support@diki-diki.com. En cas de difficulté, l'utilisateur peut saisir l'Autorité de Protection des Données à caractère Personnel (APDP) du Bénin.` },
       { h: "Article 9 — Cookies", b:
-`La Plateforme utilise des cookies et technologies similaires strictement nécessaires à son fonctionnement (session, sécurité) et, le cas échéant, à la mesure d'audience. Cette mesure d'audience (Vercel Web Analytics) est réalisée de façon agrégée et sans conservation de l'adresse IP. L'utilisateur peut configurer son navigateur pour limiter les cookies non essentiels ; certaines fonctionnalités peuvent alors être affectées.` },
+`La Plateforme utilise trois catégories de cookies et technologies similaires :
+• **Cookies nécessaires** au fonctionnement (session, sécurité) : toujours actifs, sans consentement requis.
+• **Cookies de mesure d'audience** (Vercel Web Analytics) : de façon agrégée et sans conservation de l'adresse IP.
+• **Cookies marketing et de reciblage** (TikTok Pixel, Meta Pixel) : ils permettent de mesurer la performance de nos communications et d'adresser des publicités ciblées sur des plateformes tierces. Ils ne sont **déposés et activés qu'après votre consentement explicite**.
+
+À votre première visite, un **bandeau de consentement** vous permet d'accepter ou de refuser les cookies non essentiels (mesure d'audience et marketing). Par défaut, en l'absence de choix, ces cookies ne sont pas activés. Vous pouvez modifier votre choix à tout moment, et configurer votre navigateur pour limiter les cookies ; certaines fonctionnalités peuvent alors être affectées.` },
       { h: "Article 10 — Mineurs", b:
 `La Plateforme est réservée aux personnes majeures (18 ans et plus). L'éditeur ne collecte pas sciemment de données de mineurs ; tout compte identifié comme appartenant à un mineur sera clôturé.` },
       { h: "Article 11 — Modifications", b:
@@ -276,7 +281,7 @@ export default function CGUPage() {
         <div style={s.badge}>Informations légales</div>
         <h1 style={s.h1}>Conditions & Règlement</h1>
         <p style={s.sub}>Mentions légales · CGU · Règlement des challenges · Confidentialité</p>
-        <p style={s.maj}>Dernière mise à jour : {MAJ} · Version 1.2</p>
+        <p style={s.maj}>Dernière mise à jour : {MAJ} · Version 1.3</p>
       </div>
 
       <div style={s.divider} />

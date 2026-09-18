@@ -1,6 +1,7 @@
 import './mobile.css';
 import BackgroundMusic from './components/BackgroundMusic';
 import SplashScreen from './components/SplashScreen'; /*DKDK_SPLASH_MOUNT*/
+import ConsentPixels from './components/ConsentPixels'; /*DKDK_PIXELS — consentement + pixels TikTok/Meta*/
 import type { Metadata } from 'next';
 import { Inter, DM_Sans } from 'next/font/google'; /*DKDK_POLICE_INTER*/
 import { Analytics } from '@vercel/analytics/next';
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: "(function(){try{if(localStorage.getItem('dkdk-theme')==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();" }} />
         <SplashScreen />{children}<BackgroundMusic />
         <Analytics />
+        <ConsentPixels />{/*DKDK_PIXELS*/}
       </body>
     </html>
   );
