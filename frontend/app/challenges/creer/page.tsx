@@ -339,6 +339,28 @@ export default function CreerChallengePage() {
   const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--line)', color: 'var(--ink)', fontSize: 14, marginBottom: 16 } as const;
   const labelStyle = { fontSize: 13, fontWeight: 700, color: OR, marginBottom: 6, display: 'block' } as const;
 
+  /*DKDK_FORMATION — bloc Formation (solo OU groupes, jamais mélangé) réutilisé dans les flux artistique et sport*/
+  const formationBloc = (
+    <div style={{ border: '1px solid rgba(255,170,0,0.25)', borderRadius: 12, padding: '12px 14px', marginBottom: 16, background: 'rgba(255,170,0,0.05)' }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft,#ccc)', marginBottom: 8 }}>Formation</div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <div onClick={() => setAllowGroups(false)} style={{ flex: 1, padding: '10px', borderRadius: 10, textAlign: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 700, border: '1px solid ' + (!allowGroups ? 'rgba(255,170,0,0.6)' : 'rgba(255,255,255,0.15)'), background: !allowGroups ? 'rgba(255,170,0,0.15)' : 'transparent', color: !allowGroups ? '#FFAA00' : 'rgba(255,255,255,0.6)' }}>🎤 Solo</div>
+        <div onClick={() => setAllowGroups(true)} style={{ flex: 1, padding: '10px', borderRadius: 10, textAlign: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 700, border: '1px solid ' + (allowGroups ? 'rgba(96,165,250,0.6)' : 'rgba(255,255,255,0.15)'), background: allowGroups ? 'rgba(96,165,250,0.15)' : 'transparent', color: allowGroups ? '#93c5fd' : 'rgba(255,255,255,0.6)' }}>👥 Groupes</div>
+      </div>
+      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 8, lineHeight: 1.5 }}>
+        {allowGroups
+          ? 'Challenge de groupes : tous les candidats concourent en groupe (multi-voix, troupe, ensemble, équipe). Pas de solo.'
+          : 'Challenge solo : tous les candidats concourent individuellement. Pas de groupe.'}
+      </div>
+      {allowGroups && (
+        <div style={{ marginTop: 10 }}>
+          <label style={{ fontSize: 12, color: 'var(--ink-soft,#ccc)' }}>Nom de ton groupe (tu es le 1er inscrit)</label>
+          <input style={{ ...inputStyle, marginTop: 6 }} placeholder="Nom du groupe" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={80} />
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
       <Navbar />
@@ -368,6 +390,8 @@ export default function CreerChallengePage() {
             <button key={m.val} onClick={() => setMode(m.val)} style={{ flex: 1, minWidth: 120, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: mode === m.val ? `1px solid ${OR}` : '1px solid var(--line)', background: mode === m.val ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'var(--surface)', color: mode === m.val ? '#150c00' : 'var(--ink-soft)' }}>{m.label}</button>
           ))}
         </div>
+        {/*DKDK_FORMATION — Formation (solo/groupes) juste après le Mode*/}
+        {formationBloc}
         {/*DKDK_CATEG_REMOVED — categorie toujours Loisirs, plus de selecteur*/}
 
         <label style={labelStyle}>Modèle de challenge</label>
@@ -447,6 +471,9 @@ export default function CreerChallengePage() {
           {formats.map((ff: any) => <option key={ff.code} value={ff.code} style={{ background: 'var(--bg-soft)' }}>{ff.libelle}</option>)}
         </select>
 
+        {/*DKDK_FORMATION — Formation (solo/groupes) dans le flux sport*/}
+        {formationBloc}
+
         <label style={labelStyle}>Art</label>
         <select style={inputStyle} value={sportArt} onChange={e => { setSportArt(e.target.value); setSportEpreuveNom(''); setSportDiff(''); }}>
           <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir un art --</option>
@@ -491,25 +518,6 @@ export default function CreerChallengePage() {
             ⚠️ Cette vidéo est déjà engagée dans un autre challenge — l'inscrire ici coûte {montantInscription.toLocaleString('fr-FR')} F.
           </div>
         )}
-        {/*DKDK_FORMATION — TYPE du challenge : solo OU groupes (jamais mélangé)*/}
-        <div style={{ border: '1px solid rgba(255,170,0,0.25)', borderRadius: 12, padding: '12px 14px', marginBottom: 16, background: 'rgba(255,170,0,0.05)' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft,#ccc)', marginBottom: 8 }}>Type de challenge</div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <div onClick={() => setAllowGroups(false)} style={{ flex: 1, padding: '10px', borderRadius: 10, textAlign: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 700, border: '1px solid ' + (!allowGroups ? 'rgba(255,170,0,0.6)' : 'rgba(255,255,255,0.15)'), background: !allowGroups ? 'rgba(255,170,0,0.15)' : 'transparent', color: !allowGroups ? '#FFAA00' : 'rgba(255,255,255,0.6)' }}>🎤 Solo</div>
-            <div onClick={() => setAllowGroups(true)} style={{ flex: 1, padding: '10px', borderRadius: 10, textAlign: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 700, border: '1px solid ' + (allowGroups ? 'rgba(96,165,250,0.6)' : 'rgba(255,255,255,0.15)'), background: allowGroups ? 'rgba(96,165,250,0.15)' : 'transparent', color: allowGroups ? '#93c5fd' : 'rgba(255,255,255,0.6)' }}>👥 Groupes</div>
-          </div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 8, lineHeight: 1.5 }}>
-            {allowGroups
-              ? 'Challenge de groupes : tous les candidats concourent en groupe (multi-voix, troupe, ensemble, équipe). Pas de solo.'
-              : 'Challenge solo : tous les candidats concourent individuellement. Pas de groupe.'}
-          </div>
-          {allowGroups && (
-            <div style={{ marginTop: 10 }}>
-              <label style={{ fontSize: 12, color: 'var(--ink-soft,#ccc)' }}>Nom de ton groupe (tu es le 1er inscrit)</label>
-              <input style={{ ...inputStyle, marginTop: 6 }} placeholder="Nom du groupe" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={80} />
-            </div>
-          )}
-        </div>
         {msg && <div style={{ color: '#FF6B6B', fontSize: 13, marginBottom: 16, textAlign: 'center' }}>{msg}</div>}
 
         <button onClick={submit} disabled={submitting} style={{ width: '100%', padding: '14px', borderRadius: 14, fontSize: 15, fontWeight: 800, fontFamily: 'Syne,sans-serif', cursor: submitting ? 'not-allowed' : 'pointer', border: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#150c00', opacity: submitting ? 0.88 : 1 }}>
