@@ -1059,6 +1059,22 @@ export default function WatchPage() {
             🏆 {candidates[currentVideoIndex]?.stage_name ?? candidates[currentVideoIndex]?.name ?? ''} · {currentVideoIndex + 1}/{totalInComp}
           </div>
         )}
+        {/*DKDK_FORMATION — badge groupe visible par le public pour le candidat en lecture*/}
+        {(() => {
+          const _cur: any = candidates[currentVideoIndex];
+          const _p: any = (bracketData?.pool ?? []).find((pp: any) => pp.video_id === _cur?.video_id);
+          if (!_p || _p.formation !== 'group') return null;
+          const _disc = String(bracketData?.bracket?.discipline || '').toLowerCase();
+          const _gl = _disc.includes('chant') ? 'Multi-voix'
+            : _disc.includes('danse') ? 'En groupe'
+            : (_disc.includes('instru') || _disc.includes('musiq')) ? 'Ensemble'
+            : 'Groupe';
+          return (
+            <div style={{ position: 'absolute', top: 44, left: 10, background: 'rgba(96,165,250,0.18)', border: '1px solid rgba(96,165,250,0.4)', borderRadius: 20, padding: '3px 10px', fontSize: 8, color: '#93c5fd', fontWeight: 700, zIndex: 10 }}>
+              👥 {_gl}{_p.group_name ? ' · ' + _p.group_name : ''}
+            </div>
+          );
+        })()}
         {hasPrev && (
           <button onClick={e => { e.stopPropagation(); goTo(currentVideoIndex - 1); }}
             style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>

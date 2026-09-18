@@ -577,7 +577,7 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
 
     const { data: pool, error: poolErr } = await supabase
       .from('bracket_participants')
-      .select('id, score, stars_count, hearts_count, eliminated_at, suspended_at, registered_at, final_path, video_id, user_id, users(name, avatar_url)')
+      .select('id, score, stars_count, hearts_count, eliminated_at, suspended_at, registered_at, final_path, video_id, user_id, formation, group_name, users(name, avatar_url)') /*DKDK_FORMATION*/
       .eq('bracket_id', bracketId)
       .order('score', { ascending: false });
     if (poolErr) throw poolErr;
@@ -598,6 +598,8 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
           final_path: p.final_path ?? null,
           video_id: p.video_id,
           user_id: p.user_id,
+          formation: p.formation ?? 'solo', /*DKDK_FORMATION*/
+          group_name: p.group_name ?? null, /*DKDK_FORMATION*/
           name: p.users ? p.users.name : null,
           avatar_url: p.users ? p.users.avatar_url : null,
         })),
