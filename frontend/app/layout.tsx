@@ -3,6 +3,7 @@ import BackgroundMusic from './components/BackgroundMusic';
 import SplashScreen from './components/SplashScreen'; /*DKDK_SPLASH_MOUNT*/
 import type { Metadata } from 'next';
 import { Inter, DM_Sans } from 'next/font/google'; /*DKDK_POLICE_INTER*/
+import { Analytics } from '@vercel/analytics/next';
 
 const syne = Inter({
   subsets: ['latin'],
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Applique le thème Jour/Nuit avant le rendu pour éviter tout clignotement */}
         <script dangerouslySetInnerHTML={{ __html: "(function(){try{if(localStorage.getItem('dkdk-theme')==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();" }} />
         <SplashScreen />{children}<BackgroundMusic />
+        <Analytics />
       </body>
     </html>
   );
