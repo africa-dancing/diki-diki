@@ -5,7 +5,7 @@ const OR = 'var(--or)';
 const OR2 = 'var(--or2)';
 const BG = 'var(--bg)';
 
-const MAJ = '5 septembre 2026';
+const MAJ = '18 septembre 2026';
 
 const s: Record<string, React.CSSProperties> = {
   page:    { background: BG, minHeight: '100vh', color: 'var(--ink)', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },
@@ -114,6 +114,7 @@ Les vidéos et prestations mises en ligne demeurent la propriété de leurs aute
 • Candidat : utilisateur inscrit qui téléverse une ou plusieurs vidéos afin de concourir.
 • Votant : utilisateur qui soutient des candidats au moyen de votes payants.
 • Challenge : une compétition entre candidats sur une discipline et un format donnés.
+• Formation : le type d'un challenge — Solo (candidats individuels) ou Groupes (prestations à plusieurs) ; un challenge est de l'un ou l'autre type, jamais les deux à la fois.
 • Étoile ★ / Cœur ❤️ : les deux unités de vote payant (voir le Règlement des challenges).
 • Cagnotte : la somme des votes d'un challenge.
 • Compte de votes : le solde rechargeable servant à voter ; il n'est pas retirable.
@@ -126,7 +127,9 @@ Les vidéos et prestations mises en ligne demeurent la propriété de leurs aute
 
 L'utilisateur garantit être âgé d'au moins 18 ans et disposer de la pleine capacité juridique. Les services impliquant un paiement ou un versement de gains sont strictement réservés aux personnes majeures.
 
-L'utilisateur s'engage à fournir des informations exactes, notamment son identité réelle, indispensable au versement des gains et à la lutte contre la fraude. Un seul compte est autorisé par personne.` },
+L'utilisateur s'engage à fournir des informations exactes, notamment son identité réelle, indispensable au versement des gains et à la lutte contre la fraude. Un seul compte est autorisé par personne.
+
+La création d'un compte, quel qu'en soit le mode (numéro de téléphone, connexion via un réseau social), vaut acceptation des présentes CGU et du Règlement des challenges.` },
       { h: "Article 5 — Compte et sécurité", b:
 `L'utilisateur est responsable de la confidentialité de ses identifiants et de toute activité réalisée depuis son compte. Il informe sans délai l'éditeur de toute utilisation non autorisée. L'éditeur ne saurait être tenu responsable des conséquences d'un défaut de vigilance de l'utilisateur sur ses identifiants.` },
       { h: "Article 6 — Contenus des candidats (vidéos)", b:
@@ -187,12 +190,20 @@ L'« objectif par étape » est le montant à collecter pour qu'une étape se fe
       { h: "Article 5 — Modèles : Parcours et Bloc groupé", b:
 `• Parcours (élimination progressive) : le challenge se déroule en plusieurs étapes ; à chaque étape le candidat fournit une vidéo, le public vote, et les moins votés sont éliminés jusqu'au podium final. Les scores repartent de zéro à chaque étape.
 • Bloc groupé (classement final) : le candidat fournit toutes ses vidéos d'emblée ; un seul décompte final établit le classement.` },
+      { h: "Article 5 bis — Formation : Solo ou Groupes", b:
+`Chaque challenge est d'un seul type de formation, choisi librement par son créateur au moment de la création (Solo par défaut) :
+• Solo : tous les candidats concourent individuellement ;
+• Groupes : tous les candidats concourent en groupe (prestation à plusieurs).
+
+Un challenge n'oppose jamais un solo à un groupe : la compétition est soit solo contre solo, soit groupe contre groupe. Le libellé du mode Groupes s'adapte à la discipline (Multi-voix au chant, Troupe en danse, Ensemble aux instruments, Équipe au sport).
+
+Un groupe compte comme une seule inscription et occupe une seule place dans le format : il dépose une vidéo par étape et perçoit, le cas échéant, un seul gain (part du podium) ou une seule prime de participation. Ce montant est versé au groupe en tant qu'entité ; sa répartition entre les membres relève d'eux seuls, en dehors de la Plateforme. La formation ne modifie ni les formats, ni la cagnotte, ni la commission, ni le podium, ni les primes.` },
       { h: "Article 6 — Le vote", b:
 `Le public soutient les candidats par deux unités de vote payant :
 • Étoile ★ = 100 F CFA, poids 1 au classement ;
 • Cœur ❤️ = 200 F CFA, poids 2 au classement.
 
-Le vote peut se faire par paliers (100, 200, 500, 1 000 F) ou par saisie libre. Chaque vote débite le Compte de votes, augmente le score du candidat, et alimente la cagnotte du challenge. Les votes sont fermes, définitifs et non remboursables, sauf annulation du challenge par l'éditeur.` },
+Le vote peut se faire par paliers (100, 200, 500, 1 000 F) ou par saisie libre. Un même envoi est limité à 1 000 unités au maximum ; le votant peut toutefois renouveler son soutien autant de fois qu'il le souhaite, tant que l'étape est ouverte et que son solde le permet. Chaque vote débite le Compte de votes, augmente le score du candidat, et alimente la cagnotte du challenge. Les votes sont fermes, définitifs et non remboursables, sauf annulation du challenge par l'éditeur.` },
       { h: "Article 7 — Cagnotte, commission et net", b:
 `La cagnotte d'un challenge est la somme de tous ses votes. La Plateforme prélève sur cette cagnotte une commission (actuellement 50 %, paramétrable par l'administrateur). Le solde après commission constitue le « net », destiné à être partagé entre les gagnants.` },
       { h: "Article 8 — Fermeture d'une étape et départage", b:
@@ -232,12 +243,12 @@ Ces pourcentages sont paramétrables par l'administrateur.` },
 • Données de contact : adresse électronique, numéro de téléphone.
 • Données de compte : identifiants de connexion, rôle (candidat, votant).
 • Contenus : vidéos téléversées, commentaires.
-• Données financières : solde des comptes, historique des transactions (recharges, votes, gains, retraits), numéro Mobile Money de réception. La Plateforme ne collecte ni ne conserve les codes secrets (PIN) ni les données de carte : ils sont traités directement par le prestataire de paiement.
-• Données techniques : journaux de connexion, adresse IP, données d'appareil, cookies.` },
+• Données financières : solde des comptes, historique des transactions (recharges, votes, gains, retraits), numéro Mobile Money de réception. Certaines transactions de vote peuvent porter un pays approximatif (déduit de l'adresse IP) à des fins de statistiques agrégées. La Plateforme ne collecte ni ne conserve les codes secrets (PIN) ni les données de carte : ils sont traités directement par le prestataire de paiement.
+• Données techniques : journaux de connexion, données d'appareil, cookies, et un pays approximatif déduit de l'adresse IP à des fins de mesure d'audience. Pour cette mesure d'audience, l'adresse IP n'est pas conservée : seule l'information de pays (approximative) est enregistrée.` },
       { h: "Article 3 — Finalités et bases légales", b:
-`Les données sont traitées pour : fournir et gérer le service (exécution du contrat) ; organiser les challenges, votes et versements (exécution du contrat) ; assurer la sécurité, la modération et la lutte contre la fraude (intérêt légitime) ; envoyer les notifications liées au service ; et respecter les obligations légales et comptables applicables.` },
+`Les données sont traitées pour : fournir et gérer le service (exécution du contrat) ; organiser les challenges, votes et versements (exécution du contrat) ; assurer la sécurité, la modération et la lutte contre la fraude (intérêt légitime) ; mesurer l'audience et comprendre la provenance géographique de manière approximative et agrégée, par pays (intérêt légitime) ; envoyer les notifications liées au service ; et respecter les obligations légales et comptables applicables.` },
       { h: "Article 4 — Destinataires et sous-traitants", b:
-`Les données sont accessibles au personnel habilité de l'éditeur et à ses sous-traitants techniques, tenus à la confidentialité : hébergement et base de données (Supabase, Vercel, Railway), stockage vidéo (Cloudflare), prestataires de paiement (FedaPay, PawaPay), et services d'envoi de messages (SMS / e-mail). Les données ne sont ni vendues ni cédées à des tiers à des fins commerciales.` },
+`Les données sont accessibles au personnel habilité de l'éditeur et à ses sous-traitants techniques, tenus à la confidentialité : hébergement et base de données (Supabase, Vercel, Railway), stockage vidéo (Cloudflare), prestataires de paiement (FedaPay, PawaPay), mesure d'audience (Vercel Web Analytics), et services d'envoi de messages (SMS / e-mail). Les données ne sont ni vendues ni cédées à des tiers à des fins commerciales.` },
       { h: "Article 5 — Transferts hors du Bénin", b:
 `Certains prestataires d'hébergement sont situés hors du Bénin. Les transferts nécessaires au fonctionnement de la Plateforme sont encadrés par des garanties contractuelles appropriées auprès de ces prestataires.` },
       { h: "Article 6 — Durée de conservation", b:
@@ -247,7 +258,7 @@ Ces pourcentages sont paramétrables par l'administrateur.` },
       { h: "Article 8 — Vos droits", b:
 `Conformément à la loi n° 2017-20 du 20 avril 2018 portant Code du numérique en République du Bénin, l'utilisateur dispose des droits d'accès, de rectification, d'effacement, d'opposition et de limitation concernant ses données. Ces droits s'exercent en écrivant à support@diki-diki.com. En cas de difficulté, l'utilisateur peut saisir l'Autorité de Protection des Données à caractère Personnel (APDP) du Bénin.` },
       { h: "Article 9 — Cookies", b:
-`La Plateforme utilise des cookies et technologies similaires strictement nécessaires à son fonctionnement (session, sécurité) et, le cas échéant, à la mesure d'audience. L'utilisateur peut configurer son navigateur pour limiter les cookies non essentiels ; certaines fonctionnalités peuvent alors être affectées.` },
+`La Plateforme utilise des cookies et technologies similaires strictement nécessaires à son fonctionnement (session, sécurité) et, le cas échéant, à la mesure d'audience. Cette mesure d'audience (Vercel Web Analytics) est réalisée de façon agrégée et sans conservation de l'adresse IP. L'utilisateur peut configurer son navigateur pour limiter les cookies non essentiels ; certaines fonctionnalités peuvent alors être affectées.` },
       { h: "Article 10 — Mineurs", b:
 `La Plateforme est réservée aux personnes majeures (18 ans et plus). L'éditeur ne collecte pas sciemment de données de mineurs ; tout compte identifié comme appartenant à un mineur sera clôturé.` },
       { h: "Article 11 — Modifications", b:
@@ -265,7 +276,7 @@ export default function CGUPage() {
         <div style={s.badge}>Informations légales</div>
         <h1 style={s.h1}>Conditions & Règlement</h1>
         <p style={s.sub}>Mentions légales · CGU · Règlement des challenges · Confidentialité</p>
-        <p style={s.maj}>Dernière mise à jour : {MAJ} · Version 1</p>
+        <p style={s.maj}>Dernière mise à jour : {MAJ} · Version 1.1</p>
       </div>
 
       <div style={s.divider} />

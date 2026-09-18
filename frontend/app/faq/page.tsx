@@ -62,6 +62,10 @@ const faqs = [
         a: `Un challenge suit l'un de deux modèles :\n\n• Parcours (élimination progressive) — étape par étape : à chaque étape le candidat fournit une vidéo, le public vote, et les moins votés sont éliminés. On recommence jusqu'au podium final.\n\n• Bloc groupé (classement final) — le candidat fournit toutes ses vidéos d'emblée ; il n'y a qu'un seul décompte à la fin, un seul classement.`,
       },
       {
+        q: "Un challenge en solo ou en groupe ?",
+        a: `Chaque challenge est d'un seul type : Solo ou Groupes — jamais les deux mélangés. On oppose donc solo contre solo, ou groupe contre groupe (il serait injuste d'opposer une personne seule à une troupe).\n\nC'est le créateur du challenge qui choisit librement ce type au moment de la création (Solo par défaut). Tous ceux qui rejoignent le challenge suivent ce type : dans un challenge Groupes, chacun s'inscrit avec son groupe et son nom de groupe ; dans un challenge Solo, chacun concourt individuellement.\n\nSelon la discipline, le mode « Groupes » s'affiche avec le bon mot : Multi-voix au chant, Troupe en danse, Ensemble aux instruments, Équipe au sport.\n\nCôté cagnotte, rien ne change : un groupe compte comme une seule inscription — une place, une vidéo par étape, un seul gain s'il gagne ou une seule prime s'il est éliminé. Le partage éventuel entre les membres du groupe se fait entre eux, en dehors de la plateforme.`,
+      },
+      {
         q: "Comment les gagnants et les éliminés sont-ils désignés ?",
         a: `Uniquement par les votes du public. À chaque étape, les candidats sont classés par score ; les mieux classés continuent, les moins votés sont éliminés. Les scores repartent de zéro à chaque nouvelle étape.\n\nEn cas d'égalité à une place décisive, un court délai supplémentaire laisse les votes départager. Si l'égalité persiste, un classement de départage s'applique : le plus d'étoiles, puis le plus de cœurs, puis l'ordre d'inscription.`,
       },
@@ -89,7 +93,7 @@ const faqs = [
       { q: "Que gagne un candidat éliminé ?", a: "Toute participation est récompensée : chaque éliminé reçoit une prime de participation, égale à 20 % de ce que ses propres votes ont rapporté. Ces primes sont financées par la commission de la plateforme, pas par la part du podium." },
       { q: "L'objectif d'une étape, est-ce mon gain ?", a: "Non — c'est une confusion fréquente. L'objectif d'une étape est le montant à collecter pour qu'elle se ferme, pas un gain de candidat. Votre gain réel dépend de la cagnotte réellement collectée, moins la commission, partagée selon le podium." },
       { q: "Qu'est-ce que « Soutenir » un artiste ?", a: "En dehors des périodes de vote d'un challenge (entre deux étapes, ou pour une vidéo hors challenge), vous pouvez Soutenir directement un artiste. Le montant est fixé par la plateforme et affiché au moment de soutenir ; une part revient directement à l'artiste soutenu." },
-      { q: 'Puis-je voter plusieurs fois pour le même candidat ?', a: "Oui, autant d'étoiles ou de cœurs que vous le souhaitez, tant que l'étape est active et que votre solde le permet." },
+      { q: 'Puis-je voter plusieurs fois pour le même candidat ?', a: "Oui, autant de fois que vous le souhaitez, tant que l'étape est active et que votre solde le permet. Un même envoi est limité à 1 000 unités au maximum — au-delà, il suffit de renvoyer un vote." },
     ],
   },
   {
