@@ -31,8 +31,6 @@ const s: Record<string, React.CSSProperties> = {
   li:      { display: 'flex', gap: 10, fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 9 },
   arrow:   { flex: 'none', color: 'rgb(26,255,0)', fontWeight: 800 },
 
-  legal:   { display: 'flex', gap: 11, alignItems: 'flex-start', background: 'rgba(237,7,15,0.07)', border: '1px solid rgba(237,7,15,0.28)', borderRadius: 14, padding: '15px 17px', marginTop: 16, fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.6 },
-
   cta:     { textAlign: 'center' as const, marginTop: 26 },
   ctaBtn:  { display: 'inline-block', background: `linear-gradient(90deg,${OR},${OR2})`, color: 'var(--on-accent)', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 15, padding: '14px 30px', borderRadius: 12, textDecoration: 'none' },
   ctaNote: { marginTop: 11, fontSize: 13, color: 'var(--ink-soft)' },
@@ -86,11 +84,6 @@ export default function ReprisePage() {
           <div style={s.li}><span style={s.arrow}>→</span><span>Écoute la musique {b('dans un casque')} et filme dans un endroit {b('calme')} : ta voix ressort mieux.</span></div>
           <div style={s.li}><span style={s.arrow}>→</span><span>Trop haut ou trop bas pour toi ? {b('Moises')} permet de {b('changer la tonalité et le tempo')}.</span></div>
           <div style={{ ...s.li, marginBottom: 0 }}><span style={s.arrow}>→</span><span>Fais un {b('essai rapide')} avant la vraie prise, et chante {b('fort et clair')}.</span></div>
-        </div>
-
-        <div style={s.legal}>
-          <span style={{ flex: 'none', fontSize: 16 }}>⚖️</span>
-          <span>Pour rester tranquille côté droits d&apos;auteur, privilégie une reprise {b('a cappella')}, avec un {b('instrument live')}, ou une {b('musique libre de droits')}. Évite autant que possible les gros tubes protégés — l&apos;important, c&apos;est {b('ton talent')}, pas la chanson la plus connue.</span>
         </div>
 
         <div style={s.cta}>
