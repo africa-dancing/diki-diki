@@ -502,7 +502,7 @@ export default function SubmitPage() {
                 <div key={d.id} onClick={() => setSelectedDiscipline(d)} style={selectCard(selectedDiscipline?.id === d.id)}>
                   <div style={{ fontSize: 28, marginBottom: 8 }}>{d.emoji}</div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', fontFamily: 'Syne, sans-serif' }}>{d.name}</div>
-                  {d.description && <div style={{ fontSize: 10, color: 'var(--ink-soft)', marginTop: 4, lineHeight: 1.3 }} dangerouslySetInnerHTML={{ __html: d.description }} />}
+                  {d.description && <div style={{ fontSize: 10, color: 'var(--ink-soft)', marginTop: 4, lineHeight: 1.3 }}>{d.description}</div>}
                 </div>
               ))}
             </div>
