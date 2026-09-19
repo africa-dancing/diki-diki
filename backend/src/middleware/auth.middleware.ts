@@ -15,15 +15,60 @@ export interface AuthRequest extends Request {
   user?: { userId: string; role: string; totp_pending?: boolean };
 }
 
+// ── SÉCURITÉ (cookie httpOnly) ──────────────────────────────────────
+// Migration progressive du jeton de session vers un cookie httpOnly
+// (invisible du JavaScript → protège contre le vol de session par XSS).
+// C'est ADDITIF : le header Bearer + localStorage continuent de marcher.
+// Le cookie ne devient utile qu'une fois le proxy /api → Railway en place
+// (il devient alors "first-party") ; d'ici là il est posé mais inerte.
+export const AUTH_COOKIE = 'dkdk_token';
+
+const COOKIE_OPTS = {
+  httpOnly: true as const,
+  secure:   true as const,       // HTTPS uniquement
+  sameSite: 'lax' as const,      // first-party via le proxy Next.js
+  maxAge:   7 * 24 * 60 * 60 * 1000, // 7 jours, aligné sur l'expiration du JWT
+  path:     '/',
+};
+
+/** Pose le cookie httpOnly de session (en plus du jeton renvoyé dans le JSON). */
+export function setAuthCookie(res: Response, token: string) {
+  try { res.cookie(AUTH_COOKIE, token, COOKIE_OPTS); } catch { /* jamais bloquer la réponse */ }
+}
+
+/** Efface le cookie de session (déconnexion). */
+export function clearAuthCookie(res: Response) {
+  try { res.clearCookie(AUTH_COOKIE, { path: '/' }); } catch { /* no-op */ }
+}
+
+/** Lit le jeton depuis le cookie dkdk_token (parse manuel, sans dépendance). */
+function readCookieToken(req: Request): string | null {
+  const raw = req.headers.cookie;
+  if (!raw) return null;
+  for (const part of raw.split(';')) {
+    const idx = part.indexOf('=');
+    if (idx === -1) continue;
+    if (part.slice(0, idx).trim() === AUTH_COOKIE) {
+      return decodeURIComponent(part.slice(idx + 1).trim());
+    }
+  }
+  return null;
+}
+
 export async function requireAuth(
   req: AuthRequest, res: Response, next: NextFunction
 ) {
+  // Priorité au header Bearer (comportement historique inchangé),
+  // puis repli sur le cookie httpOnly dkdk_token.
   const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) {
+  const token = header?.startsWith('Bearer ')
+    ? header.split(' ')[1]
+    : readCookieToken(req);
+
+  if (!token) {
     return res.status(401).json({ error: 'TOKEN_MISSING' });
   }
   try {
-    const token = header.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; role: string };
     req.user = decoded;
     next();

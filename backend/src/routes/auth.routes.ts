@@ -25,6 +25,12 @@ authRouter.post('/one-tap/verify', authCtrl.oneTapVerify);
 // POST /v1/auth/login       → connexion (email ou téléphone + password)
 authRouter.post('/login',       authCtrl.login);
 
+// GET  /v1/auth/me          → utilisateur courant (cookie httpOnly OU Bearer)
+authRouter.get('/me',           requireAuth, authCtrl.me);
+
+// POST /v1/auth/logout      → efface le cookie de session httpOnly
+authRouter.post('/logout',      authCtrl.logout);
+
 // POST /v1/auth/social      → connexion Google ou Facebook
 authRouter.post('/social',      authCtrl.socialAuth);
 
