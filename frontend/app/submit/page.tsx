@@ -7,6 +7,13 @@ import { useAnalytics } from '../hooks/useAnalytics'; /*DKDK_HEARTBEAT*/
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/v1';
 
+// SÉCURITÉ (Étape B) : l'upload vidéo envoie le fichier en base64 dans le corps
+// JSON (jusqu'à ~50 Mo). Il ne doit PAS passer par le proxy Next.js /api, qui
+// est plafonné à 4,5 Mo par Vercel : on l'envoie donc en DIRECT vers Railway.
+// NEXT_PUBLIC_API_ORIGIN = l'URL absolue de l'API (avec /v1). À défaut, on
+// retombe sur API (comportement historique inchangé tant que le proxy n'est pas activé).
+const API_DIRECT = process.env.NEXT_PUBLIC_API_ORIGIN || API;
+
 type UploadMode = 'url' | 'file';
 
 interface Category   { id: string; name: string; emoji: string; }
@@ -352,7 +359,8 @@ export default function SubmitPage() {
         payload.mime_type   = file.type;
       }
 
-      const res = await fetch(`${API}/videos`, {
+      // Upload en DIRECT vers Railway (hors proxy /api, cf. plafond 4,5 Mo de Vercel).
+      const res = await fetch(`${API_DIRECT}/videos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
