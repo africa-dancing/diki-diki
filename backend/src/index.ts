@@ -3,6 +3,7 @@ import express   from 'express';
 import cors      from 'cors';
 import helmet    from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { upstashRateLimit } from './middleware/rateLimit.upstash'; /*DKDK_UPSTASH_RL*/
 // SÉCURITÉ (B3) : module éducation débranché pour le lancement (endpoints /v1/education/*
 // non authentifiés = vol possible sans compte). Le code reste dans le dépôt.
 // Pour le réactiver plus tard, une fois sécurisé : décommenter cette ligne ET la ligne app.use('/v1/education', ...) plus bas.
@@ -48,6 +49,8 @@ app.use(cors({
   credentials: true,
 }));
 app.use(rateLimit({ windowMs: 60 * 1000, max: 100 }));
+// SÉCURITÉ (#4) : rate-limit distribué Upstash (partagé entre instances), fail-open.
+app.use(upstashRateLimit({ prefix: 'global', windowSec: 60, max: 300 })); /*DKDK_UPSTASH_RL*/
 // SÉCURITÉ (H3) : limiteur dédié, plus strict, sur l'authentification (login, inscription,
 // OTP, TOTP) contre le brute-force. Fenêtre longue, plafond large pour les usages légitimes.
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 40, standardHeaders: true, legacyHeaders: false });
@@ -61,6 +64,7 @@ app.get('/health', (_req, res) => {
 
 // ── Routes ─────────────────────────────────────────────────────────
 app.use('/v1/auth',          authLimiter); // H3 : couvre aussi /v1/auth/totp/*
+app.use('/v1/auth',          upstashRateLimit({ prefix: 'auth', windowSec: 15 * 60, max: 40 })); /*DKDK_UPSTASH_RL — anti brute-force distribué, fail-open*/
 app.use('/v1/auth',          authRouter);
 app.use('/v1/payment',       paymentRouter);
 app.use('/v1/payments',      paymentRouter); /*DKDK_PAYMENTS_ALIAS*/
