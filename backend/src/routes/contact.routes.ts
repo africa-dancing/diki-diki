@@ -1,10 +1,28 @@
 import { Router, Request, Response } from 'express';
 import { supabase } from '../../config/supabase';
 import nodemailer from 'nodemailer';
+import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
 
 export const contactRouter = Router();
 
 const MAX = { nom: 100, email: 150, sujet: 100, message: 4000 };
+
+// GET /v1/contact — liste des messages de contact (admin uniquement).
+// Filet fiable : lit directement la base, indépendamment de l'e-mail Resend.
+contactRouter.get('/', requireAuth, requireAdmin, async (_req: AuthRequest, res: Response) => {
+  try {
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .select('id, nom, email, sujet, message, email_envoye, created_at')
+      .order('created_at', { ascending: false })
+      .limit(500);
+    if (error) throw error;
+    return res.json({ success: true, data: data ?? [] });
+  } catch (e: any) {
+    console.error('[CONTACT] lecture admin echouee:', e?.message ?? e);
+    return res.status(500).json({ error: 'CONTACT_LIST_FAILED' });
+  }
+});
 
 contactRouter.post('/', async (req: Request, res: Response) => {
   try {

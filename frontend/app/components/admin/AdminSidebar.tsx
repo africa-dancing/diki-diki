@@ -14,6 +14,7 @@ const MENU = [
   { href: '/admin/sport',      icon: '🥋', label: 'Sport' }, /*DKDK_SPORT_NAV*/
   { href: '/admin/taxonomie',  icon: '🗂', label: 'Taxonomie' }, /*DKDK_TAXO_NAV*/
   { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },
+  { href: '/admin/contact',    icon: '✉️', label: 'Messages' }, /*DKDK_CONTACT_NAV*/
   { href: '/admin/stats',      icon: '📊', label: 'Statistiques'      },
   { href: '/admin/monitoring', icon: '📈', label: 'Monitoring' }, /*DKDK_MONITORING_NAV*/
 ];
