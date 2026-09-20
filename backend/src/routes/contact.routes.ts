@@ -24,6 +24,20 @@ contactRouter.get('/', requireAuth, requireAdmin, async (_req: AuthRequest, res:
   }
 });
 
+// DELETE /v1/contact/:id — supprimer un message de contact (admin uniquement).
+contactRouter.delete('/:id', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = String(req.params.id || '');
+    if (!id) return res.status(400).json({ error: 'ID_REQUIS' });
+    const { error } = await supabase.from('contact_messages').delete().eq('id', id);
+    if (error) throw error;
+    return res.json({ success: true });
+  } catch (e: any) {
+    console.error('[CONTACT] suppression echouee:', e?.message ?? e);
+    return res.status(500).json({ error: 'CONTACT_DELETE_FAILED' });
+  }
+});
+
 contactRouter.post('/', async (req: Request, res: Response) => {
   try {
     const nom     = String(req.body?.nom     || '').trim();

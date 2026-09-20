@@ -44,6 +44,19 @@ export default function AdminContactPage() {
     catch { return s; }
   };
 
+  const supprimer = async (id: string) => {
+    if (!confirm('Supprimer définitivement ce message ?')) return;
+    setInfo('');
+    try {
+      const r = await fetch(`${API}/contact/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${admin.token}` },
+      });
+      if (!r.ok) throw new Error();
+      setMessages(prev => prev.filter(m => m.id !== id)); // retrait immédiat de la liste
+    } catch { setInfo('Erreur lors de la suppression.'); }
+  };
+
   return (
     <AdminGuard>
       <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0a0f', color: '#e8e0d0' }}>
@@ -93,6 +106,13 @@ export default function AdminContactPage() {
                     <span style={{ fontSize: 11, color: m.email_envoye ? '#4ade80' : 'rgba(255,255,255,0.4)' }}>
                       {m.email_envoye ? '📧 alerte e-mail envoyée' : '📥 en base (pas d’e-mail)'}
                     </span>
+                    <button
+                      onClick={() => supprimer(m.id)}
+                      title="Supprimer ce message"
+                      style={{ marginLeft: 'auto', color: '#ff6b6b', background: 'transparent', border: '1px solid rgba(255,107,107,0.35)', borderRadius: 999, padding: '2px 10px', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}
+                    >
+                      🗑 Supprimer
+                    </button>
                   </div>
 
                   <div style={{ fontSize: 14, lineHeight: 1.6, color: '#d8d2c4', whiteSpace: 'pre-wrap' }}>{m.message}</div>
