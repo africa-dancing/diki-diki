@@ -718,9 +718,12 @@ export default function SubmitPage() {
               <textarea style={{ ...inp, resize: 'vertical', minHeight: 70 }} rows={2} placeholder="Décrivez votre prestation…" value={description} onChange={e => setDescription(e.target.value)} maxLength={500} />
             </div>
 
+            {selectedDiscipline?.category_id === 'sport' && !selectedSubject ? (
+              <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginBottom: 10 }}>👉 {sportEpreuveChoisie ? 'Choisis la forme / le numéro' : 'Choisis ton épreuve'} pour continuer.</div>
+            ) : null}
             <div style={{ display: 'flex', gap: 8 }}>
               <button style={btnBack} onClick={() => setStep(2)}>← Retour</button>
-              <button style={btnPrimary} onClick={() => setStep(4)}>Continuer → Ajouter la vidéo</button>
+              <button style={{ ...btnPrimary, opacity: (selectedDiscipline?.category_id === 'sport' && !selectedSubject) ? 0.6 : 1 }} disabled={selectedDiscipline?.category_id === 'sport' && !selectedSubject} onClick={() => setStep(4)}>Continuer → Ajouter la vidéo</button>
             </div>
           </div>
         )}

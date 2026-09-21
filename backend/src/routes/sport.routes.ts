@@ -53,6 +53,7 @@ sportRouter.post('/admin/epreuves', requireAuth, requireAdmin, async (req: AuthR
       sport: b.sport, sport_slug: b.sport_slug, epreuve: b.epreuve, libelle: b.libelle,
       niveau: b.niveau ?? null, regle: b.regle ?? null, emoji: b.emoji ?? '',
       ordre: b.ordre ?? 0, actif: b.actif ?? true,
+      choix_type: b.choix_type ?? null, choix_max: b.choix_max ?? null, choix_liste: b.choix_liste ?? null,
     };
     const { data, error } = await getSupabase()
       .from('sport_epreuves')
@@ -83,6 +84,9 @@ sportRouter.put('/admin/epreuves/:id', requireAuth, requireAdmin, async (req: Au
     if (b.emoji      !== undefined) patch.emoji      = b.emoji;
     if (b.ordre      !== undefined) patch.ordre      = b.ordre;
     if (b.actif      !== undefined) patch.actif      = b.actif;
+    if (b.choix_type  !== undefined) patch.choix_type  = b.choix_type;
+    if (b.choix_max   !== undefined) patch.choix_max   = b.choix_max;
+    if (b.choix_liste !== undefined) patch.choix_liste = b.choix_liste;
     if (Object.keys(patch).length === 0) {
       return res.status(400).json({ success: false, error: 'Aucun champ a modifier.' });
     }

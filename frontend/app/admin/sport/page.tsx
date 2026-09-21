@@ -11,6 +11,7 @@ interface Epreuve {
   id: string; sport: string; sport_slug: string; epreuve: string;
   niveau: number | null; libelle: string; regle: string | null;
   emoji: string; ordre: number; actif: boolean;
+  choix_type?: string | null; choix_max?: number | null; choix_liste?: string | null;
 }
 
 function AdminSportInner() {
@@ -26,6 +27,9 @@ function AdminSportInner() {
   const [eRegle, setERegle]     = useState('');
   const [eOrdre, setEOrdre]     = useState('');
   const [eActif, setEActif]     = useState(true);
+  const [eChoixType, setEChoixType]   = useState(''); /*DKDK_CHOIX*/
+  const [eChoixMax, setEChoixMax]     = useState('10');
+  const [eChoixListe, setEChoixListe] = useState('');
   const [saving, setSaving]     = useState(false);
   const [nSport, setNSport]       = useState(''); /*DKDK_SPORT_FORM_AJOUT*/
   const [nEpreuve, setNEpreuve]   = useState('');
@@ -33,6 +37,9 @@ function AdminSportInner() {
   const [nRegle, setNRegle]       = useState('');
   const [nNiveau, setNNiveau]     = useState('');
   const [nOrdre, setNOrdre]       = useState('');
+  const [nChoixType, setNChoixType]   = useState(''); /*DKDK_CHOIX*/
+  const [nChoixMax, setNChoixMax]     = useState('10');
+  const [nChoixListe, setNChoixListe] = useState('');
   const [ajoutBusy, setAjoutBusy] = useState(false);
   const slugify = (v: string) => v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   const ajouterEpreuve = async () => {
@@ -44,6 +51,9 @@ function AdminSportInner() {
         regle: nRegle.trim() || null,
         niveau: nNiveau.trim() ? parseInt(nNiveau, 10) : null,
         ordre: nOrdre.trim() ? parseInt(nOrdre, 10) : 0,
+        choix_type: nChoixType || null,
+        choix_max: (nChoixType === 'simple' || nChoixType === 'plage') && nChoixMax.trim() ? parseInt(nChoixMax, 10) : null,
+        choix_liste: nChoixType === 'liste' && nChoixListe.trim() ? nChoixListe.trim() : null,
       };
       const r = await fetch(API + '/sport/admin/epreuves', {
         method: 'POST',
@@ -54,6 +64,7 @@ function AdminSportInner() {
       if (!j.success) { setErreur(j.error || 'Ajout echoue.'); return; }
       setInfo('Epreuve ajoutee.');
       setNSport(''); setNEpreuve(''); setNLibelle(''); setNRegle(''); setNNiveau(''); setNOrdre('');
+      setNChoixType(''); setNChoixMax('10'); setNChoixListe('');
       charger();
     } catch (e) { setErreur('Erreur reseau.'); }
     finally { setAjoutBusy(false); }
@@ -80,6 +91,9 @@ function AdminSportInner() {
     setERegle(ep.regle || '');
     setEOrdre(String(ep.ordre ?? 0));
     setEActif(ep.actif);
+    setEChoixType(ep.choix_type || '');
+    setEChoixMax(ep.choix_max != null ? String(ep.choix_max) : '10');
+    setEChoixListe(ep.choix_liste || '');
     setInfo(''); setErreur('');
   };
 
@@ -100,6 +114,9 @@ function AdminSportInner() {
           regle: eRegle === '' ? null : eRegle,
           ordre: ordreNum,
           actif: eActif,
+          choix_type: eChoixType || null,
+          choix_max: (eChoixType === 'simple' || eChoixType === 'plage') && eChoixMax.trim() ? parseInt(eChoixMax, 10) : null,
+          choix_liste: eChoixType === 'liste' && eChoixListe.trim() ? eChoixListe.trim() : null,
         }),
       });
       const j = await r.json();
@@ -159,6 +176,21 @@ function AdminSportInner() {
           </div>
           <div style={{ marginBottom:10 }}><label style={lbl}>Libelle *</label><input style={inp} value={nLibelle} onChange={(e) => setNLibelle(e.target.value)} placeholder='Ex : Jonglages - Niveau 1' /></div>
           <div style={{ marginBottom:10 }}><label style={lbl}>Regle (optionnel)</label><textarea style={{ ...inp, minHeight:60, resize:'vertical', fontFamily:'inherit' }} value={nRegle} onChange={(e) => setNRegle(e.target.value)} placeholder='Decris la regle...' /></div>
+          <div style={{ marginBottom:10 }}>
+            <label style={lbl}>2ᵉ menu (déroulant à l&apos;étape 3)</label>
+            <select style={inp} value={nChoixType} onChange={(e) => setNChoixType(e.target.value)}>
+              <option value=''>Aucun — l&apos;épreuve est le choix final (ex : foot, basket)</option>
+              <option value='simple'>Numéro simple (ex : Kata 1, 2, … N)</option>
+              <option value='plage'>Enchaînement (1 à 2, 1 à 3, … 1 à N)</option>
+              <option value='liste'>Liste personnalisée (je saisis les options)</option>
+            </select>
+            {(nChoixType === 'simple' || nChoixType === 'plage') ? (
+              <div style={{ marginTop:8, width:180 }}><label style={lbl}>Jusqu&apos;à (borne max)</label><input style={inp} type='number' value={nChoixMax} onChange={(e) => setNChoixMax(e.target.value)} /></div>
+            ) : null}
+            {nChoixType === 'liste' ? (
+              <div style={{ marginTop:8 }}><label style={lbl}>Options (séparées par des virgules)</label><input style={inp} value={nChoixListe} onChange={(e) => setNChoixListe(e.target.value)} placeholder='Ex : Poomsae 1, Poomsae 2, Taegeuk 3' /></div>
+            ) : null}
+          </div>
           <div style={{ display:'flex', gap:12, alignItems:'flex-end', flexWrap:'wrap' }}>
             <div style={{ width:120 }}><label style={lbl}>Niveau</label><input style={inp} type='number' value={nNiveau} onChange={(e) => setNNiveau(e.target.value)} /></div>
             <div style={{ width:120 }}><label style={lbl}>Ordre</label><input style={inp} type='number' value={nOrdre} onChange={(e) => setNOrdre(e.target.value)} /></div>
@@ -196,6 +228,21 @@ function AdminSportInner() {
                           <input type='checkbox' checked={eActif} onChange={(e) => setEActif(e.target.checked)} /> Actif
                         </label>
                       </div>
+                      <div>
+                        <label style={lbl}>2ᵉ menu (déroulant à l&apos;étape 3)</label>
+                        <select style={inp} value={eChoixType} onChange={(e) => setEChoixType(e.target.value)}>
+                          <option value=''>Aucun — l&apos;épreuve est le choix final</option>
+                          <option value='simple'>Numéro simple (Kata 1..N)</option>
+                          <option value='plage'>Enchaînement (1 à N)</option>
+                          <option value='liste'>Liste personnalisée</option>
+                        </select>
+                        {(eChoixType === 'simple' || eChoixType === 'plage') ? (
+                          <div style={{ marginTop:8, width:180 }}><label style={lbl}>Jusqu&apos;à (borne max)</label><input style={inp} type='number' value={eChoixMax} onChange={(e) => setEChoixMax(e.target.value)} /></div>
+                        ) : null}
+                        {eChoixType === 'liste' ? (
+                          <div style={{ marginTop:8 }}><label style={lbl}>Options (séparées par des virgules)</label><input style={inp} value={eChoixListe} onChange={(e) => setEChoixListe(e.target.value)} /></div>
+                        ) : null}
+                      </div>
                       <div style={{ display:'flex', gap:8, marginTop:4 }}>
                         <button onClick={() => enregistrer(ep.id)} disabled={saving} style={{ padding:'8px 18px', borderRadius:8, border:'none', background:OR, color:'#000', fontWeight:700, fontSize:13, cursor:'pointer' }}>
                           {saving ? 'Enregistrement...' : 'Enregistrer'}
@@ -214,6 +261,7 @@ function AdminSportInner() {
                         <div style={{ fontSize:13, color: ep.regle ? '#a0a0c0' : '#ed8a3a', marginTop:3 }}>
                           {ep.regle ? ep.regle : 'Regle a completer'}
                         </div>
+                        {ep.choix_type ? <div style={{ fontSize:11, color:'#7a7a9a', marginTop:2 }}>2ᵉ menu : {ep.choix_type === 'simple' ? ('Numéro (1 à ' + (ep.choix_max || 10) + ')') : ep.choix_type === 'plage' ? ('Enchaînement (1 à ' + (ep.choix_max || 10) + ')') : 'Liste personnalisée'}</div> : null}
                       </div>
                       <div style={{ display:'flex', gap:8 }}>
                         <button onClick={() => ouvrirEdition(ep)} style={{ padding:'6px 14px', borderRadius:8, border:'1px solid #1e1e2e', background:'#0d0d14', color:OR, fontWeight:600, fontSize:13, cursor:'pointer' }}>
