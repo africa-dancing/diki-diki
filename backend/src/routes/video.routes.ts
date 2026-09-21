@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { z } from 'zod';
 import { requireAuth, requireAdmin, AuthRequest, requireVerified } from '../middleware/auth.middleware';
 import {
   uploadVideo, moderateVideo, getPendingVideos, getVideosByStatus,
@@ -11,6 +12,27 @@ import {
 } from '../services/video.service';
 
 export const videoRouter = Router();
+
+// Schéma d'entrée du dépôt de vidéo — reflète les règles métier déjà en place.
+const DISCIPLINES     = ['danse','chant','instrument','acapella','humour','poesie','conte','sport'] as const;
+const CHALLENGE_TYPES = ['C2','C4','C6','C8','C12','C16'] as const;
+const MIME_TYPES      = ['video/mp4','video/quicktime'] as const;
+const optStr = (max: number) => z.string().max(max).nullish();
+
+const uploadVideoSchema = z.object({
+  discipline:     z.enum(DISCIPLINES),
+  file_base64:    z.string().min(1),
+  mime_type:      z.enum(MIME_TYPES).nullish(),
+  file_name:      optStr(255),
+  title:          optStr(200),
+  description:    optStr(4000),
+  track_title:    optStr(200),
+  track_artist:   optStr(200),
+  track_genre:    optStr(100),
+  challenge_type: z.enum(CHALLENGE_TYPES).nullish(),
+  bracket_key:    optStr(100),
+});
+
 
 // ─── Routes statiques ─────────────────────────────────────────────────────────
 
@@ -44,6 +66,13 @@ videoRouter.get('/constraints', (_req: Request, res: Response) => {
 });
 
 videoRouter.post('/', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
+  const parsed = uploadVideoSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: 'VALIDATION_ERROR',
+      details: parsed.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })),
+    });
+  }
   try {
     const { discipline, track_title, track_artist, track_genre, title, description, bracket_key } = req.body;
     if (!discipline) return res.status(400).json({ error: 'DISCIPLINE_REQUIRED' });
@@ -67,6 +96,13 @@ videoRouter.post('/', requireAuth, requireVerified, async (req: AuthRequest, res
 });
 
 videoRouter.post('/upload', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
+  const parsed = uploadVideoSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: 'VALIDATION_ERROR',
+      details: parsed.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })),
+    });
+  }
   const { discipline, track_title, track_artist, track_genre, title, description, bracket_key } = req.body;
   if (!discipline) return res.status(400).json({ error: 'DISCIPLINE_REQUIRED' });
   if (!req.body.file_base64) return res.status(400).json({ error: 'FILE_REQUIRED' });
