@@ -1,19 +1,27 @@
 // backend/src/middleware/rateLimit.upstash.ts
 // Rate-limit distribué via Upstash Redis (fenêtre fixe), 100 % FAIL-OPEN :
-// si Redis est absent, mal configuré ou en erreur, on LAISSE PASSER la requête
-// (on ne bloque JAMAIS le trafic à cause du limiteur). Complète le limiteur
-// en mémoire (express-rate-limit) par une protection partagée entre instances.
+// - si Redis est absent/mal configuré/en erreur → on LAISSE PASSER (jamais de blocage),
+// - la CONSTRUCTION du client est elle-même défensive → le serveur ne peut JAMAIS
+//   planter au démarrage à cause de ce middleware.
 import { Redis } from '@upstash/redis';
 import { Request, Response, NextFunction } from 'express';
 
 const _url   = process.env.UPSTASH_REDIS_REST_URL;
 const _token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-// null si non configuré → le middleware devient un simple passe-plat.
-const redis = (_url && _token) ? new Redis({ url: _url, token: _token }) : null;
-
-if (!redis) {
-  console.warn('[RATELIMIT] Upstash non configuré (UPSTASH_REDIS_REST_URL/TOKEN absents) → limiteur distribué désactivé (fail-open).');
+// Construction défensive : URL/token absents OU invalides → limiteur désactivé, pas de crash.
+let redis: Redis | null = null;
+try {
+  if (_url && _token && /^https:\/\//i.test(_url)) {
+    redis = new Redis({ url: _url, token: _token });
+  } else if (_url || _token) {
+    console.warn('[RATELIMIT] Upstash: variables présentes mais URL REST invalide (doit commencer par https://) → limiteur distribué désactivé (fail-open).');
+  } else {
+    console.warn('[RATELIMIT] Upstash non configuré → limiteur distribué désactivé (fail-open).');
+  }
+} catch (e: any) {
+  console.error('[RATELIMIT] init Upstash impossible → fail-open (limiteur désactivé):', e?.message ?? e);
+  redis = null;
 }
 
 function clientIp(req: Request): string {
@@ -23,7 +31,7 @@ function clientIp(req: Request): string {
 
 /**
  * Fenêtre fixe : au plus `max` requêtes par `windowSec` et par IP, pour un `prefix` donné.
- * En cas d'erreur Redis → next() (fail-open).
+ * En cas d'absence de Redis ou d'erreur → next() (fail-open).
  */
 export function upstashRateLimit(opts: { prefix: string; windowSec: number; max: number }) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -33,7 +41,6 @@ export function upstashRateLimit(opts: { prefix: string; windowSec: number; max:
       const key    = `rl:${opts.prefix}:${clientIp(req)}:${bucket}`;
       const count  = await redis.incr(key);
       if (count === 1) {
-        // première requête de la fenêtre → on fixe l'expiration
         await redis.expire(key, opts.windowSec);
       }
       if (count > opts.max) {
@@ -41,7 +48,6 @@ export function upstashRateLimit(opts: { prefix: string; windowSec: number; max:
       }
       return next();
     } catch (e: any) {
-      // FAIL-OPEN absolu : jamais de blocage à cause du limiteur.
       console.error('[RATELIMIT] Upstash erreur (fail-open, requête laissée passer):', e?.message ?? e);
       return next();
     }
