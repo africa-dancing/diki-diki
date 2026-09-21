@@ -49,8 +49,10 @@ app.use(cors({
   credentials: true,
 }));
 app.use(rateLimit({ windowMs: 60 * 1000, max: 100 }));
-// SÉCURITÉ (#4) : rate-limit distribué Upstash (partagé entre instances), fail-open.
-app.use(upstashRateLimit({ prefix: 'global', windowSec: 60, max: 300 })); /*DKDK_UPSTASH_RL*/
+// SÉCURITÉ (#4) : rate-limit distribué Upstash ciblé sur les routes sensibles
+// (auth/paiement/votes) — voir plus bas. Pas de limiteur distribué global :
+// il ajoutait un aller-retour Redis (Frankfurt) sur CHAQUE requête, y compris les
+// simples lectures, alors que le service Railway tourne en US West.
 // SÉCURITÉ (H3) : limiteur dédié, plus strict, sur l'authentification (login, inscription,
 // OTP, TOTP) contre le brute-force. Fenêtre longue, plafond large pour les usages légitimes.
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 40, standardHeaders: true, legacyHeaders: false });
@@ -66,8 +68,11 @@ app.get('/health', (_req, res) => {
 app.use('/v1/auth',          authLimiter); // H3 : couvre aussi /v1/auth/totp/*
 app.use('/v1/auth',          upstashRateLimit({ prefix: 'auth', windowSec: 15 * 60, max: 40 })); /*DKDK_UPSTASH_RL — anti brute-force distribué, fail-open*/
 app.use('/v1/auth',          authRouter);
+app.use('/v1/payment',       upstashRateLimit({ prefix: 'pay', windowSec: 60, max: 30 }));
 app.use('/v1/payment',       paymentRouter);
+app.use('/v1/payments',      upstashRateLimit({ prefix: 'pay', windowSec: 60, max: 30 }));
 app.use('/v1/payments',      paymentRouter); /*DKDK_PAYMENTS_ALIAS*/
+app.use('/v1/votes',         upstashRateLimit({ prefix: 'vote', windowSec: 60, max: 60 }));
 app.use('/v1/votes',         voteRouter);
 app.use('/v1/videos',        videoRouter);
 app.use('/v1/wallet',        walletRouter);
