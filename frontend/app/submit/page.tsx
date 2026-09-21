@@ -393,32 +393,32 @@ export default function SubmitPage() {
   const OR = 'var(--or)';
 
   /*DKDK_GUIDE — « Ton guide Diki-Diki » : message chaleureux et contextuel,
-    adapte a l'etape en cours ET a la discipline choisie. Aucun montant promis. */
+    adapté à l'étape en cours ET à la discipline choisie. Aucun montant promis. */
   function guideContent(): { msg: React.ReactNode; tip?: string } {
     const cat  = selectedCategory;
     const disc = selectedDiscipline;
     const ec   = sportEpreuveChoisie;
     const isSport = cat?.id === 'sport' || disc?.category_id === 'sport';
 
-    // Etape 1 — Categorie
+    // Étape 1 — Catégorie
     if (step === 1) {
-      if (!cat) return { msg: <>Akwaba ! 🎬 On avance ensemble, pas a pas. Commence par choisir <b>la famille de ton talent</b> : Scene, Musique, Parole ou Sport.</> };
-      return { msg: <>Belle energie ! Tu es dans <b>{cat.name}</b>. Clique sur « Continuer » pour choisir ta discipline precise.</> };
+      if (!cat) return { msg: <>Akwaba ! 🎬 On avance ensemble, pas à pas. Commence par choisir <b>la famille de ton talent</b> : Scène, Musique, Parole ou Sport.</> };
+      return { msg: <>Belle énergie ! Tu es dans <b>{cat.name}</b>. Clique sur « Continuer » pour choisir ta discipline précise.</> };
     }
 
-    // Etape 2 — Discipline
+    // Étape 2 — Discipline
     if (step === 2) {
-      if (cat?.id === 'sport') return { msg: <>Tu es en <b>Sport</b> 🥋. Choisis ton <b>sport</b> ci-dessous — juste apres, je te montrerai l&apos;<b>epreuve exacte</b> et sa regle.</> };
+      if (cat?.id === 'sport') return { msg: <>Tu es en <b>Sport</b> 🥋. Choisis ton <b>sport</b> ci-dessous — juste après, je te montrerai l&apos;<b>épreuve exacte</b> et sa règle.</> };
       if (!disc) return { msg: <>Choisis ta <b>discipline</b> dans {cat?.name}. Chaque carte explique en un mot ce qu&apos;elle contient.</> };
-      return { msg: <>Parfait : <b>{disc.name}</b>. On passe aux details de ta prestation.</> };
+      return { msg: <>Parfait : <b>{disc.name}</b>. On passe aux détails de ta prestation.</> };
     }
 
-    // Etape 3 — Details
+    // Étape 3 — Détails
     if (step === 3) {
       if (isSport) {
-        if (!ec) return { msg: <>Choisis ton <b>epreuve</b> de {disc?.name} pour continuer. La regle s&apos;affiche des que tu cliques.</> };
+        if (!ec) return { msg: <>Choisis ton <b>épreuve</b> de {disc?.name} pour continuer. La règle s&apos;affiche dès que tu cliques.</> };
         if (ec.choix_type && !selectedSubject) return {
-          msg: <>Epreuve : <b>{ec.libelle}</b>. Choisis maintenant {ec.choix_type === 'plage' ? <>l&apos;<b>enchainement</b></> : <>le <b>numero / la forme</b></>} pour continuer.</>,
+          msg: <>Épreuve : <b>{ec.libelle}</b>. Choisis maintenant {ec.choix_type === 'plage' ? <>l&apos;<b>enchaînement</b></> : <>le <b>numéro / la forme</b></>} pour continuer.</>,
           tip: ec.regle || undefined,
         };
         return {
@@ -426,14 +426,14 @@ export default function SubmitPage() {
           tip: ec.regle || undefined,
         };
       }
-      return { msg: <>Ajoute les <b>details</b> de ta prestation. Presque tout est optionnel — tu peux aller vite et passer a la video.</> };
+      return { msg: <>Ajoute les <b>détails</b> de ta prestation. Presque tout est optionnel — tu peux aller vite et passer à la vidéo.</> };
     }
 
-    // Etape 4 — Video
+    // Étape 4 — Vidéo
     if (step === 4) {
       return {
-        msg: <>Derniere ligne droite ! 🎥 Ajoute ta video (MP4 ou MOV, max 10 min). Elle part en <b>brouillon</b> : tu la soumettras au challenge depuis ton compte.</>,
-        tip: 'Astuce tournage : bonne lumiere, son clair, et montre-toi bien dans le cadre.',
+        msg: <>Dernière ligne droite ! 🎥 Ajoute ta vidéo (MP4 ou MOV, max 10 min). Elle part en <b>brouillon</b> : tu la soumettras au challenge depuis ton compte.</>,
+        tip: 'Astuce tournage : bonne lumière, son clair, et montre-toi bien dans le cadre.',
       };
     }
     return { msg: null };
@@ -554,7 +554,7 @@ export default function SubmitPage() {
                   <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginTop: 8, paddingLeft: 10, borderLeft: '2px solid rgba(255,170,0,0.35)' }}>{g.tip}</div>
                 ) : null}
                 <div style={{ fontSize: 11, color: 'var(--ink-dim)', lineHeight: 1.5, marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
-                  💰 <b>Aucun montant garanti</b> — tout depend du soutien du public. Les votes forment une cagnotte partagee entre les gagnants.
+                  💰 <b>Aucun montant garanti</b> — tout dépend du soutien du public. Les votes forment une cagnotte partagée entre les gagnants.
                 </div>
               </div>
             </>
