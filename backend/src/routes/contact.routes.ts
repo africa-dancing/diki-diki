@@ -7,13 +7,15 @@ export const contactRouter = Router();
 
 const MAX = { nom: 100, email: 150, sujet: 100, message: 4000 };
 
-// GET /v1/contact — liste des messages de contact (admin uniquement).
-// Filet fiable : lit directement la base, indépendamment de l'e-mail Resend.
+const COLS = 'id, nom, email, sujet, message, email_envoye, created_at, supprime_le';
+
+// GET /v1/contact — messages ACTIFS (non corbeille), admin uniquement.
 contactRouter.get('/', requireAuth, requireAdmin, async (_req: AuthRequest, res: Response) => {
   try {
     const { data, error } = await supabase
       .from('contact_messages')
-      .select('id, nom, email, sujet, message, email_envoye, created_at')
+      .select(COLS)
+      .is('supprime_le', null)
       .order('created_at', { ascending: false })
       .limit(500);
     if (error) throw error;
@@ -24,8 +26,59 @@ contactRouter.get('/', requireAuth, requireAdmin, async (_req: AuthRequest, res:
   }
 });
 
-// DELETE /v1/contact/:id — supprimer un message de contact (admin uniquement).
+// GET /v1/contact/corbeille — messages dans la CORBEILLE (suppression douce).
+contactRouter.get('/corbeille', requireAuth, requireAdmin, async (_req: AuthRequest, res: Response) => {
+  try {
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .select(COLS)
+      .not('supprime_le', 'is', null)
+      .order('supprime_le', { ascending: false })
+      .limit(500);
+    if (error) throw error;
+    return res.json({ success: true, data: data ?? [] });
+  } catch (e: any) {
+    console.error('[CONTACT] lecture corbeille echouee:', e?.message ?? e);
+    return res.status(500).json({ error: 'CONTACT_TRASH_FAILED' });
+  }
+});
+
+// DELETE /v1/contact/:id — suppression DOUCE : le message part à la corbeille.
 contactRouter.delete('/:id', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = String(req.params.id || '');
+    if (!id) return res.status(400).json({ error: 'ID_REQUIS' });
+    const { error } = await supabase
+      .from('contact_messages')
+      .update({ supprime_le: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw error;
+    return res.json({ success: true });
+  } catch (e: any) {
+    console.error('[CONTACT] mise en corbeille echouee:', e?.message ?? e);
+    return res.status(500).json({ error: 'CONTACT_DELETE_FAILED' });
+  }
+});
+
+// POST /v1/contact/:id/restore — RESTAURER un message depuis la corbeille.
+contactRouter.post('/:id/restore', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = String(req.params.id || '');
+    if (!id) return res.status(400).json({ error: 'ID_REQUIS' });
+    const { error } = await supabase
+      .from('contact_messages')
+      .update({ supprime_le: null })
+      .eq('id', id);
+    if (error) throw error;
+    return res.json({ success: true });
+  } catch (e: any) {
+    console.error('[CONTACT] restauration echouee:', e?.message ?? e);
+    return res.status(500).json({ error: 'CONTACT_RESTORE_FAILED' });
+  }
+});
+
+// DELETE /v1/contact/:id/definitif — suppression DÉFINITIVE (vider de la corbeille).
+contactRouter.delete('/:id/definitif', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const id = String(req.params.id || '');
     if (!id) return res.status(400).json({ error: 'ID_REQUIS' });
@@ -33,8 +86,8 @@ contactRouter.delete('/:id', requireAuth, requireAdmin, async (req: AuthRequest,
     if (error) throw error;
     return res.json({ success: true });
   } catch (e: any) {
-    console.error('[CONTACT] suppression echouee:', e?.message ?? e);
-    return res.status(500).json({ error: 'CONTACT_DELETE_FAILED' });
+    console.error('[CONTACT] suppression definitive echouee:', e?.message ?? e);
+    return res.status(500).json({ error: 'CONTACT_HARD_DELETE_FAILED' });
   }
 });
 
