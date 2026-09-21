@@ -24,10 +24,20 @@ export { voteRouter };
 import { Router as PaymentRouter } from 'express';
 import * as paymentCtrl from '../controllers/payment.controller';
 
+// Validation d'entree paiement (zod) — presence + types uniquement. AUCUNE borne ici :
+// les limites metier (montant 100..100000, min/MAX retrait, devises) restent dans le controleur.
+const validate = (schema: z.ZodTypeAny) => (req: Request, res: Response, next: any) => {
+  const r = schema.safeParse(req.body);
+  if (!r.success) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR', details: r.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })) });
+  next();
+};
+const _rechargeSchema = z.object({ amount: z.coerce.number().positive(), phone: z.string().min(1).max(30), operator: z.string().min(1).max(40), country: z.string().max(4).nullish() });
+const _votePaySchema  = z.object({ participant_id: z.string().min(1).max(64), vote_type: z.string().min(1).max(20), phone: z.string().min(1).max(30), qty: z.coerce.number().int().positive().nullish(), country: z.string().max(4).nullish() });
+
 const paymentRouter = PaymentRouter();
-paymentRouter.post('/initiate', requireAuth, requireVerified, paymentCtrl.initiate);
-paymentRouter.post('/vote', requireAuth, requireVerified, paymentCtrl.initiateVotePayment); /*DKDK_VOTE_PAY_ROUTE*/
-paymentRouter.post('/withdraw', requireAuth, requireVerified, paymentCtrl.withdraw); /*DKDK_WITHDRAW_ROUTE*/
+paymentRouter.post('/initiate', requireAuth, requireVerified, validate(_rechargeSchema), paymentCtrl.initiate);
+paymentRouter.post('/vote', requireAuth, requireVerified, validate(_votePaySchema), paymentCtrl.initiateVotePayment); /*DKDK_VOTE_PAY_ROUTE*/
+paymentRouter.post('/withdraw', requireAuth, requireVerified, validate(_rechargeSchema), paymentCtrl.withdraw); /*DKDK_WITHDRAW_ROUTE*/
 paymentRouter.post('/webhook',  paymentCtrl.webhook);
 paymentRouter.post('/pawapay-callback', paymentCtrl.pawapayCallback); /*DKDK_PAWAPAY_CALLBACK*/
 paymentRouter.post('/pawapay-test', requireAuth, requireAdmin, paymentCtrl.pawapayTest); /*DKDK_PAWAPAY_TEST (admin, sandbox)*/
