@@ -524,20 +524,40 @@ export default function SubmitPage() {
         {/*DKDK_GUIDE_PANEL — le guide reste visible pendant tout le parcours (etapes 1 a 4)*/}
         {step < 5 && (() => {
           const g = guideContent();
+          // Objet anime = emoji de la discipline choisie (repli categorie, puis boussole)
+          const animIcon = selectedDiscipline?.emoji || selectedCategory?.emoji || '🧭'; /*DKDK_GUIDE_ICON*/
           return (
-            <div style={{ background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 16, padding: '14px 16px', marginBottom: 18 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 18 }}>🧭</span>
-                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: OR }}>Ton guide Diki-Diki</span>
+            <>
+              <style>{`
+                @keyframes dkdkGuideGlow {
+                  0%,100% { box-shadow: 0 0 0 0 rgba(255,170,0,0); border-color: rgba(255,170,0,0.28); }
+                  50%     { box-shadow: 0 0 16px 1px rgba(255,170,0,0.30); border-color: rgba(255,170,0,0.65); }
+                }
+                @keyframes dkdkGuidePop {
+                  0%,100% { transform: translateY(0) scale(1) rotate(0deg); }
+                  30%     { transform: translateY(-4px) scale(1.16) rotate(-8deg); }
+                  60%     { transform: translateY(-1px) scale(1.08) rotate(8deg); }
+                }
+                .dkdk-guide-glow { animation: dkdkGuideGlow 2.6s ease-in-out infinite; }
+                .dkdk-guide-icon { display: inline-block; transform-origin: 50% 60%; animation: dkdkGuidePop 2.4s ease-in-out infinite; }
+                @media (prefers-reduced-motion: reduce) {
+                  .dkdk-guide-glow, .dkdk-guide-icon { animation: none !important; }
+                }
+              `}</style>
+              <div className="dkdk-guide-glow" style={{ background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 16, padding: '14px 16px', marginBottom: 18 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
+                  <span key={animIcon} className="dkdk-guide-icon" style={{ fontSize: 22, lineHeight: 1 }}>{animIcon}</span>
+                  <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: OR }}>Ton guide Diki-Diki</span>
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>{g.msg}</div>
+                {g.tip ? (
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginTop: 8, paddingLeft: 10, borderLeft: '2px solid rgba(255,170,0,0.35)' }}>{g.tip}</div>
+                ) : null}
+                <div style={{ fontSize: 11, color: 'var(--ink-dim)', lineHeight: 1.5, marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+                  💰 <b>Aucun montant garanti</b> — tout depend du soutien du public. Les votes forment une cagnotte partagee entre les gagnants.
+                </div>
               </div>
-              <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>{g.msg}</div>
-              {g.tip ? (
-                <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginTop: 8, paddingLeft: 10, borderLeft: '2px solid rgba(255,170,0,0.35)' }}>{g.tip}</div>
-              ) : null}
-              <div style={{ fontSize: 11, color: 'var(--ink-dim)', lineHeight: 1.5, marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
-                💰 <b>Aucun montant garanti</b> — tout depend du soutien du public. Les votes forment une cagnotte partagee entre les gagnants.
-              </div>
-            </div>
+            </>
           );
         })()}
 
@@ -687,7 +707,7 @@ export default function SubmitPage() {
 
                       {opts.length > 0 && (
                         <div style={{ marginTop: 12 }}>
-                          <label style={lbl}>{ec.choix_liste ? 'Forme' : (ec.choix_type === 'plage' ? 'Enchainement' : 'Numero')} /*DKDK_LABEL_FORME*/</label>
+                          <label style={lbl}>{ec.choix_liste ? 'Forme' : (ec.choix_type === 'plage' ? 'Enchainement' : 'Numero')}{/*DKDK_LABEL_FORME*/}</label>
                           <select value={selectedSubject?.name || ''} onChange={(e) => {
                             const v = e.target.value;
                             if (!v) { setSelectedSubject(null); return; }
