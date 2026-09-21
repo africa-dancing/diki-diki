@@ -33,14 +33,14 @@ export default function AdminContactPage() {
   const charger = (v: Vue = vue) => {
     setLoading(true); setInfo('');
     const url = v === 'corbeille' ? `${API}/contact/corbeille` : `${API}/contact`;
-    fetch(url, { cache: 'no-store', headers: { Authorization: `Bearer ${admin.token}` } })
+    fetch(url, { cache: 'no-store', headers: { Authorization: `Bearer ${admin?.token}` } })
       .then(r => r.ok ? r.json() : null)
       .then(d => setMessages(d?.data ?? []))
       .catch(() => setInfo('Erreur de chargement.'))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { charger(vue); /* eslint-disable-next-line */ }, [vue]);
+  useEffect(() => { if (admin?.token) charger(vue); /* eslint-disable-next-line */ }, [vue, admin]);
 
   const fmtDate = (s?: string | null) => {
     if (!s) return '';
@@ -55,7 +55,7 @@ export default function AdminContactPage() {
     if (!confirm('Mettre ce message à la corbeille ?')) return;
     setInfo('');
     try {
-      const r = await fetch(`${API}/contact/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${admin.token}` } });
+      const r = await fetch(`${API}/contact/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${admin?.token}` } });
       if (!r.ok) throw new Error();
       retirer(id);
     } catch { setInfo('Erreur lors de la mise à la corbeille.'); }
@@ -65,7 +65,7 @@ export default function AdminContactPage() {
   const restaurer = async (id: string) => {
     setInfo('');
     try {
-      const r = await fetch(`${API}/contact/${id}/restore`, { method: 'POST', headers: { Authorization: `Bearer ${admin.token}` } });
+      const r = await fetch(`${API}/contact/${id}/restore`, { method: 'POST', headers: { Authorization: `Bearer ${admin?.token}` } });
       if (!r.ok) throw new Error();
       retirer(id);
     } catch { setInfo('Erreur lors de la restauration.'); }
@@ -76,7 +76,7 @@ export default function AdminContactPage() {
     if (!confirm('Supprimer DÉFINITIVEMENT ce message ? Cette action est irréversible.')) return;
     setInfo('');
     try {
-      const r = await fetch(`${API}/contact/${id}/definitif`, { method: 'DELETE', headers: { Authorization: `Bearer ${admin.token}` } });
+      const r = await fetch(`${API}/contact/${id}/definitif`, { method: 'DELETE', headers: { Authorization: `Bearer ${admin?.token}` } });
       if (!r.ok) throw new Error();
       retirer(id);
     } catch { setInfo('Erreur lors de la suppression définitive.'); }
