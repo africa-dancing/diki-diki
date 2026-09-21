@@ -392,6 +392,53 @@ export default function SubmitPage() {
   const STEPS = ['Catégorie', 'Discipline', 'Détails', 'Vidéo'];
   const OR = 'var(--or)';
 
+  /*DKDK_GUIDE — « Ton guide Diki-Diki » : message chaleureux et contextuel,
+    adapte a l'etape en cours ET a la discipline choisie. Aucun montant promis. */
+  function guideContent(): { msg: React.ReactNode; tip?: string } {
+    const cat  = selectedCategory;
+    const disc = selectedDiscipline;
+    const ec   = sportEpreuveChoisie;
+    const isSport = cat?.id === 'sport' || disc?.category_id === 'sport';
+
+    // Etape 1 — Categorie
+    if (step === 1) {
+      if (!cat) return { msg: <>Akwaba ! 🎬 On avance ensemble, pas a pas. Commence par choisir <b>la famille de ton talent</b> : Scene, Musique, Parole ou Sport.</> };
+      return { msg: <>Belle energie ! Tu es dans <b>{cat.name}</b>. Clique sur « Continuer » pour choisir ta discipline precise.</> };
+    }
+
+    // Etape 2 — Discipline
+    if (step === 2) {
+      if (cat?.id === 'sport') return { msg: <>Tu es en <b>Sport</b> 🥋. Choisis ton <b>sport</b> ci-dessous — juste apres, je te montrerai l&apos;<b>epreuve exacte</b> et sa regle.</> };
+      if (!disc) return { msg: <>Choisis ta <b>discipline</b> dans {cat?.name}. Chaque carte explique en un mot ce qu&apos;elle contient.</> };
+      return { msg: <>Parfait : <b>{disc.name}</b>. On passe aux details de ta prestation.</> };
+    }
+
+    // Etape 3 — Details
+    if (step === 3) {
+      if (isSport) {
+        if (!ec) return { msg: <>Choisis ton <b>epreuve</b> de {disc?.name} pour continuer. La regle s&apos;affiche des que tu cliques.</> };
+        if (ec.choix_type && !selectedSubject) return {
+          msg: <>Epreuve : <b>{ec.libelle}</b>. Choisis maintenant {ec.choix_type === 'plage' ? <>l&apos;<b>enchainement</b></> : <>le <b>numero / la forme</b></>} pour continuer.</>,
+          tip: ec.regle || undefined,
+        };
+        return {
+          msg: <>C&apos;est bon pour <b>{ec.libelle}</b>{selectedSubject ? ' · ' + selectedSubject.name : ''}. Ajoute un titre ou une description si tu veux (optionnel), puis continue.</>,
+          tip: ec.regle || undefined,
+        };
+      }
+      return { msg: <>Ajoute les <b>details</b> de ta prestation. Presque tout est optionnel — tu peux aller vite et passer a la video.</> };
+    }
+
+    // Etape 4 — Video
+    if (step === 4) {
+      return {
+        msg: <>Derniere ligne droite ! 🎥 Ajoute ta video (MP4 ou MOV, max 10 min). Elle part en <b>brouillon</b> : tu la soumettras au challenge depuis ton compte.</>,
+        tip: 'Astuce tournage : bonne lumiere, son clair, et montre-toi bien dans le cadre.',
+      };
+    }
+    return { msg: null };
+  }
+
   const btnPrimary: React.CSSProperties = {
     background: 'linear-gradient(135deg,#FF6B00,#FFD700)',
     border: 'none', borderRadius: 12,
@@ -473,6 +520,26 @@ export default function SubmitPage() {
             </div>
           </div>
         )}
+
+        {/*DKDK_GUIDE_PANEL — le guide reste visible pendant tout le parcours (etapes 1 a 4)*/}
+        {step < 5 && (() => {
+          const g = guideContent();
+          return (
+            <div style={{ background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 16, padding: '14px 16px', marginBottom: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 18 }}>🧭</span>
+                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: OR }}>Ton guide Diki-Diki</span>
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>{g.msg}</div>
+              {g.tip ? (
+                <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginTop: 8, paddingLeft: 10, borderLeft: '2px solid rgba(255,170,0,0.35)' }}>{g.tip}</div>
+              ) : null}
+              <div style={{ fontSize: 11, color: 'var(--ink-dim)', lineHeight: 1.5, marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+                💰 <b>Aucun montant garanti</b> — tout depend du soutien du public. Les votes forment une cagnotte partagee entre les gagnants.
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ─── ÉTAPE 1 : CATÉGORIE ─── */}
         {step === 1 && (
