@@ -5,8 +5,15 @@ import { createClient } from '@supabase/supabase-js';
 import { inscribeToArena, createArenaChallenge, checkArenaChallenge } from '../services/bracketArena.service';
 import { checkAndAdvanceRounds } from '../services/bracket.service'; /*DKDK_CLOSE_INSTANT — fermeture immediate apres un vote*/
 import { requireAuth, AuthRequest, requireVerified, requireAdmin } from '../middleware/auth.middleware';
+import { z } from 'zod';
 
 const bracketRouter = Router();
+
+// Validation d'entree (zod) — presence + types ; aucune logique (argent, tournoi) modifiee.
+const _uuidLike = z.string().min(1).max(64);
+const votePoolSchema = z.object({ participant_id: _uuidLike, qty: z.coerce.number().int().positive().nullish(), type: z.enum(['star','heart']).nullish() });
+const inscribeSchema = z.object({ bracket_id: _uuidLike, video_id: _uuidLike, formation: z.enum(['solo','group']).nullish(), group_name: z.string().max(120).nullish(), group_size: z.coerce.number().int().positive().max(100).nullish() });
+const participantVideoSchema = z.object({ video_id: _uuidLike });
 
 function getSupabase() {
   return createClient(
@@ -250,6 +257,8 @@ bracketRouter.get('/admin/rapport', async (req: Request, res: Response) => {
 
 // Inscription a un challenge (user extrait du token)
 bracketRouter.post('/arena/inscribe', requireAuth, requireVerified, /*DKDK_INSCRIBE_VERIF*/ async (req: AuthRequest, res: Response) => {
+    const _p = inscribeSchema.safeParse(req.body);
+    if (!_p.success) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR', details: _p.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })) });
   try {
     const { bracket_id, video_id, formation, group_name, group_size } = req.body; /*DKDK_FORMATION*/
     if (!bracket_id || !video_id)
@@ -615,6 +624,8 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
 
 // Soumettre une video pour le round actif
 bracketRouter.post('/participant/:participantId/video', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
+    const _p = participantVideoSchema.safeParse(req.body);
+    if (!_p.success) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR', details: _p.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })) });
   try {
     const supabase = getSupabase();
     const { participantId } = req.params;
@@ -692,6 +703,8 @@ bracketRouter.get('/participant/:participantId/videos', /*DKDK_PARCOURS_PUBLIC*/
 
 // Vote pool (plusieurs etoiles possibles) -> RPC vote_bracket_pool
 bracketRouter.post('/arena/vote-pool', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
+    const _p = votePoolSchema.safeParse(req.body);
+    if (!_p.success) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR', details: _p.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })) });
   try {
     const { participant_id, qty, type } = req.body;
     if (!participant_id)

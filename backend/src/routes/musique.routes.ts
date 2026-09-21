@@ -1,8 +1,24 @@
 import { Router, Request, Response } from 'express';
+import { z } from 'zod';
 import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
 import { lookupMusique, submitMusique, submitMusiqueAdmin, listMusiques, listMyPendingMusiques, listAllMusiquesAdmin, deleteMusiqueAdmin } from '../services/musique.service';
 
 const musiqueRouter = Router();
+
+// Validation d'entree (zod) — presence + types, sans changer la logique du service.
+const optStr = (max: number) => z.string().max(max).nullish();
+const musiqueSchema = z.object({
+  artiste:      z.string().min(1).max(200),
+  titre:        z.string().min(1).max(200),
+  album:        optStr(200),
+  duree_sec:    z.coerce.number().int().min(0).max(36000).nullish(),
+  pays_origine: optStr(100),
+  continent:    optStr(50),
+  danse:        optStr(100),
+  style:        optStr(100),
+  cover_url:    optStr(1000),
+  source:       optStr(100),
+});
 
 // Recherche MusicBrainz (auto-remplissage) - statique AVANT tout param
 musiqueRouter.get('/lookup', requireAuth, async (req: AuthRequest, res: Response) => {
@@ -29,6 +45,8 @@ musiqueRouter.get('/mine', requireAuth, async (req: AuthRequest, res: Response) 
 
 // Soumission d'un morceau
 musiqueRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
+    const _p = musiqueSchema.safeParse(req.body);
+    if (!_p.success) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR', details: _p.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })) });
   try {
     const { artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url, source } = req.body;
     const result = await submitMusique({
@@ -45,6 +63,8 @@ musiqueRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => 
 /*DKDK_ADMIN_MUSIC_ROUTE*/
 // Ajout d'un morceau par l'admin (source=admin, status=approved force serveur)
 musiqueRouter.post('/admin', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+    const _p = musiqueSchema.safeParse(req.body);
+    if (!_p.success) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR', details: _p.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })) });
   try {
     const { artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url } = req.body;
     const result = await submitMusiqueAdmin({
