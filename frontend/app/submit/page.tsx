@@ -402,7 +402,7 @@ export default function SubmitPage() {
 
     // Étape 1 — Catégorie
     if (step === 1) {
-      if (!cat) return { msg: <>Akwaba ! 🎬 On avance ensemble, pas à pas. Commence par choisir <b>la famille de ton talent</b> : Scène, Musique, Parole ou Sport.</> };
+      if (!cat) return { msg: <>Akwaba ! 🎬 On avance ensemble, pas à pas. Commence par choisir <b>la catégorie de ton talent</b> : Scène, Musique, Parole ou Sport.</> };
       return { msg: <>Belle énergie ! Tu es dans <b>{cat.name}</b>. Clique sur « Continuer » pour choisir ta discipline précise.</> };
     }
 
