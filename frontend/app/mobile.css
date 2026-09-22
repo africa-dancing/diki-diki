@@ -200,3 +200,43 @@ body {
     opacity: 0.7;
   }
 }
+
+
+/* ============================================================
+   DESKTOP / PC ≥ 1024px  /*DKDK_DESKTOP_LAYER*/
+   Le site est « mobile-first » : par défaut le contenu tient dans
+   une colonne étroite (idéal téléphone). Sur grand écran on élargit
+   les colonnes de page pour un rendu professionnel, SANS rien changer
+   au mobile (tout est sous @media min-width:1024px).
+   ============================================================ */
+@media (min-width: 1024px) {
+  /* Colonnes de page (shells d'application / listes) : on utilise l'écran */
+  div[style*="max-width: 700px"],
+  div[style*="max-width: 720px"],
+  div[style*="max-width: 760px"],
+  div[style*="max-width: 780px"],
+  div[style*="max-width: 800px"],
+  div[style*="max-width: 860px"],
+  div[style*="max-width: 900px"] {
+    max-width: 1120px !important;
+  }
+  /* Colonnes de lecture / formulaires : élargissement plus doux */
+  div[style*="max-width: 560px"],
+  div[style*="max-width: 620px"],
+  div[style*="max-width: 640px"],
+  div[style*="max-width: 680px"] {
+    max-width: 820px !important;
+  }
+  /* Gouttières confortables sur les très grands écrans */
+  body { --dkdk-gutter: 24px; }
+}
+
+/* Grille de cartes : tuilage automatique en colonnes.
+   auto-fill + minmax => 1 colonne sur mobile, 2-3 colonnes sur PC. */
+.dkdk-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+.dkdk-cards > * { margin-bottom: 0 !important; }

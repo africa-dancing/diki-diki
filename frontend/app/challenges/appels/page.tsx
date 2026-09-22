@@ -263,7 +263,11 @@ export default function MurDesAppelsPage() {
           <EmptyState />
         )}
 
-        {!loading && !error && appels.map(a => <AppelCard key={a.id} appel={a} />)}
+        {!loading && !error && appels.length > 0 && (
+          <div className="dkdk-cards">
+            {appels.map(a => <AppelCard key={a.id} appel={a} />)}
+          </div>
+        )}
 
         <footer style={{
           margin: '26px auto 0', color: 'var(--ink-dim)', fontSize: 12,

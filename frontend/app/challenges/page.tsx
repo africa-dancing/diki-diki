@@ -81,7 +81,9 @@ export default function ChallengesListPage() {
           </div>
         )}
 
-        {!loading && !error && brackets.map(b => {
+        {!loading && !error && brackets.length > 0 && (
+        <div className="dkdk-cards">
+        {brackets.map(b => {
           const st = STATUS_CFG[b.status] ?? { label: b.status, color: 'var(--ink-soft)', bg: 'var(--surface)' };
           const count = b.bracket_participants?.[0]?.count ?? 0;
           const tags = [b.discipline, b.categorie, b.style].filter(Boolean);
@@ -116,6 +118,8 @@ export default function ChallengesListPage() {
             </Link>
           );
         })}
+        </div>
+        )}
 
       </div>
 
