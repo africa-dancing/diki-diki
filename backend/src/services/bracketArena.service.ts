@@ -433,10 +433,8 @@ export async function createAppelAsModerator(params: {
     .limit(1).maybeSingle();
   if (dup) return { created: false, bracket_id: dup.id };
 
-  // Delai d'appel (reglage, defaut 7 jours)
-  const delaiH = await getSetting('appel_delai_heures', 168);
+  // AUCUN delai impose : pas de date-limite (l'appel reste ouvert). /*DKDK_MODERATEUR_APPEL — no deadline*/
   const now = new Date();
-  const deadline = new Date(now.getTime() + delaiH * 3600 * 1000);
 
   // Creation du bracket en statut 'appel' (SANS candidat, SANS video)
   const { data: created, error: cErr } = await supabase
@@ -451,7 +449,7 @@ export async function createAppelAsModerator(params: {
       max_participants: maxParticipants, current_round: 1,
       total_cagnotte: 0, commission_pct: 0.5,
       allow_groups: _allowGroups,
-      createur_id, appel_deadline: deadline.toISOString(),
+      createur_id, appel_deadline: null, /*DKDK_MODERATEUR_APPEL — aucun delai impose*/
       created_at: now.toISOString(),
     }).select('id').single();
   if (cErr || !created) throw new Error('Erreur lors de la creation de l appel.');
@@ -476,4 +474,94 @@ export async function createAppelAsModerator(params: {
   }
 
   return { created: true, bracket_id: bracketId };
+}
+
+// 5. EDITER un APPEL (moderateur) — change morceaux/format TANT QU'AUCUN candidat n'a rejoint. /*DKDK_MODERATEUR_APPEL*/
+// Additif : ne touche a aucune logique d'argent. Statut/createur/deadline inchanges (aucun delai impose).
+export async function updateAppelAsModerator(bracket_id: string, params: {
+  categorie: string; discipline: string; style?: string;
+  format_code: string;
+  mode?: string; modele?: string; niveau?: number;
+  allow_groups?: boolean;
+  track_id?: string;
+  sport?: { art: string; art_slug: string; epreuve: string; epreuve_slug: string; difficulte?: string; difficulte_slug?: string; regle?: string };
+  sujets?: { round_number: number; libelle: string; track_id?: string | null; choix_id?: string | null; regle?: string | null }[];
+}) {
+  const { categorie, discipline, format_code, sport } = params;
+  const modeVal = params.mode || 'normal';
+  const _allowGroups = !!params.allow_groups;
+  if (!format_code) throw new Error('Le format du challenge est obligatoire.');
+
+  // L'appel existe, n'a pas demarre, et aucun candidat n'a rejoint
+  const { data: b, error: bErr } = await supabase
+    .from('brackets').select('id, status').eq('id', bracket_id).single();
+  if (bErr || !b) throw new Error('Appel introuvable.');
+  if (b.status !== 'appel') throw new Error('Seul un appel non demarre peut etre edite.');
+  const { count: nbPart } = await supabase
+    .from('bracket_participants').select('*', { count: 'exact', head: true }).eq('bracket_id', bracket_id);
+  if ((nbPart ?? 0) > 0) throw new Error('Des candidats ont deja rejoint cet appel : supprime-le et recree-le, ou edite avant les inscriptions.');
+
+  // Format (obligatoire, actif)
+  const { data: fmt, error: fErr } = await supabase
+    .from('challenge_formats').select('code, nb_candidats, actif').eq('code', format_code).maybeSingle();
+  if (fErr || !fmt) throw new Error('Format de challenge inconnu.');
+  if (!fmt.actif) throw new Error('Ce format de challenge est desactive.');
+  const maxParticipants = fmt.nb_candidats;
+
+  const modeleFinal = params.modele || 'bloc';
+  const niveauFinal = params.niveau || 1;
+  const discFinal   = sport ? sport.art : discipline;
+  const styleFinal  = sport ? (sport.epreuve + (sport.difficulte ? ' · ' + sport.difficulte : '')) : (params.style || '');
+  const trackFinal  = sport ? null : (params.track_id || null);
+  const modeFinal   = sport ? 'normal' : modeVal;
+
+  let objectifBloc = 0;
+  if (modeleFinal === 'bloc') {
+    const { data: bo } = await supabase.from('bloc_objectifs')
+      .select('objectif').eq('format_code', fmt.code).eq('niveau', niveauFinal).maybeSingle();
+    objectifBloc = bo?.objectif || 0;
+  }
+
+  const bracketKey = sport
+    ? ['sport', fmt.code, sport.art_slug, sport.epreuve_slug, sport.difficulte_slug].filter(Boolean).join('|')
+    : computeBracketKey(discFinal, modeFinal, trackFinal, fmt.code, [], modeleFinal, niveauFinal);
+
+  // Anti-doublon : un AUTRE appel ouvert avec la meme cle ?
+  const { data: dup } = await supabase
+    .from('brackets').select('id')
+    .eq('bracket_key', bracketKey).neq('id', bracket_id)
+    .in('status', ['appel', 'waiting_candidates', 'open'])
+    .limit(1).maybeSingle();
+  if (dup) throw new Error('Un autre appel identique est deja ouvert.');
+
+  // Mise a jour du bracket (statut, createur, deadline inchanges)
+  const { error: uErr } = await supabase.from('brackets').update({
+    title: (styleFinal ? styleFinal + ' - ' : '') + discFinal,
+    categorie, discipline: discFinal, style: styleFinal,
+    track_id: trackFinal, mode: modeFinal,
+    bracket_key: bracketKey,
+    modele: modeleFinal, niveau: niveauFinal,
+    objectif_bloc: objectifBloc,
+    max_participants: maxParticipants,
+    allow_groups: _allowGroups,
+  }).eq('id', bracket_id);
+  if (uErr) throw new Error('Erreur lors de la mise a jour de l appel.');
+
+  // Remplacer les sujets par etape
+  await supabase.from('bracket_round_sujets').delete().eq('bracket_id', bracket_id);
+  const sujets = Array.isArray(params.sujets) ? params.sujets : [];
+  const rows = sujets
+    .filter(s => s && s.round_number && (s.libelle || s.track_id))
+    .map(s => ({
+      bracket_id, round_number: s.round_number,
+      libelle: s.libelle || '', track_id: s.track_id || null,
+      choix_id: s.choix_id || null,
+      regle: s.regle || (sport ? sport.regle || null : null),
+    }));
+  if (rows.length) {
+    const { error: sErr } = await supabase.from('bracket_round_sujets').insert(rows);
+    if (sErr) throw new Error('Appel mis a jour mais erreur en enregistrant les sujets: ' + sErr.message);
+  }
+
+  return { updated: true, bracket_id };
 }

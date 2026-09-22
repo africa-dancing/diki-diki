@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 /*DKDK_DEAD_ROUTES_REMOVED*/ // 3 routes non authentifiees supprimees ; checkAndAdvanceRounds reste appele par src/cron/bracket.cron.ts
-import { inscribeToArena, createArenaChallenge, checkArenaChallenge, createAppelAsModerator } from '../services/bracketArena.service';
+import { inscribeToArena, createArenaChallenge, checkArenaChallenge, createAppelAsModerator, updateAppelAsModerator } from '../services/bracketArena.service';
 import { checkAndAdvanceRounds } from '../services/bracket.service'; /*DKDK_CLOSE_INSTANT — fermeture immediate apres un vote*/
 import { requireAuth, AuthRequest, requireVerified, requireAdmin } from '../middleware/auth.middleware';
 import { z } from 'zod';
@@ -305,6 +305,21 @@ bracketRouter.post('/admin/appel', requireAuth, requireAdmin, async (req: AuthRe
   }
 });
 
+// EDITER un APPEL (moderateur) — morceaux/format, tant qu'aucun candidat n'a rejoint /*DKDK_MODERATEUR_APPEL*/
+bracketRouter.put('/admin/appel/:id', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { categorie, discipline, style, format_code, mode, modele, niveau, allow_groups, track_id, sport, sujets } = req.body;
+    if (!categorie || !discipline || !format_code)
+      return res.status(400).json({ success: false, error: 'Champs manquants (categorie, discipline, format).' });
+    const result = await updateAppelAsModerator(req.params.id, {
+      categorie, discipline, style, format_code, mode, modele, niveau, allow_groups, track_id, sport, sujets,
+    });
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // Rejoindre un APPEL : le candidat accepte l'appel avec sa video approuvee /*DKDK_MODERATEUR_APPEL*/
 // Reutilise inscribeToArena (place, anti-doublon, paiement si video deja engagee, depart quand complet).
 bracketRouter.post('/:bracket_id/accepter', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
@@ -514,7 +529,7 @@ bracketRouter.get('/:bracket_id/appel', async (req: Request, res: Response) => {
     const { bracket_id } = req.params;
     const { data: b, error } = await supabase
       .from('brackets')
-      .select('id, title, discipline, modele, max_participants, createur_id, appel_deadline, status, created_at')
+      .select('id, title, discipline, categorie, style, modele, mode, niveau, allow_groups, max_participants, createur_id, appel_deadline, status, created_at')
       .eq('id', bracket_id).single();
     if (error) throw error;
     const [{ data: sujets }, { data: parts }] = await Promise.all([
@@ -537,6 +552,7 @@ bracketRouter.get('/:bracket_id/appel', async (req: Request, res: Response) => {
     const bp = parts || [];
     res.json({ success: true, data: {
       id: b.id, title: b.title, discipline: b.discipline, modele: b.modele,
+      categorie: b.categorie, style: b.style, mode: b.mode, niveau: b.niveau, allow_groups: b.allow_groups, /*DKDK_MODERATEUR_APPEL — prefill edition*/
       max_participants: b.max_participants, appel_deadline: b.appel_deadline, status: b.status,
       createur_nom, createur_pays: null, officiel,
       acceptes: bp.filter((p: any) => p.reponse_appel === 'accepte').length,

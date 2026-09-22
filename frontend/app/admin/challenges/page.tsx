@@ -144,6 +144,9 @@ function AdminChallengesInner() {
                     </div>
                     <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                       <button onClick={() => ouvrirDetail(ch)} style={{ padding:'8px 14px', borderRadius:8, border:'1px solid #1e1e2e', background:'#0a0a0f', color:OR, fontWeight:600, fontSize:12, cursor:'pointer' }}>Videos</button>
+                      {ch.status === 'appel' ? (
+                        <a href={`/admin/challenges/creer-appel?id=${ch.id}`} style={{ padding:'8px 14px', borderRadius:8, border:'1px solid rgba(255,170,0,0.4)', background:'transparent', color:OR, fontWeight:700, fontSize:12, cursor:'pointer', textDecoration:'none' }}>Éditer</a>
+                      ) : null}
                       {supprimable ? (
                         <button onClick={() => supprimer(ch)} disabled={suppr === ch.id} style={{ padding:'8px 14px', borderRadius:8, border:'none', background:'#ed070f', color:'#fff', fontWeight:700, fontSize:12, cursor:'pointer', opacity: suppr === ch.id ? 0.6 : 1 }}>{suppr === ch.id ? '...' : 'Supprimer'}</button>
                       ) : (

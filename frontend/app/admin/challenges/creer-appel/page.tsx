@@ -5,7 +5,8 @@
 import { AdminGuard }   from '../../../components/admin/AdminGuard';
 import { AdminSidebar } from '../../../components/admin/AdminSidebar';
 import { useAdminAuth } from '../../../components/admin/AdminAuthContext';
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR  = '#FFAA00';
@@ -17,8 +18,10 @@ function slug(s: string): string {
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-export default function CreerAppelPage() {
+function CreerAppelInner() {
   const { admin } = useAdminAuth();
+  const search = useSearchParams();
+  const editId = (search?.get('id') || '').trim(); /*DKDK_MODERATEUR_APPEL — mode edition si ?id=*/
   const [categorie, setCategorie]   = useState<'artistique' | 'sport'>('artistique');
   const [discipline, setDiscipline] = useState('');
   const [formatCode, setFormatCode] = useState('C2');
@@ -35,6 +38,32 @@ export default function CreerAppelPage() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg]   = useState('');
   const [ok, setOk]     = useState('');
+
+  // Mode ÉDITION : charge l'appel existant et pré-remplit le formulaire /*DKDK_MODERATEUR_APPEL*/
+  useEffect(() => {
+    if (!editId) return;
+    fetch(`${API}/brackets/${editId}/appel`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(j => {
+        if (!j?.success || !j.data) return;
+        const d = j.data;
+        const isSport = d.categorie === 'sport';
+        setCategorie(isSport ? 'sport' : 'artistique');
+        if (isSport) { setArt(d.discipline || ''); setEpreuve(d.style || ''); }
+        else { setDiscipline(d.discipline || ''); }
+        if (d.max_participants) setFormatCode('C' + d.max_participants);
+        if (d.modele) setModele(d.modele === 'parcours' ? 'parcours' : 'bloc');
+        if (d.mode) setMode(d.mode === 'improvisation' ? 'improvisation' : 'normal');
+        setAllowGroups(!!d.allow_groups);
+        const nv = Math.max(1, Math.min(4, d.niveau || (d.etapes?.length || 1)));
+        setNiveau(nv);
+        const et = (d.etapes || []).slice().sort((a: any, b: any) => a.round_number - b.round_number).map((e: any) => e.libelle || '');
+        const arr: string[] = [];
+        for (let i = 0; i < nv; i++) arr.push(et[i] || '');
+        setSujets(arr);
+      })
+      .catch(() => {});
+  }, [editId]);
 
   // niveau = nombre de vidéos/étapes → autant de champs "sujet"
   const changerNiveau = (n: number) => {
@@ -68,13 +97,14 @@ export default function CreerAppelPage() {
           regle: regle.trim() || null,
         };
       }
-      const r = await fetch(`${API}/brackets/admin/appel`, {
-        method: 'POST',
+      const r = await fetch(editId ? `${API}/brackets/admin/appel/${editId}` : `${API}/brackets/admin/appel`, {
+        method: editId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin?.token}` },
         body: JSON.stringify(body),
       });
       const j = await r.json();
-      if (!r.ok || !j.success) { setMsg(j?.error || 'Erreur lors de la création.'); }
+      if (!r.ok || !j.success) { setMsg(j?.error || 'Erreur lors de l’enregistrement.'); }
+      else if (editId) { setOk('✅ Appel mis à jour !'); }
       else if (j.data?.created === false) { setOk('Un appel identique est déjà ouvert (id ' + String(j.data.bracket_id || '').slice(0, 8) + ').'); }
       else { setOk('✅ Appel ouvert ! (id ' + String(j.data?.bracket_id || '').slice(0, 8) + ') — il apparaît sur le Mur des appels.'); }
     } catch { setMsg('Erreur réseau.'); }
@@ -98,7 +128,7 @@ export default function CreerAppelPage() {
         <AdminSidebar />
         <div style={{ flex: 1, padding: '32px 28px', maxWidth: 680 }}>
           <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 26, color: OR, margin: '0 0 6px' }}>
-            Ouvrir un appel
+            {editId ? 'Éditer l’appel' : 'Ouvrir un appel'}
           </h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: '0 0 24px' }}>
             Crée un challenge ouvert aux candidatures, <b>sans</b> être candidat ni fournir de vidéo. Les talents le rejoindront depuis le Mur des appels.
@@ -188,10 +218,18 @@ export default function CreerAppelPage() {
           <button onClick={submit} disabled={busy}
             style={{ marginTop: 20, width: '100%', padding: '14px', borderRadius: 12, border: 'none', cursor: busy ? 'default' : 'pointer',
               background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#150c00', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 15, opacity: busy ? 0.7 : 1 }}>
-            {busy ? 'Création…' : 'Ouvrir l’appel'}
+            {busy ? (editId ? 'Enregistrement…' : 'Création…') : (editId ? 'Enregistrer les modifications' : 'Ouvrir l’appel')}
           </button>
         </div>
       </div>
     </AdminGuard>
+  );
+}
+
+export default function CreerAppelPage() {
+  return (
+    <Suspense fallback={null}>
+      <CreerAppelInner />
+    </Suspense>
   );
 }
