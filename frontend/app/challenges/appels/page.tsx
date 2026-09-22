@@ -8,6 +8,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const SOLID = 'linear-gradient(135deg,#FF6B00,#FFD700)';
 const ON_ACCENT = '#150c00';
 const HERO = 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))';
+const OR = 'var(--or)';
 
 // Constantes par format (max_participants) : objectif à réunir / étape,
 // nombre de champions, partage du podium, prime de participation.
@@ -85,6 +86,7 @@ export default function MurDesAppelsPage() {
   const [aggregates, setAggregates] = useState<Aggregates | null>(null);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(false);
+  const [connecte, setConnecte]     = useState(false);  /*DKDK_GUIDE*/
 
   useEffect(() => {
     fetch(`${API}/brackets/appels`)
@@ -96,6 +98,26 @@ export default function MurDesAppelsPage() {
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {  /*DKDK_GUIDE — savoir si l'arrivant est connecte, pour l'orienter*/
+    try { setConnecte(!!localStorage.getItem('dkdk_token')); } catch { /* ignore */ }
+  }, []);
+
+  /*DKDK_GUIDE — « Ton guide Diki-Diki » : accueil chaleureux et contextuel
+    pour orienter tout arrivant sur le Mur des appels. Aucun montant promis. */
+  function guideContent(): { msg: React.ReactNode; tip?: string } {
+    if (loading) return { msg: <>Un instant… je rassemble les appels ouverts de l&apos;Arène. 🧭</> };
+    if (appels.length === 0) return {
+      msg: <>Akwaba ! 🧭 L&apos;Arène attend son prochain créateur. Choisis ta discipline, fixe tes morceaux <b>étape par étape</b>, et lance ton appel — puis invite tout le continent à te rejoindre.</>,
+      tip: 'Pas encore de vidéo ? Tu peux d’abord en déposer une, la faire valider, puis rejoindre un appel.',
+    };
+    if (connecte) return {
+      msg: <>Akwaba ! 🧭 Voici les <b>appels ouverts</b>. Ouvre celui qui t&apos;inspire pour voir les morceaux imposés, puis <b>rejoins-le</b> avec ta vidéo approuvée. Envie de mener la danse ? Lance ton propre appel.</>,
+    };
+    return {
+      msg: <>Akwaba ! 🧭 Voici les <b>appels ouverts</b>. Ouvre celui qui t&apos;inspire pour découvrir les morceaux, étape par étape. Pour <b>rejoindre</b> avec ta vidéo, connecte-toi — c&apos;est rapide.</>,
+    };
+  }
 
   return (
     <div style={{
@@ -132,6 +154,44 @@ export default function MurDesAppelsPage() {
       </div>
 
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px' }}>
+
+        {/*DKDK_GUIDE_PANEL — guide contextuel « Ton guide Diki-Diki » (miroir de /submit)*/}
+        {(() => {
+          const g = guideContent();
+          return (
+            <>
+              <style>{`
+                @keyframes dkdkGuideGlow {
+                  0%,100% { box-shadow: 0 0 0 0 rgba(255,170,0,0); border-color: rgba(255,170,0,0.28); }
+                  50%     { box-shadow: 0 0 16px 1px rgba(255,170,0,0.30); border-color: rgba(255,170,0,0.65); }
+                }
+                @keyframes dkdkGuidePop {
+                  0%,100% { transform: translateY(0) scale(1) rotate(0deg); }
+                  30%     { transform: translateY(-4px) scale(1.16) rotate(-8deg); }
+                  60%     { transform: translateY(-1px) scale(1.08) rotate(8deg); }
+                }
+                .dkdk-guide-glow { animation: dkdkGuideGlow 2.6s ease-in-out infinite; }
+                .dkdk-guide-icon { display: inline-block; transform-origin: 50% 60%; animation: dkdkGuidePop 2.4s ease-in-out infinite; }
+                @media (prefers-reduced-motion: reduce) {
+                  .dkdk-guide-glow, .dkdk-guide-icon { animation: none !important; }
+                }
+              `}</style>
+              <div className="dkdk-guide-glow" style={{ background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 16, padding: '14px 16px', margin: '18px 0 4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
+                  <span className="dkdk-guide-icon" style={{ fontSize: 22, lineHeight: 1 }}>🧭</span>
+                  <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: OR }}>Ton guide Diki-Diki</span>
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>{g.msg}</div>
+                {g.tip ? (
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginTop: 8, paddingLeft: 10, borderLeft: '2px solid rgba(255,170,0,0.35)' }}>{g.tip}</div>
+                ) : null}
+                <div style={{ fontSize: 11, color: 'var(--ink-dim)', lineHeight: 1.5, marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+                  💰 <b>Aucun montant garanti</b> — tout dépend du soutien du public. Les votes forment une cagnotte partagée entre les gagnants.
+                </div>
+              </div>
+            </>
+          );
+        })()}
 
         {/* AGRÉGATS */}
         {aggregates && (
@@ -347,7 +407,7 @@ function AppelCard({ appel }: { appel: Appel }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '14px 0' }}>
         <Chip>Format <b style={{ color: 'var(--or)' }}>C{appel.max_participants}</b></Chip>
         <Chip><b style={{ color: 'var(--or)' }}>{appel.max_participants}</b> candidats</Chip>
-        <Chip><b style={{ color: 'var(--or)' }}>{nEtapes}</b> étape{nEtapes > 1 ? 's' : ''}</Chip>
+        <Chip><b style={{ color: 'var(--or)' }}>{nEtapes}</b> {isBloc ? 'vidéo' : 'étape'}{nEtapes > 1 ? 's' : ''}</Chip>
         <Chip>🏆 <b style={{ color: 'var(--green)' }}>{cfg.champions}</b> gagnant{cfg.champions > 1 ? 's' : ''}</Chip>
         <Chip><b style={{ color: 'var(--red)' }}>{appel.max_participants - cfg.champions}</b> éliminé{(appel.max_participants - cfg.champions) > 1 ? 's' : ''}</Chip>
         {appel.modele && <Chip>Modèle <b style={{ color: 'var(--or)' }}>{appel.modele === 'parcours' ? 'Parcours d’étapes' : 'Bloc groupé'}</b></Chip>}
@@ -360,7 +420,7 @@ function AppelCard({ appel }: { appel: Appel }) {
             fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em',
             textTransform: 'uppercase', color: 'var(--ink-soft)',
             padding: '10px 14px', background: 'var(--surface)', borderBottom: '1px solid var(--line)',
-          }}>Les morceaux imposés, par étape</div>
+          }}>Les morceaux imposés, par {isBloc ? 'vidéo' : 'étape'}</div>
           {appel.etapes.map((e, i) => (
             <div key={e.round_number ?? i} style={{
               display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
@@ -369,7 +429,7 @@ function AppelCard({ appel }: { appel: Appel }) {
               <span style={{
                 fontWeight: 800, fontSize: 12, color: ON_ACCENT, background: SOLID,
                 borderRadius: 7, padding: '5px 8px', whiteSpace: 'nowrap',
-              }}>Étape {e.round_number ?? i + 1}</span>
+              }}>{isBloc ? 'Vidéo' : 'Étape'} {e.round_number ?? i + 1}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 14.5 }}>
                   {e.track_titre || e.libelle}
