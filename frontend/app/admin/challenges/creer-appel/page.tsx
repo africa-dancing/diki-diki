@@ -38,6 +38,9 @@ function CreerAppelInner() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg]   = useState('');
   const [ok, setOk]     = useState('');
+  // Panneau OBJECTIFS — miroir de la taxonomie (aucun montant en dur) /*DKDK_TAXO_OBJECTIF*/
+  const [taxo, setTaxo]         = useState<any>(null);
+  const [taxoLoad, setTaxoLoad] = useState(false);
 
   // Mode ÉDITION : charge l'appel existant et pré-remplit le formulaire /*DKDK_MODERATEUR_APPEL*/
   useEffect(() => {
@@ -65,6 +68,20 @@ function CreerAppelInner() {
       .catch(() => {});
   }, [editId]);
 
+  // Interroge la taxonomie dès qu'on change modèle / format / niveau /*DKDK_TAXO_OBJECTIF*/
+  useEffect(() => {
+    if (!admin?.token || !formatCode) { setTaxo(null); return; }
+    let annule = false;
+    setTaxoLoad(true);
+    const q = `format_code=${encodeURIComponent(formatCode)}&modele=${modele}&niveau=${niveau}`;
+    fetch(`${API}/brackets/taxonomie/objectif?${q}`, { headers: { Authorization: `Bearer ${admin.token}` }, cache: 'no-store' })
+      .then(r => r.json())
+      .then(j => { if (!annule) setTaxo(j?.success ? j.data : null); })
+      .catch(() => { if (!annule) setTaxo(null); })
+      .finally(() => { if (!annule) setTaxoLoad(false); });
+    return () => { annule = true; };
+  }, [admin?.token, formatCode, modele, niveau]);
+
   // niveau = nombre de vidéos/étapes → autant de champs "sujet"
   const changerNiveau = (n: number) => {
     const v = Math.max(1, Math.min(4, n || 1));
@@ -77,6 +94,7 @@ function CreerAppelInner() {
   };
 
   const majSujet = (i: number, val: string) => setSujets(prev => prev.map((s, idx) => idx === i ? val : s));
+  const fmtF = (n: number) => (n || 0).toLocaleString('fr-FR') + ' F';
 
   const submit = async () => {
     setMsg(''); setOk('');
@@ -193,6 +211,60 @@ function CreerAppelInner() {
           <select style={{ ...inp, marginBottom: 16 }} value={niveau} onChange={e => changerNiveau(parseInt(e.target.value, 10))}>
             {[1, 2, 3, 4].map(n => <option key={n} value={n} style={{ background: '#15151c' }}>{n} vidéo{n > 1 ? 's' : ''}</option>)}
           </select>
+
+          {/* Panneau OBJECTIFS — lu depuis la taxonomie (jamais en dur) /*DKDK_TAXO_OBJECTIF*/}
+          <div style={{ marginBottom: 16, background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 12, padding: '14px 16px' }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: OR, marginBottom: 8 }}>
+              🎯 Objectif à collecter <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.45)' }}>— lu dans la taxonomie ({modele === 'bloc' ? 'Bloc groupé' : 'Parcours d’étapes'})</span>
+            </div>
+            {taxoLoad ? (
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>Lecture de la taxonomie…</div>
+            ) : !taxo ? (
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>Choisis un modèle et un format.</div>
+            ) : taxo.modele === 'bloc' ? (
+              <div>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, color: taxo.objectif ? '#fff' : '#ff9b6b' }}>
+                  {taxo.objectif ? fmtF(taxo.objectif) : '— non défini'}
+                </div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: '2px 0 10px' }}>
+                  Objectif du challenge — {formatCode} · niveau {taxo.niveau} ({niveau} vidéo{niveau > 1 ? 's' : ''})
+                </div>
+                {(taxo.grille || []).length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Grille du format — croissante avec le niveau (plus de vidéos = plus exigeant) :</div>
+                    {taxo.grille.map((g: any) => {
+                      const actif = g.niveau === taxo.niveau;
+                      return (
+                        <div key={g.niveau} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '5px 8px', borderRadius: 6, marginBottom: 2,
+                          background: actif ? 'rgba(255,170,0,0.16)' : 'transparent', border: `1px solid ${actif ? 'rgba(255,170,0,0.45)' : 'transparent'}` }}>
+                          <span style={{ color: actif ? OR : 'rgba(255,255,255,0.6)', fontWeight: actif ? 700 : 400 }}>Niveau {g.niveau} · {g.niveau} vidéo{g.niveau > 1 ? 's' : ''}{actif ? ' ← ce challenge' : ''}</span>
+                          <span style={{ color: g.objectif ? (actif ? '#fff' : 'rgba(255,255,255,0.75)') : '#ff9b6b', fontWeight: actif ? 800 : 600 }}>{g.objectif ? fmtF(g.objectif) : '—'}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {!taxo.objectif && <div style={{ fontSize: 11, color: '#ff9b6b', marginTop: 6 }}>⚠️ Niveau {niveau} non défini dans la taxonomie — à renseigner avant d’ouvrir l’appel.</div>}
+              </div>
+            ) : (
+              <div>
+                {(taxo.etapes || []).map((e: any) => (
+                  <div key={e.etape} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.7)' }}>Étape {e.etape}{e.classement ? ' · classement' : ''}</span>
+                    <span style={{ color: e.objectif ? '#fff' : '#ff9b6b', fontWeight: 700 }}>{e.objectif ? fmtF(e.objectif) : '— non défini'}</span>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, paddingTop: 8, marginTop: 4 }}>
+                  <span style={{ color: OR, fontWeight: 700 }}>Enveloppe totale</span>
+                  <span style={{ color: OR, fontWeight: 800 }}>{fmtF(taxo.enveloppe)}</span>
+                </div>
+                {!taxo.complet && <div style={{ fontSize: 11, color: '#ff9b6b', marginTop: 6 }}>⚠️ Certaines étapes n’ont pas d’objectif dans la taxonomie.</div>}
+              </div>
+            )}
+            {taxo && <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.35)', marginTop: 10 }}>
+              Source : {taxo.source}. Ce montant n’est pas un gain : c’est le seuil à collecter pour fermer {modele === 'bloc' ? 'le challenge' : 'l’étape'}.
+            </div>}
+          </div>
 
           {/* Sujets par étape */}
           <label style={lbl}>Sujet / morceau imposé par étape</label>

@@ -448,6 +448,54 @@ bracketRouter.get('/candidats/:userId/challenges', async (req: Request, res: Res
   }
 });
 
+// ===== TAXONOMIE — objectif(s) d'un format selon le MODELE (+ niveau) /*DKDK_TAXO_OBJECTIF*/
+// Lecture seule. Le panneau "Ouvrir un appel" INTERROGE la taxonomie (jamais de montant en dur) :
+//   - Bloc groupe  -> objectif unique   bloc_objectifs[format_code, niveau]
+//   - Parcours     -> grille decroissante par etape  challenge_formats.objectifs[]
+bracketRouter.get('/taxonomie/objectif', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const format_code = String(req.query.format_code || '').trim();
+    const modele = String(req.query.modele || 'bloc').trim() === 'parcours' ? 'parcours' : 'bloc';
+    const niveau = Math.max(1, Math.min(4, parseInt(String(req.query.niveau || '1'), 10) || 1));
+    if (!format_code) return res.status(400).json({ success: false, error: 'Format manquant.' });
+
+    const sb = getSupabase();
+    const { data: fmt } = await sb.from('challenge_formats')
+      .select('code, nb_candidats, actif, nb_etapes, objectif_etape, objectifs')
+      .eq('code', format_code).maybeSingle();
+    if (!fmt) return res.status(404).json({ success: false, error: 'Format de challenge inconnu.' });
+
+    if (modele === 'parcours') {
+      const nbEtapes: number = fmt.nb_etapes ?? 0;
+      const arr: number[] = Array.isArray(fmt.objectifs) ? (fmt.objectifs as number[]) : [];
+      const etapes = Array.from({ length: nbEtapes }, (_, i) => ({
+        etape: i + 1,
+        objectif: (arr[i] ?? fmt.objectif_etape ?? 0),
+        classement: nbEtapes > 1 && i === nbEtapes - 1, // derniere etape = match de classement
+      }));
+      const enveloppe = etapes.reduce((sum, e) => sum + (e.objectif || 0), 0);
+      return res.json({ success: true, data: {
+        modele: 'parcours', format_code: fmt.code, actif: !!fmt.actif, nb_etapes: nbEtapes,
+        etapes, enveloppe, source: 'challenge_formats.objectifs',
+        complet: nbEtapes > 0 && etapes.every(e => (e.objectif || 0) > 0),
+      } });
+    }
+
+    // Bloc groupe : objectif unique du niveau choisi + GRILLE complete du format (croissante) /*DKDK_TAXO_OBJECTIF*/
+    const { data: rows } = await sb.from('bloc_objectifs')
+      .select('niveau, objectif').eq('format_code', fmt.code).order('niveau', { ascending: true });
+    const grille = (rows || []).map((r: any) => ({ niveau: r.niveau, objectif: r.objectif ?? 0 }));
+    const sel = grille.find(g => g.niveau === niveau);
+    return res.json({ success: true, data: {
+      modele: 'bloc', format_code: fmt.code, actif: !!fmt.actif, niveau,
+      objectif: (sel?.objectif ?? null), grille, source: 'bloc_objectifs',
+      complet: !!(sel && (sel.objectif || 0) > 0),
+    } });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // ===== MUR DES APPELS (Le Mur des appels) — lecture publique /*DKDK_MUR_APPELS*/
 // Liste des challenges en ralliement (status='appel') + agrégats d'en-tête.
 // ⚠️ Placé AVANT '/:bracket_id' pour ne pas être capté comme un id.
