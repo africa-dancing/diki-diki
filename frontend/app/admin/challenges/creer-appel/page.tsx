@@ -196,7 +196,7 @@ function CreerAppelInner() {
           <label style={lbl}>Modèle</label>
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
             <div onClick={() => setModele('bloc')} style={seg(modele === 'bloc')}>Bloc groupé</div>
-            <div onClick={() => setModele('parcours')} style={seg(modele === 'parcours')}>Parcours</div>
+            <div onClick={() => setModele('parcours')} style={seg(modele === 'parcours')}>Parcours d’étapes</div>
           </div>
 
           {/* Mode */}
