@@ -14,17 +14,23 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   }, [admin, loading, router]);
 
   if (loading) return (
-    <div style={{ background: '#0a0a0f', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ width: 32, height: 32, border: '2px solid #1e1e2e', borderTopColor: '#FFAA00', borderRadius: '50%', animation: 'spin .8s linear infinite', margin: '0 auto 14px' }} />
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, marginBottom: 6 }}>
-          <span style={{ color: '#FFAA00' }}>Diki</span>
-          <span style={{ color: '#fff', margin: '0 2px' }}>-</span>
-          <span style={{ color: '#FFAA00' }}>Diki</span>
-        </div>
-        <div style={{ fontSize: 12, color: '#4a4a6a', fontFamily: 'DM Sans, sans-serif' }}>Vérification en cours…</div>
+    <div style={{ background: '#121218', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+      {/* Animation Diki ★ Diki (identique au splash) */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 46, letterSpacing: 1 }}>
+        <span className="dk-left"  style={{ color: '#FFAA00', display: 'inline-block' }}>Diki</span>
+        <span className="dk-star"  style={{ color: '#E20707', display: 'inline-block' }}>★</span>
+        <span className="dk-right" style={{ color: '#FFAA00', display: 'inline-block' }}>Diki</span>
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      <div style={{ fontSize: 12, color: '#6a6a8a', fontFamily: 'DM Sans, sans-serif' }}>Vérification en cours…</div>
+      <style>{`
+        @keyframes dkLeft  {0%{opacity:0;transform:translateX(-90px)}25%,75%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(-90px)}}
+        @keyframes dkRight {0%{opacity:0;transform:translateX(90px)}25%,75%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(90px)}}
+        @keyframes dkStar  {0%{opacity:0;transform:translate(46px,-72px) scale(.2) rotate(-540deg)}25%,75%{opacity:1;transform:translate(0,0) scale(1) rotate(0)}100%{opacity:0;transform:translate(46px,-72px) scale(.2) rotate(-540deg)}}
+        .dk-left  {animation:dkLeft 2.6s ease-in-out infinite}
+        .dk-right {animation:dkRight 2.6s ease-in-out infinite}
+        .dk-star  {animation:dkStar 2.6s ease-in-out infinite}
+        @media (prefers-reduced-motion: reduce){.dk-left,.dk-right,.dk-star{animation:none;opacity:1;transform:none}}
+      `}</style>
     </div>
   );
 
