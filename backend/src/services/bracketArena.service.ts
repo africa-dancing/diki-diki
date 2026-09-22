@@ -404,9 +404,9 @@ export async function createAppelAsModerator(params: {
   if (!fmt.actif) throw new Error('Ce format de challenge est desactive.');
   const maxParticipants = fmt.nb_candidats;
 
-  // Champs finaux (sport OU artistique)
-  const modeleFinal = sport ? 'parcours' : (params.modele || 'bloc');
-  const niveauFinal = sport ? 1 : (params.niveau || 1);
+  // Champs finaux (sport OU artistique) — le moderateur choisit modele/niveau meme pour le sport /*DKDK_MODERATEUR_APPEL*/
+  const modeleFinal = params.modele || 'bloc';
+  const niveauFinal = params.niveau || 1;
   const discFinal   = sport ? sport.art : discipline;
   const styleFinal  = sport ? (sport.epreuve + (sport.difficulte ? ' · ' + sport.difficulte : '')) : (params.style || '');
   const trackFinal  = sport ? null : (params.track_id || null);
