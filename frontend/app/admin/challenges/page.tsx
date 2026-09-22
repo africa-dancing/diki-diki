@@ -6,11 +6,15 @@ import { useState, useEffect } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR = '#FFAA00';
+const fmtF = (n: number | null | undefined) => (n || 0).toLocaleString('fr-FR') + ' F';
+const MODELE_LABEL = (m: string | null) => (m === 'parcours' ? 'Parcours d’étapes' : 'Bloc groupé');
+function fmtDate(s: string): string { try { const d = new Date(s); return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' }) + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); } catch { return s; } }
 
 interface Challenge {
   id: string; code: string | null; title: string | null;
   discipline: string | null; categorie: string | null; style: string | null;
-  status: string; current_round: number | null; total_cagnotte: number | null;
+  status: string; modele: string | null; niveau: number | null; objectif_bloc: number | null;
+  current_round: number | null; total_cagnotte: number | null;
   max_participants: number | null; created_at: string;
   bracket_participants: { count: number }[];
 }
@@ -134,12 +138,19 @@ function AdminChallengesInner() {
                   <div key={ch.id} style={{ background:'#0d0d14', border:'1px solid #1e1e2e', borderRadius:10, padding:'14px 16px', display:'flex', justifyContent:'space-between', alignItems:'center', gap:12, flexWrap:'wrap' }}>
                     <div onClick={() => ouvrirDetail(ch)} style={{ flex:1, minWidth:220, cursor:'pointer' }}>
                       <div style={{ fontSize:15, fontWeight:700, color:'#fff' }}>{ch.title || ch.code || 'Challenge'}</div>
-                      <div style={{ fontSize:12, color:'#a0a0c0', marginTop:3, display:'flex', gap:10, flexWrap:'wrap' }}>
-                        <span>{ch.code}</span>
+                      <div style={{ fontSize:12, color:'#a0a0c0', marginTop:5, display:'flex', gap:9, flexWrap:'wrap', alignItems:'center' }}>
+                        <span style={{ color:OR, fontWeight:800 }}>C{ch.max_participants}</span>
                         {ch.discipline ? <span>&middot; {ch.discipline}</span> : null}
                         {ch.style ? <span>&middot; {ch.style}</span> : null}
+                        <span>&middot; {MODELE_LABEL(ch.modele)}</span>
+                        {ch.niveau ? <span>&middot; niv. {ch.niveau} ({ch.niveau} vid&eacute;o{ch.niveau > 1 ? 's' : ''})</span> : null}
+                        {ch.modele !== 'parcours' ? <span>&middot; objectif <b style={{ color: ch.objectif_bloc ? '#e8e8ea' : '#ed9b07' }}>{ch.objectif_bloc ? fmtF(ch.objectif_bloc) : '&mdash; non d&eacute;fini'}</b></span> : null}
                         <span>&middot; {nbP}/{ch.max_participants} candidats</span>
                         <span style={{ color: STATUT_COULEUR[ch.status] || '#a0a0c0', fontWeight:700 }}>&middot; {STATUT_LABEL[ch.status] || ch.status}</span>
+                      </div>
+                      <div style={{ fontSize:11, color:'#6a6a8a', marginTop:3, display:'flex', gap:12, flexWrap:'wrap' }}>
+                        <span>cr&eacute;&eacute; le {fmtDate(ch.created_at)}</span>
+                        <span>id {ch.id.slice(0, 8)}</span>
                       </div>
                     </div>
                     <div style={{ display:'flex', gap:8, alignItems:'center' }}>

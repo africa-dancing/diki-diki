@@ -27,7 +27,7 @@ bracketRouter.get('/', async (req: Request, res: Response) => {
   try {
     const { data, error } = await getSupabase()
       .from('brackets')
-      .select('id, code, title, discipline, categorie, style, status, current_round, total_cagnotte, max_participants, created_at, bracket_participants!bracket_participants_bracket_id_fkey(count)')
+      .select('id, code, title, discipline, categorie, style, status, modele, niveau, objectif_bloc, appel_deadline, current_round, total_cagnotte, max_participants, created_at, bracket_participants!bracket_participants_bracket_id_fkey(count)') /*DKDK_ADMIN_CARTE — infos enrichies*/
       .in('status', ['open', 'in_progress', 'waiting_candidates', 'appel']) /*DKDK_MODERATEUR_APPEL — les appels apparaissent en admin*/
       .order('created_at', { ascending: false });
     if (error) throw error;
