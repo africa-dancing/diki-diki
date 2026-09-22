@@ -9,12 +9,13 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR  = 'var(--or)';
 
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
+const fmtF = (n: number) => (n || 0).toLocaleString('fr-FR') + ' F';
 
 interface Etape { round_number: number; libelle: string; track_titre: string | null; track_artiste: string | null; }
 interface Appel {
   id: string; title: string; discipline: string; modele: string; status: string;
-  max_participants: number; appel_deadline: string | null;
-  createur_nom: string | null; officiel: boolean;
+  max_participants: number; appel_deadline: string | null; niveau?: number;
+  createur_nom: string | null; officiel: boolean; objectif_info?: any;
   acceptes: number; en_revision: number; en_attente: number;
   etapes: Etape[];
 }
@@ -140,6 +141,34 @@ export default function AppelDetailPage() {
               </div>
             )}
 
+            {/* Objectif(s) a collecter — lu dans la taxonomie /*DKDK_TAXO_OBJECTIF*/}
+            {appel.objectif_info && (
+              <div style={card}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: OR, marginBottom: 10 }}>Objectif à collecter</div>
+                {appel.objectif_info.modele === 'parcours' ? (
+                  <div>
+                    {(appel.objectif_info.etapes || []).map((e: any) => (
+                      <div key={e.etape} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
+                        <span style={{ color: 'var(--ink-soft)' }}>Étape {e.etape}{e.classement ? ' · classement' : ''}</span>
+                        <b style={{ color: e.objectif ? 'var(--ink)' : 'var(--ink-dim)' }}>{e.objectif ? fmtF(e.objectif) : '—'}</b>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, paddingTop: 8 }}>
+                      <span style={{ color: OR, fontWeight: 700 }}>Enveloppe totale</span>
+                      <b style={{ color: OR }}>{fmtF(appel.objectif_info.enveloppe)}</b>
+                    </div>
+                  </div>
+                ) : appel.objectif_info.objectif ? (
+                  <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, color: 'var(--ink)' }}>{fmtF(appel.objectif_info.objectif)}</div>
+                ) : (
+                  <div style={{ fontSize: 13, color: 'var(--ink-dim)' }}>À définir</div>
+                )}
+                <div style={{ fontSize: 11, color: 'var(--ink-dim)', marginTop: 10, lineHeight: 1.5 }}>
+                  Seuil à réunir en votes pour fermer {appel.objectif_info.modele === 'parcours' ? 'chaque étape' : 'le challenge'} — ce n’est pas un gain.
+                </div>
+              </div>
+            )}
+
             {/* Rappel argent honnête */}
             <div style={{ ...card, background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.25)' }}>
               <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
@@ -169,7 +198,7 @@ export default function AppelDetailPage() {
                   </button>
                   {appel.modele === 'bloc' && (
                     <div style={{ fontSize: 11, color: 'var(--ink-dim)', marginTop: 8 }}>
-                      Astuce : pour un bloc à plusieurs étapes, tu ajouteras les vidéos des autres étapes depuis ton compte après avoir rejoint.
+                      Astuce : pour un bloc à plusieurs vidéos, tu ajouteras les vidéos suivantes depuis ton compte après avoir rejoint.
                     </div>
                   )}
                 </>

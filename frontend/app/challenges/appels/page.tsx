@@ -35,6 +35,8 @@ interface Appel {
   title: string | null;
   discipline: string | null;
   modele: string | null;
+  niveau?: number;
+  objectif_info?: any;
   max_participants: number;
   appel_deadline: string | null;
   createur_nom: string | null;
@@ -271,6 +273,10 @@ function EmptyState() {
 
 function AppelCard({ appel }: { appel: Appel }) {
   const cfg     = cfgFor(appel.max_participants);
+  const oi        = appel.objectif_info;
+  const isBloc    = (appel.modele || 'bloc') !== 'parcours';
+  const etObj     = (i: number): number | null => (oi && Array.isArray(oi.etapes) && oi.etapes[i]) ? oi.etapes[i].objectif : null;
+  const totalObj  = oi ? (isBloc ? (oi.objectif ?? null) : (oi.enveloppe ?? null)) : null;
   const officiel = !!appel.officiel;
   const nom     = officiel ? 'Création' : (appel.createur_nom || 'Créateur');
   const ava     = officiel ? 'DKM' : initials(appel.createur_nom || appel.title || 'Créateur');
@@ -344,7 +350,7 @@ function AppelCard({ appel }: { appel: Appel }) {
         <Chip><b style={{ color: 'var(--or)' }}>{nEtapes}</b> étape{nEtapes > 1 ? 's' : ''}</Chip>
         <Chip>🏆 <b style={{ color: 'var(--green)' }}>{cfg.champions}</b> gagnant{cfg.champions > 1 ? 's' : ''}</Chip>
         <Chip><b style={{ color: 'var(--red)' }}>{appel.max_participants - cfg.champions}</b> éliminé{(appel.max_participants - cfg.champions) > 1 ? 's' : ''}</Chip>
-        {appel.modele && <Chip>Modèle <b style={{ color: 'var(--or)' }}>{appel.modele}</b></Chip>}
+        {appel.modele && <Chip>Modèle <b style={{ color: 'var(--or)' }}>{appel.modele === 'parcours' ? 'Parcours' : 'Bloc groupé'}</b></Chip>}
       </div>
 
       {/* Morceaux imposés par étape */}
@@ -374,10 +380,12 @@ function AppelCard({ appel }: { appel: Appel }) {
                   </div>
                 )}
               </div>
-              <div style={{ textAlign: 'right', flex: 'none' }}>
-                <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--or)', lineHeight: 1.1 }}>{fmt(cfg.objectif)} F</div>
-                <div style={{ fontSize: 10, color: 'var(--ink-dim)', letterSpacing: '.04em', textTransform: 'uppercase' }}>objectif</div>
-              </div>
+              {!isBloc && (
+                <div style={{ textAlign: 'right', flex: 'none' }}>
+                  <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--or)', lineHeight: 1.1 }}>{etObj(i) != null ? fmt(etObj(i)!) + ' F' : '—'}</div>
+                  <div style={{ fontSize: 10, color: 'var(--ink-dim)', letterSpacing: '.04em', textTransform: 'uppercase' }}>objectif</div>
+                </div>
+              )}
             </div>
           ))}
           {/* Cumul des objectifs (indicatif) */}
@@ -386,10 +394,9 @@ function AppelCard({ appel }: { appel: Appel }) {
             padding: '11px 14px', background: 'var(--surface)', borderTop: '1px solid var(--line-strong)',
           }}>
             <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600 }}>
-              Cumul des objectifs · {nEtapes} étape{nEtapes > 1 ? 's' : ''}{' '}
-              <span style={{ color: 'var(--ink-dim)' }}>(à titre indicatif)</span>
+              {isBloc ? 'Objectif à collecter' : `Enveloppe totale · ${nEtapes} étape${nEtapes > 1 ? 's' : ''}`}
             </span>
-            <b style={{ fontSize: 14.5, color: 'var(--ink)' }}>{fmt(cfg.objectif * nEtapes)} F</b>
+            <b style={{ fontSize: 14.5, color: 'var(--ink)' }}>{totalObj != null ? fmt(totalObj) + ' F' : 'à définir'}</b>
           </div>
         </div>
       )}
@@ -403,7 +410,7 @@ function AppelCard({ appel }: { appel: Appel }) {
       }}>
         <span style={{ fontSize: 17, lineHeight: 1.2 }}>💰</span>
         <div>
-          <b style={{ color: 'var(--ink)' }}>Objectif par étape : {fmt(cfg.objectif)} F</b> à réunir en votes.
+          <b style={{ color: 'var(--ink)' }}>{isBloc ? 'Objectif à collecter' : 'Enveloppe à réunir'} : {totalObj != null ? fmt(totalObj) + ' F' : 'à définir'}</b> en votes.
           À la fin, la cagnotte (moins la commission) est partagée entre les{' '}
           <b style={{ color: 'var(--ink)' }}>{cfg.champions} champion{cfg.champions > 1 ? 's' : ''} — {cfg.podium}</b> —,
           et les éliminés reçoivent une prime. Ton gain dépend du soutien du public.

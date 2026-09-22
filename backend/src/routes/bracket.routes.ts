@@ -448,6 +448,25 @@ bracketRouter.get('/candidats/:userId/challenges', async (req: Request, res: Res
   }
 });
 
+// Objectif(s) a collecter d'un appel, LU dans la taxonomie (affichage candidat, lecture seule) /*DKDK_TAXO_OBJECTIF*/
+async function objectifInfoAppel(sb: any, max_participants: number, modele: string | null, niveau: number | null) {
+  const mod = String(modele || 'bloc') === 'parcours' ? 'parcours' : 'bloc';
+  const format_code = 'C' + max_participants;
+  const { data: fmt } = await sb.from('challenge_formats')
+    .select('code, nb_etapes, objectif_etape').eq('code', format_code).maybeSingle();
+  if (!fmt) return { modele: mod, objectif: null, etapes: [] as any[], enveloppe: null };
+  if (mod === 'parcours') {
+    const nbEtapes: number = fmt.nb_etapes ?? 0;
+    const objEtape: number = fmt.objectif_etape ?? 0;
+    const grille = await objectifsParcours(objEtape, nbEtapes);
+    const etapes = grille.map((montant: number, i: number) => ({ etape: i + 1, objectif: montant, classement: nbEtapes > 1 && i === nbEtapes - 1 }));
+    return { modele: 'parcours', etapes, enveloppe: (objEtape || 0) * (nbEtapes || 0), objectif: null };
+  }
+  const niv = Math.max(1, Math.min(4, Number(niveau) || 1));
+  const { data: bo } = await sb.from('bloc_objectifs').select('objectif').eq('format_code', fmt.code).eq('niveau', niv).maybeSingle();
+  return { modele: 'bloc', objectif: (bo?.objectif ?? null), etapes: [] as any[], enveloppe: null };
+}
+
 // ===== TAXONOMIE — objectif(s) d'un format selon le MODELE (+ niveau) /*DKDK_TAXO_OBJECTIF*/
 // Lecture seule. Le panneau "Ouvrir un appel" INTERROGE la taxonomie (jamais de montant en dur) :
 //   - Bloc groupe  -> objectif unique   bloc_objectifs[format_code, niveau]
@@ -505,7 +524,7 @@ bracketRouter.get('/appels', async (_req: Request, res: Response) => {
     const supabase = getSupabase();
     const { data: bks, error } = await supabase
       .from('brackets')
-      .select('id, title, discipline, modele, max_participants, createur_id, appel_deadline, created_at')
+      .select('id, title, discipline, modele, niveau, max_participants, createur_id, appel_deadline, created_at')
       .eq('status', 'appel')
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -551,13 +570,15 @@ bracketRouter.get('/appels', async (_req: Request, res: Response) => {
       });
       const u = b.createur_id ? userById[b.createur_id] : null;
       return {
-        id: b.id, title: b.title, discipline: b.discipline, modele: b.modele,
+        id: b.id, title: b.title, discipline: b.discipline, modele: b.modele, niveau: b.niveau,
         max_participants: b.max_participants, appel_deadline: b.appel_deadline,
         createur_nom: u?.name ?? null, createur_pays: null,
         officiel: u?.role === 'admin', /*DKDK_OFFICIEL — appel créé par le modérateur*/
         acceptes, en_revision, en_attente, etapes,
       };
     });
+
+    await Promise.all(appels.map(async (a: any) => { a.objectif_info = await objectifInfoAppel(supabase, a.max_participants, a.modele, a.niveau); })); /*DKDK_TAXO_OBJECTIF*/
 
     const aggregates = {
       appels_ouverts: appels.length,
@@ -608,6 +629,7 @@ bracketRouter.get('/:bracket_id/appel', async (req: Request, res: Response) => {
       en_revision: bp.filter((p: any) => p.reponse_appel === 'revision').length,
       en_attente: bp.filter((p: any) => p.reponse_appel === 'en_attente').length,
       etapes: (sujets || []).map((s: any) => { const t = s.track_id ? trackById[s.track_id] : null; return { round_number: s.round_number, libelle: s.libelle, track_titre: t?.titre ?? null, track_artiste: t?.artiste ?? null }; }),
+      objectif_info: await objectifInfoAppel(supabase, b.max_participants, b.modele, b.niveau), /*DKDK_TAXO_OBJECTIF*/
     }});
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
