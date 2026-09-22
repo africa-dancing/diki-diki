@@ -361,6 +361,28 @@ export default function CreerChallengePage() {
     </div>
   );
 
+  /*DKDK_GUIDE — « Ton guide Diki-Diki » : accueil chaleureux et contextuel
+    qui suit l'avancement du createur. Aucun montant promis. */
+  function guideContent(): { msg: React.ReactNode; tip?: string } {
+    const isSport = typeCreation === 'sport';
+    const modeleLabel = modele === 'bloc' ? 'Bloc groupé' : "Parcours d'étapes";
+    if (!formatCode) {
+      return {
+        msg: <>Akwaba ! 🧭 Tu ouvres <b>ton</b> challenge. Choisis {isSport ? 'ton sport et son épreuve' : 'ta discipline'}, le <b>modèle</b> ({modeleLabel}) et le <b>format</b> (nombre de candidats). Je te guide à chaque étape.</>,
+        tip: modele === 'bloc'
+          ? 'Bloc groupé : tu fournis toutes tes vidéos d’emblée, un seul classement final.'
+          : 'Parcours d’étapes : élimination progressive, une vidéo par étape.',
+      };
+    }
+    if (isSport ? !sportEpreuveNom : !disciplineId) {
+      return { msg: <>Bien vu, format choisi ! Sélectionne maintenant {isSport ? 'ton épreuve' : 'ta discipline'} pour continuer.</> };
+    }
+    if (!videoId) {
+      return { msg: <>Presque prêt ! Choisis <b>ta vidéo approuvée</b> à engager dans ce challenge. Pas encore de vidéo ? Dépose-en une, fais-la valider, puis reviens.</> };
+    }
+    return { msg: <>Tout est prêt 🎉 Vérifie tes choix, puis lance ton challenge — et invite le continent à te soutenir.</> };
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
       <Navbar />
@@ -373,6 +395,44 @@ export default function CreerChallengePage() {
         </div>
       </div>
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '20px 16px' }}>
+
+        {/*DKDK_GUIDE_PANEL — guide contextuel « Ton guide Diki-Diki » (miroir de /submit)*/}
+        {(() => {
+          const g = guideContent();
+          return (
+            <>
+              <style>{`
+                @keyframes dkdkGuideGlow {
+                  0%,100% { box-shadow: 0 0 0 0 rgba(255,170,0,0); border-color: rgba(255,170,0,0.28); }
+                  50%     { box-shadow: 0 0 16px 1px rgba(255,170,0,0.30); border-color: rgba(255,170,0,0.65); }
+                }
+                @keyframes dkdkGuidePop {
+                  0%,100% { transform: translateY(0) scale(1) rotate(0deg); }
+                  30%     { transform: translateY(-4px) scale(1.16) rotate(-8deg); }
+                  60%     { transform: translateY(-1px) scale(1.08) rotate(8deg); }
+                }
+                .dkdk-guide-glow { animation: dkdkGuideGlow 2.6s ease-in-out infinite; }
+                .dkdk-guide-icon { display: inline-block; transform-origin: 50% 60%; animation: dkdkGuidePop 2.4s ease-in-out infinite; }
+                @media (prefers-reduced-motion: reduce) {
+                  .dkdk-guide-glow, .dkdk-guide-icon { animation: none !important; }
+                }
+              `}</style>
+              <div className="dkdk-guide-glow" style={{ background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 16, padding: '14px 16px', marginBottom: 18 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
+                  <span className="dkdk-guide-icon" style={{ fontSize: 22, lineHeight: 1 }}>🧭</span>
+                  <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: OR }}>Ton guide Diki-Diki</span>
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>{g.msg}</div>
+                {g.tip ? (
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginTop: 8, paddingLeft: 10, borderLeft: '2px solid rgba(255,170,0,0.35)' }}>{g.tip}</div>
+                ) : null}
+                <div style={{ fontSize: 11, color: 'var(--ink-dim)', lineHeight: 1.5, marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+                  💰 <b>Aucun montant garanti</b> — tout dépend du soutien du public. Les votes forment une cagnotte partagée entre les gagnants.
+                </div>
+              </div>
+            </>
+          );
+        })()}
 
         {/*DKDK_SPORT_CREATE — choix Artistique vs Sport*/}
         <label style={labelStyle}>Que veux-tu créer ?</label>
