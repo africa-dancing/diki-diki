@@ -368,14 +368,16 @@ export default function CreerChallengePage() {
     const modeleLabel = modele === 'bloc' ? 'Bloc groupé' : "Parcours d'étapes";
     if (!formatCode) {
       return {
-        msg: <>Akwaba ! 🧭 Tu ouvres <b>ton</b> challenge. Choisis {isSport ? 'ton sport et son épreuve' : 'ta discipline'}, le <b>modèle</b> ({modeleLabel}) et le <b>format</b> (nombre de candidats). Je te guide à chaque étape.</>,
+        msg: isSport
+          ? <>Akwaba ! 🧭 Tu ouvres <b>ton</b> challenge. On avance dans l&apos;ordre : le <b>type</b> (discipline sportive), le <b>mode</b>, la <b>formation</b>, le <b>modèle</b> ({modeleLabel}), le <b>format</b>, puis ton <b>sport / épreuve</b> et ta <b>vidéo</b>.</>
+          : <>Akwaba ! 🧭 Tu ouvres <b>ton</b> challenge. On avance dans l&apos;ordre : le <b>type</b> (discipline artistique), le <b>mode</b>, la <b>formation</b>, le <b>modèle</b> ({modeleLabel}), le <b>format</b>, puis ta <b>discipline</b> et ta <b>vidéo</b>.</>,
         tip: modele === 'bloc'
           ? 'Bloc groupé : tu fournis toutes tes vidéos d’emblée, un seul classement final.'
           : 'Parcours d’étapes : élimination progressive, une vidéo par étape.',
       };
     }
     if (isSport ? !sportEpreuveNom : !disciplineId) {
-      return { msg: <>Bien vu, format choisi ! Sélectionne maintenant {isSport ? 'ton épreuve' : 'ta discipline'} pour continuer.</> };
+      return { msg: <>Format choisi ! Sélectionne maintenant {isSport ? 'ton sport et son épreuve' : 'ta discipline'} pour continuer.</> };
     }
     if (!videoId) {
       return { msg: <>Presque prêt ! Choisis <b>ta vidéo approuvée</b> à engager dans ce challenge. Pas encore de vidéo ? Dépose-en une, fais-la valider, puis reviens.</> };
@@ -437,7 +439,7 @@ export default function CreerChallengePage() {
         {/*DKDK_SPORT_CREATE — choix Artistique vs Sport*/}
         <label style={labelStyle}>Que veux-tu créer ?</label>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-          {[{ v: 'artistique', l: 'Discipline artistique' }, { v: 'sport', l: 'Sport' }].map(o => (
+          {[{ v: 'artistique', l: 'Discipline artistique' }, { v: 'sport', l: 'Discipline sportive' }].map(o => (
             <button key={o.v} onClick={() => { setTypeCreation(o.v as any); setMsg(''); }} style={{ flex: 1, minWidth: 140, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: typeCreation === o.v ? `1px solid ${OR}` : '1px solid var(--line)', background: typeCreation === o.v ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'var(--surface)', color: typeCreation === o.v ? '#150c00' : 'var(--ink-soft)' }}>{o.l}</button>
           ))}
         </div>
