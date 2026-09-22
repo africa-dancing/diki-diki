@@ -124,7 +124,13 @@ function CreerAppelInner() {
       if (!r.ok || !j.success) { setMsg(j?.error || 'Erreur lors de l’enregistrement.'); }
       else if (editId) { setOk('✅ Appel mis à jour !'); }
       else if (j.data?.created === false) { setOk('Un appel identique est déjà ouvert (id ' + String(j.data.bracket_id || '').slice(0, 8) + ').'); }
-      else { setOk('✅ Appel ouvert ! (id ' + String(j.data?.bracket_id || '').slice(0, 8) + ') — il apparaît sur le Mur des appels.'); }
+      else {
+        setOk('✅ Appel ouvert ! (id ' + String(j.data?.bracket_id || '').slice(0, 8) + ') — il apparaît sur le Mur des appels.');
+        // Reset du formulaire après création réussie : on repart d'une page vierge
+        // pour ne PAS reporter la discipline / les morceaux imposés sur l'appel suivant.
+        setDiscipline(''); setArt(''); setEpreuve(''); setRegle('');
+        setSujets(Array.from({ length: niveau }, () => ''));
+      }
     } catch { setMsg('Erreur réseau.'); }
     setBusy(false);
   };
