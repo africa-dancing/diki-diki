@@ -12,6 +12,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR  = '#FFAA00';
 
 const FORMATS = ['C2', 'C4', 'C6', 'C8', 'C12', 'C16'];
+const DISCIPLINES_ART = ['Danse', 'Chant', 'Humour', 'Instrument', 'A cappella', 'Poésie', 'Conte']; /*DKDK_DISC_SELECT*/
 
 function slug(s: string): string {
   return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -24,6 +25,7 @@ function CreerAppelInner() {
   const editId = (search?.get('id') || '').trim(); /*DKDK_MODERATEUR_APPEL — mode edition si ?id=*/
   const [categorie, setCategorie]   = useState<'artistique' | 'sport'>('artistique');
   const [discipline, setDiscipline] = useState('');
+  const [discAutre, setDiscAutre] = useState(false); /*DKDK_DISC_SELECT — true = saisie libre "Autre..."*/
   const [formatCode, setFormatCode] = useState('C2');
   const [modele, setModele]         = useState<'bloc' | 'parcours'>('bloc');
   const [mode, setMode]             = useState<'normal' | 'improvisation'>('normal');
@@ -146,7 +148,7 @@ function CreerAppelInner() {
         setOk('✅ Appel ouvert ! (id ' + String(j.data?.bracket_id || '').slice(0, 8) + ') — il apparaît sur le Mur des appels.');
         // Reset du formulaire après création réussie : on repart d'une page vierge
         // pour ne PAS reporter la discipline / les morceaux imposés sur l'appel suivant.
-        setDiscipline(''); setArt(''); setEpreuve(''); setRegle('');
+        setDiscipline(''); setDiscAutre(false); setArt(''); setEpreuve(''); setRegle('');
         setSujets(Array.from({ length: niveau }, () => ''));
       }
     } catch { setMsg('Erreur réseau.'); }
@@ -186,12 +188,17 @@ function CreerAppelInner() {
           {categorie === 'artistique' ? (
             <div style={{ marginBottom: 16 }}>
               <label style={lbl}>Discipline</label>
-              <input style={inp} list="disc-list" value={discipline} onChange={e => setDiscipline(e.target.value)} placeholder="Toute discipline : Danse, Chant, Humour, Poésie…" />
-              <datalist id="disc-list">
-                <option value="Danse" /><option value="Chant" /><option value="Humour" /><option value="Instrument" />
-                <option value="A cappella" /><option value="Poésie" /><option value="Conte" />
-              </datalist>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>Champ libre : tu peux saisir n’importe quelle discipline.</div>
+              <select style={inp}
+                value={(discAutre || (!!discipline && !DISCIPLINES_ART.includes(discipline))) ? '__autre__' : discipline}
+                onChange={e => { const v = e.target.value; if (v === '__autre__') { setDiscAutre(true); setDiscipline(''); } else { setDiscAutre(false); setDiscipline(v); } }}>
+                <option value="" style={{ background: '#15151c' }}>-- Choisir une discipline --</option>
+                {DISCIPLINES_ART.map(d => <option key={d} value={d} style={{ background: '#15151c' }}>{d}</option>)}
+                <option value="__autre__" style={{ background: '#15151c' }}>Autre&hellip;</option>
+              </select>
+              {(discAutre || (!!discipline && !DISCIPLINES_ART.includes(discipline))) && (
+                <input style={{ ...inp, marginTop: 8 }} value={discipline} onChange={e => setDiscipline(e.target.value)} placeholder="Saisis ta discipline&hellip;" autoFocus />
+              )}
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>Choisis dans la liste, ou &laquo; Autre&hellip; &raquo; pour saisir une discipline libre.</div>
             </div>
           ) : (
             <>
