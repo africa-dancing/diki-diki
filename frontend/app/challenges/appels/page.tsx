@@ -350,7 +350,7 @@ function AppelCard({ appel }: { appel: Appel }) {
         <Chip><b style={{ color: 'var(--or)' }}>{nEtapes}</b> étape{nEtapes > 1 ? 's' : ''}</Chip>
         <Chip>🏆 <b style={{ color: 'var(--green)' }}>{cfg.champions}</b> gagnant{cfg.champions > 1 ? 's' : ''}</Chip>
         <Chip><b style={{ color: 'var(--red)' }}>{appel.max_participants - cfg.champions}</b> éliminé{(appel.max_participants - cfg.champions) > 1 ? 's' : ''}</Chip>
-        {appel.modele && <Chip>Modèle <b style={{ color: 'var(--or)' }}>{appel.modele === 'parcours' ? 'Parcours' : 'Bloc groupé'}</b></Chip>}
+        {appel.modele && <Chip>Modèle <b style={{ color: 'var(--or)' }}>{appel.modele === 'parcours' ? 'Parcours d’étapes' : 'Bloc groupé'}</b></Chip>}
       </div>
 
       {/* Morceaux imposés par étape */}

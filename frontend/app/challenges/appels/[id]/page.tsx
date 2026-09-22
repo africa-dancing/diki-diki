@@ -120,7 +120,7 @@ export default function AppelDetailPage() {
               <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, margin: '0 0 10px' }}>{appel.title}</h1>
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 13, color: 'var(--ink-soft)' }}>
                 <span><b style={{ color: 'var(--ink)' }}>{Math.max(0, appel.max_participants - appel.acceptes)}</b> place(s) restante(s) sur {appel.max_participants}</span>
-                <span>{appel.modele === 'bloc' ? 'Bloc groupé' : 'Parcours'}</span>
+                <span>{appel.modele === 'bloc' ? 'Bloc groupé' : 'Parcours d’étapes'}</span>
                 {appel.appel_deadline && <span>Clôture : {fmtDate(appel.appel_deadline)}</span>}
               </div>
             </div>
