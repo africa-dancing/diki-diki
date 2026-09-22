@@ -203,7 +203,7 @@ body {
 
 
 /* ============================================================
-   DESKTOP / PC ≥ 1024px  /*DKDK_DESKTOP_LAYER*/
+   DESKTOP / PC ≥ 1024px  [DKDK_DESKTOP_LAYER]
    Le site est « mobile-first » : par défaut le contenu tient dans
    une colonne étroite (idéal téléphone). Sur grand écran on élargit
    les colonnes de page pour un rendu professionnel, SANS rien changer
@@ -243,7 +243,7 @@ body {
 
 
 /* ============================================================
-   PAGE « CRÉER UN CHALLENGE » — guide qui suit  /*DKDK_GUIDE_RAIL_LAYER*/
+   PAGE « CRÉER UN CHALLENGE » — guide qui suit  [DKDK_GUIDE_RAIL_LAYER]
    Mobile : le guide reste au-dessus et suit le défilement.
    PC (>=1024px) : le guide passe À CÔTÉ des champs (colonne de droite,
    collée en défilement). Le message se met à jour selon l'étape touchée.
