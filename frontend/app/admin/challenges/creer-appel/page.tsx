@@ -32,6 +32,7 @@ function CreerAppelInner() {
   // sport
   const [art, setArt]         = useState('');
   const [epreuve, setEpreuve] = useState('');
+  const [sportEpreuves, setSportEpreuves] = useState<any[]>([]); /*DKDK_SPORT_SELECT*/
   const [regle, setRegle]     = useState('');
   // sujets par étape (un libellé/morceau par vidéo)
   const [sujets, setSujets] = useState<string[]>(['']);
@@ -41,6 +42,23 @@ function CreerAppelInner() {
   // Panneau OBJECTIFS — miroir de la taxonomie (aucun montant en dur) /*DKDK_TAXO_OBJECTIF*/
   const [taxo, setTaxo]         = useState<any>(null);
   const [taxoLoad, setTaxoLoad] = useState(false);
+
+  /*DKDK_SPORT_SELECT — charge le catalogue Sport pour les menus deroulants*/
+  useEffect(() => {
+    fetch(`${API}/sport/epreuves`).then(r => r.json())
+      .then((d: any) => setSportEpreuves(Array.isArray(d) ? d : (d?.data ?? [])))
+      .catch(() => {});
+  }, []);
+  const sportArts = (() => {
+    const seen: Record<string, boolean> = {}; const out: any[] = [];
+    sportEpreuves.forEach((e: any) => { if (e.sport && !seen[e.sport]) { seen[e.sport] = true; out.push({ name: e.sport, emoji: e.emoji || '🏅' }); } });
+    return out;
+  })();
+  const sportEpreuveNoms = (() => {
+    const seen: Record<string, boolean> = {}; const out: string[] = [];
+    sportEpreuves.filter((e: any) => e.sport === art).forEach((e: any) => { if (e.epreuve && !seen[e.epreuve]) { seen[e.epreuve] = true; out.push(e.epreuve); } });
+    return out;
+  })();
 
   // Mode ÉDITION : charge l'appel existant et pré-remplit le formulaire /*DKDK_MODERATEUR_APPEL*/
   useEffect(() => {
@@ -179,12 +197,21 @@ function CreerAppelInner() {
             <>
               <div style={{ marginBottom: 16 }}>
                 <label style={lbl}>Art martial / Sport</label>
-                <input style={inp} value={art} onChange={e => setArt(e.target.value)} placeholder="Taekwondo…" />
+                <select style={inp} value={art} onChange={e => { setArt(e.target.value); setEpreuve(''); }}>
+                  <option value="" style={{ background: '#15151c' }}>-- Choisir un sport --</option>
+                  {sportArts.map((a: any) => <option key={a.name} value={a.name} style={{ background: '#15151c' }}>{a.emoji} {a.name}</option>)}
+                </select>
+                {sportArts.length === 0 && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>Aucun sport dans le catalogue — ajoute-en dans Admin &rarr; Sport.</div>}
               </div>
+              {art && (
               <div style={{ marginBottom: 16 }}>
-                <label style={lbl}>Épreuve</label>
-                <input style={inp} value={epreuve} onChange={e => setEpreuve(e.target.value)} placeholder="Enchaînement de poomsae…" />
+                <label style={lbl}>&Eacute;preuve</label>
+                <select style={inp} value={epreuve} onChange={e => setEpreuve(e.target.value)}>
+                  <option value="" style={{ background: '#15151c' }}>-- Choisir une &eacute;preuve --</option>
+                  {sportEpreuveNoms.map((n: string) => <option key={n} value={n} style={{ background: '#15151c' }}>{n}</option>)}
+                </select>
               </div>
+              )}
               <div style={{ marginBottom: 16 }}>
                 <label style={lbl}>Règle <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>(optionnel)</span></label>
                 <input style={inp} value={regle} onChange={e => setRegle(e.target.value)} placeholder="Consigne affichée au candidat…" />
