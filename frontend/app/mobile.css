@@ -258,7 +258,7 @@ body {
 .dkdk-guide-swap { animation: dkdkGuideSwap .35s ease; }
 @media (prefers-reduced-motion: reduce) { .dkdk-guide-swap { animation: none; } }
 
-/* Mobile / tablette : le guide colle en haut et suit le défilement. */
+/* Mobile / tablette : le guide reste au-dessus et suit le defilement. */
 @media (max-width: 1023px) {
   .dkdk-guide-rail {
     position: sticky;
@@ -267,18 +267,19 @@ body {
   }
 }
 
-/* PC : deux colonnes — champs à gauche, guide à côté (droite), collé. */
+/* PC : le guide flotte a DROITE et GLISSE verticalement pour s'aligner
+   sur l'etape active (--dkdk-guide-top est calcule en JS). */
 @media (min-width: 1024px) {
   .dkdk-creer-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
-    gap: 28px;
-    align-items: start;
+    position: relative;
+    padding-right: 372px !important;   /* reserve la place du guide (340 + marge) */
   }
-  .dkdk-creer-fields { order: 1; }
+  .dkdk-creer-fields { min-width: 0; }
   .dkdk-guide-rail {
-    order: 2;
-    position: sticky;
-    top: 76px;
+    position: absolute;
+    right: 0;
+    width: 340px;
+    top: var(--dkdk-guide-top, 0px);
+    transition: top .28s ease;
   }
 }

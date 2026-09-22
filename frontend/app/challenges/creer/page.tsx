@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 
@@ -41,6 +41,8 @@ export default function CreerChallengePage() {
   const [msg, setMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [activeStep, setActiveStep] = useState<string>(''); /*DKDK_GUIDE_STEP*/
+  const [guideTop, setGuideTop] = useState(0); /*DKDK_GUIDE_STEP — position verticale du guide*/
+  const layoutRef = useRef<HTMLDivElement>(null);
   /*DKDK_FORMATION — autoriser les groupes + formation du créateur*/
   const [allowGroups, setAllowGroups] = useState(false); /*DKDK_FORMATION — true = challenge de groupes*/
   const [groupName, setGroupName] = useState('');
@@ -397,9 +399,15 @@ export default function CreerChallengePage() {
     return { msg: <>Tout est prêt 🎉 Vérifie tes choix, puis lance ton challenge — et invite le continent à te soutenir.</> };
   }
 
-  const onStepInteract = (e: any) => {  /*DKDK_GUIDE_STEP — le guide reagit a l'etape touchee*/
+  const onStepInteract = (e: any) => {  /*DKDK_GUIDE_STEP — le guide reagit a l'etape touchee ET glisse vers elle*/
     const el = e.target && e.target.closest ? e.target.closest('[data-dkstep]') : null;
-    if (el) setActiveStep(el.getAttribute('data-dkstep') || '');
+    if (!el) return;
+    setActiveStep(el.getAttribute('data-dkstep') || '');
+    const cont = layoutRef.current;
+    if (cont) {
+      const top = el.getBoundingClientRect().top - cont.getBoundingClientRect().top;
+      setGuideTop(Math.max(0, Math.round(top)));
+    }
   };
 
   return (
@@ -413,9 +421,9 @@ export default function CreerChallengePage() {
           </div>
         </div>
       </div>
-      <div className="dkdk-creer-layout" style={{ maxWidth: 900, margin: '0 auto', padding: '20px 16px' }}>
+      <div ref={layoutRef} className="dkdk-creer-layout" style={{ maxWidth: 900, margin: '0 auto', padding: '20px 16px' }}>
 
-        <aside className="dkdk-guide-rail">
+        <aside className="dkdk-guide-rail" style={{ ['--dkdk-guide-top' as any]: guideTop + 'px' }}>
         {/*DKDK_GUIDE_PANEL — guide contextuel « Ton guide Diki-Diki » (miroir de /submit)*/}
         {(() => {
           const g = guideContent();
