@@ -40,6 +40,7 @@ export default function CreerChallengePage() {
   const [videoId, setVideoId] = useState('');
   const [msg, setMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [activeStep, setActiveStep] = useState<string>(''); /*DKDK_GUIDE_STEP*/
   /*DKDK_FORMATION — autoriser les groupes + formation du créateur*/
   const [allowGroups, setAllowGroups] = useState(false); /*DKDK_FORMATION — true = challenge de groupes*/
   const [groupName, setGroupName] = useState('');
@@ -341,7 +342,7 @@ export default function CreerChallengePage() {
 
   /*DKDK_FORMATION — bloc Formation (solo OU groupes, jamais mélangé) réutilisé dans les flux artistique et sport*/
   const formationBloc = (
-    <div style={{ border: '1px solid rgba(255,170,0,0.25)', borderRadius: 12, padding: '12px 14px', marginBottom: 16, background: 'rgba(255,170,0,0.05)' }}>
+    <div data-dkstep="formation" style={{ border: '1px solid rgba(255,170,0,0.25)', borderRadius: 12, padding: '12px 14px', marginBottom: 16, background: 'rgba(255,170,0,0.05)' }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft,#ccc)', marginBottom: 8 }}>Formation</div>
       <div style={{ display: 'flex', gap: 8 }}>
         <div onClick={() => setAllowGroups(false)} style={{ flex: 1, padding: '10px', borderRadius: 10, textAlign: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 700, border: '1px solid ' + (!allowGroups ? 'rgba(255,170,0,0.6)' : 'rgba(255,255,255,0.15)'), background: !allowGroups ? 'rgba(255,170,0,0.15)' : 'transparent', color: !allowGroups ? '#FFAA00' : 'rgba(255,255,255,0.6)' }}>🎤 Solo</div>
@@ -366,6 +367,17 @@ export default function CreerChallengePage() {
   function guideContent(): { msg: React.ReactNode; tip?: string } {
     const isSport = typeCreation === 'sport';
     const modeleLabel = modele === 'bloc' ? 'Bloc groupé' : "Parcours d'étapes";
+    switch (activeStep) {
+      case 'type': return { msg: <>Choisis le <b>type</b> : discipline artistique ou sportive. Tout le formulaire s&apos;adapte à ton choix.</> };
+      case 'mode': return { msg: <>Le <b>mode</b> : <b>Normal</b> (le sujet / morceau est fixé) ou <b>Improvisation</b> (sujet surprise le jour J).</> };
+      case 'formation': return { msg: <>La <b>formation</b> : <b>Solo</b> (chacun pour soi) ou <b>Groupes</b> (équipes). Un challenge est d&apos;un seul type.</> };
+      case 'modele': return { msg: <>Le <b>modèle</b> : <b>Parcours d&apos;étapes</b> (élimination progressive, une vidéo par étape) ou <b>Bloc groupé</b> (toutes tes vidéos d&apos;emblée, un seul classement).</> };
+      case 'format': return { msg: <>Le <b>format</b> = le nombre de candidats (C2, C4, C6…). Plus il est grand, plus l&apos;arène est relevée.</> };
+      case 'discipline': return { msg: <>Choisis {isSport ? 'ton sport puis ton épreuve' : 'ta discipline'} — le cœur de ton challenge.</> };
+      case 'video': return { msg: videoId
+        ? <>Tout est prêt 🎉 Vérifie tes choix, puis lance ton challenge — et invite le continent à te soutenir.</>
+        : <>Choisis <b>ta vidéo approuvée</b> à engager. Pas encore de vidéo ? Dépose-en une, fais-la valider, puis reviens.</> };
+    }
     if (!formatCode) {
       return {
         msg: isSport
@@ -385,6 +397,11 @@ export default function CreerChallengePage() {
     return { msg: <>Tout est prêt 🎉 Vérifie tes choix, puis lance ton challenge — et invite le continent à te soutenir.</> };
   }
 
+  const onStepInteract = (e: any) => {  /*DKDK_GUIDE_STEP — le guide reagit a l'etape touchee*/
+    const el = e.target && e.target.closest ? e.target.closest('[data-dkstep]') : null;
+    if (el) setActiveStep(el.getAttribute('data-dkstep') || '');
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
       <Navbar />
@@ -396,8 +413,9 @@ export default function CreerChallengePage() {
           </div>
         </div>
       </div>
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '20px 16px' }}>
+      <div className="dkdk-creer-layout" style={{ maxWidth: 900, margin: '0 auto', padding: '20px 16px' }}>
 
+        <aside className="dkdk-guide-rail">
         {/*DKDK_GUIDE_PANEL — guide contextuel « Ton guide Diki-Diki » (miroir de /submit)*/}
         {(() => {
           const g = guideContent();
@@ -424,7 +442,7 @@ export default function CreerChallengePage() {
                   <span className="dkdk-guide-icon" style={{ fontSize: 22, lineHeight: 1 }}>🧭</span>
                   <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: OR }}>Ton guide Diki-Diki</span>
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>{g.msg}</div>
+                <div key={activeStep + ':' + formatCode + ':' + (videoId || '')} className="dkdk-guide-swap" style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>{g.msg}</div>
                 {g.tip ? (
                   <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginTop: 8, paddingLeft: 10, borderLeft: '2px solid rgba(255,170,0,0.35)' }}>{g.tip}</div>
                 ) : null}
@@ -435,10 +453,12 @@ export default function CreerChallengePage() {
             </>
           );
         })()}
+        </aside>
 
+        <div className="dkdk-creer-fields" onFocusCapture={onStepInteract} onClickCapture={onStepInteract}>
         {/*DKDK_SPORT_CREATE — choix Artistique vs Sport*/}
         <label style={labelStyle}>Que veux-tu créer ?</label>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div data-dkstep="type" style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           {[{ v: 'artistique', l: 'Discipline artistique' }, { v: 'sport', l: 'Discipline sportive' }].map(o => (
             <button key={o.v} onClick={() => { setTypeCreation(o.v as any); setMsg(''); }} style={{ flex: 1, minWidth: 140, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: typeCreation === o.v ? `1px solid ${OR}` : '1px solid var(--line)', background: typeCreation === o.v ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'var(--surface)', color: typeCreation === o.v ? '#150c00' : 'var(--ink-soft)' }}>{o.l}</button>
           ))}
@@ -447,7 +467,7 @@ export default function CreerChallengePage() {
         {typeCreation === 'artistique' && (<>
         {/*DKDK_MODE_BLOC*/}
         <label style={labelStyle}>Mode</label>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div data-dkstep="mode" style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           {MODES.map(m => (
             <button key={m.val} onClick={() => setMode(m.val)} style={{ flex: 1, minWidth: 120, padding: '10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: mode === m.val ? `1px solid ${OR}` : '1px solid var(--line)', background: mode === m.val ? `linear-gradient(135deg,#FF6B00,#FFD700)` : 'var(--surface)', color: mode === m.val ? '#150c00' : 'var(--ink-soft)' }}>{m.label}</button>
           ))}
@@ -457,7 +477,7 @@ export default function CreerChallengePage() {
         {/*DKDK_CATEG_REMOVED — categorie toujours Loisirs, plus de selecteur*/}
 
         <label style={labelStyle}>Modèle de challenge</label>
-        <select style={inputStyle} value={modele} onChange={e => { setModele(e.target.value); if (e.target.value === 'parcours') setNiveau(1); }}>
+        <select data-dkstep="modele" style={inputStyle} value={modele} onChange={e => { setModele(e.target.value); if (e.target.value === 'parcours') setNiveau(1); }}>
           <option value='parcours' style={{ background: 'var(--bg-soft)' }}>Parcours d'étapes</option>
           <option value='bloc' style={{ background: 'var(--bg-soft)' }}>Bloc groupé</option>
         </select>
@@ -471,7 +491,7 @@ export default function CreerChallengePage() {
         </select>
         </>)}
         <label style={labelStyle}>Format du challenge</label>
-        <select style={inputStyle} value={formatCode} onChange={e => setFormatCode(e.target.value)}>
+        <select data-dkstep="format" style={inputStyle} value={formatCode} onChange={e => setFormatCode(e.target.value)}>
           <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir un format --</option>
           {formats.filter((ff: any) => !(modele === 'bloc' && niveau === 1 && ff.code === 'C2')).map((ff: any) => <option key={ff.code} value={ff.code} style={{ background: 'var(--bg-soft)' }}>{ff.libelle}</option>)}
         </select>
@@ -479,7 +499,7 @@ export default function CreerChallengePage() {
         <label style={labelStyle}>Discipline</label>
         {/*DKDK_DISCIPLINE_SELECT*/}
         {/*DKDK_DISC_DYN*/}
-        <select style={inputStyle} value={disciplineId} onChange={e => {
+        <select data-dkstep="discipline" style={inputStyle} value={disciplineId} onChange={e => {
           const opt = disciplines.find((d: any) => d.id === e.target.value);
           choisirDiscipline(e.target.value, opt ? opt.name : '');
         }}>
@@ -528,7 +548,7 @@ export default function CreerChallengePage() {
         {/*DKDK_SPORT_CREATE — ecran sport : Type -> Art -> Epreuve -> Niveau de difficulte*/}
         {typeCreation === 'sport' && (<>
         <label style={labelStyle}>Type de challenge</label>
-        <select style={inputStyle} value={formatCode} onChange={e => setFormatCode(e.target.value)}>
+        <select data-dkstep="format" style={inputStyle} value={formatCode} onChange={e => setFormatCode(e.target.value)}>
           <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir un type --</option>
           {formats.map((ff: any) => <option key={ff.code} value={ff.code} style={{ background: 'var(--bg-soft)' }}>{ff.libelle}</option>)}
         </select>
@@ -537,14 +557,14 @@ export default function CreerChallengePage() {
         {formationBloc}
 
         <label style={labelStyle}>Art</label>
-        <select style={inputStyle} value={sportArt} onChange={e => { setSportArt(e.target.value); setSportEpreuveNom(''); setSportDiff(''); }}>
+        <select data-dkstep="discipline" style={inputStyle} value={sportArt} onChange={e => { setSportArt(e.target.value); setSportEpreuveNom(''); setSportDiff(''); }}>
           <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir un art --</option>
           {sportArts.map((a: any) => <option key={a.slug} value={a.slug} style={{ background: 'var(--bg-soft)' }}>{a.emoji} {a.name}</option>)}
         </select>
 
         {sportArt && (<>
           <label style={labelStyle}>Épreuve</label>
-          <select style={inputStyle} value={sportEpreuveNom} onChange={e => { setSportEpreuveNom(e.target.value); setSportDiff(''); }}>
+          <select data-dkstep="discipline" style={inputStyle} value={sportEpreuveNom} onChange={e => { setSportEpreuveNom(e.target.value); setSportDiff(''); }}>
             <option value='' style={{ background: 'var(--bg-soft)' }}>-- Choisir une épreuve --</option>
             {sportEpreuveNoms.map((nom: string) => <option key={nom} value={nom} style={{ background: 'var(--bg-soft)' }}>{nom}</option>)}
           </select>
@@ -569,7 +589,7 @@ export default function CreerChallengePage() {
         {videos.length === 0 ? (
           <div style={{ ...inputStyle, color: 'var(--ink-soft)' }}>Aucune vidéo approuvée. Soumets et fais approuver une vidéo d'abord.</div>
         ) : (
-          <select style={inputStyle} value={videoId} onChange={e => setVideoId(e.target.value)}>
+          <select data-dkstep="video" style={inputStyle} value={videoId} onChange={e => setVideoId(e.target.value)}>
             {videos.map(v => <option key={v.id} value={v.id} style={{ background: 'var(--bg-soft)' }}>{v.title || v.id.slice(0, 8)}</option>)}
           </select>
         )}
@@ -588,6 +608,7 @@ export default function CreerChallengePage() {
 
         <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 16, lineHeight: 1.6, textAlign: 'center' }}>
           Conditions : compte vérifié · au moins une vidéo approuvée · avoir rechargé 1000 unités au moins une fois. Tu deviens le 1er inscrit.
+        </div>
         </div>
       </div>
     </div>

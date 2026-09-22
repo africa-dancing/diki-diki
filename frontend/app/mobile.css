@@ -240,3 +240,45 @@ body {
   align-items: start;
 }
 .dkdk-cards > * { margin-bottom: 0 !important; }
+
+
+/* ============================================================
+   PAGE « CRÉER UN CHALLENGE » — guide qui suit  /*DKDK_GUIDE_RAIL_LAYER*/
+   Mobile : le guide reste au-dessus et suit le défilement.
+   PC (>=1024px) : le guide passe À CÔTÉ des champs (colonne de droite,
+   collée en défilement). Le message se met à jour selon l'étape touchée.
+   ============================================================ */
+.dkdk-creer-fields { min-width: 0; }
+
+/* Petit fondu quand le message du guide change (réaction à l'étape). */
+@keyframes dkdkGuideSwap {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.dkdk-guide-swap { animation: dkdkGuideSwap .35s ease; }
+@media (prefers-reduced-motion: reduce) { .dkdk-guide-swap { animation: none; } }
+
+/* Mobile / tablette : le guide colle en haut et suit le défilement. */
+@media (max-width: 1023px) {
+  .dkdk-guide-rail {
+    position: sticky;
+    top: 60px;               /* juste sous la navbar fixe (56px) */
+    z-index: 30;
+  }
+}
+
+/* PC : deux colonnes — champs à gauche, guide à côté (droite), collé. */
+@media (min-width: 1024px) {
+  .dkdk-creer-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 28px;
+    align-items: start;
+  }
+  .dkdk-creer-fields { order: 1; }
+  .dkdk-guide-rail {
+    order: 2;
+    position: sticky;
+    top: 76px;
+  }
+}
