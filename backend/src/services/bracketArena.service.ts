@@ -22,6 +22,36 @@ async function getSetting(key: string, fallback: number): Promise<number> {
   return isNaN(n) ? fallback : n;
 }
 
+// ===== Repartition DECROISSANTE des objectifs d'un Parcours — REGLE DYNAMIQUE (40/60/reliquat) /*DKDK_REPARTITION_DYN*/
+// enveloppe = objectif de reference du format x nb_etapes.
+// Chaque etape prend pctEtape% du solde restant ; l'avant-derniere pctAvant% ; la derniere (classement) le reliquat.
+// Arrondi au 100 000 F, l'ecart etant absorbe par l'etape de classement -> somme == enveloppe.
+export function repartitionDecroissante(enveloppe: number, nbEtapes: number, pctEtape: number, pctAvant: number): number[] {
+  const env = Math.max(0, Math.round(enveloppe || 0));
+  const n = Math.max(0, Math.floor(nbEtapes || 0));
+  if (n <= 0) return [];
+  if (n === 1) return [env];
+  const round100k = (x: number) => Math.round(x / 100000) * 100000;
+  const out: number[] = [];
+  let reste = env; // solde restant EXACT (non arrondi) pour appliquer les pourcentages
+  for (let i = 1; i <= n - 1; i++) {
+    const pct = (i < n - 1) ? pctEtape : pctAvant; // la (n-1)e etape = avant-derniere
+    out.push(round100k(reste * pct));
+    reste = reste - reste * pct;
+  }
+  const somme = out.reduce((sum, v) => sum + v, 0);
+  out.push(Math.max(0, env - somme)); // classement = reliquat (absorbe l'arrondi)
+  return out;
+}
+
+// Grille Parcours d'un format, calculee dynamiquement depuis les REGLAGES (pourcentages ajustables). /*DKDK_REPARTITION_DYN*/
+export async function objectifsParcours(objEtapeReference: number, nbEtapes: number): Promise<number[]> {
+  const pctEtape = (await getSetting('bracket_repartition_pct', 40)) / 100;
+  const pctAvant = (await getSetting('bracket_repartition_avant_pct', 60)) / 100;
+  const enveloppe = (objEtapeReference || 0) * (nbEtapes || 0);
+  return repartitionDecroissante(enveloppe, nbEtapes, pctEtape, pctAvant);
+}
+
 // 1. Inscription directe a un bracket (nouveau modele)
 export async function inscribeToArena(params: {
   bracket_id: string; user_id: string; video_id: string;
@@ -159,22 +189,21 @@ export async function launchBracket(bracket: any) {
   //    (Repli sur objectif_etape constant si la colonne objectifs est absente.)
   const { data: fmtRow } = await supabase
     .from('challenge_formats')
-    .select('nb_etapes, objectif_etape, objectifs') /*DKDK_16_09 — + objectifs decroissants*/
+    .select('nb_etapes, objectif_etape') /*DKDK_REPARTITION_DYN — grille calculee, plus de colonne objectifs figee*/
     .eq('nb_candidats', bracket.max_participants)
     .maybeSingle();
 
   const nbEtapes = fmtRow?.nb_etapes ?? 0;
   const objEtape = fmtRow?.objectif_etape ?? 0;
-  const objectifsArr: number[] = Array.isArray(fmtRow?.objectifs) ? (fmtRow!.objectifs as number[]) : []; /*DKDK_16_09*/
 
   let rounds;
   if (nbEtapes >= 1 && objEtape > 0) {
-    // Cas normal : on cree exactement nb_etapes etapes.
-    // Objectif de chaque etape = objectifs[idx] (decroissant, 16/09) sinon objectif_etape (constant).
+    // Cas normal : nb_etapes etapes, objectifs DECROISSANTS CALCULES dynamiquement (regle 40/60/reliquat, reglable). /*DKDK_REPARTITION_DYN*/
+    const grille = await objectifsParcours(objEtape, nbEtapes);
     rounds = Array.from({ length: nbEtapes }, (_, idx) => ({
       bracket_id: bracket.id,
       round: idx + 1,
-      objectif_montant: (objectifsArr[idx] ?? objEtape), /*DKDK_16_09 — decroissant si present*/
+      objectif_montant: (grille[idx] ?? objEtape),
       montant_collecte: 0,
       status: idx === 0 ? 'in_progress' : 'pending',
       started_at: idx === 0 ? now.toISOString() : null,

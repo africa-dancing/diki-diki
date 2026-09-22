@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 /*DKDK_DEAD_ROUTES_REMOVED*/ // 3 routes non authentifiees supprimees ; checkAndAdvanceRounds reste appele par src/cron/bracket.cron.ts
-import { inscribeToArena, createArenaChallenge, checkArenaChallenge, createAppelAsModerator, updateAppelAsModerator } from '../services/bracketArena.service';
+import { inscribeToArena, createArenaChallenge, checkArenaChallenge, createAppelAsModerator, updateAppelAsModerator, objectifsParcours } from '../services/bracketArena.service';
 import { checkAndAdvanceRounds } from '../services/bracket.service'; /*DKDK_CLOSE_INSTANT — fermeture immediate apres un vote*/
 import { requireAuth, AuthRequest, requireVerified, requireAdmin } from '../middleware/auth.middleware';
 import { z } from 'zod';
@@ -467,16 +467,17 @@ bracketRouter.get('/taxonomie/objectif', requireAuth, requireAdmin, async (req: 
 
     if (modele === 'parcours') {
       const nbEtapes: number = fmt.nb_etapes ?? 0;
-      const arr: number[] = Array.isArray(fmt.objectifs) ? (fmt.objectifs as number[]) : [];
-      const etapes = Array.from({ length: nbEtapes }, (_, i) => ({
+      const objEtape: number = fmt.objectif_etape ?? 0;
+      const grille = await objectifsParcours(objEtape, nbEtapes); /*DKDK_REPARTITION_DYN — calcul dynamique 40/60/reliquat*/
+      const etapes = grille.map((montant, i) => ({
         etape: i + 1,
-        objectif: (arr[i] ?? fmt.objectif_etape ?? 0),
+        objectif: montant,
         classement: nbEtapes > 1 && i === nbEtapes - 1, // derniere etape = match de classement
       }));
-      const enveloppe = etapes.reduce((sum, e) => sum + (e.objectif || 0), 0);
+      const enveloppe = (objEtape || 0) * (nbEtapes || 0);
       return res.json({ success: true, data: {
         modele: 'parcours', format_code: fmt.code, actif: !!fmt.actif, nb_etapes: nbEtapes,
-        etapes, enveloppe, source: 'challenge_formats.objectifs',
+        etapes, enveloppe, source: 'calcul dynamique (référence format × 40/60/reliquat)',
         complet: nbEtapes > 0 && etapes.every(e => (e.objectif || 0) > 0),
       } });
     }
