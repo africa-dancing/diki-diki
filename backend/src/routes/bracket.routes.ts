@@ -28,7 +28,7 @@ bracketRouter.get('/', async (req: Request, res: Response) => {
     const { data, error } = await getSupabase()
       .from('brackets')
       .select('id, code, title, discipline, categorie, style, status, current_round, total_cagnotte, max_participants, created_at, bracket_participants!bracket_participants_bracket_id_fkey(count)')
-      .in('status', ['open', 'in_progress', 'waiting_candidates'])
+      .in('status', ['open', 'in_progress', 'waiting_candidates', 'appel']) /*DKDK_MODERATEUR_APPEL — les appels apparaissent en admin*/
       .order('created_at', { ascending: false });
     if (error) throw error;
     res.json({ success: true, data });
@@ -329,9 +329,9 @@ bracketRouter.delete('/arena/:id', requireAuth, async (req: AuthRequest, res: Re
     const { data: bracket, error: bErr } = await sb
       .from('brackets').select('id, status').eq('id', req.params.id).single();
     if (bErr || !bracket) return res.status(404).json({ success: false, error: 'Challenge introuvable.' });
-    // Securite : on ne supprime QUE les challenges non demarres
-    if (bracket.status !== 'waiting_candidates') {
-      return res.status(400).json({ success: false, error: 'Seuls les challenges non demarres (inscriptions ouvertes) peuvent etre supprimes.' });
+    // Securite : on ne supprime QUE les challenges non demarres (inscriptions ouvertes OU appel en ralliement) /*DKDK_MODERATEUR_APPEL*/
+    if (!['waiting_candidates', 'appel'].includes(bracket.status)) {
+      return res.status(400).json({ success: false, error: 'Seuls les challenges non demarres (inscriptions ouvertes ou appel) peuvent etre supprimes.' });
     }
     // Les tables liees sont toutes en CASCADE : le DELETE du bracket nettoie tout
     const { error: delErr } = await sb.from('brackets').delete().eq('id', req.params.id);

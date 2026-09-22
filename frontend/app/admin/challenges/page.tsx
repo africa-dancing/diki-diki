@@ -16,12 +16,14 @@ interface Challenge {
 }
 
 const STATUT_LABEL: { [k: string]: string } = {
+  appel: 'Appel (ralliement)',
   waiting_candidates: 'Inscriptions ouvertes',
   open: 'Ouvert',
   in_progress: 'En cours',
   done: 'Termine',
 };
 const STATUT_COULEUR: { [k: string]: string } = {
+  appel: '#FFAA00',
   waiting_candidates: '#38bdf8',
   open: '#38bdf8',
   in_progress: '#4ade80',
@@ -127,7 +129,7 @@ function AdminChallengesInner() {
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {groupes[cat].map((ch) => {
                 const nbP = ch.bracket_participants?.[0]?.count ?? 0;
-                const supprimable = ch.status === 'waiting_candidates';
+                const supprimable = ch.status === 'waiting_candidates' || ch.status === 'appel'; /*DKDK_MODERATEUR_APPEL*/
                 return (
                   <div key={ch.id} style={{ background:'#0d0d14', border:'1px solid #1e1e2e', borderRadius:10, padding:'14px 16px', display:'flex', justifyContent:'space-between', alignItems:'center', gap:12, flexWrap:'wrap' }}>
                     <div onClick={() => ouvrirDetail(ch)} style={{ flex:1, minWidth:220, cursor:'pointer' }}>
