@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 /*DKDK_DEAD_ROUTES_REMOVED*/ // 3 routes non authentifiees supprimees ; checkAndAdvanceRounds reste appele par src/cron/bracket.cron.ts
-import { inscribeToArena, createArenaChallenge, checkArenaChallenge } from '../services/bracketArena.service';
+import { inscribeToArena, createArenaChallenge, checkArenaChallenge, createAppelAsModerator } from '../services/bracketArena.service';
 import { checkAndAdvanceRounds } from '../services/bracket.service'; /*DKDK_CLOSE_INSTANT — fermeture immediate apres un vote*/
 import { requireAuth, AuthRequest, requireVerified, requireAdmin } from '../middleware/auth.middleware';
 import { z } from 'zod';
@@ -282,6 +282,38 @@ bracketRouter.post('/arena/create', requireAuth, requireVerified, async (req: Au
     const result = await createArenaChallenge({
       user_id: req.user!.userId, video_id, categorie, discipline, style, track_id, mode, format_code, champs_valeurs, paiement_confirme, modele, niveau, video_ids, sport, /*DKDK_SPORT_CREATE*/
       allow_groups, formation, group_name, group_size, /*DKDK_FORMATION*/
+    });
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// Creation d'un APPEL par le MODERATEUR (Mur des appels) — sans candidat ni video /*DKDK_MODERATEUR_APPEL*/
+bracketRouter.post('/admin/appel', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { categorie, discipline, style, format_code, mode, modele, niveau, allow_groups, track_id, sport, sujets } = req.body;
+    if (!categorie || !discipline || !format_code)
+      return res.status(400).json({ success: false, error: 'Champs manquants (categorie, discipline, format).' });
+    const result = await createAppelAsModerator({
+      createur_id: req.user!.userId,
+      categorie, discipline, style, format_code, mode, modele, niveau, allow_groups, track_id, sport, sujets,
+    });
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// Rejoindre un APPEL : le candidat accepte l'appel avec sa video approuvee /*DKDK_MODERATEUR_APPEL*/
+// Reutilise inscribeToArena (place, anti-doublon, paiement si video deja engagee, depart quand complet).
+bracketRouter.post('/:bracket_id/accepter', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
+  try {
+    const { video_id, formation, group_name, group_size, paiement_confirme } = req.body;
+    if (!video_id) return res.status(400).json({ success: false, error: 'Video manquante.' });
+    const result = await inscribeToArena({
+      bracket_id: req.params.bracket_id, video_id, user_id: req.user!.userId,
+      reponse_appel: 'accepte', formation, group_name, group_size, paiement_confirme,
     });
     res.json({ success: true, data: result });
   } catch (err: any) {

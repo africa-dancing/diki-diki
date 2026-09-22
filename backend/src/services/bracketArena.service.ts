@@ -27,12 +27,13 @@ export async function inscribeToArena(params: {
   bracket_id: string; user_id: string; video_id: string;
   paiement_confirme?: boolean; /*DKDK_INSCRIPTION_PAYANTE*/
   formation?: string; group_name?: string; group_size?: number; /*DKDK_FORMATION*/
+  reponse_appel?: string; /*DKDK_MODERATEUR_APPEL — 'accepte' quand on rejoint un appel*/
 }) {
   const { bracket_id, user_id, video_id, paiement_confirme } = params;
 
   const { data: bracket, error: bErr } = await supabase
     .from('brackets').select('*').eq('id', bracket_id)
-    .in('status', ['open', 'waiting_candidates']).single();
+    .in('status', ['open', 'waiting_candidates', 'appel']).single(); /*DKDK_MODERATEUR_APPEL — on peut rejoindre un appel*/
   if (bErr || !bracket) throw new Error('Ce challenge n est pas ouvert aux inscriptions.');
   /*DKDK_FORMATION — le TYPE du challenge impose la formation : solo↔solo, groupe↔groupe,
     JAMAIS mélangé. On ne fait pas confiance au client : la formation découle de bracket.allow_groups
@@ -87,6 +88,7 @@ export async function inscribeToArena(params: {
   const { error: insErr } = await supabase.from('bracket_participants').insert({
     bracket_id, user_id, video_id, registered_at: new Date().toISOString(),
     formation: _formation, group_name: _groupName, group_size: _groupSize, /*DKDK_FORMATION*/
+    reponse_appel: params.reponse_appel || null, /*DKDK_MODERATEUR_APPEL*/
   });
   if (insErr) {
     /*DKDK_INSCRIPTION_PAYANTE — remboursement si l'inscription echoue apres debit*/
@@ -372,4 +374,106 @@ export async function createArenaChallenge(params: {
     }
   }
   return { created: !dup, bracket_id: bracketId, participants: result.participants };
+}
+
+// 4. Creation d'un APPEL par le MODERATEUR (mode "Mur des appels") /*DKDK_MODERATEUR_APPEL*/
+// Cree un bracket en statut 'appel' AVEC ses sujets par etape, SANS candidat ni video.
+// 100% ADDITIF : ne touche a AUCUNE logique d'argent (pas de wallet, pas de cagnotte, pas d'inscription).
+// Les candidats rejoindront ensuite (route "accepter"), et le depart reutilisera le moteur existant.
+export async function createAppelAsModerator(params: {
+  createur_id: string;
+  categorie: string; discipline: string; style?: string;
+  format_code: string;
+  mode?: string; modele?: string; niveau?: number;
+  allow_groups?: boolean;
+  track_id?: string;
+  sport?: { art: string; art_slug: string; epreuve: string; epreuve_slug: string; difficulte?: string; difficulte_slug?: string; regle?: string };
+  sujets?: { round_number: number; libelle: string; track_id?: string | null; choix_id?: string | null; regle?: string | null }[];
+}) {
+  const { createur_id, categorie, discipline, format_code, sport } = params;
+  const modeVal = params.mode || 'normal';
+  const _allowGroups = !!params.allow_groups;
+
+  if (!createur_id) throw new Error('Createur (moderateur) manquant.');
+  if (!format_code) throw new Error('Le format du challenge est obligatoire.');
+
+  // Format (obligatoire, actif)
+  const { data: fmt, error: fErr } = await supabase
+    .from('challenge_formats').select('code, nb_candidats, actif').eq('code', format_code).maybeSingle();
+  if (fErr || !fmt) throw new Error('Format de challenge inconnu.');
+  if (!fmt.actif) throw new Error('Ce format de challenge est desactive.');
+  const maxParticipants = fmt.nb_candidats;
+
+  // Champs finaux (sport OU artistique)
+  const modeleFinal = sport ? 'parcours' : (params.modele || 'bloc');
+  const niveauFinal = sport ? 1 : (params.niveau || 1);
+  const discFinal   = sport ? sport.art : discipline;
+  const styleFinal  = sport ? (sport.epreuve + (sport.difficulte ? ' · ' + sport.difficulte : '')) : (params.style || '');
+  const trackFinal  = sport ? null : (params.track_id || null);
+  const modeFinal   = sport ? 'normal' : modeVal;
+
+  // Objectif bloc lu depuis bloc_objectifs (aucun montant invente)
+  let objectifBloc = 0;
+  if (modeleFinal === 'bloc') {
+    const { data: bo } = await supabase.from('bloc_objectifs')
+      .select('objectif').eq('format_code', fmt.code).eq('niveau', niveauFinal).maybeSingle();
+    objectifBloc = bo?.objectif || 0;
+  }
+
+  // Cle de regroupement (meme logique que la creation candidat)
+  const bracketKey = sport
+    ? ['sport', fmt.code, sport.art_slug, sport.epreuve_slug, sport.difficulte_slug].filter(Boolean).join('|')
+    : computeBracketKey(discFinal, modeFinal, trackFinal, fmt.code, [], modeleFinal, niveauFinal);
+
+  // Anti-doublon : un appel/challenge deja ouvert pour cette combinaison ?
+  const { data: dup } = await supabase
+    .from('brackets').select('id')
+    .eq('bracket_key', bracketKey)
+    .in('status', ['appel', 'waiting_candidates', 'open'])
+    .limit(1).maybeSingle();
+  if (dup) return { created: false, bracket_id: dup.id };
+
+  // Delai d'appel (reglage, defaut 7 jours)
+  const delaiH = await getSetting('appel_delai_heures', 168);
+  const now = new Date();
+  const deadline = new Date(now.getTime() + delaiH * 3600 * 1000);
+
+  // Creation du bracket en statut 'appel' (SANS candidat, SANS video)
+  const { data: created, error: cErr } = await supabase
+    .from('brackets').insert({
+      title: (styleFinal ? styleFinal + ' - ' : '') + discFinal,
+      categorie, discipline: discFinal, style: styleFinal,
+      track_id: trackFinal, mode: modeFinal,
+      type: 'libre', status: 'appel', code: null,
+      bracket_key: bracketKey,
+      modele: modeleFinal, niveau: niveauFinal,
+      objectif_bloc: objectifBloc,
+      max_participants: maxParticipants, current_round: 1,
+      total_cagnotte: 0, commission_pct: 0.5,
+      allow_groups: _allowGroups,
+      createur_id, appel_deadline: deadline.toISOString(),
+      created_at: now.toISOString(),
+    }).select('id').single();
+  if (cErr || !created) throw new Error('Erreur lors de la creation de l appel.');
+  const bracketId = created.id;
+
+  // Sujets par etape (Facon 1 : un sujet/morceau par etape)
+  const sujets = Array.isArray(params.sujets) ? params.sujets : [];
+  const rows = sujets
+    .filter(s => s && s.round_number && (s.libelle || s.track_id))
+    .map(s => ({
+      bracket_id: bracketId,
+      round_number: s.round_number,
+      libelle: s.libelle || '',
+      track_id: s.track_id || null,
+      choix_id: s.choix_id || null,
+      regle: s.regle || (sport ? sport.regle || null : null),
+    }));
+  if (rows.length) {
+    const { error: sErr } = await supabase.from('bracket_round_sujets')
+      .upsert(rows, { onConflict: 'bracket_id,round_number' });
+    if (sErr) throw new Error('Appel cree mais erreur en enregistrant les sujets par etape: ' + sErr.message);
+  }
+
+  return { created: true, bracket_id: bracketId };
 }
