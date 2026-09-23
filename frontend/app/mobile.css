@@ -81,9 +81,11 @@ body {
 
   /* ─── TITRES géants ─── */
   h1 {
-    font-size: clamp(1.4rem, 6vw, 2rem) !important;
-    line-height: 1.2 !important;
+    font-size: clamp(1rem, 5vw, 1.55rem) !important;
+    line-height: 1.15 !important;
     margin: 0 0 10px !important;
+    overflow-wrap: break-word;
+    max-width: 100%;
   }
   h1[style*="42"] { font-size: 1.7rem !important; }
   h1[style*="32"] { font-size: 1.5rem !important; }
@@ -187,7 +189,6 @@ body {
 @media (max-width: 380px) {
   svg[width="200"] { width: 110px !important; }
   svg[width="130"] { width: 100px !important; }
-  h1 { font-size: 1.35rem !important; }
   div[style*="gap: 32"] { gap: 10px !important; }
   button { font-size: 12px !important; }
 }
