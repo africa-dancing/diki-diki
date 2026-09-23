@@ -65,7 +65,7 @@ export async function lookupMusique(query: string) {
 export async function submitMusique(params: {
   user_id: string; artiste: string; titre: string; album?: string;
   duree_sec?: number; pays_origine?: string; continent?: string;
-  danse?: string; style?: string; cover_url?: string; source?: string;
+  danse?: string; style?: string; cover_url?: string; ref_url?: string; source?: string;
   auto_approve?: boolean; /*DKDK_AUTO_APPROVE*/
 }) {
   const { user_id, artiste, titre } = params;
@@ -83,6 +83,7 @@ export async function submitMusique(params: {
     pays_origine: params.pays_origine || null, continent: params.continent || null,
     danse: params.danse || null, style: params.style || null,
     cover_url: params.cover_url || null,
+    ref_url: params.ref_url || null,
     source: params.source === 'musicbrainz' ? 'musicbrainz' : 'manuel',
     submitted_by: user_id, status: params.auto_approve ? 'approved' : 'pending', /*DKDK_AUTO_APPROVE*/
   }).select('id').single();
@@ -102,7 +103,7 @@ export async function listMyPendingMusiques(userId: string) {
 export async function submitMusiqueAdmin(params: {
   admin_id: string; artiste: string; titre: string; album?: string;
   duree_sec?: number; pays_origine?: string; continent?: string;
-  danse?: string; style?: string; cover_url?: string;
+  danse?: string; style?: string; cover_url?: string; ref_url?: string;
 }) {
   const { admin_id, artiste, titre } = params;
   if (!artiste || !artiste.trim() || !titre || !titre.trim()) throw new Error('Artiste et titre obligatoires.');
@@ -112,6 +113,7 @@ export async function submitMusiqueAdmin(params: {
     pays_origine: params.pays_origine || null, continent: params.continent || null,
     danse: params.danse || null, style: params.style || null,
     cover_url: params.cover_url || null,
+    ref_url: params.ref_url || null,
     source: 'admin', submitted_by: admin_id, status: 'approved',
   }).select('id').single();
   if (error) throw new Error('Erreur lors de l enregistrement du morceau (admin).');

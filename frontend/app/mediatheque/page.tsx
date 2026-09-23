@@ -10,7 +10,14 @@ const CONTINENTS = ['Tous', 'Afrique', 'Europe', 'Amerique', 'Asie'];
 interface Musique {
   id: string; artiste: string; titre: string; album?: string;
   duree_sec?: number; pays_origine?: string; continent?: string;
-  danse?: string; style?: string; cover_url?: string;
+  danse?: string; style?: string; cover_url?: string; ref_url?: string;
+}
+
+/*DKDK_REF_URL — lien YouTube -> URL d'integration (lecteur sur place)*/
+function ytEmbed(url?: string | null): string | null {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
 }
 
 function fmtDuree(s?: number) {
@@ -23,6 +30,7 @@ export default function MediathequePage() {
   const [musiques, setMusiques] = useState<Musique[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtre, setFiltre] = useState('Tous');
+  const [openId, setOpenId] = useState<string | null>(null); /*DKDK_REF_URL — morceau dont le lecteur est ouvert*/
 
   useEffect(() => {
     setLoading(true);
@@ -74,6 +82,18 @@ export default function MediathequePage() {
                 {m.danse && <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: 'rgba(225,6,0,0.14)', border: '1px solid rgba(225,6,0,0.35)', color: '#e10600', fontWeight: 800 }}>{m.danse}</span>}
                 {m.pays_origine && <img src={`https://flagcdn.com/${m.pays_origine.toLowerCase()}.svg`} alt={m.pays_origine} title={m.pays_origine} style={{ width: 18, height: 'auto', borderRadius: 3, objectFit: 'cover', verticalAlign: 'middle' }} />}
               </div>
+              {ytEmbed(m.ref_url) ? (
+                <div style={{ marginTop: 8 }}>
+                  <button onClick={() => setOpenId(openId === m.id ? null : m.id)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 12, color: 'var(--or)', fontWeight: 700 }}>
+                    {openId === m.id ? '▾ Fermer le lecteur' : '▶ Écouter'}
+                  </button>
+                  {openId === m.id ? (
+                    <div style={{ position: 'relative', width: '100%', maxWidth: 320, aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)', marginTop: 6 }}>
+                      <iframe src={ytEmbed(m.ref_url) as string} title={m.titre} loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
             {m.duree_sec ? <div style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0 }}>{fmtDuree(m.duree_sec)}</div> : null}
             {/*DKDK_PARTICIPER*/}

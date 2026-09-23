@@ -19,6 +19,7 @@ export default function AjouterMusiquePage() {
   const [continent, setContinent] = useState('');
   const [danse, setDanse] = useState('');
   const [style, setStyle] = useState('');
+  const [refUrl, setRefUrl] = useState(''); /*DKDK_REF_URL — lien YouTube du morceau*/
   const [source, setSource] = useState('manuel');
   const [msg, setMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -57,7 +58,8 @@ export default function AjouterMusiquePage() {
           artiste: artiste.trim(), titre: titre.trim(), album: album.trim() || undefined,
           duree_sec: dureeSec ? parseInt(dureeSec, 10) : undefined,
           pays_origine: pays.trim() || undefined, continent: continent.trim() || undefined,
-          danse: danse.trim() || undefined, style: style.trim() || undefined, source,
+          danse: danse.trim() || undefined, style: style.trim() || undefined,
+          ref_url: refUrl.trim() || undefined, source,
         }),
       });
       const data = await res.json();
@@ -118,6 +120,10 @@ export default function AjouterMusiquePage() {
             <input style={inputStyle} value={style} onChange={e => setStyle(e.target.value)} placeholder='Style...' />
           </div>
         </div>
+
+        <label style={labelStyle}>Lien YouTube <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>(optionnel)</span></label>
+        <input style={inputStyle} value={refUrl} onChange={e => setRefUrl(e.target.value)} placeholder='🔗 https://youtube.com/watch?v=...' />
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: -8, marginBottom: 8 }}>Permet aux candidats d&apos;écouter la version de référence directement sur Diki-Diki.</div>
 
         {msg && <div style={{ color: msg.includes('trouvees') || msg.includes('trouve') ? '#4ADE80' : '#FF6B6B', fontSize: 13, margin: '8px 0 16px', textAlign: 'center' }}>{msg}</div>}
 

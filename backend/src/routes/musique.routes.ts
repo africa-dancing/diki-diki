@@ -17,6 +17,7 @@ const musiqueSchema = z.object({
   danse:        optStr(100),
   style:        optStr(100),
   cover_url:    optStr(1000),
+  ref_url:      optStr(1000),
   source:       optStr(100),
 });
 
@@ -48,10 +49,10 @@ musiqueRouter.post('/', requireAuth, async (req: AuthRequest, res: Response) => 
     const _p = musiqueSchema.safeParse(req.body);
     if (!_p.success) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR', details: _p.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })) });
   try {
-    const { artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url, source } = req.body;
+    const { artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url, ref_url, source } = req.body;
     const result = await submitMusique({
       user_id: req.user!.userId,
-      artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url, source,
+      artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url, ref_url, source,
       auto_approve: true, /*DKDK_ROUTE_AUTO_APPROVE*/
     });
     res.json({ success: true, data: result });
@@ -66,10 +67,10 @@ musiqueRouter.post('/admin', requireAuth, requireAdmin, async (req: AuthRequest,
     const _p = musiqueSchema.safeParse(req.body);
     if (!_p.success) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR', details: _p.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })) });
   try {
-    const { artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url } = req.body;
+    const { artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url, ref_url } = req.body;
     const result = await submitMusiqueAdmin({
       admin_id: req.user!.userId,
-      artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url,
+      artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url, ref_url,
     });
     res.json({ success: true, data: result });
   } catch (err: any) {
