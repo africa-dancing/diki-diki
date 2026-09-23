@@ -38,6 +38,7 @@ function CreerAppelInner() {
   const [regle, setRegle]     = useState('');
   // sujets par étape (un libellé/morceau par vidéo)
   const [sujets, setSujets] = useState<string[]>(['']);
+  const [sujetsUrl, setSujetsUrl] = useState<string[]>(['']); /*DKDK_REF_URL — lien YouTube par etape*/
   const [busy, setBusy] = useState(false);
   const [msg, setMsg]   = useState('');
   const [ok, setOk]     = useState('');
@@ -80,10 +81,12 @@ function CreerAppelInner() {
         setAllowGroups(!!d.allow_groups);
         const nv = Math.max(1, Math.min(4, d.niveau || (d.etapes?.length || 1)));
         setNiveau(nv);
-        const et = (d.etapes || []).slice().sort((a: any, b: any) => a.round_number - b.round_number).map((e: any) => e.libelle || '');
-        const arr: string[] = [];
-        for (let i = 0; i < nv; i++) arr.push(et[i] || '');
-        setSujets(arr);
+        const sorted = (d.etapes || []).slice().sort((a: any, b: any) => a.round_number - b.round_number);
+        const et = sorted.map((e: any) => e.libelle || '');
+        const etu = sorted.map((e: any) => e.ref_url || '');
+        const arr: string[] = []; const arrUrl: string[] = [];
+        for (let i = 0; i < nv; i++) { arr.push(et[i] || ''); arrUrl.push(etu[i] || ''); }
+        setSujets(arr); setSujetsUrl(arrUrl);
       })
       .catch(() => {});
   }, [editId]);
@@ -106,14 +109,12 @@ function CreerAppelInner() {
   const changerNiveau = (n: number) => {
     const v = Math.max(1, Math.min(4, n || 1));
     setNiveau(v);
-    setSujets(prev => {
-      const a = [...prev];
-      while (a.length < v) a.push('');
-      return a.slice(0, v);
-    });
+    setSujets(prev => { const a = [...prev]; while (a.length < v) a.push(''); return a.slice(0, v); });
+    setSujetsUrl(prev => { const a = [...prev]; while (a.length < v) a.push(''); return a.slice(0, v); });
   };
 
   const majSujet = (i: number, val: string) => setSujets(prev => prev.map((s, idx) => idx === i ? val : s));
+  const majSujetUrl = (i: number, val: string) => setSujetsUrl(prev => prev.map((s, idx) => idx === i ? val : s));
   const fmtF = (n: number) => (n || 0).toLocaleString('fr-FR') + ' F';
 
   const submit = async () => {
@@ -126,7 +127,7 @@ function CreerAppelInner() {
         categorie, format_code: formatCode, modele, mode, niveau, allow_groups: allowGroups,
         discipline: categorie === 'sport' ? art.trim() : discipline.trim(),
         style: categorie === 'sport' ? epreuve.trim() : '',
-        sujets: sujets.map((libelle, i) => ({ round_number: i + 1, libelle: libelle.trim() })).filter(s => s.libelle),
+        sujets: sujets.map((libelle, i) => ({ round_number: i + 1, libelle: libelle.trim(), ref_url: (sujetsUrl[i] || '').trim() || null })).filter(s => s.libelle),
       };
       if (categorie === 'sport') {
         body.sport = {
@@ -149,7 +150,7 @@ function CreerAppelInner() {
         // Reset du formulaire après création réussie : on repart d'une page vierge
         // pour ne PAS reporter la discipline / les morceaux imposés sur l'appel suivant.
         setDiscipline(''); setDiscAutre(false); setArt(''); setEpreuve(''); setRegle('');
-        setSujets(Array.from({ length: niveau }, () => ''));
+        setSujets(Array.from({ length: niveau }, () => '')); setSujetsUrl(Array.from({ length: niveau }, () => ''));
       }
     } catch { setMsg('Erreur réseau.'); }
     setBusy(false);
@@ -310,8 +311,12 @@ function CreerAppelInner() {
           <label style={lbl}>Sujet / morceau imposé par étape</label>
           <div style={{ marginBottom: 16 }}>
             {sujets.map((s, i) => (
-              <input key={i} style={{ ...inp, marginBottom: 8 }} value={s} onChange={e => majSujet(i, e.target.value)}
-                placeholder={`Étape ${i + 1} — ex. Le Rémunérateur · Faveur Mukoko`} />
+              <div key={i} style={{ marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <input style={{ ...inp, marginBottom: 6 }} value={s} onChange={e => majSujet(i, e.target.value)}
+                  placeholder={`Étape ${i + 1} — ex. Le Rémunérateur · Faveur Mukoko`} />
+                <input style={{ ...inp, fontSize: 12 }} value={sujetsUrl[i] || ''} onChange={e => majSujetUrl(i, e.target.value)}
+                  placeholder="🔗 Lien YouTube de la version de référence (optionnel)" />
+              </div>
             ))}
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
               Laisse vide si l’étape est libre (ex. improvisation).

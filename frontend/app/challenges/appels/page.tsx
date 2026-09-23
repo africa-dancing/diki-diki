@@ -30,6 +30,7 @@ interface Etape {
   libelle: string;
   track_titre: string | null;
   track_artiste: string | null;
+  ref_url?: string | null;
 }
 interface Appel {
   id: string;
@@ -443,6 +444,9 @@ function AppelCard({ appel }: { appel: Appel }) {
                     {e.track_artiste || e.libelle}
                   </div>
                 )}
+                {e.ref_url ? (
+                  <a href={e.ref_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 4, fontSize: 11.5, color: 'var(--or)', fontWeight: 700, textDecoration: 'none' }}>▶ Écouter la version de référence</a>
+                ) : null}
               </div>
               {!isBloc && (
                 <div style={{ textAlign: 'right', flex: 'none' }}>

@@ -9,9 +9,16 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR  = 'var(--or)';
 
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
+
+/*DKDK_REF_URL — transforme un lien YouTube en URL d'integration (lecteur)*/
+function ytEmbed(url?: string | null): string | null {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+}
 const fmtF = (n: number) => (n || 0).toLocaleString('fr-FR') + ' F';
 
-interface Etape { round_number: number; libelle: string; track_titre: string | null; track_artiste: string | null; }
+interface Etape { round_number: number; libelle: string; track_titre: string | null; track_artiste: string | null; ref_url?: string | null; }
 interface Appel {
   id: string; title: string; discipline: string; modele: string; status: string;
   max_participants: number; appel_deadline: string | null; niveau?: number;
@@ -131,11 +138,23 @@ export default function AppelDetailPage() {
                 <div style={{ fontSize: 13, fontWeight: 700, color: OR, marginBottom: 12 }}>Ce qu’il faut présenter</div>
                 {appel.etapes.sort((a, b) => a.round_number - b.round_number).map(e => (
                   <div key={e.round_number} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: OR, minWidth: 58 }}>Étape {e.round_number}</span>
-                    <span style={{ fontSize: 14, color: 'var(--ink)' }}>
-                      {e.libelle || 'Libre'}
-                      {e.track_titre ? <span style={{ color: 'var(--ink-soft)' }}> — {e.track_titre}{e.track_artiste ? ' · ' + e.track_artiste : ''}</span> : null}
-                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: OR, minWidth: 58 }}>{appel.modele === 'parcours' ? 'Étape' : 'Vidéo'} {e.round_number}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, color: 'var(--ink)' }}>
+                        {e.libelle || 'Libre'}
+                        {e.track_titre ? <span style={{ color: 'var(--ink-soft)' }}> — {e.track_titre}{e.track_artiste ? ' · ' + e.track_artiste : ''}</span> : null}
+                      </div>
+                      {ytEmbed(e.ref_url) ? (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ fontSize: 11, color: OR, fontWeight: 700, marginBottom: 4 }}>▶ Version de référence — écoute-la pour bien t&apos;y conformer</div>
+                          <div style={{ position: 'relative', width: '100%', maxWidth: 420, aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)' }}>
+                            <iframe src={ytEmbed(e.ref_url) as string} title={`Référence ${e.round_number}`} loading="lazy"
+                              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
+                              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 ))}
               </div>

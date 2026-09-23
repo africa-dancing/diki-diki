@@ -417,7 +417,7 @@ export async function createAppelAsModerator(params: {
   allow_groups?: boolean;
   track_id?: string;
   sport?: { art: string; art_slug: string; epreuve: string; epreuve_slug: string; difficulte?: string; difficulte_slug?: string; regle?: string };
-  sujets?: { round_number: number; libelle: string; track_id?: string | null; choix_id?: string | null; regle?: string | null }[];
+  sujets?: { round_number: number; libelle: string; track_id?: string | null; choix_id?: string | null; regle?: string | null; ref_url?: string | null }[];
 }) {
   const { createur_id, categorie, discipline, format_code, sport } = params;
   const modeVal = params.mode || 'normal';
@@ -495,6 +495,7 @@ export async function createAppelAsModerator(params: {
       track_id: s.track_id || null,
       choix_id: s.choix_id || null,
       regle: s.regle || (sport ? sport.regle || null : null),
+      ref_url: s.ref_url || null,   /*DKDK_REF_URL — lien YouTube de reference*/
     }));
   if (rows.length) {
     const { error: sErr } = await supabase.from('bracket_round_sujets')
@@ -514,7 +515,7 @@ export async function updateAppelAsModerator(bracket_id: string, params: {
   allow_groups?: boolean;
   track_id?: string;
   sport?: { art: string; art_slug: string; epreuve: string; epreuve_slug: string; difficulte?: string; difficulte_slug?: string; regle?: string };
-  sujets?: { round_number: number; libelle: string; track_id?: string | null; choix_id?: string | null; regle?: string | null }[];
+  sujets?: { round_number: number; libelle: string; track_id?: string | null; choix_id?: string | null; regle?: string | null; ref_url?: string | null }[];
 }) {
   const { categorie, discipline, format_code, sport } = params;
   const modeVal = params.mode || 'normal';
@@ -586,6 +587,7 @@ export async function updateAppelAsModerator(bracket_id: string, params: {
       libelle: s.libelle || '', track_id: s.track_id || null,
       choix_id: s.choix_id || null,
       regle: s.regle || (sport ? sport.regle || null : null),
+      ref_url: s.ref_url || null,   /*DKDK_REF_URL*/
     }));
   if (rows.length) {
     const { error: sErr } = await supabase.from('bracket_round_sujets').insert(rows);
