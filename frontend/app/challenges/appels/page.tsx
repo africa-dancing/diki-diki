@@ -82,6 +82,20 @@ function countdown(deadline: string | null): string {
   return `Ferme dans ${j} j`;
 }
 
+/*DKDK_DISC_EMOJI — emoji selon la discipline, pour la reperer d'un coup d'oeil*/
+function discEmoji(d?: string | null): string {
+  const s = (d || '').toLowerCase();
+  if (/(danse|dance)/.test(s)) return '💃';
+  if (/(chant|voix|acap|a cappella)/.test(s)) return '🎤';
+  if (/(humour|com[eé]|comedy|rire|stand)/.test(s)) return '😂';
+  if (/(instrument|guitare|piano|percussion|kora|balafon)/.test(s)) return '🎸';
+  if (/(po[eé]sie|slam)/.test(s)) return '✍️';
+  if (/(conte|storytelling)/.test(s)) return '📖';
+  if (/(taekwondo|karat|judo|lutte|martia|art martial|boxe|combat|kung|jiu)/.test(s)) return '🥋';
+  if (/(foot|football|sport|athl)/.test(s)) return '⚽';
+  return '🌟';
+}
+
 /*DKDK_REF_URL — lien YouTube -> URL d'integration (lecteur sur place)*/
 function ytEmbed(url?: string | null): string | null {
   if (!url) return null;
@@ -372,6 +386,13 @@ function AppelCard({ appel }: { appel: Appel }) {
       {open && (
         <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: SOLID }} />
       )}
+
+      {/* Bandeau DISCIPLINE — repere immediatement le type de challenge */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '8px 12px', borderRadius: 12, background: 'rgba(255,170,0,0.10)', border: '1px solid rgba(255,170,0,0.30)' }}>
+        <span style={{ fontSize: 26, lineHeight: 1 }}>{discEmoji(disc)}</span>
+        <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 19, color: 'var(--or)', textTransform: 'capitalize', lineHeight: 1.1 }}>{disc}</span>
+        <span style={{ marginLeft: 'auto', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-dim)' }}>{isBloc ? 'Bloc groupé' : 'Parcours'}</span>
+      </div>
 
       {/* Ligne créateur */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
