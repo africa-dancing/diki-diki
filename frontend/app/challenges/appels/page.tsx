@@ -82,6 +82,13 @@ function countdown(deadline: string | null): string {
   return `Ferme dans ${j} j`;
 }
 
+/*DKDK_REF_URL — lien YouTube -> URL d'integration (lecteur sur place)*/
+function ytEmbed(url?: string | null): string | null {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+}
+
 export default function MurDesAppelsPage() {
   const [appels, setAppels]         = useState<Appel[]>([]);
   const [aggregates, setAggregates] = useState<Aggregates | null>(null);
@@ -337,6 +344,7 @@ function EmptyState() {
 }
 
 function AppelCard({ appel }: { appel: Appel }) {
+  const [player, setPlayer] = useState<number | null>(null); /*DKDK_REF_URL — etape dont le lecteur est ouvert*/
   const cfg     = cfgFor(appel.max_participants);
   const oi        = appel.objectif_info;
   const isBloc    = (appel.modele || 'bloc') !== 'parcours';
@@ -444,9 +452,24 @@ function AppelCard({ appel }: { appel: Appel }) {
                     {e.track_artiste || e.libelle}
                   </div>
                 )}
-                {e.ref_url ? (
-                  <a href={e.ref_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 4, fontSize: 11.5, color: 'var(--or)', fontWeight: 700, textDecoration: 'none' }}>▶ Écouter la version de référence</a>
-                ) : null}
+                {ytEmbed(e.ref_url) ? (() => {
+                  const key = e.round_number ?? i;
+                  const open = player === key;
+                  return (
+                    <div style={{ marginTop: 6 }}>
+                      <button onClick={() => setPlayer(open ? null : key)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 11.5, color: 'var(--or)', fontWeight: 700 }}>
+                        {open ? '▾ Fermer le lecteur' : '▶ Écouter la version de référence'}
+                      </button>
+                      {open ? (
+                        <div style={{ position: 'relative', width: '100%', maxWidth: 360, aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)', marginTop: 6 }}>
+                          <iframe src={ytEmbed(e.ref_url) as string} title={`Référence ${key}`} loading="lazy"
+                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
+                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })() : null}
               </div>
               {!isBloc && (
                 <div style={{ textAlign: 'right', flex: 'none' }}>
