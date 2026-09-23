@@ -9,13 +9,14 @@ const OR = '#FFAA00';
 
 interface Form {
   artiste: string; titre: string; album: string; duree_sec: string;
-  pays_origine: string; continent: string; danse: string; style: string; cover_url: string;
+  pays_origine: string; continent: string; danse: string; style: string; cover_url: string; ref_url: string;
 }
-const VIDE: Form = { artiste: '', titre: '', album: '', duree_sec: '', pays_origine: '', continent: '', danse: '', style: '', cover_url: '' };
+const VIDE: Form = { artiste: '', titre: '', album: '', duree_sec: '', pays_origine: '', continent: '', danse: '', style: '', cover_url: '', ref_url: '' };
 
 function AdminMediathequeInner() {
   const { admin } = useAdminAuth();
   const [form, setForm]       = useState<Form>(VIDE);
+  const [editId, setEditId]   = useState<string | null>(null); /*DKDK_EDIT_MUSIC*/
   const [recherche, setRech]  = useState('');
   const [busy, setBusy]       = useState(false);
   const [lookupBusy, setLB]   = useState(false);
@@ -90,23 +91,39 @@ function AdminMediathequeInner() {
     } finally { setLB(false); }
   };
 
+  const modifier = (m: any) => {  /*DKDK_EDIT_MUSIC — charge le morceau dans le formulaire*/
+    setForm({
+      artiste: m.artiste || '', titre: m.titre || '', album: m.album || '',
+      duree_sec: m.duree_sec != null ? String(m.duree_sec) : '',
+      pays_origine: m.pays_origine || '', continent: m.continent || '',
+      danse: m.danse || '', style: m.style || '', cover_url: m.cover_url || '',
+      ref_url: m.ref_url || '',
+    });
+    setEditId(m.id); setErreur(''); setInfo('');
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const annulerEdition = () => { setEditId(null); setForm(VIDE); setErreur(''); setInfo(''); };
+
   const ajouter = async () => {
     setErreur(''); setInfo('');
     if (!form.artiste.trim() || !form.titre.trim()) { setErreur('Artiste et titre obligatoires.'); return; }
-    /*DKDK_DOUBLON*/
-    const dureeAjout = form.duree_sec ? parseInt(form.duree_sec, 10) : null;
-    const doublon = liste.find((m: any) =>
-      m.titre === form.titre.trim() &&
-      m.artiste === form.artiste.trim() &&
-      ((m.duree_sec === null || m.duree_sec === undefined) ? null : m.duree_sec) === dureeAjout
-    );
-    if (doublon) {
-      if (!window.confirm('Une musique identique existe deja (meme titre, artiste et duree). Ajouter quand meme ?')) return;
+    /*DKDK_DOUBLON — seulement en creation*/
+    if (!editId) {
+      const dureeAjout = form.duree_sec ? parseInt(form.duree_sec, 10) : null;
+      const doublon = liste.find((m: any) =>
+        m.titre === form.titre.trim() &&
+        m.artiste === form.artiste.trim() &&
+        ((m.duree_sec === null || m.duree_sec === undefined) ? null : m.duree_sec) === dureeAjout
+      );
+      if (doublon) {
+        if (!window.confirm('Une musique identique existe deja (meme titre, artiste et duree). Ajouter quand meme ?')) return;
+      }
     }
     setBusy(true);
     try {
-      const r = await fetch(`${API}/musiques/admin`, {
-        method: 'POST',
+      const r = await fetch(editId ? `${API}/musiques/admin/${editId}` : `${API}/musiques/admin`, {
+        method: editId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin?.token}` },
         body: JSON.stringify({
           artiste: form.artiste.trim(),
@@ -118,12 +135,13 @@ function AdminMediathequeInner() {
           danse: form.danse.trim() || undefined,
           style: form.style.trim() || undefined,
           cover_url: form.cover_url.trim() || undefined,
+          ref_url: form.ref_url.trim() || undefined,
         }),
       });
       const j = await r.json();
-      if (!j.success) { setErreur(j.error || 'Ajout echoue.'); return; }
-      setInfo('Musique ajoutee a la mediatheque.');
-      setForm(VIDE); setRech('');
+      if (!j.success) { setErreur(j.error || (editId ? 'Modification echouee.' : 'Ajout echoue.')); return; }
+      setInfo(editId ? 'Morceau modifie.' : 'Musique ajoutee a la mediatheque.');
+      setForm(VIDE); setRech(''); setEditId(null);
       chargerListe();
     } catch (e: any) {
       setErreur('Erreur reseau lors de l ajout.');
@@ -177,13 +195,19 @@ function AdminMediathequeInner() {
         {champ('Danse', 'danse')}
         {champ('Style', 'style')}
         {champ('URL pochette', 'cover_url')}
+        {champ('Lien YouTube (optionnel)', 'ref_url', '🔗 https://youtube.com/watch?v=...')}
 
         {erreur && <div style={{ color: '#ff5555', fontSize: 13, marginBottom: 12 }}>{erreur}</div>}
         {info && <div style={{ color: '#3ddc84', fontSize: 13, marginBottom: 12 }}>{info}</div>}
 
-        <button onClick={ajouter} disabled={busy} style={btnMain}>
-          {busy ? 'Ajout en cours...' : 'Ajouter a la mediatheque'}
-        </button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button onClick={ajouter} disabled={busy} style={btnMain}>
+            {busy ? 'Enregistrement...' : (editId ? 'Enregistrer les modifications' : 'Ajouter a la mediatheque')}
+          </button>
+          {editId && (
+            <button onClick={annulerEdition} disabled={busy} style={btnInv}>Annuler la modification</button>
+          )}
+        </div>
 
         {liste.length > 0 && (
           <div style={{ marginTop: 32 }}>
@@ -191,11 +215,11 @@ function AdminMediathequeInner() {
               Musiques dans la mediatheque ({liste.length})
             </h2>
             <div style={{ background: '#12121e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, overflow: 'hidden' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 70px 90px 90px 120px', gap: 8, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.12)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.5)', fontFamily: 'Syne, sans-serif' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 70px 90px 90px 170px', gap: 8, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.12)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.5)', fontFamily: 'Syne, sans-serif' }}>
                 <div>TITRE</div><div>ARTISTE</div><div>DUREE</div><div>STATUT</div><div>USAGE</div><div>ACTION</div>
               </div>
               {liste.map((m: any) => (
-                <div key={m.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 70px 90px 90px 120px', gap: 8, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 13, alignItems: 'center' }}>
+                <div key={m.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 70px 90px 90px 170px', gap: 8, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 13, alignItems: 'center' }}>
                   <div style={{ fontWeight: 600 }}>{m.titre}</div>
                   <div style={{ color: 'rgba(255,255,255,0.7)' }}>{m.artiste}</div>
                   <div style={{ color: 'rgba(255,255,255,0.5)' }}>{m.duree_sec ? m.duree_sec + 's' : '-'}</div>
@@ -216,7 +240,8 @@ function AdminMediathequeInner() {
                       <span style={badgeTermine}>Utilisee - {m.usage_count}</span>
                     )}
                   </div>
-                  <div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <button onClick={() => modifier(m)} style={btnEdit}>Modifier</button>
                     <button onClick={() => supprimer(m.id, m.titre)} style={btnDel}>Supprimer</button>
                   </div>
                 </div>
@@ -244,6 +269,7 @@ const badgeEnCours: React.CSSProperties = { ...badgeBase, background: 'rgba(61,2
 const badgeTermine: React.CSSProperties = { ...badgeBase, background: 'rgba(255,80,80,0.15)', color: '#ff5050' };
 const btnDel: React.CSSProperties = { background: 'rgba(255,0,0,0.12)', color: '#ff5555', border: '1px solid rgba(255,0,0,0.35)', borderRadius: 7, padding: '5px 10px', fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'Syne, sans-serif' };
 
+const btnEdit: React.CSSProperties = { background: 'rgba(255,170,0,0.14)', color: '#FFAA00', border: '1px solid rgba(255,170,0,0.4)', borderRadius: 7, padding: '5px 10px', fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'Syne, sans-serif' };
 const btnInv: React.CSSProperties = { background: 'transparent', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 7, padding: '5px 10px', fontWeight: 600, fontSize: 12, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' };
 
 export default function AdminMediathequePage() {

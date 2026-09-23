@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth.middleware';
-import { lookupMusique, submitMusique, submitMusiqueAdmin, listMusiques, listMyPendingMusiques, listAllMusiquesAdmin, deleteMusiqueAdmin } from '../services/musique.service';
+import { lookupMusique, submitMusique, submitMusiqueAdmin, listMusiques, listMyPendingMusiques, listAllMusiquesAdmin, deleteMusiqueAdmin, updateMusiqueAdmin } from '../services/musique.service';
 
 const musiqueRouter = Router();
 
@@ -108,6 +108,20 @@ musiqueRouter.get('/admin/list', requireAuth, requireAdmin, async (req: AuthRequ
 musiqueRouter.delete('/admin/:id', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const result = await deleteMusiqueAdmin(req.params.id);
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+/*DKDK_UPDATE_ADMIN_ROUTE*/
+// Modification d un morceau - admin seulement
+musiqueRouter.put('/admin/:id', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+    const _p = musiqueSchema.safeParse(req.body);
+    if (!_p.success) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR', details: _p.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })) });
+  try {
+    const { artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url, ref_url } = req.body;
+    const result = await updateMusiqueAdmin(req.params.id, { artiste, titre, album, duree_sec, pays_origine, continent, danse, style, cover_url, ref_url });
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });

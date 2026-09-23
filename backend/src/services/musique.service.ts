@@ -133,6 +133,31 @@ export async function listMusiques(filters: { continent?: string; pays?: string 
 /*DKDK_LIST_ADMIN*/
 // Liste TOUS les morceaux (approved + pending) pour l admin
 /*DKDK_USAGE_COUNT*/
+export async function updateMusiqueAdmin(id: string, params: {
+  artiste?: string; titre?: string; album?: string; duree_sec?: number;
+  pays_origine?: string; continent?: string; danse?: string; style?: string;
+  cover_url?: string; ref_url?: string;
+}) {  /*DKDK_UPDATE_MUSIC — modification d'un morceau par l'admin*/
+  if (!id) throw new Error('Identifiant manquant.');
+  const artiste = (params.artiste || '').trim();
+  const titre = (params.titre || '').trim();
+  if (!artiste || !titre) throw new Error('Artiste et titre obligatoires.');
+  const patch = {
+    artiste, titre,
+    album: params.album ?? null,
+    duree_sec: params.duree_sec ?? null,
+    pays_origine: params.pays_origine ?? null,
+    continent: params.continent ?? null,
+    danse: params.danse ?? null,
+    style: params.style ?? null,
+    cover_url: params.cover_url ?? null,
+    ref_url: params.ref_url ?? null,
+  };
+  const { error } = await supabase.from('musiques').update(patch).eq('id', id);
+  if (error) throw new Error('Erreur lors de la modification du morceau.');
+  return { id };
+}
+
 export async function listAllMusiquesAdmin() {
   const { data, error } = await supabase.from('musiques').select('*').order('created_at', { ascending: false });
   if (error) throw new Error('Erreur lors du chargement (admin).');
