@@ -70,6 +70,14 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'REGISTER_FAILED');
+      /*DKDK_AUTO_VERIFY*/ // Option A : compte cree ET connecte directement (jeton renvoye).
+      if (data.token) {
+        localStorage.setItem('dkdk_token', data.token);
+        localStorage.setItem('dkdk_user', JSON.stringify(data.user));
+        router.push('/home');
+        return;
+      }
+      // Repli : si l OTP est un jour reactive a l inscription.
       sessionStorage.setItem('pac_reg_phone', fullPhone);
       setStep(2); setResendCD(60);
       setTimeout(() => otpRefs.current[0]?.focus(), 300);

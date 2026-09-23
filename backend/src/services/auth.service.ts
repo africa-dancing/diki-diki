@@ -154,7 +154,20 @@ export async function registerUser(data: {
     console.error(`[AT] Erreur envoi SMS:`, err);
   }
 
-  return { userId: (user as any).id, message: 'OTP_SENT' };
+  /*DKDK_AUTO_VERIFY*/ // Option A : inscription = compte valide + connexion directe (sans code SMS).
+  const { data: fullUser, error: verr } = await supabase
+    .from('users')
+    .update({ is_verified: true, phone_verified: true })
+    .eq('id', (user as any).id)
+    .select('id, email, phone, name, role, avatar_url, country, wallet')
+    .single();
+  if (verr || !fullUser) throw new Error('USER_CREATION_FAILED');
+  const token = jwt.sign(
+    { userId: fullUser.id, role: fullUser.role },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+  return { token, user: fullUser, message: 'REGISTERED' };
 }
 
 // ─── VERIFY OTP ───────────────────────────────────────────────
