@@ -6,6 +6,7 @@ import Link from 'next/link';
 import TickerBand from '../components/TickerBand';
 import './home.css';
 import Navbar from '../components/Navbar';
+import WelcomeVideo from '../components/WelcomeVideo';
 
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
 
@@ -131,6 +132,7 @@ export default function HomePage() {
   return (
     <>
       <Navbar />
+      <WelcomeVideo /> {/*DKDK_WELCOME_VIDEO*/}
 
 
       {/* Hero */}
