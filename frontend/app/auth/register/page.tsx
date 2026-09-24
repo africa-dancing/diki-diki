@@ -103,6 +103,8 @@ export default function RegisterPage() {
       if (!res.ok) { setError(ERRORS[data.error] || 'Connexion Google impossible. Reessaie.'); setLoading(false); return; }
       localStorage.setItem('dkdk_token', data.token);
       localStorage.setItem('dkdk_user', JSON.stringify(data.user));
+      // Compte Google sans numero -> ecran "ajoute ton numero" (verrou argent)
+      if (!data.user || !data.user.phone) { router.push('/auth/ajouter-numero'); return; }
       router.push('/home');
     } catch (e: any) {
       const code = e && e.code;

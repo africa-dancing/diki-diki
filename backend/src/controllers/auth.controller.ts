@@ -163,6 +163,20 @@ export async function attachPhoneVerify(req: any, res: Response) {
   }
 }
 
+export async function attachPhoneSet(req: any, res: Response) {
+  try {
+    const { phone } = phoneSchema.parse(req.body);
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ error: 'TOKEN_MISSING' });
+    const result = await authService.attachPhoneDirect(userId, phone);
+    res.json(result);
+  } catch (err: any) {
+    if (err.name === 'ZodError')
+      return res.status(400).json({ error: 'VALIDATION_ERROR' });
+    res.status(400).json({ error: err.message || 'ATTACH_FAILED' });
+  }
+}
+
 // ─── Session cookie httpOnly ─────────────────────────────────────
 // GET /v1/auth/me : renvoie l'utilisateur courant (userId + role) à partir
 // du jeton (cookie ou Bearer). Nécessaire une fois le jeton passé en cookie

@@ -39,3 +39,4 @@ authRouter.post('/social',      authCtrl.socialAuth);
 /*DKDK_ATTACH_PHONE_ROUTES*/
 authRouter.post('/phone/attach',  requireAuth, authCtrl.attachPhoneSend);
 authRouter.post('/phone/confirm', requireAuth, authCtrl.attachPhoneVerify);
+authRouter.post('/phone/set',     requireAuth, authCtrl.attachPhoneSet); // rattachement direct (sans SMS)

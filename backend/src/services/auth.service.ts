@@ -458,3 +458,19 @@ export async function attachPhoneVerify(userId: string, otp: string) {
   await redis.del(`attach:${userId}`);
   return { message: 'PHONE_VERIFIED', phone };
 }
+
+// Rattachement DIRECT du numero (sans SMS) — coherent avec l'Option A :
+// un numero fourni (et unique) suffit a lever le verrou d'argent.
+export async function attachPhoneDirect(userId: string, phone: string) {
+  const { data: existant } = await supabase
+    .from('users').select('id').eq('phone', phone).maybeSingle();
+  if (existant && existant.id !== userId) throw new Error('PHONE_ALREADY_USED');
+
+  const { error } = await supabase
+    .from('users')
+    .update({ phone, is_verified: true, phone_verified: true })
+    .eq('id', userId);
+  if (error) throw new Error(error.code === '23505' ? 'PHONE_ALREADY_USED' : 'ATTACH_FAILED');
+
+  return { message: 'PHONE_VERIFIED', phone };
+}
