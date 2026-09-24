@@ -111,10 +111,6 @@ export default function RegisterPage() {
     }
   }
 
-  function handleFacebook() {
-    setError('La connexion Facebook arrive bientot. Utilise Google ou ton email pour le moment.');
-  }
-
   function handleOtpInput(i: number, value: string) {
     if (!/^\d*$/.test(value)) return;
     const n = [...otp]; n[i] = value.slice(-1); setOtp(n); setError('');
@@ -175,7 +171,7 @@ export default function RegisterPage() {
         .glow-bl{position:fixed;bottom:-150px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(255,184,0,.08) 0%,transparent 70%);pointer-events:none}
         .reg-card{position:relative;width:100%;max-width:480px;background:var(--surface);border:1px solid rgba(126,3,128,.6);border-top:2px solid #7e0380;border-radius:24px;padding:44px 40px;backdrop-filter:blur(20px)}
         .logo-area{display:flex;align-items:center;justify-content:center;margin-bottom:28px}
-        .social-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+        .social-row{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:18px}
         .btn-social{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
         .btn-social svg{width:18px;height:18px}
         .divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--ink-dim);font-size:13px}
@@ -247,12 +243,6 @@ export default function RegisterPage() {
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                   </svg>
                   Google
-                </button>
-                <button type="button" className="btn-social" onClick={handleFacebook}>
-                  <svg viewBox="0 0 24 24" fill="#1877F2">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                  </svg>
-                  Facebook
                 </button>
               </div>
 
