@@ -242,6 +242,38 @@ export async function loginUser(identifier: string, password: string) {
   return { token, user: safeUser };
 }
 
+// ─── Firebase Admin (init paresseuse, inerte sans clé) ───────
+// Ne s'exécute QUE lors d'une connexion Google réelle. Tant que les
+// variables ne sont pas posées (Railway), rien ne change pour l'existant.
+let firebaseReady = false;
+function ensureFirebase(): void {
+  if (firebaseReady || admin.apps.length) { firebaseReady = true; return; }
+
+  const raw         = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const projectId   = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  let   privateKey  = process.env.FIREBASE_PRIVATE_KEY;
+
+  let credential: admin.credential.Credential | null = null;
+
+  if (raw) {
+    try {
+      const parsed: any = JSON.parse(raw);
+      if (parsed.private_key) parsed.private_key = String(parsed.private_key).replace(/\\n/g, '\n');
+      credential = admin.credential.cert(parsed as admin.ServiceAccount);
+    } catch {
+      throw new Error('SOCIAL_NOT_CONFIGURED');
+    }
+  } else if (projectId && clientEmail && privateKey) {
+    privateKey = privateKey.replace(/\\n/g, '\n');
+    credential = admin.credential.cert({ projectId, clientEmail, privateKey });
+  }
+
+  if (!credential) throw new Error('SOCIAL_NOT_CONFIGURED');
+  admin.initializeApp({ credential });
+  firebaseReady = true;
+}
+
 // ─── SOCIAL AUTH (Google + Facebook) ─────────────────────────
 export async function socialAuth(
   provider: 'google' | 'facebook',
@@ -254,6 +286,7 @@ export async function socialAuth(
   let avatarUrl: string = '';
 
   if (provider === 'google') {
+    ensureFirebase();
     const ticket = await admin.auth().verifyIdToken(token);
     socialId  = ticket.uid;
     email     = ticket.email!;
@@ -295,6 +328,14 @@ export async function socialAuth(
 
     if (error) throw new Error('SOCIAL_AUTH_FAILED');
     user = newUser as any;
+
+    // GARDE-FOU ARGENT : un compte social n'a pas de telephone.
+    // Le portail d'argent (requireVerified) exige phone_verified=true.
+    // On force donc phone_verified=false a la creation : l'utilisateur
+    // devra rattacher et verifier un numero avant toute action d'argent.
+    await supabase.from('users')
+      .update({ phone_verified: false }) /*DKDK_SOCIAL_NO_PHONE*/
+      .eq('id', (user as any).id);
   }
 
   const jwtToken = jwt.sign(
