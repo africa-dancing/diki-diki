@@ -45,6 +45,8 @@ function AdminChallengesInner() {
   const [videos, setVideos]         = useState<any[]>([]);
   const [detailLoad, setDetailLoad] = useState(false);
   const [suppr, setSuppr] = useState<string | null>(null);
+  const [dragCat, setDragCat] = useState<string | null>(null); /*DKDK_CHALLENGE_ORDER*/
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
 
   const charger = async () => {
     setLoad(true); setErreur('');
@@ -100,6 +102,31 @@ function AdminChallengesInner() {
     finally { setSuppr(null); }
   };
 
+  /*DKDK_CHALLENGE_ORDER — reordonne dans une categorie puis persiste position=index+1 sur toute la liste affichee*/
+  const deplacer = async (cat: string, from: number, to: number) => {
+    if (from === to) return;
+    const grp: { [k: string]: Challenge[] } = {};
+    liste.forEach((ch) => { const c = ch.categorie || 'Sans categorie'; (grp[c] = grp[c] || []).push(ch); });
+    const arr = grp[cat] ? [...grp[cat]] : [];
+    if (from < 0 || from >= arr.length || to < 0 || to >= arr.length) return;
+    const [moved] = arr.splice(from, 1);
+    arr.splice(to, 0, moved);
+    grp[cat] = arr;
+    const cats = Object.keys(grp).sort();
+    const nouvelle: Challenge[] = [];
+    cats.forEach((c) => grp[c].forEach((ch) => nouvelle.push(ch)));
+    setListe(nouvelle); setInfo(''); setErreur('');
+    try {
+      await Promise.all(nouvelle.map((ch, idx) =>
+        fetch(API + '/brackets/' + ch.id + '/position', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + admin?.token },
+          body: JSON.stringify({ position: idx + 1 }),
+        })
+      ));
+      setInfo('Ordre enregistre.');
+    } catch { setErreur('Erreur lors de l enregistrement de l ordre.'); }
+  };
   const groupes: { [k: string]: Challenge[] } = {};
   liste.forEach((ch) => {
     const cat = ch.categorie || 'Sans categorie';
@@ -116,6 +143,7 @@ function AdminChallengesInner() {
           <span style={{ color: OR }}>Challenges</span> &mdash; gestion
         </h1>
         <p style={{ fontSize:14, color:'#a0a0c0', marginBottom:20 }}>Tous les challenges, classes par categorie. Clique un challenge pour voir ses videos.</p>
+        <p style={{ fontSize:12.5, color:'#6a6a8a', marginBottom:16 }}>&#10303; Glisser-d&eacute;poser les cartes pour les r&eacute;ordonner (dans chaque cat&eacute;gorie).</p>
 
         <button onClick={charger} disabled={loading} style={{ marginBottom:16, padding:'8px 16px', borderRadius:8, border:'1px solid #1e1e2e', background:'#0d0d14', color:OR, fontWeight:600, fontSize:13, cursor:'pointer' }}>
           {loading ? 'Chargement...' : 'Rafraichir'}
@@ -131,11 +159,17 @@ function AdminChallengesInner() {
               {cat} <span style={{ fontSize:13, color:'#6a6a8a' }}>({groupes[cat].length})</span>
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-              {groupes[cat].map((ch) => {
+              {groupes[cat].map((ch, idx) => {
                 const nbP = ch.bracket_participants?.[0]?.count ?? 0;
                 const supprimable = ch.status === 'waiting_candidates' || ch.status === 'appel'; /*DKDK_MODERATEUR_APPEL*/
                 return (
-                  <div key={ch.id} style={{ background:'#0d0d14', border:'1px solid #1e1e2e', borderRadius:10, padding:'14px 16px', display:'flex', justifyContent:'space-between', alignItems:'center', gap:12, flexWrap:'wrap' }}>
+                  <div key={ch.id}
+                    draggable
+                    onDragStart={() => { setDragCat(cat); setDragIdx(idx); }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => { if (dragCat === cat && dragIdx !== null) deplacer(cat, dragIdx, idx); setDragCat(null); setDragIdx(null); }}
+                    style={{ background: (dragCat === cat && dragIdx === idx) ? '#2a2118' : '#0d0d14', border:'1px solid #1e1e2e', borderRadius:10, padding:'14px 16px', display:'flex', justifyContent:'space-between', alignItems:'center', gap:12, flexWrap:'wrap' }}>
+                    <span title="Glisser pour reordonner" style={{ cursor:'grab', color:'#6a6a8a', fontSize:18, userSelect:'none', lineHeight:1 }}>&#10303;</span>
                     <div onClick={() => ouvrirDetail(ch)} style={{ flex:1, minWidth:220, cursor:'pointer' }}>
                       <div style={{ fontSize:15, fontWeight:700, color:'#fff' }}>{ch.title || ch.code || 'Challenge'}</div>
                       <div style={{ fontSize:12, color:'#a0a0c0', marginTop:5, display:'flex', gap:9, flexWrap:'wrap', alignItems:'center' }}>

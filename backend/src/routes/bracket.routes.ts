@@ -27,11 +27,28 @@ bracketRouter.get('/', async (req: Request, res: Response) => {
   try {
     const { data, error } = await getSupabase()
       .from('brackets')
-      .select('id, code, title, discipline, categorie, style, status, modele, niveau, objectif_bloc, appel_deadline, current_round, total_cagnotte, max_participants, created_at, bracket_participants!bracket_participants_bracket_id_fkey(count)') /*DKDK_ADMIN_CARTE — infos enrichies*/
+      .select('id, code, title, discipline, categorie, style, status, modele, niveau, objectif_bloc, appel_deadline, current_round, total_cagnotte, max_participants, position, created_at, bracket_participants!bracket_participants_bracket_id_fkey(count)') /*DKDK_ADMIN_CARTE — infos enrichies*/
       .in('status', ['open', 'in_progress', 'waiting_candidates', 'appel']) /*DKDK_MODERATEUR_APPEL — les appels apparaissent en admin*/
+      .order('position', { ascending: true, nullsFirst: false }) /*DKDK_CHALLENGE_ORDER*/
       .order('created_at', { ascending: false });
     if (error) throw error;
     res.json({ success: true, data });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Reordonner un challenge (admin) — glisser-deposer /*DKDK_CHALLENGE_ORDER*/
+bracketRouter.put('/:id/position', requireAuth, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const pos = Number(req.body?.position);
+    if (!Number.isInteger(pos)) return res.status(400).json({ success: false, error: 'position invalide' });
+    const { error } = await getSupabase()
+      .from('brackets')
+      .update({ position: pos })
+      .eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
