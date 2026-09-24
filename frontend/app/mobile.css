@@ -237,7 +237,7 @@ body {
 .dkdk-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 14px;
+  gap: 26px; /*DKDK_CARDS_GAP — plus d'air entre les panneaux (le halo comblait le vide)*/
   align-items: stretch;
 }
 .dkdk-cards > * { margin-bottom: 0 !important; height: 100%; }
