@@ -35,10 +35,19 @@ setInterval(() => {
 // Railway transmet l'IP réelle du visiteur dans x-forwarded-for (1er élément).
 // Retourne null si non déterminable (IP privée/locale, lookup vide, etc.).
 function paysDepuisRequete(req: Request): string | null {
-  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
+  const h = req.headers;
+  // 1) En-tetes pays du CDN/hebergeur (fiables) : Cloudflare, Vercel, etc.
+  const cdn = (h['cf-ipcountry'] || h['x-vercel-ip-country'] || h['x-appengine-country']
+            || h['fastly-geo-country'] || h['x-country-code']) as string | undefined;
+  if (cdn) {
+    const c = String(cdn).toUpperCase();
+    if (/^[A-Z]{2}$/.test(c) && c !== 'XX' && c !== 'T1') return c;
+  }
+  // 2) Repli : geoip-lite sur la vraie IP visiteur (1er x-forwarded-for).
+  const ip = (h['x-forwarded-for'] as string)?.split(',')[0]?.trim()
           || (req.socket && req.socket.remoteAddress) || '';
   if (!ip) return null;
-  const geo = ip ? geoip.lookup(ip) : null;
+  const geo = geoip.lookup(ip);
   const code = geo && geo.country ? String(geo.country).toUpperCase() : '';
   return /^[A-Z]{2}$/.test(code) ? code : null;
 }
