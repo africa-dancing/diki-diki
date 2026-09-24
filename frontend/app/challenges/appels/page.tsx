@@ -381,7 +381,7 @@ function AppelCard({ appel }: { appel: Appel }) {
       border: open ? '1px solid rgba(255,150,0,0.4)' : '1px solid var(--line)',
       borderRadius: 16, padding: 20, marginBottom: 16, display: 'flex', flexDirection: 'column', height: '100%',
       position: 'relative', overflow: 'hidden',
-      boxShadow: open ? '0 0 0 1px rgba(255,150,0,0.12),0 24px 60px -30px rgba(237,28,36,0.35)' : 'none',
+      boxShadow: open ? '0 0 0 1px rgba(255,150,0,0.15),0 10px 26px -16px rgba(237,28,36,0.45)' : 'none', /*DKDK_CARD_SHADOW — halo reduit : ne deborde plus sur les cartes voisines*/
     }}>
       {open && (
         <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: SOLID }} />
