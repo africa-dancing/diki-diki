@@ -1,1 +1,1 @@
-export { default } from './home/page'; /*DKDK_ROOT_RENDER_HOME*/
+export { default } from './challenges/appels/page'; /*DKDK_ROOT_RENDER_APPELS — l'atterrissage visiteurs se fait sur le Mur des Appels (accueil vide sans videos = friction). /home reste accessible via le menu.*/
