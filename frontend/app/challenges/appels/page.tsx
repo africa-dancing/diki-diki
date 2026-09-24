@@ -379,7 +379,7 @@ function AppelCard({ appel }: { appel: Appel }) {
     <article style={{
       background: 'linear-gradient(180deg,var(--surface2),var(--surface))',
       border: open ? '1px solid rgba(255,150,0,0.4)' : '1px solid var(--line)',
-      borderRadius: 16, padding: 20, marginBottom: 16,
+      borderRadius: 16, padding: 20, marginBottom: 16, display: 'flex', flexDirection: 'column', height: '100%',
       position: 'relative', overflow: 'hidden',
       boxShadow: open ? '0 0 0 1px rgba(255,150,0,0.12),0 24px 60px -30px rgba(237,28,36,0.35)' : 'none',
     }}>
@@ -550,7 +550,7 @@ function AppelCard({ appel }: { appel: Appel }) {
       <Link href={`/challenges/appels/${appel.id}`} style={{
         display: 'block', textAlign: 'center', textDecoration: 'none',
         background: SOLID, color: ON_ACCENT, fontWeight: 700, fontSize: 14,
-        borderRadius: 10, padding: 14, marginTop: 16,
+        borderRadius: 10, padding: 14, marginTop: 'auto',
       }}>Rejoindre / Voir l&apos;appel</Link>
     </article>
   );

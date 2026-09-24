@@ -12,7 +12,8 @@ const DISCIPLINES = [
   { label: 'Acapella',   emoji: '🎵', value: 'acapella' },
   { label: 'Humour',     emoji: '😂', value: 'humour' },
   { label: 'Poésie',     emoji: '✍️', value: 'poesie' },
-  { label: 'Conte',      emoji: '📖', value: 'conte' }, /*DKDK_DISCIPLINES_ADD*/
+  { label: 'Conte',      emoji: '📖', value: 'conte' },
+  { label: 'Sport',      emoji: '🥋', value: 'sport' }, /*DKDK_DISCIPLINES_ADD*/
 ];
 
 export default function Navbar() {
