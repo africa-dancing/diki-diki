@@ -114,6 +114,7 @@ export default function MurDesAppelsPage() {
   const slotRef = useRef<HTMLDivElement | null>(null);
   const guideRef = useRef<HTMLDivElement | null>(null);
   const naturalH = useRef<number>(0);
+  const morphedRef = useRef(false);
   const [guideMorph, setGuideMorph] = useState(false);
   const [rowBubble, setRowBubble] = useState<{ title: string; body: React.ReactNode; top: number } | null>(null);
 
@@ -121,11 +122,14 @@ export default function MurDesAppelsPage() {
     if (typeof window === 'undefined' || window.innerWidth < 1024) return;
     const slot = slotRef.current, g = guideRef.current;
     if (!slot || !g) return;
+    morphedRef.current = true;
     naturalH.current = g.offsetHeight;
     slot.style.height = naturalH.current + 'px';
     requestAnimationFrame(() => { setGuideMorph(true); if (slotRef.current) slotRef.current.style.height = '0px'; });
   }
   function fermerGuideMorph() {
+    if (!morphedRef.current) return;
+    morphedRef.current = false;
     setGuideMorph(false);
     const slot = slotRef.current;
     if (slot) {
@@ -134,6 +138,7 @@ export default function MurDesAppelsPage() {
     }
   }
   function bulleLigne(e: React.MouseEvent, title: string, body: React.ReactNode) {
+    if (morphedRef.current) return;
     setRowBubble({ title, body, top: Math.max(120, (e.currentTarget as HTMLElement).getBoundingClientRect().top) });
   }
 
@@ -204,6 +209,7 @@ export default function MurDesAppelsPage() {
 
       <div className="dkdk-appels-main" style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px' }}>
 
+        <div onMouseLeave={fermerGuideMorph}>{/*DKDK_GUIDE_ZONE — zone stable : evite le clignotement au survol du guide*/}
         {/*DKDK_GUIDE_PANEL — guide contextuel « Ton guide Diki-Diki » (miroir de /submit)*/}
         {(() => {
           const g = guideContent();
@@ -226,7 +232,7 @@ export default function MurDesAppelsPage() {
                 }
               `}</style>
               <div ref={slotRef} style={{ transition: 'height .38s cubic-bezier(.2,.7,.2,1)' }}>
-              <div ref={guideRef} onMouseEnter={ouvrirGuideMorph} onMouseLeave={fermerGuideMorph} className={guideMorph ? 'dkdk-guide-glow dkdk-guide-morph' : 'dkdk-guide-glow'} style={{ background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 16, padding: '14px 16px', margin: '18px 0 4px', transition: 'width .4s cubic-bezier(.2,.7,.2,1), height .4s cubic-bezier(.2,.7,.2,1), border-radius .4s, box-shadow .3s' }}>
+              <div ref={guideRef} onMouseEnter={ouvrirGuideMorph} className={guideMorph ? 'dkdk-guide-glow dkdk-guide-morph' : 'dkdk-guide-glow'} style={{ background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 16, padding: '14px 16px', margin: '18px 0 4px', transition: 'width .4s cubic-bezier(.2,.7,.2,1), height .4s cubic-bezier(.2,.7,.2,1), border-radius .4s, box-shadow .3s' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
                   <span className="dkdk-guide-icon" style={{ fontSize: 22, lineHeight: 1 }}>🧭</span>
                   <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: OR }}>Ton guide Diki-Diki</span>
@@ -295,6 +301,7 @@ export default function MurDesAppelsPage() {
             padding: '10px 16px', whiteSpace: 'nowrap',
           }}>Créer</Link>
         </div>
+        </div>{/*DKDK_GUIDE_ZONE fin*/}
 
         {/* LABEL SECTION */}
         <div style={{
