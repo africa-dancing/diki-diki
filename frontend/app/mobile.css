@@ -242,6 +242,15 @@ body {
 }
 .dkdk-cards > * { margin-bottom: 0 !important; height: 100%; }
 
+/*DKDK_APPELS_PC — sur grand ecran, la zone des panneaux occupe la largeur (fini la bande verticale au centre)*/
+@media (min-width: 1024px) {
+  .dkdk-appels-main { max-width: 1200px !important; }
+  .dkdk-appels-main .dkdk-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1500px) {
+  .dkdk-appels-main { max-width: 1340px !important; }
+}
+
 /*DKDK_FLIP — bascule recto/verso du panneau (double face)*/
 @keyframes dkdkFlipIn { from { opacity: 0; transform: rotateY(-92deg); } to { opacity: 1; transform: rotateY(0deg); } }
 .dkdk-flipface { transform-origin: center right; backface-visibility: hidden; animation: dkdkFlipIn .42s cubic-bezier(.2,.7,.2,1) both; }

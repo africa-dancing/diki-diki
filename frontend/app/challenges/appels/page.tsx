@@ -175,7 +175,7 @@ export default function MurDesAppelsPage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px' }}>
+      <div className="dkdk-appels-main" style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px' }}>
 
         {/*DKDK_GUIDE_PANEL — guide contextuel « Ton guide Diki-Diki » (miroir de /submit)*/}
         {(() => {
