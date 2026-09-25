@@ -22,7 +22,7 @@ const musiqueSchema = z.object({
 });
 
 // Recherche MusicBrainz (auto-remplissage) - statique AVANT tout param
-musiqueRouter.get('/lookup', requireAuth, async (req: AuthRequest, res: Response) => {
+musiqueRouter.get('/lookup', async (req: Request, res: Response) => { /*DKDK_LOOKUP_PUBLIC — recherche metadonnees (Deezer) accessible sans connexion; seule la soumission reste protegee*/
   try {
     const q = String(req.query.q || '').trim();
     if (!q) return res.status(400).json({ success: false, error: 'Requete vide.' });
