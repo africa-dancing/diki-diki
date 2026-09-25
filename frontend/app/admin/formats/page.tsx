@@ -32,6 +32,8 @@ function FormatsInner() {
   const [editId, setEditId] = useState<string>('');
   const [eLib, setELib]     = useState('');
   const [eObj, setEObj]     = useState('');
+  const [eEtapes, setEEtapes] = useState('');
+  const [eVideos, setEVideos] = useState('');
 
   const msg = (t: string, ok = true) => { ok ? setInfo(t) : setErreur(t); setTimeout(() => { setInfo(''); setErreur(''); }, 3500); };
   const liste = (j: any) => Array.isArray(j) ? j : (j?.data ?? []);
@@ -43,17 +45,21 @@ function FormatsInner() {
   };
   useEffect(() => { charger(); }, []);
 
-  const ouvrirEdit = (ff: Format) => { setEditId(ff.id); setELib(ff.libelle); setEObj(String(ff.objectif_etape)); };
-  const annuler = () => { setEditId(''); setELib(''); setEObj(''); };
+  const ouvrirEdit = (ff: Format) => { setEditId(ff.id); setELib(ff.libelle); setEObj(String(ff.objectif_etape)); setEEtapes(String(ff.nb_etapes)); setEVideos(String(ff.nb_videos)); };
+  const annuler = () => { setEditId(''); setELib(''); setEObj(''); setEEtapes(''); setEVideos(''); };
 
   const enregistrer = async (id: string) => {
     const obj = Number(eObj);
     if (!eLib.trim()) return msg('Le libelle est vide', false);
     if (!Number.isFinite(obj) || obj <= 0) return msg('Objectif invalide', false);
+    const et = Number(eEtapes);
+    const vd = Number(eVideos);
+    if (!Number.isInteger(et) || et <= 0) return msg('Nombre d etapes invalide', false);
+    if (!Number.isInteger(vd) || vd <= 0) return msg('Nombre de videos invalide', false);
     try {
       const r = await fetch(API + '/challenge-formats/' + id, {
         method: 'PATCH', headers: tok(),
-        body: JSON.stringify({ libelle: eLib.trim(), objectif_etape: obj }),
+        body: JSON.stringify({ libelle: eLib.trim(), objectif_etape: obj, nb_etapes: et, nb_videos: vd }),
       });
       if (!r.ok) throw new Error();
       annuler(); await charger(); msg('Format mis a jour');
@@ -79,7 +85,7 @@ function FormatsInner() {
           Formats de challenge
         </h1>
         <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>
-          Libelle et objectif par etape sont modifiables. Le nombre de candidats, d&apos;etapes et de videos est structurel.
+          Libelle, objectif par etape, nombre d&apos;etapes et de videos sont modifiables. Le nombre de candidats reste structurel (lie au format).
         </p>
 
         {info   && <div style={{ ...carte, borderColor: OR, color: OR }}>{info}</div>}
@@ -110,8 +116,16 @@ function FormatsInner() {
                     <td style={cell}>{ff.libelle}</td>
                   )}
                   <td style={cellMut}>{ff.nb_candidats}</td>
-                  <td style={cellMut}>{ff.nb_etapes}</td>
-                  <td style={cellMut}>{ff.nb_videos}</td>
+                  {editId === ff.id ? (
+                    <td style={cell}><input style={{ ...champ, width: 60 }} value={eEtapes} onChange={(e) => setEEtapes(e.target.value)} inputMode="numeric" /></td>
+                  ) : (
+                    <td style={cellMut}>{ff.nb_etapes}</td>
+                  )}
+                  {editId === ff.id ? (
+                    <td style={cell}><input style={{ ...champ, width: 60 }} value={eVideos} onChange={(e) => setEVideos(e.target.value)} inputMode="numeric" /></td>
+                  ) : (
+                    <td style={cellMut}>{ff.nb_videos}</td>
+                  )}
                   {editId === ff.id ? (
                     <td style={cell}><input style={{ ...champ, width: 110 }} value={eObj} onChange={(e) => setEObj(e.target.value)} inputMode="numeric" /></td>
                   ) : (

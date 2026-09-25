@@ -381,6 +381,8 @@ formatRouter.patch('/:id', requireAuth, requireAdmin, async (req: any, res) => {
     if (req.body.libelle !== undefined)        patch.libelle = req.body.libelle;
     if (req.body.objectif_etape !== undefined) patch.objectif_etape = req.body.objectif_etape;
     if (req.body.actif !== undefined)          patch.actif = req.body.actif;
+    if (req.body.nb_etapes !== undefined)      patch.nb_etapes = req.body.nb_etapes;
+    if (req.body.nb_videos !== undefined)      patch.nb_videos = req.body.nb_videos;
     const { data, error } = await supabase.from('challenge_formats').update(patch).eq('id', req.params.id).select();
     if (error) throw error;
     res.json(data[0]);
