@@ -2,7 +2,7 @@
 import LogoDikiDiki from '../components/LogoDikiDiki';
 import Navbar from '../components/Navbar';/*DKDK_FAQ_NAVBAR_IMPORT*/
 import TranslateWidget from '../components/TranslateWidget';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 const OR = 'var(--or)';
@@ -55,7 +55,7 @@ const faqs = [
       },
       {
         q: "Quels sont les formats de challenge ?",
-        a: `Il existe 6 formats, selon le nombre de candidats. Chaque format fixe le niveau (le nombre de vidéos, égal au nombre d'étapes), l'objectif de cagnotte à réunir par étape, ainsi que le nombre de gagnants et d'éliminés :\n\n• C2 — 2 candidats · niveau 1 (1 vidéo, 1 étape) · objectif 2 500 000 F/étape · 1 gagnant · 1 éliminé\n• C4 — 4 candidats · niveau 2 (2 vidéos, 2 étapes) · objectif 4 000 000 F/étape · 2 gagnants · 2 éliminés\n• C6 — 6 candidats · niveau 3 (3 vidéos, 3 étapes) · objectif 5 000 000 F/étape · 3 gagnants · 3 éliminés\n• C8 — 8 candidats · niveau 4 (4 vidéos, 4 étapes) · objectif 7 000 000 F/étape · 3 gagnants · 5 éliminés\n• C12 — 12 candidats · niveau 4 (4 vidéos, 4 étapes) · objectif 9 000 000 F/étape · 3 gagnants · 9 éliminés\n• C16 — 16 candidats · niveau 4 (4 vidéos, 4 étapes) · objectif 15 000 000 F/étape · 3 gagnants · 13 éliminés\n\n⚠️ Important : l'objectif (2 500 000 F, 4 000 000 F, etc.) est le montant de cagnotte à réunir pour fermer une étape — ce n'est PAS un gain de candidat. Le gain réel dépend de la cagnotte réellement collectée, moins la commission, partagée selon le podium (voir « Comment la cagnotte est-elle partagée ? »).\n\nEn modèle Parcours, la dernière étape est un « match de classement » : les finalistes s'affrontent une dernière fois, sans élimination, et le vote fixe l'ordre du podium (elle est comptée dans le nombre d'étapes ci-dessus). Le total « gagnants + éliminés » est toujours égal au nombre de candidats.`,
+        a: "Voici les formats proposés, tenus à jour automatiquement d'après l'Admin. ⚠️ L'objectif indiqué est le montant de cagnotte à réunir par étape (le seuil qui ferme l'étape) — ce n'est PAS un gain de candidat ; le gain réel dépend de la cagnotte réellement collectée, moins la commission, partagée selon le podium (voir « Comment la cagnotte est-elle partagée ? »).",
       },
       {
         q: "Parcours ou Bloc groupé : quelle différence ?",
@@ -117,7 +117,126 @@ const faqs = [
   },
 ];
 
-function FaqItem({ q, a }: { q: string; a: string }) {
+/*DKDK_FORMATS_GRID — grille dynamique des formats, lue en direct depuis l'Admin
+  (GET public /challenge-formats + /bloc-objectifs). Toute modif admin s'y reflète.*/
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
+
+interface FmtRow { id: string; code: string; libelle: string; nb_candidats: number; nb_etapes: number; nb_videos: number; objectif_etape: number; actif: boolean; ordre?: number; }
+interface BlocRow { id: string; format_code: string; niveau: number; objectif: number; nb_gagnants: number; }
+
+const fmtF = (n: number): string => (n ?? 0).toLocaleString('fr-FR') + ' F';
+
+function FormatsGrid() {
+  const [fmts, setFmts]       = useState<FmtRow[]>([]);
+  const [blocs, setBlocs]     = useState<BlocRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr]         = useState(false);
+  const [detail, setDetail]   = useState(false);
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`${API}/challenge-formats`, { cache: 'no-store' }).then(r => r.ok ? r.json() : Promise.reject(new Error('formats'))),
+      fetch(`${API}/bloc-objectifs`, { cache: 'no-store' }).then(r => r.ok ? r.json() : Promise.reject(new Error('blocs'))),
+    ])
+      .then(([f, b]) => {
+        setFmts((Array.isArray(f) ? f : (f?.data ?? [])) as FmtRow[]);
+        setBlocs((Array.isArray(b) ? b : (b?.data ?? [])) as BlocRow[]);
+      })
+      .catch(() => setErr(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const candOf = (code: string): number => fmts.find(f => f.code === code)?.nb_candidats ?? (parseInt(code.replace('C', ''), 10) || 0);
+  const gagnantsFmt = (f: FmtRow): number | null => {
+    const exact = blocs.find(b => b.format_code === f.code && b.niveau === f.nb_videos);
+    if (exact) return exact.nb_gagnants;
+    const any = blocs.filter(b => b.format_code === f.code).sort((a, c) => c.niveau - a.niveau)[0];
+    return any ? any.nb_gagnants : null;
+  };
+
+  if (loading) return <div style={{ fontSize: 13, color: 'var(--ink-soft)', padding: '6px 0' }}>Chargement des formats…</div>;
+  if (err) return <div style={{ fontSize: 13, color: 'var(--ink-soft)', padding: '6px 0' }}>Impossible de charger les formats pour le moment. Réessaie un peu plus tard.</div>;
+
+  const th: React.CSSProperties = { textAlign: 'left', fontFamily: "'Syne', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: '.03em', textTransform: 'uppercase', color: 'var(--or)', padding: '9px 10px', borderBottom: '1px solid var(--line)', whiteSpace: 'nowrap' };
+  const td: React.CSSProperties = { fontSize: 13, color: 'var(--ink)', padding: '9px 10px', borderBottom: '1px solid var(--line)', whiteSpace: 'nowrap' };
+  const tdMut: React.CSSProperties = { ...td, color: 'var(--ink-soft)' };
+
+  const blocsActifs = blocs.filter(b => fmts.some(f => f.code === b.format_code));
+
+  return (
+    <div style={{ margin: '4px 0 2px' }}>
+      {/* Résumé par format */}
+      <div style={{ overflowX: 'auto', border: '1px solid var(--line)', borderRadius: 12, marginBottom: 14 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
+          <thead>
+            <tr>
+              <th style={th}>Format</th>
+              <th style={th}>Candidats</th>
+              <th style={th}>Étapes</th>
+              <th style={th}>Vidéos</th>
+              <th style={th}>Objectif/étape</th>
+              <th style={th}>Gagnants</th>
+              <th style={th}>Éliminés</th>
+            </tr>
+          </thead>
+          <tbody>
+            {fmts.map(f => {
+              const g = gagnantsFmt(f);
+              const elim = g != null ? f.nb_candidats - g : null;
+              return (
+                <tr key={f.id}>
+                  <td style={{ ...td, fontWeight: 800, color: 'var(--or)' }}>{f.code}</td>
+                  <td style={tdMut}>{f.nb_candidats}</td>
+                  <td style={tdMut}>{f.nb_etapes}</td>
+                  <td style={tdMut}>{f.nb_videos}</td>
+                  <td style={td}>{fmtF(f.objectif_etape)}</td>
+                  <td style={{ ...td, color: 'var(--green, #4ade80)', fontWeight: 700 }}>{g != null ? g : '—'}</td>
+                  <td style={{ ...td, color: 'var(--red, #ff6b6b)', fontWeight: 700 }}>{elim != null ? elim : '—'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Détail par niveau (dépliable) */}
+      <button onClick={() => setDetail(v => !v)} style={{ background: 'none', border: '1px solid var(--line)', color: 'var(--or)', fontSize: 12.5, fontWeight: 700, borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}>
+        {detail ? '▾ Masquer le détail par niveau' : '▸ Voir le détail par niveau (bloc groupé)'}
+      </button>
+
+      {detail && (
+        <div style={{ overflowX: 'auto', border: '1px solid var(--line)', borderRadius: 12, marginTop: 12 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
+            <thead>
+              <tr>
+                <th style={th}>Format</th>
+                <th style={th}>Niveau</th>
+                <th style={th}>Vidéos</th>
+                <th style={th}>Objectif</th>
+                <th style={th}>Gagnants</th>
+                <th style={th}>Éliminés</th>
+              </tr>
+            </thead>
+            <tbody>
+              {blocsActifs.map(b => (
+                <tr key={b.id}>
+                  <td style={{ ...td, fontWeight: 800, color: 'var(--or)' }}>{b.format_code}</td>
+                  <td style={tdMut}>Niveau {b.niveau}</td>
+                  <td style={tdMut}>{b.niveau} vidéo{b.niveau > 1 ? 's' : ''}</td>
+                  <td style={td}>{fmtF(b.objectif)}</td>
+                  <td style={{ ...td, color: 'var(--green, #4ade80)', fontWeight: 700 }}>{b.nb_gagnants}</td>
+                  <td style={{ ...td, color: 'var(--red, #ff6b6b)', fontWeight: 700 }}>{candOf(b.format_code) - b.nb_gagnants}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FaqItem({ q, a, node }: { q: string; a: string; node?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={s.item}>
@@ -130,6 +249,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
           {a.split('\n').map((line, i) => (
             <span key={i}>{line}{i < a.split('\n').length - 1 && <br />}</span>
           ))}
+          {node ? <div style={{ marginTop: 12 }}>{node}</div> : null}
         </div>
       )}
     </div>
@@ -154,7 +274,7 @@ export default function FAQPage() {
         {faqs.map(({ cat, items }) => (
           <div key={cat}>
             <p style={s.catTitle}>{cat}</p>
-            {items.map(({ q, a }) => <FaqItem key={q} q={q} a={a} />)}
+            {items.map(({ q, a }) => <FaqItem key={q} q={q} a={a} node={q === "Quels sont les formats de challenge ?" ? <FormatsGrid /> : undefined} />)}
           </div>
         ))}
 
