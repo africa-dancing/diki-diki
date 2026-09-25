@@ -274,12 +274,7 @@ export default function SubmitPage() {
 
   function handleVideoLoaded() {
     const d = videoRef.current?.duration || 0;
-    setDuration(d);
-    if (d > 600) {
-      setError('Vidéo trop longue. Maximum 10 minutes.');
-      setFile(null); setPreview(null);
-      return;
-    }
+    setDuration(d); /*DKDK_NO_DURATION_LIMIT — plus de limite de duree*/
     setAudioWarning('');
     const v = videoRef.current as any;
     setTimeout(() => {
@@ -864,7 +859,7 @@ export default function SubmitPage() {
                 <div onClick={() => fileRef.current?.click()} style={{ border: '1.5px dashed var(--line-strong)', borderRadius: 14, padding: '2.5rem 1rem', textAlign: 'center', cursor: 'pointer', background: 'var(--surface)', marginBottom: 16 }}>
                   <div style={{ fontSize: 36, marginBottom: 10 }}>🎬</div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>Cliquez pour choisir votre vidéo</div>
-                  <div style={{ fontSize: 12, color: 'var(--ink-dim)' }}>MP4 ou MOV · Max 500 MB · Max 10 minutes</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-dim)' }}>MP4 ou MOV · pas de limite de durée</div>
                   <input ref={fileRef} type="file" accept="video/mp4,video/quicktime" onChange={handleFileChange} style={{ display: 'none' }} />
                 </div>
               ) : (
