@@ -265,8 +265,8 @@ export default function SubmitPage() {
     if (!['video/mp4', 'video/quicktime'].includes(f.type)) {
       setError('Format non supporté. Utilisez MP4 ou MOV.'); return;
     }
-    if (f.size / (1024 * 1024) > 500) {
-      setError('Fichier trop lourd. Maximum 500 MB.'); return;
+    if (f.size / (1024 * 1024) > 100) {
+      setError('Fichier trop lourd. Maximum 100 Mo.'); return;
     }
     setFile(f);
     setPreview(URL.createObjectURL(f));
@@ -859,7 +859,7 @@ export default function SubmitPage() {
                 <div onClick={() => fileRef.current?.click()} style={{ border: '1.5px dashed var(--line-strong)', borderRadius: 14, padding: '2.5rem 1rem', textAlign: 'center', cursor: 'pointer', background: 'var(--surface)', marginBottom: 16 }}>
                   <div style={{ fontSize: 36, marginBottom: 10 }}>🎬</div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>Cliquez pour choisir votre vidéo</div>
-                  <div style={{ fontSize: 12, color: 'var(--ink-dim)' }}>MP4 ou MOV · pas de limite de durée</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-dim)' }}>MP4 ou MOV · jusqu'à 100 Mo · pas de limite de durée</div>
                   <input ref={fileRef} type="file" accept="video/mp4,video/quicktime" onChange={handleFileChange} style={{ display: 'none' }} />
                 </div>
               ) : (

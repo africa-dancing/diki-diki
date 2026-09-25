@@ -4,7 +4,7 @@ import { r2, R2_BUCKET } from '../../config/r2';
 import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 // const BUCKET = 'pac-videos';  /*DKDK_R2*/ ancien bucket Supabase, conserve pour memoire
-const MAX_SIZE_MB = 500;
+const MAX_SIZE_MB = 100;
 const MAX_DURATION = 600;
 const ALLOWED_TYPES = ['video/mp4', 'video/quicktime'];
 export type Discipline = 'danse' | 'chant' | 'instrument' | 'acapella' | 'humour' | 'poesie' | 'conte' | 'sport'; /*DKDK_DISC_TYPE*/

@@ -56,7 +56,7 @@ app.use(rateLimit({ windowMs: 60 * 1000, max: 100 }));
 // SÉCURITÉ (H3) : limiteur dédié, plus strict, sur l'authentification (login, inscription,
 // OTP, TOTP) contre le brute-force. Fenêtre longue, plafond large pour les usages légitimes.
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 40, standardHeaders: true, legacyHeaders: false });
-app.use(express.json({ limit: '50mb', verify: (req, _res, buf) => { (req as any).rawBody = buf; } }));
+app.use(express.json({ limit: '150mb', verify: (req, _res, buf) => { (req as any).rawBody = buf; } })); /*DKDK_UPLOAD_LIMIT — corps de requete releve pour l'upload video (~100 Mo max)*/
 app.use(express.urlencoded({ extended: true }));
 
 // ── Health check ───────────────────────────────────────────────────
