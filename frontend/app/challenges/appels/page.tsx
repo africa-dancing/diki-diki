@@ -386,6 +386,15 @@ function AppelCard({ appel }: { appel: Appel }) {
     ? Math.min(100, Math.round((appel.acceptes / appel.max_participants) * 100))
     : 0;
 
+  /*DKDK_FLIP — styles de la 2e face (identiques a la page detail)*/
+  const vcard: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 16, padding: '16px 18px', marginBottom: 14 };
+  const vh: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: 'var(--or)', marginBottom: 12 };
+  const fmtDate = (sIn?: string | null): string | null => {
+    if (!sIn) return null;
+    try { return new Date(sIn).toLocaleString('fr-FR', { day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' }); }
+    catch { return sIn; }
+  };
+
   /*DKDK_FLIP — bascule vers la 2e face + chargement paresseux des videos approuvees*/
   function ouvrirVerso() {
     setFace('verso');
@@ -632,7 +641,7 @@ function AppelCard({ appel }: { appel: Appel }) {
             </div>
           </div>
         ) : (
-          /* ============================ VERSO ============================ */
+          /* ============================ VERSO (= page detail conservee + Reprise) ============================ */
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
             <button onClick={() => setFace('recto')} style={{
               alignSelf: 'flex-start', background: 'none', border: '1px solid var(--line)',
@@ -640,17 +649,82 @@ function AppelCard({ appel }: { appel: Appel }) {
               padding: '6px 12px', cursor: 'pointer', marginBottom: 12,
             }}>← Retour</button>
 
-            {/* Rappel discipline / format / places restantes */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '8px 12px', borderRadius: 12, background: 'rgba(255,170,0,0.10)', border: '1px solid rgba(255,170,0,0.30)' }}>
-              <span style={{ fontSize: 24, lineHeight: 1 }}>{discEmoji(disc)}</span>
-              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 17, color: 'var(--or)', textTransform: 'capitalize', lineHeight: 1.1 }}>{disc}</span>
-              <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)' }}>C{appel.max_participants} · {placesRestantes} place{placesRestantes > 1 ? 's' : ''}</span>
+            {/* En-tete (identique detail) */}
+            <div style={vcard}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--or)', textTransform: 'capitalize' }}>{disc}</span>
+                {officiel && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: ON_ACCENT, background: SOLID, borderRadius: 999, padding: '2px 10px' }}>Appel officiel Diki-Diki</span>
+                )}
+              </div>
+              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20, margin: '0 0 10px' }}>{appel.title || `Challenge de ${disc}`}</h2>
+              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12.5, color: 'var(--ink-soft)' }}>
+                <span><b style={{ color: 'var(--ink)' }}>{placesRestantes}</b> place(s) restante(s) sur {appel.max_participants}</span>
+                <span>{isBloc ? 'Bloc groupé' : 'Parcours d’étapes'}</span>
+                {appel.appel_deadline && <span>Clôture : {fmtDate(appel.appel_deadline)}</span>}
+              </div>
             </div>
 
-            {/* Reprise sans paroles — discipline chant uniquement */}
+            {/* Ce qu'il faut presenter (identique detail — lecteurs affiches) */}
+            {nEtapes > 0 && (
+              <div style={vcard}>
+                <div style={vh}>Ce qu’il faut présenter</div>
+                {appel.etapes.slice().sort((a, b) => (a.round_number || 0) - (b.round_number || 0)).map((e, i) => (
+                  <div key={e.round_number ?? i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--or)', minWidth: 58 }}>{isBloc ? 'Vidéo' : 'Étape'} {e.round_number ?? i + 1}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, color: 'var(--ink)' }}>
+                        {e.libelle || 'Libre'}
+                        {e.track_titre ? <span style={{ color: 'var(--ink-soft)' }}> — {e.track_titre}{e.track_artiste ? ' · ' + e.track_artiste : ''}</span> : null}
+                      </div>
+                      {ytEmbed(e.ref_url) ? (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ fontSize: 11, color: 'var(--or)', fontWeight: 700, marginBottom: 4 }}>▶ Version de référence — écoute-la pour bien t&apos;y conformer</div>
+                          <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)' }}>
+                            <iframe src={ytEmbed(e.ref_url) as string} title={`Référence ${e.round_number ?? i}`} loading="lazy"
+                              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
+                              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Objectif a collecter (identique detail) */}
+            {appel.objectif_info && (
+              <div style={vcard}>
+                <div style={vh}>Objectif à collecter</div>
+                {appel.objectif_info.modele === 'parcours' ? (
+                  <div>
+                    {(appel.objectif_info.etapes || []).map((e: any) => (
+                      <div key={e.etape} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
+                        <span style={{ color: 'var(--ink-soft)' }}>Étape {e.etape}{e.classement ? ' · classement' : ''}</span>
+                        <b style={{ color: e.objectif ? 'var(--ink)' : 'var(--ink-dim)' }}>{e.objectif ? fmt(e.objectif) + ' F' : '—'}</b>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, paddingTop: 8 }}>
+                      <span style={{ color: 'var(--or)', fontWeight: 700 }}>Enveloppe totale</span>
+                      <b style={{ color: 'var(--or)' }}>{fmt(appel.objectif_info.enveloppe || 0) + ' F'}</b>
+                    </div>
+                  </div>
+                ) : appel.objectif_info.objectif ? (
+                  <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, color: 'var(--ink)' }}>{fmt(appel.objectif_info.objectif) + ' F'}</div>
+                ) : (
+                  <div style={{ fontSize: 13, color: 'var(--ink-dim)' }}>À définir</div>
+                )}
+                <div style={{ fontSize: 11, color: 'var(--ink-dim)', marginTop: 10, lineHeight: 1.5 }}>
+                  Seuil à réunir en votes pour fermer {appel.objectif_info.modele === 'parcours' ? 'chaque étape' : 'le challenge'} — ce n’est pas un gain.
+                </div>
+              </div>
+            )}
+
+            {/* Reprise sans paroles — AJOUT, discipline chant uniquement */}
             {chant && (
-              <div style={{ border: '1px solid rgba(255,170,0,0.30)', borderRadius: 14, padding: '14px 16px', marginBottom: 14, background: 'rgba(255,170,0,0.05)' }}>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 15, color: 'var(--or)', marginBottom: 4 }}>🎤 Ta reprise, sans les paroles</div>
+              <div style={{ ...vcard, border: '1px solid rgba(255,170,0,0.30)', background: 'rgba(255,170,0,0.05)' }}>
+                <div style={vh}>🎤 Ta reprise, sans les paroles</div>
                 <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 10px' }}>
                   Chante sur la musique d&apos;une chanson, sans la voix d&apos;origine. Obtiens l&apos;instrumental (le « karaoké ») en 3 étapes, gratuitement, même depuis ton téléphone.
                 </p>
@@ -664,18 +738,23 @@ function AppelCard({ appel }: { appel: Appel }) {
                   <a href="https://vocalremover.org" target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--or)', background: 'rgba(255,170,0,0.10)', border: '1px solid rgba(255,170,0,0.30)', padding: '5px 10px', borderRadius: 999, textDecoration: 'none' }}>🎚️ vocalremover.org</a>
                   <a href="https://www.lalal.ai" target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--or)', background: 'rgba(255,170,0,0.10)', border: '1px solid rgba(255,170,0,0.30)', padding: '5px 10px', borderRadius: 999, textDecoration: 'none' }}>✨ LALAL.AI</a>
                 </div>
+                <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 10 }}>
+                  Astuces : écoute au casque et filme dans un endroit calme ; trop haut ou trop bas ? Moises change la tonalité et le tempo.
+                </div>
                 <Link href="/reprise" style={{ fontSize: 12, fontWeight: 700, color: 'var(--or)', textDecoration: 'none' }}>Voir le guide complet →</Link>
               </div>
             )}
 
-            {/* Rappel argent honnete */}
-            <div style={{ background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.25)', borderRadius: 12, padding: '12px 14px', marginBottom: 14, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
-              💰 <b>Aucun montant garanti</b> — tout dépend du soutien du public. Les votes forment une cagnotte partagée entre les gagnants ; chaque éliminé reçoit une prime de participation.
+            {/* Rappel argent honnete (identique detail) */}
+            <div style={{ ...vcard, background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.25)' }}>
+              <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+                💰 <b>Aucun montant garanti</b> — tout dépend du soutien du public. Les votes forment une cagnotte partagée entre les gagnants ; chaque éliminé reçoit une prime de participation.
+              </div>
             </div>
 
-            {/* Rejoindre cet appel — action inline */}
-            <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '14px 16px', marginTop: 'auto' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--or)', marginBottom: 12 }}>Rejoindre cet appel</div>
+            {/* Rejoindre cet appel (identique detail — action inline) */}
+            <div style={{ ...vcard, marginBottom: 0, marginTop: 'auto' }}>
+              <div style={vh}>Rejoindre cet appel</div>
               {!connecte ? (
                 <Link href="/auth/login" style={{ display: 'inline-block', background: SOLID, color: ON_ACCENT, fontWeight: 800, fontFamily: 'Syne, sans-serif', borderRadius: 12, padding: '12px 18px', textDecoration: 'none' }}>Se connecter pour rejoindre</Link>
               ) : videos.length === 0 ? (
