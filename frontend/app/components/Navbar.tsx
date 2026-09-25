@@ -194,6 +194,7 @@ export default function Navbar() {
             {[
               { href: '/home',          label: 'Accueil' },
                 { href: '/faq',           label: 'Comment ça marche' },
+                { href: '/challenges/appels', label: 'Mur des appels' },
                 { href: '/reprise',       label: '🎤 Reprise sans paroles' }, /*DKDK_NAV_REPRISE*/
                 { href: '/contact',       label: 'Contact' }, /*DKDK_NAV_CONTACT*/
                 { href: '/cgu',           label: 'CGU & Règlement' }, /*DKDK_NAV_CGU*/
@@ -204,7 +205,6 @@ export default function Navbar() {
                 { href: '/mediatheque',   label: 'Médiathèque' },
                 { href: '/submit',        label: 'Ajouter une vidéo', hide: !token },
                 { href: '/challenges',    label: 'Challenges' },
-                { href: '/challenges/appels', label: 'Mur des appels' },
             ].filter(l => !l.hide).map(l => (
               <Link
                 key={l.href} href={l.href}
