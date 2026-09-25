@@ -21,6 +21,7 @@ export default function AjouterMusiquePage() {
   const [style, setStyle] = useState('');
   const [refUrl, setRefUrl] = useState(''); /*DKDK_REF_URL — lien YouTube du morceau*/
   const [source, setSource] = useState('manuel');
+  const [coverUrl, setCoverUrl] = useState('');
   const [msg, setMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,7 +37,7 @@ export default function AjouterMusiquePage() {
       const d = data.data;
       setArtiste(d.artiste || ''); setTitre(d.titre || ''); setAlbum(d.album || '');
       setDureeSec(d.duree_sec ? String(d.duree_sec) : ''); setPays(d.pays_origine || '');
-      setContinent(d.continent || ''); setSource('musicbrainz');
+      setContinent(d.continent || ''); setSource('musicbrainz'); setCoverUrl(d.cover_url || '');
       setMsg('Infos trouvees ! Complete la danse et le style, puis soumets.');
     } catch {
       setMsg('Erreur reseau.');
@@ -59,7 +60,7 @@ export default function AjouterMusiquePage() {
           duree_sec: dureeSec ? parseInt(dureeSec, 10) : undefined,
           pays_origine: pays.trim() || undefined, continent: continent.trim() || undefined,
           danse: danse.trim() || undefined, style: style.trim() || undefined,
-          ref_url: refUrl.trim() || undefined, source,
+          ref_url: refUrl.trim() || undefined, source, cover_url: coverUrl || undefined,
         }),
       });
       const data = await res.json();
@@ -86,7 +87,7 @@ export default function AjouterMusiquePage() {
           <h1 style={{ fontFamily: 'Syne,sans-serif', fontSize: 20, fontWeight: 800, color: '#fefefe' }}>Ajouter un morceau</h1>
         </div>
 
-        <label style={labelStyle}>Recherche automatique (MusicBrainz)</label>
+        <label style={labelStyle}>Recherche automatique (Deezer)</label>
         <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
           <input style={{ ...inputStyle, marginBottom: 0 }} value={query} onChange={e => setQuery(e.target.value)} placeholder='Ex : Aya Nakamura Djadja' onKeyDown={e => { if (e.key === 'Enter') search(); }} />
           <button onClick={search} disabled={searching} style={{ padding: '0 18px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: searching ? 'wait' : 'pointer', border: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', whiteSpace: 'nowrap' }}>{searching ? '...' : 'Rechercher'}</button>

@@ -85,7 +85,7 @@ function AdminMediathequeInner() {
         pays_origine: d.pays_origine || f.pays_origine,
         continent: d.continent || f.continent,
       }));
-      setInfo('Champs pre-remplis depuis MusicBrainz. Verifiez puis ajoutez.');
+      setInfo('Champs pre-remplis depuis Deezer. Verifiez puis ajoutez.');
     } catch (e: any) {
       setErreur('Erreur reseau lors de la recherche.');
     } finally { setLB(false); }
@@ -169,7 +169,7 @@ function AdminMediathequeInner() {
         </p>
 
         <div style={{ background: '#12121e', border: '1px solid rgba(255,170,0,0.2)', borderRadius: 14, padding: 18, marginBottom: 22 }}>
-          <label style={lbl}>Recherche automatique (MusicBrainz)</label>
+          <label style={lbl}>Recherche automatique (Deezer)</label>
           <div style={{ display: 'flex', gap: 8 }}>
             <input value={recherche} placeholder="Ex : artiste + titre"
               onChange={e => setRech(e.target.value)}

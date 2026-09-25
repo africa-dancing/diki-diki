@@ -12,52 +12,41 @@ const PAYS_CONTINENT: Record<string, string> = {
 
 const UA = 'Diki-Diki/1.0 ( https://dikidiki.com )';
 
-// Recherche un morceau sur MusicBrainz et renvoie les metadonnees pre-remplies
+// Recherche un morceau sur Deezer (auto-remplissage) et renvoie les metadonnees pre-remplies.
+// Deezer : gratuit, sans cle API, bonne couverture de la musique africaine/francophone, + pochette.
 export async function lookupMusique(query: string) {
-  const url = `https://musicbrainz.org/ws/2/recording?query=${encodeURIComponent(query)}&fmt=json&limit=5`;
+  const url = `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=5`;
   let r;
   try {
     r = await fetch(url, { headers: { 'User-Agent': UA } });
   } catch (e: any) {
-    console.error('[MUSICBRAINZ] fetch failed:', e?.message, e?.cause);
-    throw new Error('MusicBrainz injoignable: ' + (e?.message || 'inconnu'));
+    console.error('[DEEZER] fetch failed:', e?.message, e?.cause);
+    throw new Error('Deezer injoignable: ' + (e?.message || 'inconnu'));
   }
   if (!r.ok) {
-    console.error('[MUSICBRAINZ] status:', r.status);
-    throw new Error('MusicBrainz a repondu ' + r.status);
+    console.error('[DEEZER] status:', r.status);
+    throw new Error('Deezer a repondu ' + r.status);
   }
   const data: any = await r.json();
-  const rec = (data.recordings || [])[0];
+  const rec = (data.data || [])[0];
   if (!rec) return null;
 
-  const artisteCredit = (rec['artist-credit'] || [])[0];
-  const artiste = artisteCredit?.name || rec['artist-credit']?.[0]?.artist?.name || '';
-  const artistId = artisteCredit?.artist?.id;
-  const release = (rec.releases || [])[0];
-  const album = release?.title || '';
-  const duree_sec = rec.length ? Math.round(rec.length / 1000) : null;
+  const artiste = rec.artist?.name || '';
+  const album = rec.album?.title || '';
+  const duree_sec = rec.duration ? Number(rec.duration) : null; // Deezer renvoie deja des secondes
+  const cover_url = rec.album?.cover_big || rec.album?.cover_medium || rec.album?.cover || '';
 
-  // Pays d'origine via l'artiste
-  let pays_origine = '';
-  let continent = '';
-  if (artistId) {
-    try {
-      const ar = await fetch(`https://musicbrainz.org/ws/2/artist/${artistId}?fmt=json`, { headers: { 'User-Agent': UA } });
-      if (ar.ok) {
-        const ad: any = await ar.json();
-        pays_origine = ad.country || ad.area?.name || '';
-        const code = ad.country || '';
-        continent = PAYS_CONTINENT[code] || '';
-      }
-    } catch {}
-  }
+  // Deezer n'expose pas le pays d'origine de l'artiste dans la recherche.
+  // On laisse pays/continent a remplir a la main (le map reste dispo si une source pays est ajoutee).
+  const pays_origine = '';
+  const continent = PAYS_CONTINENT[pays_origine] || '';
 
   return {
-    titre: rec.title || '',
+    titre: rec.title_short || rec.title || '',
     artiste, album, duree_sec,
     pays_origine, continent,
-    cover_url: '',
-    source: 'musicbrainz' as const,
+    cover_url,
+    source: 'deezer' as const,
   };
 }
 

@@ -766,7 +766,7 @@ export default function SubmitPage() {
                     <div style={{ marginTop: 8 }}>
                       <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginBottom: 4 }}>Morceau absent de la liste ? Ajoutez-le :</div>
                       <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-                        <input style={inp} type="text" placeholder="Rechercher (MusicBrainz)..." value={musiqueRech} onChange={e => setMusiqueRech(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') lookupMusiqueBib(); }} />
+                        <input style={inp} type="text" placeholder="Rechercher (Deezer)..." value={musiqueRech} onChange={e => setMusiqueRech(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') lookupMusiqueBib(); }} />
                         <button type="button" disabled={musiqueLookupBusy} style={{ ...inp, width: 130, cursor: 'pointer', color: OR, fontWeight: 700 }} onClick={lookupMusiqueBib}>{musiqueLookupBusy ? '...' : 'Rechercher'}</button>
                       </div>
                       <input style={inp} type="text" placeholder="Titre" value={musiqueNouvTitre} onChange={e => setMusiqueNouvTitre(e.target.value)} />
