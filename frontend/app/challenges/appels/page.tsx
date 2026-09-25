@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 
@@ -110,6 +110,33 @@ export default function MurDesAppelsPage() {
   const [error, setError]           = useState(false);
   const [connecte, setConnecte]     = useState(false);  /*DKDK_GUIDE*/
 
+  /*DKDK_GUIDE_MORPH — animation du guide (PC) + bulles de ligne*/
+  const slotRef = useRef<HTMLDivElement | null>(null);
+  const guideRef = useRef<HTMLDivElement | null>(null);
+  const naturalH = useRef<number>(0);
+  const [guideMorph, setGuideMorph] = useState(false);
+  const [rowBubble, setRowBubble] = useState<{ title: string; body: React.ReactNode; top: number } | null>(null);
+
+  function ouvrirGuideMorph() {
+    if (typeof window === 'undefined' || window.innerWidth < 1024) return;
+    const slot = slotRef.current, g = guideRef.current;
+    if (!slot || !g) return;
+    naturalH.current = g.offsetHeight;
+    slot.style.height = naturalH.current + 'px';
+    requestAnimationFrame(() => { setGuideMorph(true); if (slotRef.current) slotRef.current.style.height = '0px'; });
+  }
+  function fermerGuideMorph() {
+    setGuideMorph(false);
+    const slot = slotRef.current;
+    if (slot) {
+      slot.style.height = (naturalH.current || 0) + 'px';
+      setTimeout(() => { if (slotRef.current) slotRef.current.style.height = ''; }, 440);
+    }
+  }
+  function bulleLigne(e: React.MouseEvent, title: string, body: React.ReactNode) {
+    setRowBubble({ title, body, top: Math.max(120, (e.currentTarget as HTMLElement).getBoundingClientRect().top) });
+  }
+
   useEffect(() => {
     fetch(`${API}/brackets/appels`)
       .then(r => (r.ok ? r.json() : Promise.reject()))
@@ -198,7 +225,8 @@ export default function MurDesAppelsPage() {
                   .dkdk-guide-glow, .dkdk-guide-icon { animation: none !important; }
                 }
               `}</style>
-              <div className="dkdk-guide-glow" style={{ background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 16, padding: '14px 16px', margin: '18px 0 4px' }}>
+              <div ref={slotRef} style={{ transition: 'height .38s cubic-bezier(.2,.7,.2,1)' }}>
+              <div ref={guideRef} onMouseEnter={ouvrirGuideMorph} onMouseLeave={fermerGuideMorph} className={guideMorph ? 'dkdk-guide-glow dkdk-guide-morph' : 'dkdk-guide-glow'} style={{ background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 16, padding: '14px 16px', margin: '18px 0 4px', transition: 'width .4s cubic-bezier(.2,.7,.2,1), height .4s cubic-bezier(.2,.7,.2,1), border-radius .4s, box-shadow .3s' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
                   <span className="dkdk-guide-icon" style={{ fontSize: 22, lineHeight: 1 }}>🧭</span>
                   <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: OR }}>Ton guide Diki-Diki</span>
@@ -211,13 +239,17 @@ export default function MurDesAppelsPage() {
                   💰 <b>Aucun montant garanti</b> — tout dépend du soutien du public. Les votes forment une cagnotte partagée entre les gagnants.
                 </div>
               </div>
+              </div>
             </>
           );
         })()}
 
         {/* AGRÉGATS */}
         {aggregates && (
-          <div style={{
+          <div
+            onMouseEnter={(e) => aggregates && bulleLigne(e, '📊 En un coup d’œil', <>{`${aggregates.appels_ouverts} appels ouverts · ${aggregates.places_a_saisir} places à saisir · ${aggregates.candidats_engages} candidat(s) engagé(s) · ${aggregates.disciplines} disciplines.`}<br/>Il reste de la place — choisis ton appel et lance-toi !</>)}
+            onMouseLeave={() => setRowBubble(null)}
+            style={{
             display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10,
             margin: '18px 0',
           }}>
@@ -229,7 +261,10 @@ export default function MurDesAppelsPage() {
         )}
 
         {/* COMMENT ÇA MARCHE */}
-        <div style={{
+        <div
+          onMouseEnter={(e) => bulleLigne(e, '🧭 Comment ça marche', <><b>1) Le créateur</b> fixe les morceaux de chaque étape et publie.<br/><b>2) Toi</b>, tu acceptes ou tu demandes une révision.<br/><b>3) Tous d’accord</b> → le challenge démarre.</>)}
+          onMouseLeave={() => setRowBubble(null)}
+          style={{
           display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10,
           margin: '20px 0 10px',
         }}>
@@ -239,7 +274,10 @@ export default function MurDesAppelsPage() {
         </div>
 
         {/* LANCE TON PROPRE APPEL */}
-        <div style={{
+        <div
+          onMouseEnter={(e) => bulleLigne(e, '🚀 Lance ton propre appel', <>Tu as une idée de défi ? Lance ton propre appel : choisis ta discipline, tes morceaux, et invite tout le continent à te défier.</>)}
+          onMouseLeave={() => setRowBubble(null)}
+          style={{
           display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0 26px',
           background: 'linear-gradient(180deg,rgba(255,170,0,0.12),rgba(255,107,0,0.04))',
           border: '1px dashed rgba(255,140,0,0.5)', borderRadius: 14, padding: '14px 16px',
@@ -300,6 +338,13 @@ export default function MurDesAppelsPage() {
         </footer>
 
       </div>
+
+      {rowBubble && (
+        <div className="dkdk-row-bubble" style={{ position: 'fixed', top: rowBubble.top, right: 28, width: 300, zIndex: 60, transition: 'top .18s ease', background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.5)', borderRadius: 16, padding: '14px 16px', boxShadow: '0 14px 34px -10px rgba(0,0,0,0.6), 0 0 18px -4px rgba(255,170,0,0.4)', pointerEvents: 'none' }}>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: 'var(--or)', marginBottom: 8 }}>{rowBubble.title}</div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.6 }}>{rowBubble.body}</div>
+        </div>
+      )}
     </div>
   );
 }
