@@ -31,6 +31,7 @@ export default function MediathequePage() {
   const [loading, setLoading] = useState(true);
   const [filtre, setFiltre] = useState('Tous');
   const [openId, setOpenId] = useState<string | null>(null); /*DKDK_REF_URL — morceau dont le lecteur est ouvert*/
+  const [hover, setHover] = useState<{ id: string; titre: string; danse?: string; top: number } | null>(null); /*DKDK_TRACK_BUBBLE — bulle flottante (survol PC + toucher mobile)*/
 
   useEffect(() => {
     setLoading(true);
@@ -50,6 +51,15 @@ export default function MediathequePage() {
         <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '20px', marginBottom: 20, textAlign: 'center' }}>
           <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.75rem,3vw,1.9rem)', lineHeight: 1.1, whiteSpace: 'nowrap', marginBottom: 6, background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Médiathèque <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Diki-Diki</span></h1>
           <div style={{ fontSize: 12, color: '#fff', lineHeight: 1.6 }}>Découvre le répertoire musical du continent, et propose les tiens pour les challenges futurs.</div>
+        </div>
+
+        {/* Bulle guide — appel a l'action */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.35)', borderRadius: 14, padding: '13px 15px', marginBottom: 14, boxShadow: '0 0 14px -4px rgba(255,170,0,0.35)' }}>
+          <span style={{ fontSize: 20, lineHeight: 1 }}>🧭</span>
+          <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.55 }}>
+            <b style={{ color: 'var(--or)', fontFamily: 'Syne,sans-serif' }}>Tu comptes participer à des challenges ?</b><br/>
+            Complète cette liste avec <b>tes morceaux préférés</b> : ils pourront servir de références pour les prochains défis de l&apos;Arène.
+          </div>
         </div>
 
         <Link href='/mediatheque/ajouter' style={{ display: 'block', textAlign: 'center', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', fontWeight: 800, fontFamily: 'Syne,sans-serif', fontSize: 15, padding: '14px', borderRadius: 14, textDecoration: 'none', marginBottom: 20 }}>
@@ -72,8 +82,12 @@ export default function MediathequePage() {
           </div>
         )}
 
+        <div onMouseLeave={() => setHover(null)}>
         {!loading && musiques.map(m => (
-          <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'var(--surface2)', border: '1px solid var(--line-strong)', borderRadius: 14, padding: '14px', marginBottom: 12 }}>
+          <div key={m.id}
+            onMouseEnter={(e) => setHover({ id: m.id, titre: m.titre, danse: m.danse, top: Math.max(72, e.currentTarget.getBoundingClientRect().top) })}
+            onClick={(e) => { const top = Math.max(72, e.currentTarget.getBoundingClientRect().top); setHover(h => (h && h.id === m.id) ? null : { id: m.id, titre: m.titre, danse: m.danse, top }); }}
+            style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'var(--surface2)', border: '1px solid var(--line-strong)', borderRadius: 14, padding: '14px', marginBottom: 12, cursor: 'pointer' }}>
             <div style={{ width: 54, height: 54, borderRadius: 10, background: m.cover_url ? `url(${m.cover_url}) center/cover` : 'linear-gradient(135deg,#FF6B00,#FFD700)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 800, color: 'rgb(126,3,128)', flexShrink: 0 }}>{!m.cover_url && '\u266A'}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', fontFamily: 'Syne,sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.titre}</div>
@@ -83,8 +97,8 @@ export default function MediathequePage() {
                 {m.pays_origine && <img src={`https://flagcdn.com/${m.pays_origine.toLowerCase()}.svg`} alt={m.pays_origine} title={m.pays_origine} style={{ width: 18, height: 'auto', borderRadius: 3, objectFit: 'cover', verticalAlign: 'middle' }} />}
               </div>
               {ytEmbed(m.ref_url) ? (
-                <div style={{ marginTop: 8 }}>
-                  <button onClick={() => setOpenId(openId === m.id ? null : m.id)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 12, color: 'var(--or)', fontWeight: 700 }}>
+                <div style={{ marginTop: 8 }} onClick={(e) => e.stopPropagation()}>
+                  <button onClick={(e) => { e.stopPropagation(); setOpenId(openId === m.id ? null : m.id); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 12, color: 'var(--or)', fontWeight: 700 }}>
                     {openId === m.id ? '▾ Fermer le lecteur' : '▶ Écouter'}
                   </button>
                   {openId === m.id ? (
@@ -97,11 +111,25 @@ export default function MediathequePage() {
             </div>
             {m.duree_sec ? <div style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0 }}>{fmtDuree(m.duree_sec)}</div> : null}
             {/*DKDK_PARTICIPER*/}
-            <Link href={`/challenges/creer?track=${m.id}`} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', whiteSpace: 'nowrap' }}>Participer</Link>
+            <Link href={`/challenges/creer?track=${m.id}`} onClick={(e) => e.stopPropagation()} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', whiteSpace: 'nowrap' }}>Participer</Link>
           </div>
         ))}
+        </div>
 
       </div>
+
+        {/* Bulle flottante au survol d'un morceau (desktop) */}
+        {hover && (
+          <div className="dkdk-track-bubble" style={{ position: 'fixed', top: hover.top, right: 24, width: 264, zIndex: 60, transition: 'top .18s ease', background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.45)', borderRadius: 14, padding: '13px 15px', boxShadow: '0 10px 30px -8px rgba(0,0,0,0.55), 0 0 16px -4px rgba(255,170,0,0.4)', pointerEvents: 'auto' }}>
+            <span className="dkdk-bx" onClick={() => setHover(null)} style={{ position: 'absolute', top: 8, right: 10, fontSize: 16, lineHeight: 1, color: 'var(--ink-dim)', cursor: 'pointer', display: 'none' }}>✕</span>
+            <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--or)', fontFamily: 'Syne,sans-serif', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 22 }}>🎧 {hover.titre}</div>
+            <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.55 }}>
+              {hover.danse ? <>Morceau idéal pour un challenge de <b>{hover.danse}</b>.</> : <>Un morceau à reprendre dans tes challenges.</>}<br/>
+              Ça t&apos;inspire ? Clique <b>« Participer »</b> et lance ton défi !
+            </div>
+          </div>
+        )}
+        <style>{`@media (max-width: 640px){ .dkdk-track-bubble{ left:12px !important; right:12px !important; bottom:16px !important; top:auto !important; width:auto !important; } .dkdk-track-bubble .dkdk-bx{ display:block !important; } }`}</style>
     </div>
   );
 }
