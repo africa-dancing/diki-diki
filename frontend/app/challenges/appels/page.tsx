@@ -253,7 +253,7 @@ export default function MurDesAppelsPage() {
         {/* AGRÉGATS */}
         {aggregates && (
           <div
-            onMouseEnter={(e) => aggregates && bulleLigne(e, '📊 En un coup d’œil', <>{`${aggregates.appels_ouverts} appels ouverts · ${aggregates.places_a_saisir} places à saisir · ${aggregates.candidats_engages} candidat(s) engagé(s) · ${aggregates.disciplines} disciplines.`}<br/>Il reste de la place — choisis ton appel et lance-toi !</>)}
+            onMouseEnter={(e) => aggregates && bulleLigne(e, '📊 En un coup d’œil', <><b>{aggregates.appels_ouverts}</b> appels ouverts<br/><b>{aggregates.places_a_saisir}</b> places à saisir<br/><b>{aggregates.candidats_engages}</b> candidat(s) engagé(s)<br/><b>{aggregates.disciplines}</b> disciplines</>)}
             onMouseLeave={() => setRowBubble(null)}
             style={{
             display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10,
@@ -268,7 +268,7 @@ export default function MurDesAppelsPage() {
 
         {/* COMMENT ÇA MARCHE */}
         <div
-          onMouseEnter={(e) => bulleLigne(e, '🧭 Comment ça marche', <><b>1) Le créateur</b> fixe les morceaux de chaque étape et publie.<br/><b>2) Toi</b>, tu acceptes ou tu demandes une révision.<br/><b>3) Tous d’accord</b> → le challenge démarre.</>)}
+          onMouseEnter={(e) => bulleLigne(e, '🧭 Comment ça marche', <><b>1 · Le créateur</b> — fixe les morceaux et publie.<br/><b>2 · Toi</b> — tu acceptes ou tu demandes une révision.<br/><b>3 · Tous d’accord</b> — le challenge démarre.</>)}
           onMouseLeave={() => setRowBubble(null)}
           style={{
           display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10,
@@ -281,7 +281,7 @@ export default function MurDesAppelsPage() {
 
         {/* LANCE TON PROPRE APPEL */}
         <div
-          onMouseEnter={(e) => bulleLigne(e, '🚀 Lance ton propre appel', <>Tu as une idée de défi ? Lance ton propre appel : choisis ta discipline, tes morceaux, et invite tout le continent à te défier.</>)}
+          onMouseEnter={(e) => bulleLigne(e, '🚀 Lance ton propre appel', <>Tu as une idée de défi ? Lance ton propre appel :<br/>Choisis ta discipline, tes morceaux, et invite les courageux du continent et de la diaspora au défi.</>)}
           onMouseLeave={() => setRowBubble(null)}
           style={{
           display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0 26px',
