@@ -831,28 +831,7 @@ export default function SubmitPage() {
 
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginBottom: 16, fontFamily: 'Syne, sans-serif' }}>🎥 Votre vidéo</div>
 
-            {/* Mode tabs */}
-            <div style={{ display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
-              {(['file'] as UploadMode[]).map(mode => (
-                <button key={mode}
-                  onClick={() => { setUploadMode(mode); setFile(null); setPreview(null); setVideoUrl(''); setError(''); }}
-                  style={{ flex: 1, padding: '9px', fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, border: 'none', borderRadius: 8, cursor: 'pointer', transition: 'all .2s',
-                    background: uploadMode === mode ? 'rgba(255,170,0,0.12)' : 'transparent',
-                    color: uploadMode === mode ? OR : 'var(--ink-soft)',
-                    outline: uploadMode === mode ? '1px solid rgba(255,170,0,0.25)' : 'none',
-                  }}>
-                  {mode === 'url' ? '🔗 Lien vidéo' : '📁 Upload fichier'}
-                </button>
-              ))}
-            </div>
 
-            {uploadMode === 'url' && (
-              <div style={{ marginBottom: 16 }}>
-                <label style={lbl}>Lien de la vidéo *</label>
-                <input style={inp} type="url" placeholder="https://youtube.com/watch?v=…" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} />
-                <div style={{ fontSize: 11, color: 'var(--ink-dim)', marginTop: 6 }}>✅ YouTube, TikTok, Instagram Reels, Vimeo acceptés</div>
-              </div>
-            )}
 
             {uploadMode === 'file' && (
               !file ? (
