@@ -237,10 +237,15 @@ body {
 .dkdk-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 26px; /*DKDK_CARDS_GAP — plus d'air entre les panneaux (le halo comblait le vide)*/
+  gap: 30px; /*DKDK_CARDS_GAP — marge nette entre les panneaux (ne se touchent plus)*/
   align-items: stretch;
 }
 .dkdk-cards > * { margin-bottom: 0 !important; height: 100%; }
+
+/*DKDK_FLIP — bascule recto/verso du panneau (double face)*/
+@keyframes dkdkFlipIn { from { opacity: 0; transform: rotateY(-92deg); } to { opacity: 1; transform: rotateY(0deg); } }
+.dkdk-flipface { transform-origin: center right; backface-visibility: hidden; animation: dkdkFlipIn .42s cubic-bezier(.2,.7,.2,1) both; }
+@media (prefers-reduced-motion: reduce) { .dkdk-flipface { animation: none; } }
 
 
 /* ============================================================
