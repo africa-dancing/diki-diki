@@ -192,19 +192,17 @@ export default function Navbar() {
             animation: 'slideInRight .3s ease-out',
           }}>
             {[
-              { href: '/home',          label: 'Accueil' },
-                { href: '/faq',           label: 'Comment ça marche' },
+                { href: '/home',              label: 'Accueil' },
+                { href: '/faq',               label: 'Comment ça marche' },
                 { href: '/challenges/appels', label: 'Mur des appels' },
-                { href: '/reprise',       label: '🎤 Reprise sans paroles' }, /*DKDK_NAV_REPRISE*/
-                { href: '/contact',       label: 'Contact' }, /*DKDK_NAV_CONTACT*/
-                { href: '/cgu',           label: 'CGU & Règlement' }, /*DKDK_NAV_CGU*/
-                { href: '/auth/register', label: "S'inscrire", hide: !!token },
-                { href: '/compte',        label: 'Mon compte', hide: !token },
-                { href: '/recharge',      label: 'Recharger', hide: !token },
-                { href: '/retrait',       label: 'Retrait', hide: !token },
-                { href: '/mediatheque',   label: 'Médiathèque' },
-                { href: '/submit',        label: 'Ajouter une vidéo', hide: !token },
-                { href: '/challenges',    label: 'Challenges' },
+                { href: '/mediatheque',       label: 'Médiathèque' },
+                { href: '/challenges',        label: 'Challenge' },
+                { href: '/submit',            label: 'Ajouter une vidéo', hide: !token },
+                { href: '/compte',            label: 'Compte', hide: !token },
+                { href: '/recharge',          label: 'Recharge', hide: !token },
+                { href: '/retrait',           label: 'Retrait', hide: !token },
+                { href: '/contact',           label: 'Contact' },
+                { href: '/reprise',           label: 'Reprise sans paroles' },
             ].filter(l => !l.hide).map(l => (
               <Link
                 key={l.href} href={l.href}
@@ -215,7 +213,8 @@ export default function Navbar() {
               </Link>
             ))}
 
-            <div style={{ padding: '14px 0 8px', fontSize: 9, color: 'var(--nav-ink-dim)', letterSpacing: '.1em', fontWeight: 700 }}>DISCIPLINES</div>
+            {/* Liste des disciplines */}
+            <div style={{ padding: '14px 0 8px', fontSize: 9, color: 'var(--nav-ink-dim)', letterSpacing: '.1em', fontWeight: 700 }}>LISTE DES DISCIPLINES</div>
             {DISCIPLINES.map(d => (
               <Link
                 key={d.value}
@@ -227,14 +226,21 @@ export default function Navbar() {
               </Link>
             ))}
 
+            {/* Parametres du compte (connecte) */}
+            {token && (
+              <Link href="/account" onClick={() => setMenuOpen(false)} style={{ color: 'var(--nav-ink)', fontSize: 14, fontWeight: 600, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid var(--nav-line)', display: 'block' }} /*DKDK_NAV_ACCOUNT*/>
+                Paramètres du compte
+              </Link>
+            )}
+
+            {/* CGU & Reglement */}
+            <Link href="/cgu" onClick={() => setMenuOpen(false)} style={{ color: isActive('/cgu') ? 'var(--nav-or)' : 'var(--nav-ink)', fontSize: 14, fontWeight: isActive('/cgu') ? 700 : 600, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid var(--nav-line)', display: 'block' }}>
+              CGU &amp; Règlement
+            </Link>
+
             {isAdmin && (
               <Link href="/admin" onClick={() => setMenuOpen(false)} style={{ color: 'var(--nav-or)', fontSize: 14, fontWeight: 700, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid var(--nav-line)', display: 'block', marginTop: 6 }}>
                 ⚙️ Admin
-              </Link>
-            )}
-            {token && (
-              <Link href="/account" onClick={() => setMenuOpen(false)} style={{ color: 'var(--nav-ink)', fontSize: 14, fontWeight: 600, textDecoration: 'none', padding: '11px 0', borderBottom: '1px solid var(--nav-line)', display: 'block' }} /*DKDK_NAV_ACCOUNT*/>
-                ⚙️ Paramètres du compte
               </Link>
             )}
             {token ? (
