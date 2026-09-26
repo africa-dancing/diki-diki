@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 import PromoBanniere from '../../components/PromoBanniere'; /*DKDK_PROMO*/
+import TickerBand from '../../components/TickerBand'; /*DKDK_TICKER_TOP*/
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 
@@ -180,6 +181,7 @@ export default function MurDesAppelsPage() {
       fontFamily: 'DM Sans, sans-serif', paddingBottom: 80,
     }}>
       <Navbar />
+      <TickerBand /> {/*DKDK_TICKER_TOP — bandeau en haut du Mur des appels*/}
 
       {/* HERO — halo magenta collé à la barre + panneau compact (aligné sur /challenges) */}
       <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>

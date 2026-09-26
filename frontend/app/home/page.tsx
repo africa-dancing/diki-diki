@@ -133,6 +133,7 @@ export default function HomePage() {
   return (
     <>
       <Navbar />
+      <TickerBand /> {/*DKDK_TICKER_TOP — bandeau remonté en haut*/}
       <WelcomeVideo /> {/*DKDK_WELCOME_VIDEO*/}
 
 
@@ -166,8 +167,6 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Ticker */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100 }}><TickerBand /></div>
     </>
   );
 }
