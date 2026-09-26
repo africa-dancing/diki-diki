@@ -5,7 +5,6 @@ import { supabase } from '../../config/supabase';
 import { z } from 'zod';
 import { r2, R2_BUCKET } from '../../config/r2';
 import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface AuthRequest extends Request {
@@ -406,9 +405,10 @@ export const getAvatarFile = async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!id?.match(/^[0-9a-f-]{36}$/i)) return res.status(400).end();
   try {
-    const url = await getSignedUrl(r2, new GetObjectCommand({ Bucket: R2_BUCKET, Key: `avatars/${id}` }), { expiresIn: 3600 });
+    const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: `avatars/${id}` }));
+    res.setHeader('Content-Type', (obj as any).ContentType || 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=300');
-    return res.redirect(302, url);
+    (obj.Body as any).pipe(res);
   } catch {
     return res.status(404).end();
   }

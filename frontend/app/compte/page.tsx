@@ -186,7 +186,7 @@ function EditProfileModal({profile,onClose,onSaved}:{profile:UserProfile;onClose
     if(file.size>5*1024*1024){setErr('Photo trop lourde (max 5 Mo).');return;}
     setErr('');setUploading(true);
     const rd=new FileReader();
-    rd.onload=async(ev)=>{try{const res=await fetch(`${API_DIRECT}/users/avatar`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({mime:file.type,data:ev.target?.result})});const d=await res.json();if(!res.ok||!d.success)throw new Error(d.error||'UPLOAD');setForm((f:any)=>({...f,photo_url:`${API_DIRECT}/users/${profile.id}/avatar-file?v=${d.v}`}));}catch(_){setErr('Échec du téléversement de la photo. Réessaie.');}finally{setUploading(false);}};
+    rd.onload=async(ev)=>{try{const res=await fetch(`${API_DIRECT}/users/avatar`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({mime:file.type,data:ev.target?.result})});const d=await res.json();if(!res.ok||!d.success)throw new Error(d.error||('HTTP '+res.status));setForm((f:any)=>({...f,photo_url:`${API_DIRECT}/users/${profile.id}/avatar-file?v=${d.v}`}));}catch(e:any){setErr('Photo : '+(e?.message||'échec')+'. Réessaie.');}finally{setUploading(false);}};
     rd.readAsDataURL(file);
   };
   const save=async()=>{
