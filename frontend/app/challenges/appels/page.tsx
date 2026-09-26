@@ -695,11 +695,11 @@ function AppelCard({ appel }: { appel: Appel }) {
         ) : (
           /* ============================ VERSO (= page detail conservee + Reprise) ============================ */
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-            <button onClick={() => setFace('recto')} style={{
-              alignSelf: 'flex-start', background: 'none', border: '1px solid var(--line)',
+            <button onClick={() => setFace('recto')} className="dkdk-retour-glow" style={{
+              alignSelf: 'flex-start', background: 'none', border: '1px solid rgba(46,213,115,0.55)',
               color: 'var(--ink-soft)', fontSize: 12.5, fontWeight: 600, borderRadius: 999,
               padding: '6px 12px', cursor: 'pointer', marginBottom: 12,
-            }}>← Retour</button>
+            }}><span className="dkdk-retour-led" aria-hidden="true" />← Retour</button>
 
             {/* En-tete (identique detail) */}
             <div style={vcard}>

@@ -303,3 +303,21 @@ body {
 .dkdk-guide-morph{ position:fixed !important; top:120px; right:28px; width:320px !important; height:320px !important; margin:0 !important; border-radius:26px !important; border-color:rgba(255,170,0,0.6) !important; box-shadow:0 24px 60px -18px rgba(0,0,0,.7),0 0 22px -4px rgba(255,170,0,.5) !important; z-index:70; display:flex; flex-direction:column; justify-content:center; animation:none !important; }
 @media (max-width:1023px){ .dkdk-guide-morph{ position:static !important; width:auto !important; height:auto !important; } }
 @media (hover:none){ .dkdk-row-bubble{ display:none !important; } }
+
+/* [DKDK_RETOUR] Bouton Retour lumineux + voyant vert clignotant (Mur des appels, verso) */
+@keyframes dkdkRetourGlow{
+  0%,100%{ box-shadow:0 0 6px -1px rgba(46,213,115,.55); border-color:rgba(46,213,115,.55) !important; }
+  50%{ box-shadow:0 0 18px 3px rgba(46,213,115,.9); border-color:rgba(46,213,115,.95) !important; }
+}
+.dkdk-retour-glow{ display:inline-flex !important; align-items:center; gap:8px; animation:dkdkRetourGlow 1.15s ease-in-out infinite; }
+.dkdk-retour-glow:hover{ color:var(--ink) !important; }
+@keyframes dkdkRetourLed{
+  0%,100%{ opacity:1; box-shadow:0 0 6px 1px rgba(46,213,115,.95),0 0 11px 3px rgba(46,213,115,.55); }
+  50%{ opacity:.22; box-shadow:0 0 2px 0 rgba(46,213,115,.35); }
+}
+.dkdk-retour-led{ width:9px; height:9px; border-radius:50%; flex-shrink:0; display:inline-block;
+  background:radial-gradient(circle at 35% 30%, #8affbe, #14e06a 60%, #0a9c47); animation:dkdkRetourLed .9s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce){
+  .dkdk-retour-glow, .dkdk-retour-led{ animation:none; }
+  .dkdk-retour-led{ opacity:1; }
+}
