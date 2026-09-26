@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 import TickerBand from '../../components/TickerBand'; /*DKDK_TICKER_TOP*/
-import PubAccueil from '../../components/PubAccueil'; /*DKDK_PUB_ACCUEIL*/
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 
@@ -217,8 +216,6 @@ export default function MurDesAppelsPage() {
         </div>
       </div>
 
-
-      <PubAccueil /> {/*DKDK_PUB_ACCUEIL*/}
 
       <div className="dkdk-appels-main" style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px' }}>
 

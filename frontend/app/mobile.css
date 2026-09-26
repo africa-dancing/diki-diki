@@ -338,3 +338,8 @@ html[data-star="blink"] .dkdk-logo-star{ animation:dkdkStarBlink 1s ease-in-out 
 html[data-star="glow"] .dkdk-logo-star{ animation:dkdkStarGlow 1.25s ease-in-out infinite; }
 html[data-star="off"] .dkdk-logo-star{ animation:none; }
 @media (prefers-reduced-motion: reduce){ .dkdk-logo-star{ animation:none !important; } }
+
+/* [DKDK_PUBGRID] Galerie d affiches (accueil) : 6 colonnes sur PC (2 rangees de 6), responsive */
+.dkdk-pub-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
+@media (max-width:900px){ .dkdk-pub-grid{ grid-template-columns:repeat(4,1fr); } }
+@media (max-width:560px){ .dkdk-pub-grid{ grid-template-columns:repeat(3,1fr); } }
