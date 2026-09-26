@@ -26,6 +26,7 @@ export default function AdminPublicitePage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy]     = useState(false);
   const [info, setInfo]     = useState('');
+  const [pubAccueil, setPubAccueil] = useState(false);
 
   const charger = () => {
     if (!admin?.token) return;
@@ -37,6 +38,28 @@ export default function AdminPublicitePage() {
       .finally(() => setLoading(false));
   };
   useEffect(() => { charger(); /* eslint-disable-next-line */ }, [admin]);
+
+  useEffect(() => {
+    fetch(`${API}/settings`, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { const v = (d?.data || []).find((x:any)=>x.key==='pub_accueil_active')?.value; setPubAccueil(String(v).trim()==='1'||String(v).trim()==='true'); })
+      .catch(()=>{});
+  }, []);
+
+  const basculerAccueil = async () => {
+    const next = !pubAccueil;
+    setPubAccueil(next); setBusy(true); setInfo('');
+    try {
+      const r = await fetch(`${API}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin.token}` },
+        body: JSON.stringify({ key: 'pub_accueil_active', value: next ? '1' : '0', description: 'Afficher les publicites sur l accueil et le Mur (1=oui, 0=non)' }),
+      });
+      if (!r.ok) throw new Error();
+      setInfo(next ? '✓ Pubs affichées sur l’accueil & le Mur.' : '✓ Pubs coupées de l’accueil.');
+    } catch { setPubAccueil(!next); setInfo('✗ Erreur lors du changement.'); }
+    finally { setBusy(false); }
+  };
 
   const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
     const r = new FileReader();
@@ -116,6 +139,21 @@ export default function AdminPublicitePage() {
           </p>
 
           {info && <p style={{ fontSize: 13, color: info.startsWith('✓') ? '#4ade80' : '#f87171', fontWeight: 600, marginBottom: 16 }}>{info}</p>}
+
+          {/* Interrupteur : afficher les pubs sur l'accueil & le Mur */}
+          <div style={{ background: '#12121a', border: '1px solid rgba(255,170,0,0.14)', borderRadius: 14, padding: 16, marginBottom: 22 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 15, color: '#fff' }}>📍 Afficher les pubs sur l'accueil &amp; le Mur</div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4, lineHeight: 1.5 }}>Emplacement « en attendant » — visible tout de suite, sans vidéos. Les pubs « Actives » ci-dessous s'affichent au public tant que c'est allumé.</div>
+              </div>
+              <button onClick={basculerAccueil} disabled={busy} aria-label="Basculer l'affichage des pubs sur l'accueil" style={{ flexShrink: 0, width: 58, height: 32, borderRadius: 20, border: 'none', cursor: busy ? 'default' : 'pointer', background: pubAccueil ? '#1baf7a' : '#3a3a48', position: 'relative', transition: 'background .15s' }}>
+                <span style={{ position: 'absolute', top: 3, left: pubAccueil ? 29 : 3, width: 26, height: 26, borderRadius: '50%', background: '#fff', transition: 'left .15s' }} />
+              </button>
+            </div>
+            <div style={{ fontSize: 11.5, color: pubAccueil ? '#4ade80' : '#7a7a8c', fontWeight: 700, marginTop: 8 }}>{pubAccueil ? '● ALLUMÉ — les pubs actives passent sur l’accueil & le Mur' : '○ COUPÉ — aucune pub affichée au public'}</div>
+            <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.45)', marginTop: 8, background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.15)', borderRadius: 10, padding: '10px 12px', lineHeight: 1.5 }}>💡 Quand tes challenges démarreront, <b>coupe</b> cet interrupteur : les pubs quitteront l'accueil et passeront « entre deux prestations » (dès que cette 2ᵉ partie sera installée).</div>
+          </div>
 
           {/* Formulaire */}
           <div style={{ background: '#12121a', border: '1px solid rgba(255,170,0,0.14)', borderRadius: 14, padding: 18, marginBottom: 22 }}>

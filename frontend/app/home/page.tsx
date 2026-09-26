@@ -7,6 +7,7 @@ import TickerBand from '../components/TickerBand';
 import './home.css';
 import Navbar from '../components/Navbar';
 import PromoBanniere from '../components/PromoBanniere'; /*DKDK_PROMO*/
+import PubAccueil from '../components/PubAccueil'; /*DKDK_PUB_ACCUEIL*/
 import WelcomeVideo from '../components/WelcomeVideo';
 
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
@@ -141,6 +142,8 @@ export default function HomePage() {
       <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
         <PromoBanniere /> {/*DKDK_PROMO*/}
       </div>
+
+      <PubAccueil /> {/*DKDK_PUB_ACCUEIL*/}
 
       {/* Grille vidéos */}
       <div style={{ padding: '8px 16px 80px', overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none', background: '#fff' } as React.CSSProperties}>
