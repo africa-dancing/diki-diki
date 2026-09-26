@@ -82,8 +82,8 @@ export default function PubAccueil() {
       {shown && (
         <div
           onClick={() => setSel(null)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(5,5,10,0.9)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18, zIndex: 4000, pointerEvents: locked ? 'auto' : 'none' }}>
-          <div onClick={e => e.stopPropagation()} style={{ maxWidth: 440, width: '100%', background: '#12121a', border: '1px solid rgba(255,170,0,0.4)', borderRadius: 16, overflow: 'hidden', position: 'relative' }}>
+          style={{ position: 'fixed', inset: 0, background: locked ? 'rgba(5,5,10,0.9)' : 'transparent', backdropFilter: locked ? 'blur(4px)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18, zIndex: 4000, pointerEvents: locked ? 'auto' : 'none' }}>
+          <div onClick={e => e.stopPropagation()} style={{ maxWidth: 440, width: '100%', background: '#12121a', border: '1px solid rgba(255,170,0,0.4)', borderRadius: 16, overflow: 'hidden', position: 'relative', boxShadow: '0 24px 70px -18px rgba(0,0,0,0.85)' }}>
             {locked && (
               <button onClick={() => setSel(null)} aria-label="Fermer" style={{ position: 'absolute', top: 8, right: 10, background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', width: 32, height: 32, borderRadius: '50%', fontSize: 16, cursor: 'pointer', zIndex: 2 }}>✕</button>
             )}
