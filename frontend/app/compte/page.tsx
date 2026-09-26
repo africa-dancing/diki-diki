@@ -173,7 +173,7 @@ function DashboardSection({profile,balance,votesEmis,totalEarned,videoCount,onEd
 }
 
 function EditProfileModal({profile,onClose,onSaved}:{profile:UserProfile;onClose:()=>void;onSaved:(p:UserProfile)=>void}) {
-  const [form,setForm]=useState({name:profile.name,country:profile.country??'',photo_url:profile.photo_url??'',bio:profile.bio??''});
+  const [form,setForm]=useState({name:profile.name??'',country:profile.country??'',photo_url:profile.photo_url??'',bio:profile.bio??''});
   const [saving,setSaving]=useState(false);const [err,setErr]=useState('');const [done,setDone]=useState(false);
   const save=async()=>{if(!form.name.trim()){setErr('Le nom est requis.');return;}setSaving(true);setErr('');try{const res=await fetch(`${API}/users/${profile.id}/profile`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({name:form.name.trim(),country:form.country,photo_url:form.photo_url,bio:form.bio})});const d=await res.json();if(!res.ok)throw new Error(d.message??'Erreur');onSaved({...profile,...form});setDone(true);setTimeout(onClose,1200);}catch(e:any){setErr(e.message);}finally{setSaving(false);}};
   const inp:React.CSSProperties={width:'100%',background:'var(--surface)',border:'1px solid var(--line)',borderRadius:12,padding:'11px 14px',fontSize:14,color:'var(--ink)',outline:'none',fontFamily:'DM Sans,sans-serif',boxSizing:'border-box'};
