@@ -69,18 +69,20 @@ const DEFAULT_MSGS = [
 ];
 function TickerBand() {
   const [msgs, setMsgs] = useState(DEFAULT_MSGS);
+  const [paused, setPaused] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
   const posRef   = useRef(0);
   const rafRef   = useRef(0);
-  const pausedRef = useRef(false);
+  const hoverRef = useRef(false);
+  const manualRef = useRef(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/ticker`).then(r=>r.ok?r.json():null).then(d=>{ if(d?.messages?.length) setMsgs(d.messages.map((m: any)=>m.message??m)); }).catch(()=>{});
+    fetch(`${API_URL}/ticker`).then(r=>r.ok?r.json():null).then(d=>{ if(d?.data?.length) setMsgs(d.data.map((m: any)=>m.message??m)); }).catch(()=>{});
   }, []);
   useEffect(() => {
     const track = trackRef.current; if (!track) return;
     const step = () => {
-      if (!pausedRef.current) {
+      if (!hoverRef.current && !manualRef.current) {
         posRef.current -= 0.6;
         if (Math.abs(posRef.current) >= track.scrollWidth / 2) posRef.current = 0;
         track.style.transform = `translateX(${posRef.current}px)`;
@@ -93,7 +95,7 @@ function TickerBand() {
   const text = msgs.join('   ●   ');
   return (
     <div style={{ background:'#FF6B00', height:34, display:'flex', alignItems:'center', overflow:'hidden', borderTop:'1px solid rgba(0,0,0,0.15)', flexShrink:0 }}
-      onMouseEnter={()=>{pausedRef.current=true;}} onMouseLeave={()=>{pausedRef.current=false;}}>
+      onMouseEnter={()=>{hoverRef.current=true;}} onMouseLeave={()=>{hoverRef.current=false;}}>
       <div style={{ background:'rgba(0,0,0,0.2)', padding:'0 12px', height:'100%', display:'flex', alignItems:'center', flexShrink:0, borderRight:'1px solid rgba(0,0,0,0.15)' }}>
         <span style={{ fontSize:15 }}>📢</span>
       </div>
@@ -102,6 +104,14 @@ function TickerBand() {
           {`${text}   ●   ${text}   ●   `}
         </div>
       </div>
+      <button
+        onClick={()=>{ setPaused(p=>{ const n=!p; manualRef.current=n; return n; }); }}
+        aria-label={paused ? 'Reprendre le défilement' : 'Mettre en pause le défilement'}
+        title={paused ? 'Reprendre' : 'Pause'}
+        style={{ flexShrink:0, height:'100%', padding:'0 12px', background:'rgba(0,0,0,0.2)', border:'none', borderLeft:'1px solid rgba(0,0,0,0.15)', color:'#000', fontSize:13, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}
+      >
+        {paused ? '▶' : '⏸'}
+      </button>
     </div>
   );
 }
