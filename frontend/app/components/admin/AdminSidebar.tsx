@@ -13,6 +13,7 @@ const MENU = [
   { href: '/admin/formats',    icon: '🏆', label: 'Formats de challenge' }, /*DKDK_FORMATS_NAV*/
   { href: '/admin/challenges', icon: '📋', label: 'Challenges' }, /*DKDK_CHALLENGES_NAV*/
   { href: '/admin/challenges/creer-appel', icon: '📣', label: 'Ouvrir un appel' }, /*DKDK_MODERATEUR_APPEL*/
+  { href: '/admin/publicite',  icon: '📣', label: 'Publicité' }, /*DKDK_PUB_NAV*/
   { href: '/admin/sport',      icon: '🥋', label: 'Sport' }, /*DKDK_SPORT_NAV*/
   { href: '/admin/taxonomie',  icon: '🗂', label: 'Taxonomie' }, /*DKDK_TAXO_NAV*/
   { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },

@@ -34,6 +34,7 @@ import monitoringRouter                                 from './routes/monitorin
 import sportRouter               from './routes/sport.routes';  /*DKDK_SPORT_IMPORT*/
 import { paysMonnaiesRouter } from './routes/paysMonnaies.routes'; /*DKDK_PAYS_MONNAIES_IMPORT*/
 import { contactRouter } from './routes/contact.routes'; /*DKDK_CONTACT_IMPORT*/
+import annonceRouter from './routes/annonce.routes'; /*DKDK_ANNONCE_IMPORT — regie publicitaire*/
 import { startBracketCron }                             from './cron/bracket.cron';        // ✅ déplacé ici
 import { startAnalyticsCron }                           from './cron/analytics.cron';    /*DKDK_ANALYTICS_CRON*/
 import { errorHandler }                                 from './middleware/error.middleware';
@@ -93,6 +94,7 @@ app.use('/v1/monitoring',    monitoringRouter);
 app.use('/v1/sport',         sportRouter);  /*DKDK_SPORT_MOUNT*/  /*DKDK_MONITORING_MOUNT*/
 app.use('/v1/pays-monnaies', paysMonnaiesRouter); /*DKDK_PAYS_MONNAIES_MOUNT*/      
 app.use('/v1/contact',      contactRouter); /*DKDK_CONTACT_MOUNT*/
+app.use('/v1/annonces',     annonceRouter); /*DKDK_ANNONCE_MOUNT — regie publicitaire*/
 // SÉCURITÉ (B3) : porte fermée pour le lancement. Décommenter (ici + l'import en haut) une fois le module sécurisé.
 // app.use('/v1/education',     educationRouter);
 
