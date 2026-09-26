@@ -61,11 +61,12 @@ export default function PubAccueil() {
       <div style={{ position: 'relative', width: '100%', maxWidth: 680, background: '#12121a', border: '1px solid rgba(255,170,0,0.3)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 10px 30px -12px rgba(0,0,0,.55)' }}>
         <span style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', padding: '3px 9px', borderRadius: 6 }}>PUBLICITÉ</span>
 
-        {a.media_url && estImage && (
-          <img src={a.media_url} alt={a.annonceur} style={{ width: '100%', height: 'auto', display: 'block' }} />
-        )}
-        {a.media_url && !estImage && (
-          <video src={a.media_url} autoPlay muted loop playsInline controls style={{ width: '100%', height: 'auto', maxHeight: '80vh', background: '#000', display: 'block' }} />
+        {a.media_url && (
+          <div style={{ height: 320, background: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            {estImage
+              ? <img src={a.media_url} alt={a.annonceur} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
+              : <video src={a.media_url} autoPlay muted loop playsInline controls style={{ maxWidth: '100%', maxHeight: '100%', background: '#000', display: 'block' }} />}
+          </div>
         )}
         {!a.media_url && (
           <div style={{ padding: 28, textAlign: 'center' }}>
