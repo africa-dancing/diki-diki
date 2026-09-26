@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
+import PromoBanniere from '../../components/PromoBanniere'; /*DKDK_PROMO*/
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 
@@ -206,6 +207,8 @@ export default function MurDesAppelsPage() {
           </section>
         </div>
       </div>
+
+      <PromoBanniere /> {/*DKDK_PROMO*/}
 
       <div className="dkdk-appels-main" style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px' }}>
 

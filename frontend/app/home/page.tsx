@@ -6,6 +6,7 @@ import Link from 'next/link';
 import TickerBand from '../components/TickerBand';
 import './home.css';
 import Navbar from '../components/Navbar';
+import PromoBanniere from '../components/PromoBanniere'; /*DKDK_PROMO*/
 import WelcomeVideo from '../components/WelcomeVideo';
 
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
@@ -138,6 +139,8 @@ export default function HomePage() {
       {/* Hero */}
       <div style={{ padding: '16px 24px 40px', minHeight: 120, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
       </div>
+
+      <PromoBanniere /> {/*DKDK_PROMO*/}
 
       {/* Grille vidéos */}
       <div style={{ padding: '8px 16px 80px', overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none', background: '#fff' } as React.CSSProperties}>
