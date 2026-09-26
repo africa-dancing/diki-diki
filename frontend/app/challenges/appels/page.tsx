@@ -184,7 +184,7 @@ export default function MurDesAppelsPage() {
 
       {/* HERO — halo magenta collé à la barre + panneau compact (aligné sur /challenges) */}
       <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
-        <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 4px' }}>
+        <div className="dkdk-appels-main" style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 4px' }}>
           <section style={{
             background: HERO, border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '20px',
             textAlign: 'center', color: '#fff', boxShadow: '0 8px 40px rgba(225,29,143,0.35)',
