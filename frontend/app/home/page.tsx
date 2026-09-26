@@ -137,11 +137,10 @@ export default function HomePage() {
       <WelcomeVideo /> {/*DKDK_WELCOME_VIDEO*/}
 
 
-      {/* Hero */}
-      <div style={{ padding: '16px 24px 40px', minHeight: 120, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', textAlign: 'center' }}>
+      {/* Halo + banniere de promo (compact, colle en haut) */}
+      <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
+        <PromoBanniere /> {/*DKDK_PROMO*/}
       </div>
-
-      <PromoBanniere /> {/*DKDK_PROMO*/}
 
       {/* Grille vidéos */}
       <div style={{ padding: '8px 16px 80px', overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none', background: '#fff' } as React.CSSProperties}>

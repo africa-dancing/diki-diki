@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
-import PromoBanniere from '../../components/PromoBanniere'; /*DKDK_PROMO*/
 import TickerBand from '../../components/TickerBand'; /*DKDK_TICKER_TOP*/
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
@@ -194,7 +193,7 @@ export default function MurDesAppelsPage() {
               display: 'inline-block', background: SOLID, color: ON_ACCENT,
               fontWeight: 800, fontSize: 11, letterSpacing: '0.16em',
               textTransform: 'uppercase', padding: '5px 12px', borderRadius: 6,
-            }}>Rejoins l&apos;Arène</span>
+            }}>🔥 L&apos;Arène ouvre bientôt</span>
             <h1 style={{
               fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, lineHeight: 1.1,
               margin: '12px 0 8px', color: '#fff',
@@ -206,11 +205,17 @@ export default function MurDesAppelsPage() {
               Un artiste lance son challenge et fixe les morceaux, étape par étape.
               À toi d&apos;accepter… ou de proposer mieux.
             </p>
+            <p style={{ color: '#ffeef0', fontSize: 13, maxWidth: '48ch', margin: '10px auto 0', lineHeight: 1.5 }}>
+              Danse, chant, humour, sport… dépose ta vidéo, le public te soutient par ses votes, et la cagnotte récompense les meilleurs. <b>Le continent t&apos;attend.</b>
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 16 }}>
+              <Link href="/submit" style={{ background: SOLID, color: '#000', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 15, padding: '12px 20px', borderRadius: 12, textDecoration: 'none' }}>🎬 Je dépose ma vidéo</Link>
+              <Link href="/faq" style={{ background: 'rgba(0,0,0,0.28)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '12px 18px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.35)', textDecoration: 'none' }}>Comment ça marche ?</Link>
+            </div>
           </section>
         </div>
       </div>
 
-      <PromoBanniere /> {/*DKDK_PROMO*/}
 
       <div className="dkdk-appels-main" style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px' }}>
 
