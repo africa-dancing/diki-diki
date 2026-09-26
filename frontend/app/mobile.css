@@ -343,3 +343,8 @@ html[data-star="off"] .dkdk-logo-star{ animation:none; }
 .dkdk-pub-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
 @media (max-width:900px){ .dkdk-pub-grid{ grid-template-columns:repeat(4,1fr); } }
 @media (max-width:560px){ .dkdk-pub-grid{ grid-template-columns:repeat(3,1fr); } }
+
+/* [DKDK_PUBTILE] Zoom au survol des affiches (revient a la normale quand la souris quitte) */
+.dkdk-pub-tile{ transition: transform .18s ease, box-shadow .18s ease; }
+.dkdk-pub-tile:hover{ transform: scale(1.14); z-index:5; box-shadow:0 14px 34px -8px rgba(0,0,0,.6); }
+@media (hover:none){ .dkdk-pub-tile:hover{ transform:none; box-shadow:none; } }

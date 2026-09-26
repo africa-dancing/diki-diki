@@ -52,7 +52,7 @@ export default function PubAccueil() {
 
         <div className="dkdk-pub-grid">
           {ann.map(a => (
-            <button key={a.id} onClick={() => setSel(a)} title={a.titre || a.annonceur}
+            <button key={a.id} onClick={() => setSel(a)} title={a.titre || a.annonceur} className="dkdk-pub-tile"
               style={{ position: 'relative', aspectRatio: '3 / 4', borderRadius: 10, overflow: 'hidden', border: '1px solid #26263a', cursor: 'pointer', padding: 0, background: '#0a0a0f' }}>
               {a.media_url && estImage(a) && (
                 <img src={a.media_url} alt={a.annonceur} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
