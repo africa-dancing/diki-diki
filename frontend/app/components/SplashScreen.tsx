@@ -101,7 +101,7 @@ export default function SplashScreen() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 18,
+          gap: 'clamp(10px, 3vw, 18px)',
           fontFamily: 'Syne, sans-serif',
           fontWeight: 800,
           fontSize: 58,
@@ -111,6 +111,7 @@ export default function SplashScreen() {
         <span
           style={{
             color: '#FFAA00',
+            fontSize: 'clamp(30px, 9vw, 58px)', /*DKDK_SPLASH_MOBILE — Diki plus petit sur mobile*/
             display: 'inline-block',
             opacity: phase >= 3 ? 1 : 0,
             transform: phase >= 3 ? 'translateX(0)' : 'translateX(-340px)',
@@ -122,6 +123,7 @@ export default function SplashScreen() {
         <span
           style={{
             color: '#E20707',
+            fontSize: 58, /*DKDK_SPLASH_MOBILE — l'etoile garde sa taille*/
             display: 'inline-block',
             opacity: phase >= 2 ? 1 : 0,
             transform:
@@ -137,6 +139,7 @@ export default function SplashScreen() {
         <span
           style={{
             color: '#FFAA00',
+            fontSize: 'clamp(30px, 9vw, 58px)', /*DKDK_SPLASH_MOBILE*/
             display: 'inline-block',
             opacity: phase >= 3 ? 1 : 0,
             transform: phase >= 3 ? 'translateX(0)' : 'translateX(340px)',

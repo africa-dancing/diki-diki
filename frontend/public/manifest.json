@@ -2,7 +2,7 @@
   "name": "Diki-Diki Vision",
   "short_name": "Diki-Diki",
   "description": "La scène des talents africains en compétition",
-  "start_url": "/home",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#FFAA00",
