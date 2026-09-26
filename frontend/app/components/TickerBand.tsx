@@ -8,10 +8,12 @@ const DEFAULT_MESSAGES: string[] = [];
 
 export default function TickerBand() {
   const [messages, setMessages] = useState<string[]>(DEFAULT_MESSAGES);
+  const [paused, setPaused]     = useState(false);   // pause via le bouton (icône)
   const trackRef  = useRef<HTMLDivElement>(null);
   const posRef    = useRef(0);
   const rafRef    = useRef(0);
-  const pausedRef = useRef(false);
+  const hoverRef  = useRef(false);   // pause au survol souris
+  const manualRef = useRef(false);   // pause via le bouton
 
   useEffect(() => {
     fetch(`${API}/ticker`, { cache: 'no-store' })
@@ -29,7 +31,7 @@ export default function TickerBand() {
     const track = trackRef.current;
     if (!track) return;
     const step = () => {
-      if (!pausedRef.current) {
+      if (!hoverRef.current && !manualRef.current) {
         posRef.current -= 0.6;
         if (Math.abs(posRef.current) >= track.scrollWidth / 2) {
           posRef.current = 0;
@@ -42,13 +44,17 @@ export default function TickerBand() {
     return () => cancelAnimationFrame(rafRef.current);
   }, [messages]);
 
+  const toggle = () => {
+    setPaused(p => { const n = !p; manualRef.current = n; return n; });
+  };
+
   const text = messages.join('   ●   ');
 
   return (
     <div
       style={{ background:'#FF6B00', height:34, display:'flex', alignItems:'center', overflow:'hidden', borderTop:'1px solid rgba(0,0,0,0.15)', flexShrink:0 }}
-      onMouseEnter={() => { pausedRef.current = true; }}
-      onMouseLeave={() => { pausedRef.current = false; }}
+      onMouseEnter={() => { hoverRef.current = true; }}
+      onMouseLeave={() => { hoverRef.current = false; }}
     >
       <div style={{ background:'rgba(0,0,0,0.2)', padding:'0 12px', height:'100%', display:'flex', alignItems:'center', flexShrink:0, borderRight:'1px solid rgba(0,0,0,0.15)' }}>
         <span style={{ fontSize:15 }}>📢</span>
@@ -61,6 +67,14 @@ export default function TickerBand() {
           {`${text}   ●   ${text}   ●   `}
         </div>
       </div>
+      <button
+        onClick={toggle}
+        aria-label={paused ? 'Reprendre le défilement' : 'Mettre en pause le défilement'}
+        title={paused ? 'Reprendre' : 'Pause'}
+        style={{ flexShrink:0, height:'100%', padding:'0 12px', background:'rgba(0,0,0,0.2)', border:'none', borderLeft:'1px solid rgba(0,0,0,0.15)', color:'#000', fontSize:13, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}
+      >
+        {paused ? '▶' : '⏸'}
+      </button>
     </div>
   );
 }

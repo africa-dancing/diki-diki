@@ -1,23 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 /* Bannière de promotion / recrutement (pré-lancement).
-   Affichée sur l'accueil et le Mur des appels tant qu'il n'y a pas encore de vidéos. */
+   Toujours visible sur l'accueil et le Mur des appels tant qu'il n'y a pas encore de vidéos. */
 export default function PromoBanniere() {
   const router = useRouter();
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    try { if (localStorage.getItem('dkdk-promo-cachee') === '1') setVisible(false); } catch {}
-  }, []);
-
-  if (!visible) return null;
-
-  const fermer = () => {
-    setVisible(false);
-    try { localStorage.setItem('dkdk-promo-cachee', '1'); } catch {}
-  };
 
   return (
     <div style={{ padding: '16px 16px 4px', display: 'flex', justifyContent: 'center' }}>
@@ -27,8 +14,6 @@ export default function PromoBanniere() {
         border: '1px solid rgba(255,170,0,0.35)', borderRadius: 18, padding: '26px 22px',
         textAlign: 'center', boxShadow: '0 12px 40px -14px rgba(237,7,15,0.6)',
       }}>
-        <button onClick={fermer} aria-label="Fermer" style={{ position: 'absolute', top: 10, right: 12, background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', width: 26, height: 26, borderRadius: '50%', cursor: 'pointer', fontSize: 14, lineHeight: 1 }}>✕</button>
-
         <span style={{ display: 'inline-block', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.25)', color: '#FFD700', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', padding: '4px 12px', borderRadius: 20, marginBottom: 12 }}>🔥 L&apos;ARÈNE OUVRE BIENTÔT</span>
 
         <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 'clamp(22px,5vw,32px)', lineHeight: 1.1, margin: 0, color: '#fff' }}>
