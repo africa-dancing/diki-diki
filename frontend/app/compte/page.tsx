@@ -14,6 +14,7 @@ import { useAnalytics } from '../hooks/useAnalytics'; /*DKDK_HEARTBEAT*/
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
+const API_DIRECT = process.env.NEXT_PUBLIC_API_ORIGIN ?? API;
 function getToken() { return typeof window === 'undefined' ? null : localStorage.getItem('dkdk_token'); }
 function decodeToken(token: string): { userId?: string; role?: string } | null {
   try { const p = token.split('.')[1]; return JSON.parse(atob(p.replace(/-/g,'+').replace(/_/g,'/'))); } catch { return null; }
@@ -173,23 +174,80 @@ function DashboardSection({profile,balance,votesEmis,totalEarned,videoCount,onEd
 }
 
 function EditProfileModal({profile,onClose,onSaved}:{profile:UserProfile;onClose:()=>void;onSaved:(p:UserProfile)=>void}) {
-  const [form,setForm]=useState({name:profile.name??'',country:profile.country??'',photo_url:profile.photo_url??'',bio:profile.bio??''});
-  const [saving,setSaving]=useState(false);const [err,setErr]=useState('');const [done,setDone]=useState(false);
-  const save=async()=>{if(!form.name.trim()){setErr('Le nom est requis.');return;}setSaving(true);setErr('');try{const res=await fetch(`${API}/users/${profile.id}/profile`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({name:form.name.trim(),country:form.country,photo_url:form.photo_url,bio:form.bio})});const d=await res.json();if(!res.ok)throw new Error(d.message??'Erreur');onSaved({...profile,...form});setDone(true);setTimeout(onClose,1200);}catch(e:any){setErr(e.message);}finally{setSaving(false);}};
+  const router=useRouter();
+  const [form,setForm]=useState<any>({name:profile.name??'',nom_reel:'',prenom:'',date_naissance:'',country:profile.country??'',ville:'',discipline:'',bio:profile.bio??'',photo_url:profile.photo_url??'',consent_image:false,phone:'',phone_verified:false});
+  const [saving,setSaving]=useState(false);const [uploading,setUploading]=useState(false);const [err,setErr]=useState('');const [done,setDone]=useState(false);
+  useEffect(()=>{
+    fetch(`${API}/users/me/full`,{headers:{Authorization:`Bearer ${getToken()}`}}).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.data){const x=d.data;setForm((f:any)=>({...f,name:x.name??f.name,nom_reel:x.nom_reel??'',prenom:x.prenom??'',date_naissance:(x.date_naissance||'').slice(0,10),country:x.country??'',ville:x.ville??'',discipline:x.discipline??'',bio:x.bio??'',photo_url:x.avatar_url??f.photo_url,consent_image:!!x.consent_image,phone:x.phone??'',phone_verified:!!x.phone_verified}));}}).catch(()=>{});
+  },[]);
+  const onPickPhoto=(e:React.ChangeEvent<HTMLInputElement>)=>{
+    const file=e.target.files&&e.target.files[0];if(!file)return;
+    if(!['image/jpeg','image/jpg','image/png','image/webp'].includes(file.type)){setErr('Formats acceptés : JPG, PNG, WEBP.');return;}
+    if(file.size>5*1024*1024){setErr('Photo trop lourde (max 5 Mo).');return;}
+    setErr('');setUploading(true);
+    const rd=new FileReader();
+    rd.onload=async(ev)=>{try{const res=await fetch(`${API_DIRECT}/users/avatar`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({mime:file.type,data:ev.target?.result})});const d=await res.json();if(!res.ok||!d.success)throw new Error(d.error||'UPLOAD');setForm((f:any)=>({...f,photo_url:`${API_DIRECT}/users/${profile.id}/avatar-file?v=${d.v}`}));}catch(_){setErr('Échec du téléversement de la photo. Réessaie.');}finally{setUploading(false);}};
+    rd.readAsDataURL(file);
+  };
+  const save=async()=>{
+    if(!form.name.trim()){setErr('Le nom d’artiste est requis.');return;}
+    if(!form.consent_image){setErr('Tu dois autoriser la diffusion de tes vidéos/photos pour continuer.');return;}
+    if(form.date_naissance){const d=new Date(form.date_naissance);if(isNaN(d.getTime())){setErr('Date de naissance invalide.');return;}const now=new Date();let a=now.getFullYear()-d.getFullYear();const m=now.getMonth()-d.getMonth();if(m<0||(m===0&&now.getDate()<d.getDate()))a--;if(a<18){setErr('Tu dois avoir 18 ans ou plus.');return;}}
+    setSaving(true);setErr('');
+    try{
+      const res=await fetch(`${API}/users/profile`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({name:form.name.trim(),nom_reel:form.nom_reel,prenom:form.prenom,date_naissance:form.date_naissance,country:form.country,ville:form.ville,discipline:form.discipline,bio:form.bio,photo_url:form.photo_url,consent_image:form.consent_image})});
+      const d=await res.json();
+      if(!res.ok){const map:Record<string,string>={AGE_18_REQUIS:'Tu dois avoir 18 ans ou plus.',DATE_INVALIDE:'Date de naissance invalide.',VALIDATION_ERROR:'Informations invalides.'};throw new Error(map[d.error]||d.error||'Erreur');}
+      try{const st=localStorage.getItem('dkdk_user');const u=st?JSON.parse(st):{};localStorage.setItem('dkdk_user',JSON.stringify({...u,name:form.name.trim(),avatar_url:form.photo_url,country:form.country}));}catch{}
+      onSaved({...profile,name:form.name.trim(),country:form.country,photo_url:form.photo_url,bio:form.bio} as UserProfile);
+      setDone(true);setTimeout(onClose,1200);
+    }catch(e:any){setErr(e.message);}finally{setSaving(false);}
+  };
   const inp:React.CSSProperties={width:'100%',background:'var(--surface)',border:'1px solid var(--line)',borderRadius:12,padding:'11px 14px',fontSize:14,color:'var(--ink)',outline:'none',fontFamily:'DM Sans,sans-serif',boxSizing:'border-box'};
   const lbl:React.CSSProperties={display:'block',fontSize:11,fontWeight:600,color:'var(--ink-soft)',marginBottom:6,textTransform:'uppercase',letterSpacing:'.5px'};
+  const DISCIPLINES=['Danse','Chant','Instrument','A cappella','Humour','Poésie','Conte','Musique','Sport','Autre'];
+  const initials=(form.name||'').split(' ').map((w:string)=>w[0]).join('').toUpperCase().slice(0,2)||'?';
   return (
     <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:16}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:'var(--bg-soft)',border:'1px solid rgba(255,170,0,0.25)',borderRadius:20,width:'100%',maxWidth:460,overflow:'hidden'}}>
-        <div style={{background:'linear-gradient(135deg,rgba(255,170,0,0.1),rgba(255,107,0,0.06))',borderBottom:'1px solid rgba(255,170,0,0.15)',padding:'16px 20px',display:'flex',alignItems:'center',justifyContent:'space-between'}}><div style={{fontSize:17,fontWeight:800,color:'var(--ink)',fontFamily:'Syne,sans-serif'}}>✏️ Modifier mon profil</div><button onClick={onClose} style={{width:28,height:28,borderRadius:'50%',background:'var(--surface)',border:'1px solid var(--line)',color:'var(--ink)',fontSize:14,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button></div>
+      <div onClick={e=>e.stopPropagation()} style={{background:'var(--bg-soft)',border:'1px solid rgba(255,170,0,0.25)',borderRadius:20,width:'100%',maxWidth:480,maxHeight:'90vh',overflowY:'auto'}}>
+        <div style={{position:'sticky',top:0,background:'var(--bg-soft)',borderBottom:'1px solid rgba(255,170,0,0.15)',padding:'16px 20px',display:'flex',alignItems:'center',justifyContent:'space-between',zIndex:2}}><div style={{fontSize:17,fontWeight:800,color:'var(--ink)',fontFamily:'Syne,sans-serif'}}>✏️ Modifier mon profil</div><button onClick={onClose} style={{width:28,height:28,borderRadius:'50%',background:'var(--surface)',border:'1px solid var(--line)',color:'var(--ink)',fontSize:14,cursor:'pointer'}}>✕</button></div>
         {done?(<div style={{padding:40,textAlign:'center'}}><div style={{fontSize:44,marginBottom:10}}>✅</div><p style={{color:'#4ade80',fontWeight:700}}>Profil mis à jour !</p></div>):(
           <div style={{padding:'20px',display:'flex',flexDirection:'column',gap:14}}>
-            <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:4}}>{form.photo_url?<img src={form.photo_url} alt="avatar" style={{width:52,height:52,borderRadius:'50%',objectFit:'cover',border:'2px solid rgba(255,170,0,0.3)'}}/>:<div style={{width:52,height:52,borderRadius:'50%',background:'rgba(255,170,0,0.15)',border:'2px solid rgba(255,170,0,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:700,color:'var(--or)'}}>{form.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'}</div>}<div style={{flex:1}}><label style={lbl}>Photo (URL)</label><input style={inp} type="url" placeholder="https://…" value={form.photo_url} onChange={e=>setForm(f=>({...f,photo_url:e.target.value}))}/></div></div>
-            <div><label style={lbl}>Nom affiché *</label><input style={inp} type="text" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/></div>
-            <div><label style={lbl}>Pays</label><select style={{...inp,cursor:'pointer'}} value={form.country} onChange={e=>setForm(f=>({...f,country:e.target.value}))}><option value="">— Sélectionner —</option>{COUNTRIES.map(c=><option key={c.code} value={c.code}>{c.flag} {c.name}</option>)}</select></div>
-            <div><label style={lbl}>Bio (facultatif)</label><textarea style={{...inp,resize:'vertical',minHeight:70}} placeholder="Quelques mots sur toi…" value={form.bio} onChange={e=>setForm(f=>({...f,bio:e.target.value}))} maxLength={200}/><div style={{textAlign:'right',fontSize:10,color:'var(--ink-soft)',marginTop:3}}>{form.bio.length}/200</div></div>
+            <div style={{display:'flex',alignItems:'center',gap:14}}>
+              {form.photo_url?<img src={form.photo_url} alt="avatar" style={{width:64,height:64,borderRadius:'50%',objectFit:'cover',border:'2px solid rgba(255,170,0,0.35)'}}/>:<div style={{width:64,height:64,borderRadius:'50%',background:'rgba(255,170,0,0.15)',border:'2px solid rgba(255,170,0,0.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,fontWeight:700,color:'var(--or)',fontFamily:'Syne,sans-serif'}}>{initials}</div>}
+              <div style={{flex:1}}>
+                <label style={lbl}>Photo de profil</label>
+                <label style={{...btnSecondary,display:'inline-block',cursor:uploading?'wait':'pointer',opacity:uploading?0.6:1}}>{uploading?'⏳ Envoi…':'📷 Choisir une photo'}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={onPickPhoto} disabled={uploading} style={{display:'none'}}/></label>
+                <div style={{fontSize:10,color:'var(--ink-soft)',marginTop:4}}>JPG, PNG ou WEBP · 5 Mo max</div>
+              </div>
+            </div>
+            <div><label style={lbl}>Nom d’artiste (affiché) *</label><input style={inp} type="text" value={form.name} onChange={e=>setForm((f:any)=>({...f,name:e.target.value}))} placeholder="Ton nom de scène"/></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <div><label style={lbl}>Nom réel</label><input style={inp} type="text" value={form.nom_reel} onChange={e=>setForm((f:any)=>({...f,nom_reel:e.target.value}))}/></div>
+              <div><label style={lbl}>Prénom</label><input style={inp} type="text" value={form.prenom} onChange={e=>setForm((f:any)=>({...f,prenom:e.target.value}))}/></div>
+            </div>
+            <div style={{fontSize:10,color:'var(--ink-soft)',marginTop:-8}}>Ton identité réelle sert aux retraits d’argent (non affichée publiquement).</div>
+            <div><label style={lbl}>Date de naissance (18 ans minimum)</label><input style={inp} type="date" value={form.date_naissance} onChange={e=>setForm((f:any)=>({...f,date_naissance:e.target.value}))}/></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <div><label style={lbl}>Pays</label><select style={{...inp,cursor:'pointer'}} value={form.country} onChange={e=>setForm((f:any)=>({...f,country:e.target.value}))}><option value="">— Sélectionner —</option>{COUNTRIES.map(c=><option key={c.code} value={c.code}>{c.flag} {c.name}</option>)}</select></div>
+              <div><label style={lbl}>Ville</label><input style={inp} type="text" value={form.ville} onChange={e=>setForm((f:any)=>({...f,ville:e.target.value}))} placeholder="Ta ville"/></div>
+            </div>
+            <div><label style={lbl}>Discipline principale</label><select style={{...inp,cursor:'pointer'}} value={form.discipline} onChange={e=>setForm((f:any)=>({...f,discipline:e.target.value}))}><option value="">— Sélectionner —</option>{DISCIPLINES.map(d=><option key={d} value={d}>{d}</option>)}</select></div>
+            <div><label style={lbl}>Bio (facultatif)</label><textarea style={{...inp,resize:'vertical',minHeight:60}} value={form.bio} onChange={e=>setForm((f:any)=>({...f,bio:e.target.value}))} maxLength={200} placeholder="Quelques mots sur toi…"/><div style={{textAlign:'right',fontSize:10,color:'var(--ink-soft)'}}>{(form.bio||'').length}/200</div></div>
+            <div style={{background:'var(--surface)',border:'1px solid var(--line)',borderRadius:12,padding:'12px 14px'}}>
+              <label style={lbl}>Numéro de téléphone (Mobile Money)</label>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap'}}>
+                <div style={{fontSize:14,color:'var(--ink)'}}>{form.phone?form.phone:'Non renseigné'} {form.phone?(form.phone_verified?<span style={{color:'#4ade80',fontSize:12,fontWeight:700}}>✓ vérifié</span>:<span style={{color:'var(--or)',fontSize:12,fontWeight:700}}>⚠ non vérifié</span>):null}</div>
+                <button type="button" onClick={()=>router.push('/auth/ajouter-numero')} style={{...btnSecondary,padding:'8px 14px',fontSize:12}}>{form.phone?'Changer / vérifier par SMS':'Ajouter mon numéro (SMS)'}</button>
+              </div>
+              <div style={{fontSize:10,color:'var(--ink-soft)',marginTop:6}}>Requis et vérifié par SMS pour retirer tes gains.</div>
+            </div>
+            <label style={{display:'flex',gap:10,alignItems:'flex-start',fontSize:12.5,color:'var(--ink-soft)',cursor:'pointer',lineHeight:1.5}}>
+              <input type="checkbox" checked={form.consent_image} onChange={e=>setForm((f:any)=>({...f,consent_image:e.target.checked}))} style={{marginTop:2,width:16,height:16,accentColor:'var(--or)',flexShrink:0}}/>
+              <span>J’autorise Diki-Diki à diffuser mes vidéos et photos sur la plateforme et ses réseaux, conformément aux <a href="/cgu" target="_blank" style={{color:'var(--or)'}}>CGU et à la Politique de confidentialité</a>. Je confirme avoir 18 ans ou plus. *</span>
+            </label>
             {err&&<div style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.25)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#f87171'}}>⚠️ {err}</div>}
-            <div style={{display:'flex',gap:10,justifyContent:'flex-end',paddingTop:4}}><button onClick={onClose} style={btnSecondary}>Annuler</button><button onClick={save} disabled={saving} style={{...btnPrimary,opacity:saving?0.6:1}}>{saving?'⏳ Enregistrement…':'💾 Enregistrer'}</button></div>
+            <div style={{display:'flex',gap:10,justifyContent:'flex-end',paddingTop:4}}><button onClick={onClose} style={btnSecondary}>Annuler</button><button onClick={save} disabled={saving||uploading} style={{...btnPrimary,opacity:(saving||uploading)?0.6:1}}>{saving?'⏳ Enregistrement…':'💾 Enregistrer'}</button></div>
           </div>
         )}
       </div>
@@ -292,6 +350,7 @@ export default function ComptePage() {
     const dec=decodeToken(t);if(!dec?.userId){router.push('/auth/login');return;}
     const uid=dec.userId;
     fetch(`${API}/users/${uid}/profile`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.ok?r.json():null).then(d=>{if(d)setProfile(d.profile??d);}).catch(()=>{const s=localStorage.getItem('dkdk_user');if(s){try{setProfile(JSON.parse(s));}catch{}}});
+    fetch(`${API}/users/me/full`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.data)setProfile((prev:any)=>({...(prev||{}),id:uid,name:d.data.name||prev?.name,email:d.data.email||prev?.email,country:d.data.country||prev?.country,photo_url:d.data.avatar_url||prev?.photo_url,bio:d.data.bio||prev?.bio}));}).catch(()=>{}); /*DKDK_PROFILE_FULL_LOAD*/
     fetchVideos(uid);
     setLoading(false);
     fetch(`${API}/votes/balance`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.json()).then((w:any)=>{setBalance(w.balance??w.wallet??0);setVotesEmis(w.votes_count??w.voteCount??0);}).catch(()=>{});

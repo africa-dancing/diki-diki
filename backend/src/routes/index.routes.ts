@@ -80,6 +80,10 @@ usersPublicRouter.put('/password', requireAuth, usersCtrl.updatePassword);
 usersPublicRouter.put('/security', requireAuth, usersCtrl.updateSecurity);
 
 // Routes dynamiques
+usersPublicRouter.get('/me/full',         requireAuth, usersCtrl.getMyFull);      /*DKDK_PROFILE_FULL*/
+usersPublicRouter.put('/profile',         requireAuth, usersCtrl.updateProfile);  /*DKDK_PROFILE_PUT*/
+usersPublicRouter.post('/avatar',         requireAuth, usersCtrl.uploadAvatar);   /*DKDK_AVATAR_UP*/
+usersPublicRouter.get('/:id/avatar-file', usersCtrl.getAvatarFile);               /*DKDK_AVATAR_FILE*/
 usersPublicRouter.get('/:id/profile', usersCtrl.getPublicProfile);
 usersPublicRouter.get('/:id/videos',  usersCtrl.getPublicVideos);
 

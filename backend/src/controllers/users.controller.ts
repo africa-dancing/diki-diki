@@ -3,6 +3,9 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { supabase } from '../../config/supabase';
 import { z } from 'zod';
+import { r2, R2_BUCKET } from '../../config/r2';
+import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface AuthRequest extends Request {
@@ -282,3 +285,131 @@ export const updateSecurity = async (req: AuthRequest, res: Response) => {
   return res.json({ success: true });
 };
 
+
+// ─── Profil éditable (compte) ────────────────────────────────────────────────
+// GET /v1/users/me/full — toutes les infos éditables du compte connecté
+export const getMyFull = async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) return res.status(401).json({ success: false, error: 'Non authentifié.' });
+  const { data: u } = await supabase.from('users')
+    .select('id,name,email,phone,phone_verified,country,avatar_url,nom_reel,prenom,date_naissance,consent_image')
+    .eq('id', userId).maybeSingle();
+  const { data: p } = await supabase.from('profiles')
+    .select('username,bio,ville,discipline,avatar_url,country')
+    .eq('id', userId).maybeSingle();
+  return res.json({ success: true, data: {
+    id: userId,
+    name: (u as any)?.name ?? (p as any)?.username ?? '',
+    email: (u as any)?.email ?? '',
+    phone: (u as any)?.phone ?? '',
+    phone_verified: (u as any)?.phone_verified ?? false,
+    country: (u as any)?.country ?? (p as any)?.country ?? '',
+    avatar_url: (p as any)?.avatar_url ?? (u as any)?.avatar_url ?? '',
+    bio: (p as any)?.bio ?? '',
+    ville: (p as any)?.ville ?? '',
+    discipline: (p as any)?.discipline ?? '',
+    nom_reel: (u as any)?.nom_reel ?? '',
+    prenom: (u as any)?.prenom ?? '',
+    date_naissance: (u as any)?.date_naissance ?? '',
+    consent_image: (u as any)?.consent_image ?? false,
+  }});
+};
+
+function ageFromDob(dob: string): number | null {
+  if (!dob) return null;
+  const d = new Date(dob); if (isNaN(d.getTime())) return null;
+  const now = new Date();
+  let a = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a--;
+  return a;
+}
+
+const ProfileSchema = z.object({
+  name:           z.string().trim().min(1).max(60),
+  nom_reel:       z.string().trim().max(80).optional().default(''),
+  prenom:         z.string().trim().max(80).optional().default(''),
+  date_naissance: z.string().max(20).optional().default(''),
+  country:        z.string().trim().max(4).optional().default(''),
+  ville:          z.string().trim().max(80).optional().default(''),
+  discipline:     z.string().trim().max(40).optional().default(''),
+  bio:            z.string().max(200).optional().default(''),
+  photo_url:      z.string().max(500).optional().default(''),
+  consent_image:  z.boolean().optional().default(false),
+});
+
+// PUT /v1/users/profile — enregistre le profil (users + profiles), contrôle 18+
+export const updateProfile = async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) return res.status(401).json({ success: false, error: 'Non authentifié.' });
+  const parsed = ProfileSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR' });
+  const b = parsed.data;
+
+  if (b.date_naissance) {
+    const age = ageFromDob(b.date_naissance);
+    if (age === null) return res.status(400).json({ success: false, error: 'DATE_INVALIDE' });
+    if (age < 18)     return res.status(400).json({ success: false, error: 'AGE_18_REQUIS' });
+  }
+
+  const usersPatch: any = {
+    name:          b.name,
+    nom_reel:      b.nom_reel || null,
+    prenom:        b.prenom || null,
+    country:       b.country || null,
+    consent_image: b.consent_image,
+  };
+  if (b.date_naissance) usersPatch.date_naissance = b.date_naissance;
+  if (b.consent_image)  usersPatch.consent_image_at = new Date().toISOString();
+  if (b.photo_url)      usersPatch.avatar_url = b.photo_url;
+
+  const profilesPatch: any = {
+    username:   b.name,
+    bio:        b.bio || null,
+    country:    b.country || null,
+    ville:      b.ville || null,
+    discipline: b.discipline || null,
+  };
+  if (b.photo_url) profilesPatch.avatar_url = b.photo_url;
+
+  const { error: e1 } = await supabase.from('users').update(usersPatch).eq('id', userId);
+  const { error: e2 } = await supabase.from('profiles').update(profilesPatch).eq('id', userId);
+  if (e1 || e2) return res.status(500).json({ success: false, error: 'Mise à jour échouée.' });
+
+  return res.json({ success: true, data: { id: userId, ...b } });
+};
+
+const AVATAR_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+// POST /v1/users/avatar — upload de la photo (base64) vers R2, clé fixe avatars/<id>
+export const uploadAvatar = async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) return res.status(401).json({ success: false, error: 'Non authentifié.' });
+  const mime = String(req.body?.mime || '');
+  const dataB64 = String(req.body?.data || '');
+  if (!AVATAR_TYPES.includes(mime)) return res.status(400).json({ success: false, error: 'TYPE_IMAGE_INVALIDE' });
+  const base64 = dataB64.includes(',') ? dataB64.split(',')[1] : dataB64;
+  let buf: Buffer;
+  try { buf = Buffer.from(base64, 'base64'); } catch { return res.status(400).json({ success: false, error: 'IMAGE_INVALIDE' }); }
+  if (!buf.length)                return res.status(400).json({ success: false, error: 'IMAGE_VIDE' });
+  if (buf.length > 5 * 1024 * 1024) return res.status(400).json({ success: false, error: 'IMAGE_TROP_LOURDE' });
+  try {
+    await r2.send(new PutObjectCommand({ Bucket: R2_BUCKET, Key: `avatars/${userId}`, Body: buf, ContentType: mime }));
+  } catch (e: any) {
+    console.error('[R2] upload avatar échoué :', e?.message ?? e);
+    return res.status(500).json({ success: false, error: 'UPLOAD_ECHOUE' });
+  }
+  return res.json({ success: true, v: Date.now() });
+};
+
+// GET /v1/users/:id/avatar-file — sert l'avatar (redirige vers une URL signée fraîche)
+export const getAvatarFile = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id?.match(/^[0-9a-f-]{36}$/i)) return res.status(400).end();
+  try {
+    const url = await getSignedUrl(r2, new GetObjectCommand({ Bucket: R2_BUCKET, Key: `avatars/${id}` }), { expiresIn: 3600 });
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    return res.redirect(302, url);
+  } catch {
+    return res.status(404).end();
+  }
+};
