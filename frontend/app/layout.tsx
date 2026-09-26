@@ -2,6 +2,7 @@ import './mobile.css';
 import BackgroundMusic from './components/BackgroundMusic';
 import SplashScreen from './components/SplashScreen'; /*DKDK_SPLASH_MOUNT*/
 import ConsentPixels from './components/ConsentPixels'; /*DKDK_PIXELS — consentement + pixels TikTok/Meta*/
+import StarEffect from './components/StarEffect'; /*DKDK_STAR — etoile rouge lumineuse pilotee par l Admin*/
 import type { Metadata } from 'next';
 import { Inter, DM_Sans } from 'next/font/google'; /*DKDK_POLICE_INTER*/
 import { Analytics } from '@vercel/analytics/next';
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SplashScreen />{children}<BackgroundMusic />
         <Analytics />
         <ConsentPixels />{/*DKDK_PIXELS*/}
+        <StarEffect />{/*DKDK_STAR*/}
       </body>
     </html>
   );

@@ -29,17 +29,28 @@ settingsRouter.get('/', async (_req: Request, res: Response) => {
 // PATCH /v1/settings - modifier un reglage (admin uniquement)
 settingsRouter.patch('/', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
-    const { key, value } = req.body;
+    const { key, value, description } = req.body;
     if (!key || value === undefined || value === null)
       return res.status(400).json({ success: false, error: 'Champs manquants (key, value).' });
-    const { data, error } = await getSupabase()
+    const supa = getSupabase();
+    // 1) tenter la mise a jour (ne touche jamais la description d un reglage existant)
+    const upd = await supa
       .from('settings')
       .update({ value: String(value), updated_at: new Date().toISOString() })
       .eq('key', key)
+      .select();
+    if (upd.error) throw upd.error;
+    if (upd.data && upd.data.length > 0) {
+      return res.json({ success: true, data: upd.data[0] });
+    }
+    // 2) reglage inexistant -> le creer (additif)
+    const ins = await supa
+      .from('settings')
+      .insert({ key, value: String(value), description: description ?? '' })
       .select()
       .single();
-    if (error) throw error;
-    res.json({ success: true, data });
+    if (ins.error) throw ins.error;
+    res.json({ success: true, data: ins.data });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

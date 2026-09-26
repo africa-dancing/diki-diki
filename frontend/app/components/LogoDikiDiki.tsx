@@ -9,6 +9,7 @@ export default function LogoDikiDiki({ width = 220 }: { width?: number }) {
         fill="#FFAA00" textAnchor="end">Diki</text>
       <line x1="3" y1="126" x2="299" y2="126" stroke="#FFFFFF" strokeWidth="2"/>
       <polygon
+        className="dkdk-logo-star"
         points="340,28 350,58 382,58 356,76 366,106 340,88 314,106 324,76 298,58 330,58"
         fill="#FF0000"/>
       <rect x="299" y="114" width="82" height="24" rx="4"

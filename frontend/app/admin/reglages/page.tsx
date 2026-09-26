@@ -46,13 +46,13 @@ export default function AdminReglagesPage() {
 
   useEffect(() => { charger(); }, []);
 
-  const enregistrer = async (key: string) => {
+  const enregistrer = async (key: string, description?: string) => {
     setBusyKey(key); setInfo('');
     try {
       const r = await fetch(`${API}/settings`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin.token}` },
-        body: JSON.stringify({ key, value: valeurs[key] }),
+        body: JSON.stringify({ key, value: valeurs[key], ...(description ? { description } : {}) }),
       });
       if (!r.ok) throw new Error();
       setInfo('✓ Réglage enregistré : ' + key);
@@ -79,6 +79,37 @@ export default function AdminReglagesPage() {
 
           {info && <p style={{ fontSize: 13, color: info.startsWith('✓') ? '#4ade80' : '#f87171', fontWeight: 600, marginBottom: 16 }}>{info}</p>}
           {loading && <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>Chargement…</p>}
+
+          {!loading && (
+            <div style={{ marginBottom: 28 }}>
+              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 16, color: '#fff', margin: '0 0 12px' }}>
+                ✨ Étoile du logo
+              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10, padding: '12px 14px', background: '#15151c', borderRadius: 10, border: '1px solid rgba(255,170,0,0.12)' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, color: '#e8e0d0', marginBottom: 2 }}>Effet lumineux de l’étoile rouge du logo (toutes les pages)</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>logo_star_effect</div>
+                </div>
+                <select
+                  value={valeurs['logo_star_effect'] ?? 'blink'}
+                  onChange={e => setValeurs({ ...valeurs, logo_star_effect: e.target.value })}
+                  style={{ width: 200, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,170,0,0.25)', background: '#0a0a0f', color: '#fff', fontSize: 14 }}
+                >
+                  <option value="blink">Clignotant (halo + clignotement)</option>
+                  <option value="glow">Halo pulsant (sans clignotement)</option>
+                  <option value="off">Aucun effet</option>
+                </select>
+                <button
+                  onClick={() => enregistrer('logo_star_effect', 'Effet lumineux de l etoile rouge du logo (blink | glow | off)')}
+                  disabled={busyKey === 'logo_star_effect'}
+                  style={{ background: OR, color: '#000', fontWeight: 700, fontSize: 13, padding: '8px 16px', borderRadius: 8, border: 'none', cursor: busyKey === 'logo_star_effect' ? 'default' : 'pointer', opacity: busyKey === 'logo_star_effect' ? 0.6 : 1, whiteSpace: 'nowrap' }}
+                >
+                  Enregistrer
+                </button>
+              </div>
+              <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)', margin: '4px 2px 0' }}>Le changement s’applique au prochain chargement des pages. « Clignotant » est l’effet par défaut.</p>
+            </div>
+          )}
 
           {!loading && GROUPES.map(groupe => (
             <div key={groupe.titre} style={{ marginBottom: 28 }}>
