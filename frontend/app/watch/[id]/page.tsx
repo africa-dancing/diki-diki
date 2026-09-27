@@ -88,8 +88,8 @@ function TickerBand() {
         const out: string[] = []; const vus: Record<string, boolean> = {};
         appels.forEach((a: any) => {
           (a.etapes || []).forEach((e: any) => {
-            const titre = String(e.track_titre || e.libelle || '').trim();
-            if (!titre) return;
+            const titre = String(e.track_titre || '').trim();
+            if (!titre) return; // seulement les vrais morceaux (medietheque), pas les epreuves sport ni sujets libres
             const artiste = String(e.track_artiste || '').trim();
             const disc = String(a.discipline || '').trim();
             let ligne = '\uD83C\uDFB5 ' + titre;
