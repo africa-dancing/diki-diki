@@ -175,6 +175,7 @@ function DashboardSection({profile,balance,votesEmis,totalEarned,videoCount,onEd
 
 function EditProfileModal({profile,onClose,onSaved}:{profile:UserProfile;onClose:()=>void;onSaved:(p:UserProfile)=>void}) {
   const router=useRouter();
+  const myId=(decodeToken(getToken()||'')?.userId)||profile.id;
   const [form,setForm]=useState<any>({name:profile.name??'',nom_reel:'',prenom:'',date_naissance:'',country:profile.country??'',ville:'',discipline:'',bio:profile.bio??'',photo_url:profile.photo_url??'',consent_image:false,phone:'',phone_verified:false});
   const [saving,setSaving]=useState(false);const [uploading,setUploading]=useState(false);const [err,setErr]=useState('');const [done,setDone]=useState(false);
   useEffect(()=>{
@@ -186,7 +187,7 @@ function EditProfileModal({profile,onClose,onSaved}:{profile:UserProfile;onClose
     if(file.size>5*1024*1024){setErr('Photo trop lourde (max 5 Mo).');return;}
     setErr('');setUploading(true);
     const rd=new FileReader();
-    rd.onload=async(ev)=>{try{const res=await fetch(`${API_DIRECT}/users/avatar`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({mime:file.type,data:ev.target?.result})});const d=await res.json();if(!res.ok||!d.success)throw new Error(d.error||('HTTP '+res.status));setForm((f:any)=>({...f,photo_url:`${API_DIRECT}/users/${profile.id}/avatar-file?v=${d.v}`}));}catch(e:any){setErr('Photo : '+(e?.message||'échec')+'. Réessaie.');}finally{setUploading(false);}};
+    rd.onload=async(ev)=>{try{const res=await fetch(`${API_DIRECT}/users/avatar`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({mime:file.type,data:ev.target?.result})});const d=await res.json();if(!res.ok||!d.success)throw new Error(d.error||('HTTP '+res.status));setForm((f:any)=>({...f,photo_url:`${API_DIRECT}/users/${myId}/avatar-file?v=${d.v}`}));}catch(e:any){setErr('Photo : '+(e?.message||'échec')+'. Réessaie.');}finally{setUploading(false);}};
     rd.readAsDataURL(file);
   };
   const save=async()=>{
