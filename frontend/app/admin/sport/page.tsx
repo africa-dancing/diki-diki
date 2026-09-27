@@ -143,6 +143,31 @@ function AdminSportInner() {
     } catch (e) { setErreur('Erreur reseau.'); }
   };
 
+  // Déplacer une épreuve dans son sport (flèches) : échange puis renumérote 10,20,30… et persiste (PUT ordre seul)
+  const deplacer = async (ep: Epreuve, dir: number) => {
+    const grp = liste.filter((x) => x.sport === ep.sport);
+    const i = grp.findIndex((x) => x.id === ep.id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= grp.length) return;
+    const arr = [...grp];
+    const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    const changed: { id: string; ordre: number }[] = [];
+    arr.forEach((e, k) => { const o = (k + 1) * 10; if (e.ordre !== o) changed.push({ id: e.id, ordre: o }); });
+    if (!changed.length) return;
+    setInfo(''); setErreur('');
+    setListe((prev) => prev.map((x) => { const c = changed.find((cc) => cc.id === x.id); return c ? { ...x, ordre: c.ordre } : x; }).sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0)));
+    try {
+      for (const c of changed) {
+        await fetch(API + '/sport/admin/epreuves/' + c.id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + admin?.token },
+          body: JSON.stringify({ ordre: c.ordre }),
+        });
+      }
+      charger();
+    } catch (e) { setErreur('Erreur reseau lors du deplacement.'); charger(); }
+  };
+
   // Regroupe par sport pour l'affichage
   const groupes: { [k: string]: Epreuve[] } = {};
   liste.forEach((ep) => {
@@ -207,7 +232,7 @@ function AdminSportInner() {
               {groupes[sp][0]?.emoji} {sp}
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-              {groupes[sp].map((ep) => (
+              {groupes[sp].map((ep, idx) => (
                 <div key={ep.id} style={{ background:'#0d0d14', border:'1px solid #1e1e2e', borderRadius:10, padding:'14px 16px' }}>
                   {editId === ep.id ? (
                     <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
@@ -263,7 +288,9 @@ function AdminSportInner() {
                         </div>
                         {ep.choix_type ? <div style={{ fontSize:11, color:'#7a7a9a', marginTop:2 }}>2ᵉ menu : {ep.choix_type === 'simple' ? ('Numéro (1 à ' + (ep.choix_max || 10) + ')') : ep.choix_type === 'plage' ? ('Enchaînement (1 à ' + (ep.choix_max || 10) + ')') : 'Liste personnalisée'}</div> : null}
                       </div>
-                      <div style={{ display:'flex', gap:8 }}>
+                      <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                        <button disabled={idx <= 0} onClick={() => deplacer(ep, -1)} title='Monter' style={{ padding:'6px 10px', borderRadius:8, border:'1px solid #1e1e2e', background:'#0d0d14', color: idx <= 0 ? '#3a3a4c' : '#e0e0e0', fontWeight:700, fontSize:14, lineHeight:1, cursor: idx <= 0 ? 'not-allowed' : 'pointer' }}>↑</button>
+                        <button disabled={idx >= groupes[sp].length - 1} onClick={() => deplacer(ep, 1)} title='Descendre' style={{ padding:'6px 10px', borderRadius:8, border:'1px solid #1e1e2e', background:'#0d0d14', color: idx >= groupes[sp].length - 1 ? '#3a3a4c' : '#e0e0e0', fontWeight:700, fontSize:14, lineHeight:1, cursor: idx >= groupes[sp].length - 1 ? 'not-allowed' : 'pointer' }}>↓</button>
                         <button onClick={() => ouvrirEdition(ep)} style={{ padding:'6px 14px', borderRadius:8, border:'1px solid #1e1e2e', background:'#0d0d14', color:OR, fontWeight:600, fontSize:13, cursor:'pointer' }}>
                           Editer
                         </button>
