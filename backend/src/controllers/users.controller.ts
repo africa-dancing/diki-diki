@@ -408,6 +408,8 @@ export const getAvatarFile = async (req: Request, res: Response) => {
     const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: `avatars/${id}` }));
     res.setHeader('Content-Type', (obj as any).ContentType || 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=300');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); // autorise l'affichage cross-origin (override helmet)
+    res.setHeader('Access-Control-Allow-Origin', '*');
     (obj.Body as any).pipe(res);
   } catch {
     return res.status(404).end();
