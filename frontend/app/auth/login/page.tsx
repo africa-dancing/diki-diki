@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import LogoDikiDiki from '../../components/LogoDikiDiki';
@@ -24,6 +24,8 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
+  const [expired, setExpired]   = useState(false);
+  useEffect(() => { try { if (new URLSearchParams(window.location.search).get('expired') === '1') setExpired(true); } catch (e) {} }, []);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -128,6 +130,8 @@ export default function LoginPage() {
           <p style={{ fontSize: 14, color: 'rgba(255,255,255,.4)', marginBottom: 28, textAlign: 'center' }}>
             Accède à ton espace Diki-Diki
           </p>
+
+          {expired && <div className="error-msg" style={{ background:'rgba(255,170,0,0.1)', border:'1px solid rgba(255,170,0,0.3)', color:'#FFD27a' }}>⏳ Ta session a expiré. Reconnecte-toi pour continuer.</div>}
 
           <div className="social-row">
             <button type="button" className="btn-social" onClick={handleGoogle} disabled={loading}>
