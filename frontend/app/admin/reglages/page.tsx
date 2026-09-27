@@ -9,6 +9,11 @@ const OR = '#FFAA00';
 
 interface Reglage { key: string; value: string; description: string; }
 
+// Libelles par defaut pour les reglages pas encore crees en base (permet d'afficher le champ pour le renseigner) /*DKDK_DEFAUTS*/
+const LIBELLES_DEFAUT: Record<string, string> = {
+  contact_youtube: 'Lien de la chaîne YouTube',
+};
+
 const GROUPES: { titre: string; cles: string[] }[] = [
   { titre: '💰 Votes & cagnotte', cles: ['bracket_vote_amount', 'bracket_heart_amount', 'soutenir_amount', 'recharge_unit_value'] },
   { titre: '🏆 Répartition C12 / C16 (3 lauréats)', cles: ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct', 'bracket_troisieme_pct'] },
@@ -18,7 +23,7 @@ const GROUPES: { titre: string; cles: string[] }[] = [
   { titre: '⏱️ Délais', cles: ['bracket_egalite_jours', 'bracket_soumission_jours', 'bracket_relance_jours'] },
   { titre: '\u{1F3B5} Musique d ambiance', cles: ['ambiance_audio_url', 'ambiance_active', 'ambiance_pages_exclues'] },
   { titre: '\u{1F4B5} Recettes plateforme', cles: ['inscription_multiple_amount'] }, /*DKDK_INSCRIPTION_FEE*/
-  { titre: '📞 Contactez le support', cles: ['contact_whatsapp', 'contact_email', 'contact_facebook', 'contact_instagram', 'contact_tiktok'] }, /*DKDK_CONTACT_SECTION*/
+  { titre: '📞 Contactez le support', cles: ['contact_whatsapp', 'contact_email', 'contact_facebook', 'contact_instagram', 'contact_tiktok', 'contact_youtube'] }, /*DKDK_CONTACT_SECTION*/
 ];
 
 export default function AdminReglagesPage() {
@@ -117,7 +122,7 @@ export default function AdminReglagesPage() {
                 {groupe.titre}
               </h2>
               {groupe.cles.map(key => {
-                const r = trouver(key);
+                const r = trouver(key) || (LIBELLES_DEFAUT[key] ? { key, value: '', description: LIBELLES_DEFAUT[key] } : null);
                 if (!r) return null;
                 return (
                   <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10, padding: '12px 14px', background: '#15151c', borderRadius: 10, border: '1px solid rgba(255,170,0,0.12)' }}>
@@ -131,7 +136,7 @@ export default function AdminReglagesPage() {
                       style={{ width: 120, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,170,0,0.25)', background: '#0a0a0f', color: '#fff', fontSize: 14, textAlign: 'right' }}
                     />
                     <button
-                      onClick={() => enregistrer(key)}
+                      onClick={() => enregistrer(key, r.description || LIBELLES_DEFAUT[key])}
                       disabled={busyKey === key}
                       style={{ background: OR, color: '#000', fontWeight: 700, fontSize: 13, padding: '8px 16px', borderRadius: 8, border: 'none', cursor: busyKey === key ? 'default' : 'pointer', opacity: busyKey === key ? 0.6 : 1, whiteSpace: 'nowrap' }}
                     >

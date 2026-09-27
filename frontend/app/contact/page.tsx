@@ -93,12 +93,14 @@ export default function ContactPage() {
   const fbLink = normLink((cfg.contact_facebook || '').trim());
   const igLink = normLink((cfg.contact_instagram || '').trim());
   const tkLink = normLink((cfg.contact_tiktok || '').trim());
+  const ytLink = normLink((cfg.contact_youtube || '').trim());
 
   const reseaux: { key: string; node: React.ReactNode; href: string }[] = [];
   if (waLink) reseaux.push({ key: 'wa', href: waLink, node: (<><WhatsAppIcon /><div style={s.cardTsm}>WhatsApp</div><div style={s.cardSsm}>Discuter</div></>) });
   if (fbLink) reseaux.push({ key: 'fb', href: fbLink, node: (<><div style={s.cardIconSm}>📘</div><div style={s.cardTsm}>Facebook</div><div style={s.cardSsm}>Suivre</div></>) });
   if (igLink) reseaux.push({ key: 'ig', href: igLink, node: (<><div style={s.cardIconSm}>📸</div><div style={s.cardTsm}>Instagram</div><div style={s.cardSsm}>Suivre</div></>) });
   if (tkLink) reseaux.push({ key: 'tk', href: tkLink, node: (<><div style={s.cardIconSm}>🎵</div><div style={s.cardTsm}>TikTok</div><div style={s.cardSsm}>Suivre</div></>) });
+  if (ytLink) reseaux.push({ key: 'yt', href: ytLink, node: (<><div style={s.cardIconSm}>▶️</div><div style={s.cardTsm}>YouTube</div><div style={s.cardSsm}>S’abonner</div></>) });
 
   // Clic panneau -> pre-remplit le sujet et defile vers le formulaire
   const allerAuFormulaire = (sujet: string) => {
