@@ -16,14 +16,40 @@ export default function TickerBand() {
   const manualRef = useRef(false);   // pause via le bouton
 
   useEffect(() => {
-    fetch(`${API}/ticker`, { cache: 'no-store' })
+    let annule = false;
+    // 1) Annonces admin
+    const pAds = fetch(`${API}/ticker`, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => (d?.data?.length ? d.data.map((m: any) => m.message ?? m) : []))
+      .catch(() => [] as string[]);
+    // 2) Morceaux imposes des appels ouverts /*DKDK_TICKER_MORCEAUX*/
+    const pSongs = fetch(`${API}/brackets/appels`, { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
       .then(d => {
-        if (d?.data?.length) {
-          setMessages(d.data.map((m: any) => m.message ?? m));
-        }
+        const appels = d?.data?.appels ?? [];
+        const out: string[] = [];
+        const vus: Record<string, boolean> = {};
+        appels.forEach((a: any) => {
+          (a.etapes || []).forEach((e: any) => {
+            const titre = String(e.track_titre || e.libelle || '').trim();
+            if (!titre) return;
+            const artiste = String(e.track_artiste || '').trim();
+            const disc = String(a.discipline || '').trim();
+            let ligne = '\uD83C\uDFB5 ' + titre;
+            if (artiste) ligne += ' \u2014 ' + artiste;
+            if (disc) ligne += ' (' + disc + ')';
+            if (!vus[ligne]) { vus[ligne] = true; out.push(ligne); }
+          });
+        });
+        return out;
       })
-      .catch(() => {});
+      .catch(() => [] as string[]);
+    Promise.all([pAds, pSongs]).then(([ads, songs]) => {
+      if (annule) return;
+      const combined = [...ads, ...songs];
+      if (combined.length) setMessages(combined);
+    });
+    return () => { annule = true; };
   }, []);
 
   // Animation JS — aucun style tag, pas de bug d'hydratation

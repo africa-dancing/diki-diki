@@ -77,7 +77,36 @@ function TickerBand() {
   const manualRef = useRef(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/ticker`).then(r=>r.ok?r.json():null).then(d=>{ if(d?.data?.length) setMsgs(d.data.map((m: any)=>m.message??m)); }).catch(()=>{});
+    let annule = false;
+    const pAds = fetch(`${API_URL}/ticker`).then(r=>r.ok?r.json():null)
+      .then(d => (d?.data?.length ? d.data.map((m: any)=>m.message??m) : []))
+      .catch(()=>[] as string[]);
+    // Morceaux imposes des appels ouverts /*DKDK_TICKER_MORCEAUX*/
+    const pSongs = fetch(`${API_URL}/brackets/appels`, { cache: 'no-store' }).then(r=>r.ok?r.json():null)
+      .then(d => {
+        const appels = d?.data?.appels ?? [];
+        const out: string[] = []; const vus: Record<string, boolean> = {};
+        appels.forEach((a: any) => {
+          (a.etapes || []).forEach((e: any) => {
+            const titre = String(e.track_titre || e.libelle || '').trim();
+            if (!titre) return;
+            const artiste = String(e.track_artiste || '').trim();
+            const disc = String(a.discipline || '').trim();
+            let ligne = '\uD83C\uDFB5 ' + titre;
+            if (artiste) ligne += ' \u2014 ' + artiste;
+            if (disc) ligne += ' (' + disc + ')';
+            if (!vus[ligne]) { vus[ligne] = true; out.push(ligne); }
+          });
+        });
+        return out;
+      })
+      .catch(()=>[] as string[]);
+    Promise.all([pAds, pSongs]).then(([ads, songs]) => {
+      if (annule) return;
+      const combined = [...ads, ...songs];
+      if (combined.length) setMsgs(combined);
+    });
+    return () => { annule = true; };
   }, []);
   useEffect(() => {
     const track = trackRef.current; if (!track) return;
