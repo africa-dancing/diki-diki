@@ -5,7 +5,7 @@
 import { AdminGuard }   from '../../../components/admin/AdminGuard';
 import { AdminSidebar } from '../../../components/admin/AdminSidebar';
 import { useAdminAuth } from '../../../components/admin/AdminAuthContext';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
@@ -92,18 +92,26 @@ function CreerAppelInner() {
   }, [editId]);
 
   // Interroge la taxonomie dès qu'on change modèle / format / niveau /*DKDK_TAXO_OBJECTIF*/
-  useEffect(() => {
+  const chargerTaxo = useCallback(() => {
     if (!admin?.token || !formatCode) { setTaxo(null); return; }
-    let annule = false;
     setTaxoLoad(true);
     const q = `format_code=${encodeURIComponent(formatCode)}&modele=${modele}&niveau=${niveau}`;
     fetch(`${API}/brackets/taxonomie/objectif?${q}`, { headers: { Authorization: `Bearer ${admin.token}` }, cache: 'no-store' })
       .then(r => r.json())
-      .then(j => { if (!annule) setTaxo(j?.success ? j.data : null); })
-      .catch(() => { if (!annule) setTaxo(null); })
-      .finally(() => { if (!annule) setTaxoLoad(false); });
-    return () => { annule = true; };
+      .then(j => setTaxo(j?.success ? j.data : null))
+      .catch(() => setTaxo(null))
+      .finally(() => setTaxoLoad(false));
   }, [admin?.token, formatCode, modele, niveau]);
+
+  useEffect(() => { chargerTaxo(); }, [chargerTaxo]);
+
+  // DKDK_TAXO_REFRESH: relit l objectif au retour sur l onglet (panneau jamais perime)
+  useEffect(() => {
+    const onFocus = () => { if (document.visibilityState === 'visible') chargerTaxo(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    return () => { window.removeEventListener('focus', onFocus); document.removeEventListener('visibilitychange', onFocus); };
+  }, [chargerTaxo]);
 
   // niveau = nombre de vidéos/étapes → autant de champs "sujet"
   const changerNiveau = (n: number) => {
@@ -255,7 +263,8 @@ function CreerAppelInner() {
 
           {/* Panneau OBJECTIFS — lu depuis la taxonomie (jamais en dur) /*DKDK_TAXO_OBJECTIF*/}
           <div style={{ marginBottom: 16, background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 12, padding: '14px 16px' }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: OR, marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: OR, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <button type="button" onClick={() => chargerTaxo()} title="Relire l objectif depuis la taxonomie" style={{ order: 2, background: 'transparent', border: '1px solid rgba(255,170,0,0.4)', color: OR, borderRadius: 8, padding: '3px 9px', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>↻ Actualiser</button>
               🎯 Objectif à collecter <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.45)' }}>— lu dans la taxonomie ({modele === 'bloc' ? 'Bloc groupé' : 'Parcours d’étapes'})</span>
             </div>
             {taxoLoad ? (
