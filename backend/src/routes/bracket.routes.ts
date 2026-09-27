@@ -541,8 +541,9 @@ bracketRouter.get('/appels', async (_req: Request, res: Response) => {
     const supabase = getSupabase();
     const { data: bks, error } = await supabase
       .from('brackets')
-      .select('id, title, discipline, modele, niveau, max_participants, createur_id, appel_deadline, created_at')
+      .select('id, title, discipline, modele, niveau, max_participants, createur_id, appel_deadline, created_at, position')
       .eq('status', 'appel')
+      .order('position', { ascending: true, nullsFirst: false }) /*DKDK_CHALLENGE_ORDER: meme tri que l admin (Mur = ordre admin)*/
       .order('created_at', { ascending: false });
     if (error) throw error;
     const brackets = bks || [];
