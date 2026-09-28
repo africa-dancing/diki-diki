@@ -643,12 +643,12 @@ bracketRouter.get('/:bracket_id/appel', async (req: Request, res: Response) => {
     const { bracket_id } = req.params;
     const { data: b, error } = await supabase
       .from('brackets')
-      .select('id, title, discipline, categorie, style, modele, mode, niveau, allow_groups, max_participants, createur_id, appel_deadline, status, created_at')
+      .select('id, title, discipline, categorie, style, modele, mode, niveau, allow_groups, max_participants, createur_id, appel_deadline, status, created_at, current_round, total_cagnotte')
       .eq('id', bracket_id).single();
     if (error) throw error;
     const [{ data: sujets }, { data: parts }] = await Promise.all([
       supabase.from('bracket_round_sujets').select('round_number, libelle, track_id, ref_url').eq('bracket_id', bracket_id).order('round_number', { ascending: true }),
-      supabase.from('bracket_participants').select('reponse_appel').eq('bracket_id', bracket_id),
+      supabase.from('bracket_participants').select('reponse_appel, user_id, video_id, created_at').eq('bracket_id', bracket_id).order('created_at', { ascending: true }),
     ]);
     const trackIds = [...new Set((sujets || []).map((s: any) => s.track_id).filter(Boolean))];
     let trackById: Record<string, any> = {};
@@ -664,10 +664,19 @@ bracketRouter.get('/:bracket_id/appel', async (req: Request, res: Response) => {
       officiel = u?.role === 'admin'; /*DKDK_OFFICIEL*/
     }
     const bp = parts || [];
+    /* DKDK_CANDIDATS_DETAIL — additif : candidats avec photo + une video pour le bouton LIRE (lecture seule) */
+    const cuids = Array.from(new Set(bp.map((p: any) => p.user_id).filter(Boolean)));
+    let cById: Record<string, any> = {};
+    if (cuids.length) {
+      const { data: cus } = await supabase.from('users').select('id, name, avatar_url').in('id', cuids);
+      cById = Object.fromEntries((cus || []).map((u: any) => [u.id, u]));
+    }
+    const candidats = bp.map((p: any) => ({ user_id: p.user_id, name: cById[p.user_id]?.name ?? null, avatar_url: cById[p.user_id]?.avatar_url ?? null, video_id: p.video_id ?? null }));
     res.json({ success: true, data: {
       id: b.id, title: b.title, discipline: b.discipline, modele: b.modele,
       categorie: b.categorie, style: b.style, mode: b.mode, niveau: b.niveau, allow_groups: b.allow_groups, /*DKDK_MODERATEUR_APPEL — prefill edition*/
       max_participants: b.max_participants, appel_deadline: b.appel_deadline, status: b.status,
+      current_round: b.current_round ?? null, total_cagnotte: b.total_cagnotte ?? 0, candidats,
       createur_nom, createur_pays: null, officiel,
       acceptes: bp.filter((p: any) => p.reponse_appel === 'accepte').length,
       en_revision: bp.filter((p: any) => p.reponse_appel === 'revision').length,
