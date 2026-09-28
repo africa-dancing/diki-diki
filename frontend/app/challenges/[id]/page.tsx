@@ -188,7 +188,7 @@ export default function ChallengeDetailPage() {
                       {maxp > 16 && <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,170,0,.16)', color: OR, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 12 }}>+{maxp - 16}</div>}
                     </div>
                     {restantes > 0 && (
-                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10 }}><b style={{ color: 'var(--ink)' }}>{restantes} place{restantes > 1 ? 's' : ''} \u00E0 prendre</b> \u2014 {cands.length === 0 ? 'sois le premier \u00E0 relever ce d\u00E9fi et \u00E0 faire vibrer toute une communaut\u00E9\u00A0!' : 'rejoins l\u2019ar\u00E8ne avant qu\u2019elle ne soit compl\u00E8te\u00A0!'}</div>
+                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10 }}><b style={{ color: 'var(--ink)' }}>{restantes} place{restantes > 1 ? 's' : ''} à prendre</b> — {cands.length === 0 ? 'sois le premier à relever ce défi et à faire vibrer toute une communauté !' : 'rejoins l’arène avant qu’elle ne soit complète !'}</div>
                     )}
                   </>
                 );

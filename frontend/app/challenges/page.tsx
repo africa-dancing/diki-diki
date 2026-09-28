@@ -146,7 +146,7 @@ export default function ChallengesListPage() {
                         )}
                       </div>
                       {restantes > 0 && (
-                        <div style={{ fontSize:11, color:'var(--ink-soft)', marginTop:8 }}><b style={{ color:'var(--ink)' }}>{restantes} place{restantes > 1 ? 's' : ''} \u00E0 prendre</b> \u2014 {cands.length === 0 ? 'sois le premier \u00E0 relever ce d\u00E9fi\u00A0!' : 'rejoins l\u2019ar\u00E8ne avant qu\u2019elle ne soit compl\u00E8te\u00A0!'}</div>
+                        <div style={{ fontSize:11, color:'var(--ink-soft)', marginTop:8 }}><b style={{ color:'var(--ink)' }}>{restantes} place{restantes > 1 ? 's' : ''} à prendre</b> — {cands.length === 0 ? 'sois le premier à relever ce défi !' : 'rejoins l’arène avant qu’elle ne soit complète !'}</div>
                       )}
                     </div>
                   );
