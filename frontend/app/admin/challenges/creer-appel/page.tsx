@@ -87,6 +87,7 @@ function CreerAppelInner() {
         const arr: string[] = []; const arrUrl: string[] = [];
         for (let i = 0; i < nv; i++) { arr.push(et[i] || ''); arrUrl.push(etu[i] || ''); }
         setSujets(arr); setSujetsUrl(arrUrl);
+        const rg = (sorted.find((e: any) => e.regle) || {}).regle; if (rg) setRegle(rg);
       })
       .catch(() => {});
   }, [editId]);
@@ -135,7 +136,7 @@ function CreerAppelInner() {
         categorie, format_code: formatCode, modele, mode, niveau, allow_groups: allowGroups,
         discipline: categorie === 'sport' ? art.trim() : discipline.trim(),
         style: categorie === 'sport' ? epreuve.trim() : '',
-        sujets: sujets.map((libelle, i) => ({ round_number: i + 1, libelle: libelle.trim(), ref_url: (sujetsUrl[i] || '').trim() || null })).filter(s => s.libelle),
+        sujets: sujets.map((libelle, i) => ({ round_number: i + 1, libelle: libelle.trim(), ref_url: (sujetsUrl[i] || '').trim() || null, regle: regle.trim() || null })).filter(s => s.libelle),
       };
       if (categorie === 'sport') {
         body.sport = {
@@ -228,10 +229,6 @@ function CreerAppelInner() {
                 </select>
               </div>
               )}
-              <div style={{ marginBottom: 16 }}>
-                <label style={lbl}>Règle <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>(optionnel)</span></label>
-                <input style={inp} value={regle} onChange={e => setRegle(e.target.value)} placeholder="Consigne affichée au candidat…" />
-              </div>
             </>
           )}
 
@@ -331,6 +328,11 @@ function CreerAppelInner() {
               Laisse vide si l’étape est libre (ex. improvisation).
             </div>
           </div>
+
+          {/* Règles obligatoires — toutes catégories */}
+          <label style={lbl}>Règles à respecter <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>(une par ligne)</span></label>
+          <textarea style={{ ...inp, minHeight: 92, resize: 'vertical', marginBottom: 16, fontFamily: 'inherit' }} value={regle} onChange={e => setRegle(e.target.value)}
+            placeholder={'Ex.\nDur\u00e9e max 2 min\nFilm\u00e9 en une seule prise, sans montage\nTenue correcte, aucun contenu offensant'} />
 
           {/* Groupes */}
           <label style={{ ...lbl, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>

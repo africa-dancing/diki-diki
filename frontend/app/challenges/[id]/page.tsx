@@ -10,7 +10,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR = 'var(--or)';
 const GRADS = ['linear-gradient(135deg,#7b2ff7,#f107a3)','linear-gradient(135deg,#f7971e,#ffd200)','linear-gradient(135deg,#11998e,#38ef7d)','linear-gradient(135deg,#fc4a1a,#f7b733)','linear-gradient(135deg,#4568dc,#b06ab3)','linear-gradient(135deg,#e53935,#e35d5b)','linear-gradient(135deg,#00c6ff,#0072ff)','linear-gradient(135deg,#f953c6,#b91d73)','linear-gradient(135deg,#43cea2,#185a9d)','linear-gradient(135deg,#ff512f,#dd2476)','linear-gradient(135deg,#c94b4b,#4b134f)','linear-gradient(135deg,#0cebeb,#29ffc6)'];
 
-interface Etape { round_number: number; libelle: string; track_titre: string | null; track_artiste: string | null; ref_url?: string | null; }
+interface Etape { round_number: number; libelle: string; track_titre: string | null; track_artiste: string | null; ref_url?: string | null; regle?: string | null; }
 interface Cand { user_id: string; name: string | null; avatar_url: string | null; video_id: string | null; }
 interface Detail {
   id: string; title: string; discipline: string; modele: string; status: string;
@@ -83,7 +83,7 @@ export default function ChallengeDetailPage() {
             <div style={{ maxWidth: 1000, margin: '0 auto', padding: '10px 16px 4px' }}>
               <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 18, padding: '24px 20px', textAlign: 'center', color: '#fff', boxShadow: '0 8px 40px rgba(225,29,143,.35)' }}>
                 <span style={{ display: 'inline-block', fontWeight: 800, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', padding: '5px 12px', borderRadius: 20, background: badgeBg, color: badgeColor }}>{badge}</span>
-                <div style={{ color: '#ffd7de', fontSize: 12, fontWeight: 800, marginTop: 8, letterSpacing: '.08em' }}>C{d.max_participants} · {d.max_participants} candidats</div>
+                <div style={{ color: '#fff', fontSize: 15, fontWeight: 800, margin: '10px 0 2px', letterSpacing: '.14em', textTransform: 'uppercase' }}>CHALLENGE <span style={{ color: '#FFD86B' }}>C{d.max_participants}</span> · <span style={{ color: '#FFD86B' }}>{d.max_participants}</span> CANDIDATS</div>
                 <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 26, margin: '6px 0 10px', color: '#fff' }}>{d.title}</h1>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <span style={{ background: 'rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.3)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>{d.discipline}</span>
@@ -108,6 +108,22 @@ export default function ChallengeDetailPage() {
                 </div>
               ))}
             </div>
+
+            {(() => {
+              const regles = Array.from(new Set((d.etapes || []).flatMap(e => (e.regle || '').split('\n')).map(x => x.trim()).filter(Boolean)));
+              if (regles.length === 0) return null;
+              return (
+                <div style={{ background: 'linear-gradient(135deg,rgba(255,77,77,.10),rgba(255,122,26,.05))', border: '1px solid rgba(255,77,77,.35)', borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#ff8a5a', marginBottom: 12 }}>⚖️ Règles à respecter <span style={{ color: 'var(--ink-dim)', fontWeight: 600 }}>(obligatoires)</span></div>
+                  {regles.map((r, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 0', borderBottom: i < regles.length - 1 ? '1px solid var(--line)' : 'none', fontSize: 13.5 }}>
+                      <span style={{ color: '#ff8a5a', fontWeight: 800, flexShrink: 0 }}>✓</span><div>{r}</div>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: 11, color: 'var(--ink-dim)', marginTop: 10 }}>Le non-respect d&apos;une règle peut entraîner le refus de la vidéo par la modération.</div>
+                </div>
+              );
+            })()}
 
             <div className="dkdk-det-cols">
               {/* Objectif par étape */}

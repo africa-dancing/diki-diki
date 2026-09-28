@@ -647,7 +647,7 @@ bracketRouter.get('/:bracket_id/appel', async (req: Request, res: Response) => {
       .eq('id', bracket_id).single();
     if (error) throw error;
     const [{ data: sujets }, { data: parts }] = await Promise.all([
-      supabase.from('bracket_round_sujets').select('round_number, libelle, track_id, ref_url').eq('bracket_id', bracket_id).order('round_number', { ascending: true }),
+      supabase.from('bracket_round_sujets').select('round_number, libelle, track_id, ref_url, regle').eq('bracket_id', bracket_id).order('round_number', { ascending: true }),
       supabase.from('bracket_participants').select('reponse_appel, user_id, video_id, created_at').eq('bracket_id', bracket_id).order('created_at', { ascending: true }),
     ]);
     const trackIds = [...new Set((sujets || []).map((s: any) => s.track_id).filter(Boolean))];
@@ -681,7 +681,7 @@ bracketRouter.get('/:bracket_id/appel', async (req: Request, res: Response) => {
       acceptes: bp.filter((p: any) => p.reponse_appel === 'accepte').length,
       en_revision: bp.filter((p: any) => p.reponse_appel === 'revision').length,
       en_attente: bp.filter((p: any) => p.reponse_appel === 'en_attente').length,
-      etapes: (sujets || []).map((s: any) => { const t = s.track_id ? trackById[s.track_id] : null; return { round_number: s.round_number, libelle: s.libelle, track_titre: t?.titre ?? null, track_artiste: t?.artiste ?? null, ref_url: s.ref_url ?? null }; }),
+      etapes: (sujets || []).map((s: any) => { const t = s.track_id ? trackById[s.track_id] : null; return { round_number: s.round_number, libelle: s.libelle, track_titre: t?.titre ?? null, track_artiste: t?.artiste ?? null, ref_url: s.ref_url ?? null, regle: s.regle ?? null }; }),
       objectif_info: await objectifInfoAppel(supabase, b.max_participants, b.modele, b.niveau), /*DKDK_TAXO_OBJECTIF*/
     }});
   } catch (err: any) {
