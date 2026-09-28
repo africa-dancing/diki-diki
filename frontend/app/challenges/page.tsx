@@ -119,25 +119,38 @@ export default function ChallengesListPage() {
                   </div>
                 </div>
 
-                {Array.isArray(b.candidats) && b.candidats.length > 0 && (
-                  <div style={{ marginTop:12 }}>
-                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.06em', textTransform:'uppercase' as const, color:'var(--ink-soft)', marginBottom:8 }}>Les candidats de ce challenge</div>
-                    <div style={{ display:'flex', flexWrap:'wrap' as const, gap:6 }}>
-                      {b.candidats.slice(0,16).map((c, i) => {
-                        const initials = (c.name || '').split(' ').map(w => w[0]).filter(Boolean).slice(0,2).join('').toUpperCase() || '\u2605';
-                        return (
-                          <div key={c.user_id || i} title={c.name || 'Candidat'} style={{ position:'relative' as const, width:34, height:34, borderRadius:'50%', border:'2px solid rgba(255,170,0,0.5)', overflow:'hidden' as const, display:'flex', alignItems:'center', justifyContent:'center', background:GRADS[i % GRADS.length], color:'#fff', fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:12 }}>
-                            <span>{initials}</span>
-                            {c.user_id && <img src={`${API}/users/${c.user_id}/avatar-file`} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} style={{ position:'absolute' as const, inset:0, width:'100%', height:'100%', objectFit:'cover' as const }} />}
-                          </div>
-                        );
-                      })}
-                      {b.candidats.length > 16 && (
-                        <div style={{ width:34, height:34, borderRadius:'50%', background:'rgba(255,170,0,0.16)', color:'var(--or)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:12 }}>+{b.candidats.length - 16}</div>
+                {(() => {
+                  const cands = b.candidats || [];
+                  const maxp = b.max_participants || 0;
+                  const displayMax = Math.min(maxp, 16);
+                  const empty = Math.max(0, displayMax - cands.length);
+                  const restantes = Math.max(0, maxp - cands.length);
+                  return (
+                    <div style={{ marginTop:12 }}>
+                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.06em', textTransform:'uppercase' as const, color:'var(--ink-soft)', marginBottom:8 }}>Les candidats de ce challenge ({cands.length}/{maxp})</div>
+                      <div style={{ display:'flex', flexWrap:'wrap' as const, gap:6 }}>
+                        {cands.slice(0,16).map((c, i) => {
+                          const initials = (c.name || '').split(' ').map(w => w[0]).filter(Boolean).slice(0,2).join('').toUpperCase() || '\u2605';
+                          return (
+                            <div key={c.user_id || i} title={c.name || 'Candidat'} style={{ position:'relative' as const, width:34, height:34, borderRadius:'50%', border:'2px solid rgba(255,170,0,0.5)', overflow:'hidden' as const, display:'flex', alignItems:'center', justifyContent:'center', background:GRADS[i % GRADS.length], color:'#fff', fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:12 }}>
+                              <span>{initials}</span>
+                              {c.user_id && <img src={`${API}/users/${c.user_id}/avatar-file`} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} style={{ position:'absolute' as const, inset:0, width:'100%', height:'100%', objectFit:'cover' as const }} />}
+                            </div>
+                          );
+                        })}
+                        {Array.from({ length: empty }).map((_, si) => (
+                          <div key={'slot' + si} style={{ width:34, height:34, borderRadius:'50%', border:'2px dashed var(--line)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--ink-dim)', fontSize:16, background:'rgba(255,255,255,0.02)' }}>+</div>
+                        ))}
+                        {maxp > 16 && (
+                          <div style={{ width:34, height:34, borderRadius:'50%', background:'rgba(255,170,0,0.16)', color:'var(--or)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:12 }}>+{maxp - 16}</div>
+                        )}
+                      </div>
+                      {restantes > 0 && (
+                        <div style={{ fontSize:11, color:'var(--ink-soft)', marginTop:8 }}><b style={{ color:'var(--ink)' }}>{restantes} place{restantes > 1 ? 's' : ''} \u00E0 prendre</b> \u2014 {cands.length === 0 ? 'sois le premier \u00E0 relever ce d\u00E9fi\u00A0!' : 'rejoins l\u2019ar\u00E8ne avant qu\u2019elle ne soit compl\u00E8te\u00A0!'}</div>
                       )}
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {(() => {
                   const vid = (b.candidats || []).map(c => c.video_id).find(Boolean);
