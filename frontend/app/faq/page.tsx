@@ -264,10 +264,14 @@ export default function FAQPage() {
       <Navbar />{/*DKDK_FAQ_NAVBAR_USE*/}
       {/*DKDK_FAQ_HERO*/}
 
-      <div style={s.hero}>
-        <div style={s.badge}>Aide</div>
-        <h1 style={s.h1}>Questions Fréquentes</h1>
-        <p style={s.sub}>Tout ce que vous devez savoir sur Diki-Diki.</p>
+      <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 4px' }}>
+          <section style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '24px 20px', textAlign: 'center', color: '#fff', boxShadow: '0 8px 40px rgba(225,29,143,0.35)' }}>
+            <span style={{ display: 'inline-block', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: 'var(--on-accent)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', padding: '5px 12px', borderRadius: 6 }}>Aide</span>
+            <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 26, lineHeight: 1.1, margin: '12px 0 8px', color: '#fff', textTransform: 'uppercase' }}>Questions Fréquentes</h1>
+            <p style={{ color: 'rgba(255,255,255,0.92)', fontSize: 14, maxWidth: '52ch', margin: '0 auto', lineHeight: 1.55 }}>Tout ce que vous devez savoir sur Diki-Diki.</p>
+          </section>
+        </div>
       </div>
 
       <div style={s.divider} />
