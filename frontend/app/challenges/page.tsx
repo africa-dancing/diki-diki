@@ -19,6 +19,7 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> =
   open:               { label: '\u{1F4DD} Inscriptions ouvertes', color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
   waiting_candidates: { label: '\u{1F4DD} Inscriptions ouvertes', color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
   in_progress:        { label: '\u2694\uFE0F En cours',          color: OR,        bg: 'rgba(255,170,0,0.1)' },
+  active:             { label: '\u2694\uFE0F En cours',          color: OR,        bg: 'rgba(255,170,0,0.1)' },
 };
 
 export default function ChallengesListPage() {
@@ -29,7 +30,7 @@ export default function ChallengesListPage() {
   useEffect(() => {
     fetch(`${API}/brackets`)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(d => setBrackets(d.data ?? []))
+      .then(d => setBrackets((d.data ?? []).filter((b: BracketItem) => b.status === 'active' || b.status === 'in_progress')))  /*DKDK_ONLY_EN_COURS*/
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
@@ -76,8 +77,8 @@ export default function ChallengesListPage() {
         {!loading && !error && brackets.length === 0 && (
           <div style={{ textAlign:'center' as const, padding:'60px 20px', background:'var(--surface)', border:'1px dashed var(--line-strong)', borderRadius:16 }}>
             <div style={{ fontSize:40, marginBottom:12 }}>{'\u{1F3C6}'}</div>
-            <div style={{ fontSize:15, fontWeight:700, fontFamily:'Syne,sans-serif', marginBottom:6 }}>Aucun challenge ouvert pour le moment</div>
-            <div style={{ fontSize:12, color:'var(--ink-soft)' }}>Reviens bient{'\u00F4'}t, de nouveaux tournois arrivent !</div>
+            <div style={{ fontSize:15, fontWeight:700, fontFamily:'Syne,sans-serif', marginBottom:6 }}>Aucun challenge en cours pour l{'\u2019'}instant</div>
+            <div style={{ fontSize:12, color:'var(--ink-soft)' }}>Les ar{'\u00E8'}nes en formation sont sur le Mur des appels {'\u2014'} rejoins-en une pour lancer le prochain challenge !</div>
           </div>
         )}
 
@@ -88,7 +89,7 @@ export default function ChallengesListPage() {
           const count = b.bracket_participants?.[0]?.count ?? 0;
           const tags = [b.discipline, b.categorie, b.style].filter(Boolean);
           return (
-            <Link key={b.id} href={`/challenges/appels/${b.id}`} style={{ textDecoration:'none', color:'inherit' }}>
+            <Link key={b.id} href={`/challenges/${b.id}`} style={{ textDecoration:'none', color:'inherit' }}>
               <div style={{ background:'var(--surface)', border:'1px solid rgba(255,170,0,0.2)', borderRadius:16, padding:'16px', marginBottom:12, cursor:'pointer' }}>
 
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, flexWrap:'wrap', marginBottom:8 }}>
