@@ -160,24 +160,40 @@ export default function ChallengeDetailPage() {
               )}
             </div>
 
-            {/* Candidats */}
-            {Array.isArray(d.candidats) && d.candidats.length > 0 && (
-              <div style={{ ...card, marginTop: 16 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: OR, marginBottom: 12 }}>{'\u{1F525}'} Les candidats de ce challenge ({d.candidats.length})</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {d.candidats.slice(0, 16).map((c, i) => {
-                    const initials = (c.name || '').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '★';
-                    return (
-                      <div key={c.user_id || i} title={c.name || 'Candidat'} style={{ position: 'relative', width: 40, height: 40, borderRadius: '50%', border: '2px solid rgba(255,170,0,.5)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: GRADS[i % GRADS.length], color: '#fff', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13 }}>
-                        <span>{initials}</span>
-                        {c.user_id && <img src={`${API}/users/${c.user_id}/avatar-file`} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
-                      </div>
-                    );
-                  })}
-                  {d.candidats.length > 16 && <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,170,0,.16)', color: OR, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13 }}>+{d.candidats.length - 16}</div>}
-                </div>
-              </div>
-            )}
+            {/* Candidats — toujours visible : photos + places a prendre */}
+            <div style={{ ...card, marginTop: 16 }}>
+              {(() => {
+                const cands = d.candidats || [];
+                const maxp = d.max_participants || 0;
+                const acc = d.acceptes ?? cands.length;
+                const displayMax = Math.min(maxp, 16);
+                const empty = Math.max(0, displayMax - cands.length);
+                const restantes = Math.max(0, maxp - acc);
+                return (
+                  <>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: OR, marginBottom: 12 }}>{'\u{1F525}'} Les candidats de ce challenge ({cands.length}/{maxp})</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {cands.slice(0, 16).map((c, i) => {
+                        const initials = (c.name || '').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '\u2605';
+                        return (
+                          <div key={c.user_id || i} title={c.name || 'Candidat'} style={{ position: 'relative', width: 40, height: 40, borderRadius: '50%', border: '2px solid rgba(255,170,0,.5)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: GRADS[i % GRADS.length], color: '#fff', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13 }}>
+                            <span>{initials}</span>
+                            {c.user_id && <img src={`${API}/users/${c.user_id}/avatar-file`} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+                          </div>
+                        );
+                      })}
+                      {Array.from({ length: empty }).map((_, i) => (
+                        <div key={'slot' + i} style={{ width: 40, height: 40, borderRadius: '50%', border: '2px dashed var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-dim)', fontSize: 18, background: 'rgba(255,255,255,.02)' }}>+</div>
+                      ))}
+                      {maxp > 16 && <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,170,0,.16)', color: OR, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 12 }}>+{maxp - 16}</div>}
+                    </div>
+                    {restantes > 0 && (
+                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10 }}><b style={{ color: 'var(--ink)' }}>{restantes} place{restantes > 1 ? 's' : ''} \u00E0 prendre</b> \u2014 {cands.length === 0 ? 'sois le premier \u00E0 relever ce d\u00E9fi et \u00E0 faire vibrer toute une communaut\u00E9\u00A0!' : 'rejoins l\u2019ar\u00E8ne avant qu\u2019elle ne soit compl\u00E8te\u00A0!'}</div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
 
             {/* Rappel argent honnête */}
             <div style={{ ...card, background: 'rgba(255,170,0,.06)', border: '1px solid rgba(255,170,0,.25)', marginTop: 16 }}>
