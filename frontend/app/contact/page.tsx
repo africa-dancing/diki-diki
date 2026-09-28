@@ -130,13 +130,14 @@ export default function ContactPage() {
     <div style={s.page}>
       <Navbar />
 
-      <div style={s.badgeWrap}>
-        <span style={s.badge}>🎭 Support</span>
-      </div>
-
-      <div style={s.hero}>
-        <h1 style={s.h1}>Nous contacter</h1>
-        <p style={s.sub}>Notre équipe vous répond sous 24h ouvrables</p>
+      <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
+        <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px 4px' }}>
+          <section style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '24px 20px', textAlign: 'center', color: '#fff', boxShadow: '0 8px 40px rgba(225,29,143,0.35)' }}>
+            <span style={{ display: 'inline-block', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: 'var(--on-accent)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', padding: '5px 12px', borderRadius: 6 }}>🎭 Support</span>
+            <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 26, lineHeight: 1.1, margin: '12px 0 8px', color: '#fff', textTransform: 'uppercase' }}>Nous contacter</h1>
+            <p style={{ color: 'rgba(255,255,255,0.92)', fontSize: 14, maxWidth: '52ch', margin: '0 auto', lineHeight: 1.55 }}>Notre équipe vous répond sous 24h ouvrables</p>
+          </section>
+        </div>
       </div>
 
       

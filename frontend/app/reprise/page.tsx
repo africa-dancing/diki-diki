@@ -43,14 +43,14 @@ export default function ReprisePage() {
     <div style={s.page}>
       <Navbar />
 
-      <div style={s.hero}>
-        <div style={s.badge}>Aide · Candidats</div>
-        <h1 style={s.h1}>Ta reprise, <span style={s.h1grad}>sans les paroles</span></h1>
-        <p style={s.sub}>
-          Tu veux chanter sur la musique d&apos;une chanson, sans la voix d&apos;origine ?
-          Voici comment obtenir l&apos;instrumental (le « karaoké ») en 3 étapes simples,
-          gratuitement, même depuis ton téléphone.
-        </p>
+      <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
+        <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px 4px' }}>
+          <section style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '24px 20px', textAlign: 'center', color: '#fff', boxShadow: '0 8px 40px rgba(225,29,143,0.35)' }}>
+            <span style={{ display: 'inline-block', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: 'var(--on-accent)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', padding: '5px 12px', borderRadius: 6 }}>Aide · Candidats</span>
+            <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 26, lineHeight: 1.1, margin: '12px 0 8px', color: '#fff', textTransform: 'uppercase' }}>Ta reprise, sans les paroles</h1>
+            <p style={{ color: 'rgba(255,255,255,0.92)', fontSize: 14, maxWidth: '52ch', margin: '0 auto', lineHeight: 1.55 }}>Tu veux chanter sur la musique d&apos;une chanson, sans la voix d&apos;origine ? Voici comment obtenir l&apos;instrumental (le « karaoké ») en 3 étapes simples, gratuitement, même depuis ton téléphone.</p>
+          </section>
+        </div>
       </div>
 
       <div style={s.body}>
