@@ -88,7 +88,7 @@ export default function ChallengesListPage() {
           const count = b.bracket_participants?.[0]?.count ?? 0;
           const tags = [b.discipline, b.categorie, b.style].filter(Boolean);
           return (
-            <Link key={b.id} href={`/challenges/${b.id}`} style={{ textDecoration:'none', color:'inherit' }}>
+            <Link key={b.id} href={`/challenges/appels/${b.id}`} style={{ textDecoration:'none', color:'inherit' }}>
               <div style={{ background:'var(--surface)', border:'1px solid rgba(255,170,0,0.2)', borderRadius:16, padding:'16px', marginBottom:12, cursor:'pointer' }}>
 
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, flexWrap:'wrap', marginBottom:8 }}>

@@ -117,20 +117,44 @@ export default function AppelDetailPage() {
           <p style={{ color: 'var(--red, #ff6b6b)', marginTop: 24 }}>{error}</p>
         ) : appel ? (
           <>
-            <div style={{ ...card, marginTop: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: OR }}>{appel.discipline}</span>
+            {/* HERO magenta (aligné sur le reste du site) */}
+            <div style={{ marginTop: 16, background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 18, padding: '22px 20px', textAlign: 'center', color: '#fff', boxShadow: '0 8px 40px rgba(225,29,143,0.35)', marginBottom: 16 }}>
+              <span style={{ display: 'inline-block', fontWeight: 800, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', borderRadius: 20, background: appel.status === 'appel' ? 'linear-gradient(135deg,#2fe06f,#12b455)' : 'linear-gradient(135deg,#FF6B00,#FFD700)', color: appel.status === 'appel' ? '#063' : '#150c00' }}>
+                {appel.status === 'appel' ? '● Inscriptions ouvertes' : '● En cours'}
+              </span>
+              <div style={{ color: '#ffd7de', fontSize: 12, fontWeight: 800, marginTop: 8, letterSpacing: '0.08em' }}>C{appel.max_participants} · {appel.max_participants} candidats</div>
+              <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, margin: '6px 0 10px', color: '#fff' }}>{appel.title}</h1>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <span style={{ background: 'rgba(0,0,0,0.28)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>{appel.discipline}</span>
                 {appel.officiel && (
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#150c00', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', borderRadius: 999, padding: '2px 10px' }}>Appel officiel Diki-Diki</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#150c00', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', borderRadius: 999, padding: '3px 10px' }}>Appel officiel</span>
                 )}
               </div>
-              <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, margin: '0 0 10px' }}>{appel.title}</h1>
-              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 13, color: 'var(--ink-soft)' }}>
-                <span><b style={{ color: 'var(--ink)' }}>{Math.max(0, appel.max_participants - appel.acceptes)}</b> place(s) restante(s) sur {appel.max_participants}</span>
-                <span>{appel.modele === 'bloc' ? 'Bloc groupé' : 'Parcours d’étapes'}</span>
-                {appel.appel_deadline && <span>Clôture : {fmtDate(appel.appel_deadline)}</span>}
+            </div>
+
+            {/* Ligne d'infos */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 16 }}>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
+                <div style={{ fontSize: 10, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Modèle</div>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 14, marginTop: 3 }}>{appel.modele === 'bloc' ? 'Bloc groupé' : 'Parcours'}</div>
+              </div>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
+                <div style={{ fontSize: 10, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{appel.modele === 'bloc' ? 'Vidéos' : 'Étapes'}</div>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 14, marginTop: 3 }}>{appel.etapes?.length || appel.niveau || '—'}</div>
+              </div>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
+                <div style={{ fontSize: 10, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Places</div>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 14, marginTop: 3 }}>{Math.max(0, appel.max_participants - appel.acceptes)} / {appel.max_participants}</div>
               </div>
             </div>
+
+            {appel.status === 'appel' && appel.acceptes === 0 && (
+              <div style={{ ...card, textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderStyle: 'dashed' }}>
+                <div style={{ fontSize: 30 }}>🔥</div>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 15, margin: '6px 0 4px' }}>Aucun candidat pour l’instant</div>
+                <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Sois le premier à relever ce défi et à faire vibrer toute une communauté !</div>
+              </div>
+            )}
 
             {/* Sujets imposés par étape */}
             {appel.etapes && appel.etapes.length > 0 && (
