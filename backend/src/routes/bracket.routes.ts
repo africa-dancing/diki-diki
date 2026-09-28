@@ -25,14 +25,40 @@ function getSupabase() {
 // Liste des challenges (page /challenges)
 bracketRouter.get('/', async (req: Request, res: Response) => {
   try {
-    const { data, error } = await getSupabase()
+    const supabase = getSupabase();
+    const { data, error } = await supabase
       .from('brackets')
       .select('id, code, title, discipline, categorie, style, status, modele, niveau, objectif_bloc, appel_deadline, current_round, total_cagnotte, max_participants, position, created_at, bracket_participants!bracket_participants_bracket_id_fkey(count)') /*DKDK_ADMIN_CARTE — infos enrichies*/
       .in('status', ['open', 'in_progress', 'waiting_candidates', 'appel']) /*DKDK_MODERATEUR_APPEL — les appels apparaissent en admin*/
       .order('position', { ascending: true, nullsFirst: false }) /*DKDK_CHALLENGE_ORDER*/
       .order('created_at', { ascending: false });
     if (error) throw error;
-    res.json({ success: true, data });
+    const brackets = (data || []) as any[];
+    /* DKDK_CANDIDATS_CARTE — additif : photos des candidats + une video pour le bouton LIRE (lecture seule, aucun argent) */
+    const bids = brackets.map((b: any) => b.id);
+    if (bids.length) {
+      const { data: parts } = await supabase
+        .from('bracket_participants')
+        .select('bracket_id, user_id, video_id, reponse_appel, created_at')
+        .in('bracket_id', bids)
+        .order('created_at', { ascending: true });
+      const uids = Array.from(new Set((parts || []).map((p: any) => p.user_id).filter(Boolean)));
+      let uById: Record<string, any> = {};
+      if (uids.length) {
+        const { data: us } = await supabase.from('users').select('id, name, avatar_url').in('id', uids);
+        uById = Object.fromEntries((us || []).map((u: any) => [u.id, u]));
+      }
+      for (const b of brackets) {
+        const bp = (parts || []).filter((p: any) => p.bracket_id === b.id);
+        b.candidats = bp.map((p: any) => ({
+          user_id: p.user_id,
+          name: uById[p.user_id]?.name ?? null,
+          avatar_url: uById[p.user_id]?.avatar_url ?? null,
+          video_id: p.video_id ?? null,
+        }));
+      }
+    }
+    res.json({ success: true, data: brackets });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

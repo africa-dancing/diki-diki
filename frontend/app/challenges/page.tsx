@@ -3,9 +3,11 @@ import Navbar from '../components/Navbar';
 import TickerBand from '../components/TickerBand';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR  = 'var(--or)';
+const GRADS = ['linear-gradient(135deg,#7b2ff7,#f107a3)','linear-gradient(135deg,#f7971e,#ffd200)','linear-gradient(135deg,#11998e,#38ef7d)','linear-gradient(135deg,#fc4a1a,#f7b733)','linear-gradient(135deg,#4568dc,#b06ab3)','linear-gradient(135deg,#e53935,#e35d5b)','linear-gradient(135deg,#00c6ff,#0072ff)','linear-gradient(135deg,#f953c6,#b91d73)'];
 
 interface BracketItem {
   id: string; code: string | null; title: string;
@@ -13,6 +15,7 @@ interface BracketItem {
   status: string; current_round: number; total_cagnotte: number;
   max_participants: number;
   bracket_participants: { count: number }[];
+  candidats?: { user_id: string; name: string | null; avatar_url: string | null; video_id: string | null }[];
 }
 
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> = {
@@ -23,6 +26,7 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> =
 };
 
 export default function ChallengesListPage() {
+  const router = useRouter();
   const [brackets, setBrackets] = useState<BracketItem[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState(false);
@@ -30,7 +34,7 @@ export default function ChallengesListPage() {
   useEffect(() => {
     fetch(`${API}/brackets`)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(d => setBrackets((d.data ?? []).filter((b: BracketItem) => b.status === 'active' || b.status === 'in_progress')))  /*DKDK_ONLY_EN_COURS*/
+      .then(d => setBrackets(d.data ?? []))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
@@ -77,8 +81,8 @@ export default function ChallengesListPage() {
         {!loading && !error && brackets.length === 0 && (
           <div style={{ textAlign:'center' as const, padding:'60px 20px', background:'var(--surface)', border:'1px dashed var(--line-strong)', borderRadius:16 }}>
             <div style={{ fontSize:40, marginBottom:12 }}>{'\u{1F3C6}'}</div>
-            <div style={{ fontSize:15, fontWeight:700, fontFamily:'Syne,sans-serif', marginBottom:6 }}>Aucun challenge en cours pour l{'\u2019'}instant</div>
-            <div style={{ fontSize:12, color:'var(--ink-soft)' }}>Les ar{'\u00E8'}nes en formation sont sur le Mur des appels {'\u2014'} rejoins-en une pour lancer le prochain challenge !</div>
+            <div style={{ fontSize:15, fontWeight:700, fontFamily:'Syne,sans-serif', marginBottom:6 }}>Aucun challenge ouvert pour le moment</div>
+            <div style={{ fontSize:12, color:'var(--ink-soft)' }}>Reviens bient{'\u00F4'}t, de nouveaux tournois arrivent !</div>
           </div>
         )}
 
@@ -114,6 +118,38 @@ export default function ChallengesListPage() {
                     {'\u{1F3C6}'} {Number(b.total_cagnotte).toLocaleString('fr-FR')} F
                   </div>
                 </div>
+
+                {Array.isArray(b.candidats) && b.candidats.length > 0 && (
+                  <div style={{ marginTop:12 }}>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.06em', textTransform:'uppercase' as const, color:'var(--ink-soft)', marginBottom:8 }}>Les candidats de ce challenge</div>
+                    <div style={{ display:'flex', flexWrap:'wrap' as const, gap:6 }}>
+                      {b.candidats.slice(0,16).map((c, i) => {
+                        const initials = (c.name || '').split(' ').map(w => w[0]).filter(Boolean).slice(0,2).join('').toUpperCase() || '\u2605';
+                        return (
+                          <div key={c.user_id || i} title={c.name || 'Candidat'} style={{ position:'relative' as const, width:34, height:34, borderRadius:'50%', border:'2px solid rgba(255,170,0,0.5)', overflow:'hidden' as const, display:'flex', alignItems:'center', justifyContent:'center', background:GRADS[i % GRADS.length], color:'#fff', fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:12 }}>
+                            <span>{initials}</span>
+                            {c.user_id && <img src={`${API}/users/${c.user_id}/avatar-file`} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} style={{ position:'absolute' as const, inset:0, width:'100%', height:'100%', objectFit:'cover' as const }} />}
+                          </div>
+                        );
+                      })}
+                      {b.candidats.length > 16 && (
+                        <div style={{ width:34, height:34, borderRadius:'50%', background:'rgba(255,170,0,0.16)', color:'var(--or)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:12 }}>+{b.candidats.length - 16}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {(() => {
+                  const vid = (b.candidats || []).map(c => c.video_id).find(Boolean);
+                  if (!vid) return null;
+                  return (
+                    <span role="button" tabIndex={0}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/watch/${vid}`); }}
+                      style={{ display:'block', textAlign:'center' as const, marginTop:12, background:'linear-gradient(135deg,#FF6B00,#FFD700)', color:'#000', fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:14, padding:'11px', borderRadius:12, cursor:'pointer' }}>
+                      {'\u25B6\uFE0F'} LIRE CE CHALLENGE
+                    </span>
+                  );
+                })()}
 
               </div>
             </Link>
