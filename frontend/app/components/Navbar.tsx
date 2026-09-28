@@ -194,6 +194,7 @@ export default function Navbar() {
             {[
                 { href: '/home',              label: 'Accueil' },
                 { href: '/faq',               label: 'Comment ça marche' },
+                { href: '/les-echos',         label: 'Programme de Fidélité des Échos' },
                 { href: '/challenges/appels', label: 'Mur des appels' },
                 { href: '/mediatheque',       label: 'Médiathèque' },
                 { href: '/challenges',        label: 'Challenge' },
