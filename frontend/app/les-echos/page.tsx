@@ -44,11 +44,11 @@ const GAINS = [
   { t: 'Commenter', v: '+1 Écho' },
 ];
 
-const AVANTAGES = [
-  { s: 'Dès Le Messager', v: 'Badge sur ton profil' },
-  { s: 'Dès Le Porte-parole', v: 'Badge à côté de tes soutiens' },
-  { s: "Dès L'Ambassadeur", v: 'Commentaires mis en avant + accès anticipé' },
-  { s: 'Le Héraut', v: 'Titre honorifique + couleur de pseudo' },
+const AVANTAGES: { statut: StatutEcho; s: string; v: string }[] = [
+  { statut: 'messager',    s: 'Dès Le Messager',     v: 'Badge sur ton profil' },
+  { statut: 'porteparole', s: 'Dès Le Porte-parole', v: 'Badge à côté de tes soutiens' },
+  { statut: 'ambassadeur', s: "Dès L'Ambassadeur",   v: 'Commentaires mis en avant + accès anticipé' },
+  { statut: 'heraut',      s: 'Le Héraut',           v: 'Titre honorifique + couleur de pseudo' },
 ];
 
 export default function LesEchosPage() {
@@ -112,8 +112,9 @@ export default function LesEchosPage() {
         <h2 style={s.h2}>Tes avantages, statut par statut</h2>
         <div style={s.grid2}>
           {AVANTAGES.map((a) => (
-            <div key={a.s} style={s.liCard}>
-              <span style={s.liStrong}>{a.s}</span> <span style={{ color: 'var(--ink-soft)' }}>— {a.v}</span>
+            <div key={a.s} style={{ ...s.liCard, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <EchoIcon statut={a.statut} size={26} />
+              <span><span style={s.liStrong}>{a.s}</span> <span style={{ color: 'var(--ink-soft)' }}>— {a.v}</span></span>
             </div>
           ))}
         </div>
