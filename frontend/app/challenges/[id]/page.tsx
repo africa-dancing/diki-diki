@@ -20,6 +20,11 @@ interface Detail {
 }
 
 const fmtF = (n: any) => Number(n || 0).toLocaleString('fr-FR') + ' F';
+function ytEmbed(url?: string | null): string | null {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+}
 
 export default function ChallengeDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -168,6 +173,14 @@ export default function ChallengeDetailPage() {
                         <span style={{ fontSize: 12, fontWeight: 800, color: s === 'current' || s === 'next' ? OR : (s === 'future' ? 'var(--ink-dim)' : OR), minWidth: 62 }}>{d.modele === 'bloc' ? 'Vidéo' : 'Étape'} {e.round_number}</span>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 13.5, fontWeight: s === 'current' ? 700 : 400 }}>{e.libelle || 'Libre'}{e.track_titre ? <span style={{ color: 'var(--ink-soft)' }}> — {e.track_titre}{e.track_artiste ? ' · ' + e.track_artiste : ''}</span> : null}</div>
+                          {ytEmbed(e.ref_url) ? (
+                            <div style={{ marginTop: 8 }}>
+                              <div style={{ fontSize: 11, color: OR, fontWeight: 700, marginBottom: 4 }}>▶ Version de référence — à visionner avant de participer</div>
+                              <div style={{ position: 'relative', width: '100%', maxWidth: 420, aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)' }}>
+                                <iframe src={ytEmbed(e.ref_url) as string} title={`Référence ${e.round_number}`} loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+                              </div>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     );

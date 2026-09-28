@@ -35,7 +35,7 @@ function CreerAppelInner() {
   const [art, setArt]         = useState('');
   const [epreuve, setEpreuve] = useState('');
   const [sportEpreuves, setSportEpreuves] = useState<any[]>([]); /*DKDK_SPORT_SELECT*/
-  const [regle, setRegle]     = useState('');
+  const [regles, setRegles]   = useState<string[]>(['']);
   // sujets par étape (un libellé/morceau par vidéo)
   const [sujets, setSujets] = useState<string[]>(['']);
   const [sujetsUrl, setSujetsUrl] = useState<string[]>(['']); /*DKDK_REF_URL — lien YouTube par etape*/
@@ -87,7 +87,7 @@ function CreerAppelInner() {
         const arr: string[] = []; const arrUrl: string[] = [];
         for (let i = 0; i < nv; i++) { arr.push(et[i] || ''); arrUrl.push(etu[i] || ''); }
         setSujets(arr); setSujetsUrl(arrUrl);
-        const rg = (sorted.find((e: any) => e.regle) || {}).regle; if (rg) setRegle(rg);
+        const rg = (sorted.find((e: any) => e.regle) || {}).regle; setRegles(splitRegles(rg));
       })
       .catch(() => {});
   }, [editId]);
@@ -124,6 +124,15 @@ function CreerAppelInner() {
 
   const majSujet = (i: number, val: string) => setSujets(prev => prev.map((s, idx) => idx === i ? val : s));
   const majSujetUrl = (i: number, val: string) => setSujetsUrl(prev => prev.map((s, idx) => idx === i ? val : s));
+  const splitRegles = (txt?: string | null): string[] => {
+    if (!txt) return [''];
+    let parts = String(txt).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    if (parts.length <= 1) parts = String(txt).split(/\s*(?:\d+[.)]|\u2022|\u2013|-)\s+/).map(s => s.trim()).filter(Boolean);
+    return parts.length ? parts : [''];
+  };
+  const majRegle = (i: number, val: string) => setRegles(prev => prev.map((r, idx) => idx === i ? val : r));
+  const addRegle = () => setRegles(prev => [...prev, '']);
+  const removeRegle = (i: number) => setRegles(prev => prev.length <= 1 ? [''] : prev.filter((_, idx) => idx !== i));
   const fmtF = (n: number) => (n || 0).toLocaleString('fr-FR') + ' F';
 
   const submit = async () => {
@@ -131,18 +140,19 @@ function CreerAppelInner() {
     if (categorie === 'artistique' && !discipline.trim()) { setMsg('Indique la discipline (ex. Humour, Chant, Danse).'); return; }
     if (categorie === 'sport' && (!art.trim() || !epreuve.trim())) { setMsg('Indique l’art et l’épreuve.'); return; }
     setBusy(true);
+    const reglesText = regles.map(r => r.trim()).filter(Boolean).join('\n');
     try {
       const body: any = {
         categorie, format_code: formatCode, modele, mode, niveau, allow_groups: allowGroups,
         discipline: categorie === 'sport' ? art.trim() : discipline.trim(),
         style: categorie === 'sport' ? epreuve.trim() : '',
-        sujets: sujets.map((libelle, i) => ({ round_number: i + 1, libelle: libelle.trim(), ref_url: (sujetsUrl[i] || '').trim() || null, regle: regle.trim() || null })).filter(s => s.libelle),
+        sujets: sujets.map((libelle, i) => ({ round_number: i + 1, libelle: libelle.trim(), ref_url: (sujetsUrl[i] || '').trim() || null, regle: reglesText || null })).filter(s => s.libelle),
       };
       if (categorie === 'sport') {
         body.sport = {
           art: art.trim(), art_slug: slug(art),
           epreuve: epreuve.trim(), epreuve_slug: slug(epreuve),
-          regle: regle.trim() || null,
+          regle: reglesText || null,
         };
       }
       const r = await fetch(editId ? `${API}/brackets/admin/appel/${editId}` : `${API}/brackets/admin/appel`, {
@@ -158,7 +168,7 @@ function CreerAppelInner() {
         setOk('✅ Appel ouvert ! (id ' + String(j.data?.bracket_id || '').slice(0, 8) + ') — il apparaît sur le Mur des appels.');
         // Reset du formulaire après création réussie : on repart d'une page vierge
         // pour ne PAS reporter la discipline / les morceaux imposés sur l'appel suivant.
-        setDiscipline(''); setDiscAutre(false); setArt(''); setEpreuve(''); setRegle('');
+        setDiscipline(''); setDiscAutre(false); setArt(''); setEpreuve(''); setRegles(['']);
         setSujets(Array.from({ length: niveau }, () => '')); setSujetsUrl(Array.from({ length: niveau }, () => ''));
       }
     } catch { setMsg('Erreur réseau.'); }
@@ -331,8 +341,16 @@ function CreerAppelInner() {
 
           {/* Règles obligatoires — toutes catégories */}
           <label style={lbl}>Règles à respecter <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>(une par ligne)</span></label>
-          <textarea style={{ ...inp, minHeight: 92, resize: 'vertical', marginBottom: 16, fontFamily: 'inherit' }} value={regle} onChange={e => setRegle(e.target.value)}
-            placeholder={'Ex.\nDur\u00e9e max 2 min\nFilm\u00e9 en une seule prise, sans montage\nTenue correcte, aucun contenu offensant'} />
+          <div style={{ marginBottom: 16 }}>
+            {regles.map((r, i) => (
+              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, color: OR, width: 20, textAlign: 'center', flexShrink: 0 }}>{i + 1}</span>
+                <input style={{ ...inp, flex: 1 }} value={r} onChange={e => majRegle(i, e.target.value)} placeholder={`R\u00e8gle ${i + 1} \u2014 ex. Dur\u00e9e max 2 min`} />
+                <button type="button" onClick={() => removeRegle(i)} style={{ width: 34, height: 38, borderRadius: 8, border: '1px solid rgba(255,77,77,0.4)', background: 'rgba(255,77,77,0.1)', color: '#ff8a8a', fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}>{'\u2715'}</button>
+              </div>
+            ))}
+            <button type="button" onClick={addRegle} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,178,36,0.14)', border: '1px solid rgba(255,170,0,0.4)', color: OR, fontWeight: 800, fontSize: 13, padding: '9px 14px', borderRadius: 10, cursor: 'pointer' }}>{'\uFF0B'} Ajouter une r\u00e8gle</button>
+          </div>
 
           {/* Groupes */}
           <label style={{ ...lbl, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>

@@ -24,7 +24,7 @@ function AdminSportInner() {
   // Edition en cours
   const [editId, setEditId]     = useState<string | null>(null);
   const [eLibelle, setELibelle] = useState('');
-  const [eRegle, setERegle]     = useState('');
+  const [eRegles, setERegles]   = useState<string[]>(['']);
   const [eOrdre, setEOrdre]     = useState('');
   const [eActif, setEActif]     = useState(true);
   const [eChoixType, setEChoixType]   = useState(''); /*DKDK_CHOIX*/
@@ -34,7 +34,20 @@ function AdminSportInner() {
   const [nSport, setNSport]       = useState(''); /*DKDK_SPORT_FORM_AJOUT*/
   const [nEpreuve, setNEpreuve]   = useState('');
   const [nLibelle, setNLibelle]   = useState('');
-  const [nRegle, setNRegle]       = useState('');
+  const [nRegles, setNRegles]     = useState<string[]>(['']);
+  const splitRegles = (txt?: string | null): string[] => {
+    if (!txt) return [''];
+    let parts = String(txt).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    if (parts.length <= 1) parts = String(txt).split(/\s*(?:\d+[.)]|\u2022|\u2013|-)\s+/).map(s => s.trim()).filter(Boolean);
+    return parts.length ? parts : [''];
+  };
+  const joinR = (arr: string[]) => arr.map(r => r.trim()).filter(Boolean).join('\n');
+  const majN = (i: number, v: string) => setNRegles(p => p.map((r, ix) => ix === i ? v : r));
+  const addN = () => setNRegles(p => [...p, '']);
+  const rmN = (i: number) => setNRegles(p => p.length <= 1 ? [''] : p.filter((_, ix) => ix !== i));
+  const majE = (i: number, v: string) => setERegles(p => p.map((r, ix) => ix === i ? v : r));
+  const addE = () => setERegles(p => [...p, '']);
+  const rmE = (i: number) => setERegles(p => p.length <= 1 ? [''] : p.filter((_, ix) => ix !== i));
   const [nNiveau, setNNiveau]     = useState('');
   const [nOrdre, setNOrdre]       = useState('');
   const [nChoixType, setNChoixType]   = useState(''); /*DKDK_CHOIX*/
@@ -48,7 +61,7 @@ function AdminSportInner() {
     try {
       const body: any = {
         sport: nSport.trim(), sport_slug: slugify(nSport), epreuve: nEpreuve.trim(), libelle: nLibelle.trim(),
-        regle: nRegle.trim() || null,
+        regle: joinR(nRegles) || null,
         niveau: nNiveau.trim() ? parseInt(nNiveau, 10) : null,
         ordre: nOrdre.trim() ? parseInt(nOrdre, 10) : 0,
         choix_type: nChoixType || null,
@@ -63,7 +76,7 @@ function AdminSportInner() {
       const j = await r.json();
       if (!j.success) { setErreur(j.error || 'Ajout echoue.'); return; }
       setInfo('Epreuve ajoutee.');
-      setNSport(''); setNEpreuve(''); setNLibelle(''); setNRegle(''); setNNiveau(''); setNOrdre('');
+      setNSport(''); setNEpreuve(''); setNLibelle(''); setNRegles(['']); setNNiveau(''); setNOrdre('');
       setNChoixType(''); setNChoixMax('10'); setNChoixListe('');
       charger();
     } catch (e) { setErreur('Erreur reseau.'); }
@@ -88,7 +101,7 @@ function AdminSportInner() {
   const ouvrirEdition = (ep: Epreuve) => {
     setEditId(ep.id);
     setELibelle(ep.libelle || '');
-    setERegle(ep.regle || '');
+    setERegles(splitRegles(ep.regle));
     setEOrdre(String(ep.ordre ?? 0));
     setEActif(ep.actif);
     setEChoixType(ep.choix_type || '');
@@ -111,7 +124,7 @@ function AdminSportInner() {
         },
         body: JSON.stringify({
           libelle: eLibelle,
-          regle: eRegle === '' ? null : eRegle,
+          regle: joinR(eRegles) || null,
           ordre: ordreNum,
           actif: eActif,
           choix_type: eChoixType || null,
@@ -200,7 +213,17 @@ function AdminSportInner() {
             <div><label style={lbl}>Epreuve *</label><input style={inp} value={nEpreuve} onChange={(e) => setNEpreuve(e.target.value)} placeholder='Ex : Jonglages' /></div>
           </div>
           <div style={{ marginBottom:10 }}><label style={lbl}>Libelle *</label><input style={inp} value={nLibelle} onChange={(e) => setNLibelle(e.target.value)} placeholder='Ex : Jonglages - Niveau 1' /></div>
-          <div style={{ marginBottom:10 }}><label style={lbl}>Regle (optionnel)</label><textarea style={{ ...inp, minHeight:60, resize:'vertical', fontFamily:'inherit' }} value={nRegle} onChange={(e) => setNRegle(e.target.value)} placeholder='Decris la regle...' /></div>
+          <div style={{ marginBottom:10 }}>
+            <label style={lbl}>Regles a respecter (une par ligne)</label>
+            {nRegles.map((r, i) => (
+              <div key={i} style={{ display:'flex', gap:6, alignItems:'center', marginBottom:6 }}>
+                <span style={{ color:OR, fontWeight:800, width:18, textAlign:'center' as const, flexShrink:0 }}>{i + 1}</span>
+                <input style={{ ...inp }} value={r} onChange={(e) => majN(i, e.target.value)} placeholder={`Regle ${i + 1}`} />
+                <button type="button" onClick={() => rmN(i)} style={{ width:32, height:34, borderRadius:8, border:'1px solid rgba(255,77,77,0.4)', background:'rgba(255,77,77,0.1)', color:'#ff8a8a', fontWeight:800, cursor:'pointer', flexShrink:0 }}>✕</button>
+              </div>
+            ))}
+            <button type="button" onClick={addN} style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,170,0,0.14)', border:'1px solid rgba(255,170,0,0.4)', color:OR, fontWeight:800, fontSize:13, padding:'7px 12px', borderRadius:9, cursor:'pointer' }}>＋ Ajouter une regle</button>
+          </div>
           <div style={{ marginBottom:10 }}>
             <label style={lbl}>2ᵉ menu (déroulant à l&apos;étape 3)</label>
             <select style={inp} value={nChoixType} onChange={(e) => setNChoixType(e.target.value)}>
@@ -242,7 +265,14 @@ function AdminSportInner() {
                       </div>
                       <div>
                         <label style={lbl}>Regle de l&apos;epreuve</label>
-                        <textarea style={{ ...inp, minHeight:70, resize:'vertical', fontFamily:'inherit' }} value={eRegle} onChange={(e) => setERegle(e.target.value)} placeholder='Decris la regle a respecter...' />
+                        {eRegles.map((r, i) => (
+                          <div key={i} style={{ display:'flex', gap:6, alignItems:'center', marginBottom:6 }}>
+                            <span style={{ color:OR, fontWeight:800, width:18, textAlign:'center' as const, flexShrink:0 }}>{i + 1}</span>
+                            <input style={{ ...inp }} value={r} onChange={(e) => majE(i, e.target.value)} placeholder={`Regle ${i + 1}`} />
+                            <button type="button" onClick={() => rmE(i)} style={{ width:32, height:34, borderRadius:8, border:'1px solid rgba(255,77,77,0.4)', background:'rgba(255,77,77,0.1)', color:'#ff8a8a', fontWeight:800, cursor:'pointer', flexShrink:0 }}>✕</button>
+                          </div>
+                        ))}
+                        <button type="button" onClick={addE} style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,170,0,0.14)', border:'1px solid rgba(255,170,0,0.4)', color:OR, fontWeight:800, fontSize:13, padding:'7px 12px', borderRadius:9, cursor:'pointer', marginTop:2 }}>＋ Ajouter une regle</button>
                       </div>
                       <div style={{ display:'flex', gap:12, alignItems:'center', flexWrap:'wrap' }}>
                         <div style={{ width:120 }}>
