@@ -104,12 +104,12 @@ export default function ContactPage() {
   const tkLink = normLink((cfg.contact_tiktok || '').trim());
   const ytLink = normLink((cfg.contact_youtube || '').trim());
 
-  const reseaux: { key: string; node: React.ReactNode; href: string }[] = [];
-  if (waLink) reseaux.push({ key: 'wa', href: waLink, node: (<><WhatsAppIcon /><div style={s.cardTsm}>WhatsApp</div><div style={s.cardSsm}>Discuter</div></>) });
-  if (fbLink) reseaux.push({ key: 'fb', href: fbLink, node: (<><div style={s.cardIconSm}>📘</div><div style={s.cardTsm}>Facebook</div><div style={s.cardSsm}>Suivre</div></>) });
-  if (igLink) reseaux.push({ key: 'ig', href: igLink, node: (<><div style={s.cardIconSm}>📸</div><div style={s.cardTsm}>Instagram</div><div style={s.cardSsm}>Suivre</div></>) });
-  if (tkLink) reseaux.push({ key: 'tk', href: tkLink, node: (<><div style={s.cardIconSm}>🎵</div><div style={s.cardTsm}>TikTok</div><div style={s.cardSsm}>Suivre</div></>) });
-  if (ytLink) reseaux.push({ key: 'yt', href: ytLink, node: (<><YouTubeIcon /><div style={s.cardTsm}>YouTube</div><div style={s.cardSsm}>S’abonner</div></>) });
+  const reseaux: { key: string; href: string; badge: string; icon: React.ReactNode; title: string; sub: string; cta: string }[] = [];
+  if (waLink) reseaux.push({ key: 'wa', href: waLink, badge: 'wa', icon: <WhatsAppIcon />, title: 'WhatsApp', sub: 'Discuter directement avec l’équipe', cta: 'Ouvrir' });
+  if (fbLink) reseaux.push({ key: 'fb', href: fbLink, badge: '', icon: '📘', title: 'Facebook', sub: 'Suivre l’actualité', cta: 'Suivre' });
+  if (igLink) reseaux.push({ key: 'ig', href: igLink, badge: '', icon: '📸', title: 'Instagram', sub: 'Coulisses & photos', cta: 'Suivre' });
+  if (tkLink) reseaux.push({ key: 'tk', href: tkLink, badge: '', icon: '🎵', title: 'TikTok', sub: 'Vidéos courtes', cta: 'Suivre' });
+  if (ytLink) reseaux.push({ key: 'yt', href: ytLink, badge: 'yt', icon: <YouTubeIcon />, title: 'YouTube', sub: 'Suivre les lives et les talents', cta: 'S’abonner' });
 
   // Clic panneau -> pre-remplit le sujet et defile vers le formulaire
   const allerAuFormulaire = (sujet: string) => {
@@ -153,40 +153,43 @@ export default function ContactPage() {
 
       <div style={s.body}>
 
-        {/* Tous les panneaux dans UNE seule grille : rangees de hauteur egale, cellules identiques */}
-        <div style={s.gridAll}>
+        {/* Design A — cartes premium uniformes (grille + badge + survol) */}
+        <div className="dkdk-contact-grid">
           {reseaux.map(r => (
-            <a key={r.key} href={r.href} target="_blank" rel="noopener noreferrer" style={s.cardReseau}>
-              {r.node}
+            <a key={r.key} href={r.href} target="_blank" rel="noopener noreferrer" className="dkdk-cc">
+              <div className={('dkdk-cc-badge ' + r.badge).trim()}>{r.icon}</div>
+              <div className="dkdk-cc-t">{r.title}</div>
+              <div className="dkdk-cc-s">{r.sub}</div>
+              <span className="dkdk-cc-cta">{r.cta} →</span>
             </a>
           ))}
 
-          <button type="button" style={s.card} onClick={() => allerAuFormulaire('Demande de retrait')}>
-            <div style={s.cardIcon}>💸</div>
-            <div style={s.cardT}>Retrait &amp; paiement</div>
-            <div style={s.cardS}>Virement non reçu, retrait bloqué</div>
-            <div style={s.cardL}>Nous écrire</div>
+          <button type="button" className="dkdk-cc" onClick={() => allerAuFormulaire('Demande de retrait')}>
+            <div className="dkdk-cc-badge">💸</div>
+            <div className="dkdk-cc-t">Retrait &amp; paiement</div>
+            <div className="dkdk-cc-s">Virement non reçu, retrait bloqué</div>
+            <span className="dkdk-cc-cta">Nous écrire →</span>
           </button>
 
-          <button type="button" style={s.card} onClick={() => allerAuFormulaire('Bug technique')}>
-            <div style={s.cardIcon}>🐛</div>
-            <div style={s.cardT}>Bug &amp; technique</div>
-            <div style={s.cardS}>Signaler un problème</div>
-            <div style={s.cardL}>Signaler un bug</div>
+          <button type="button" className="dkdk-cc" onClick={() => allerAuFormulaire('Bug technique')}>
+            <div className="dkdk-cc-badge">🐛</div>
+            <div className="dkdk-cc-t">Bug &amp; technique</div>
+            <div className="dkdk-cc-s">Signaler un problème technique</div>
+            <span className="dkdk-cc-cta">Signaler un bug →</span>
           </button>
 
-          <button type="button" style={s.card} onClick={() => allerAuFormulaire('Partenariat / Presse')}>
-            <div style={s.cardIcon}>🤝</div>
-            <div style={s.cardT}>Partenariat</div>
-            <div style={s.cardS}>Presse &amp; collaborations</div>
-            <div style={s.cardL}>Nous écrire</div>
+          <button type="button" className="dkdk-cc" onClick={() => allerAuFormulaire('Partenariat / Presse')}>
+            <div className="dkdk-cc-badge">🤝</div>
+            <div className="dkdk-cc-t">Partenariat</div>
+            <div className="dkdk-cc-s">Presse &amp; collaborations</div>
+            <span className="dkdk-cc-cta">Nous écrire →</span>
           </button>
 
-          <a href="/faq" style={s.card}>
-            <div style={s.cardIcon}>❓</div>
-            <div style={s.cardT}>FAQ</div>
-            <div style={s.cardS}>Questions fréquentes</div>
-            <div style={s.cardL}>Consulter la FAQ</div>
+          <a href="/faq" className="dkdk-cc">
+            <div className="dkdk-cc-badge">❓</div>
+            <div className="dkdk-cc-t">FAQ</div>
+            <div className="dkdk-cc-s">Questions fréquentes</div>
+            <span className="dkdk-cc-cta">Consulter la FAQ →</span>
           </a>
         </div>
 
