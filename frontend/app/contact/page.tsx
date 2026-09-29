@@ -22,6 +22,7 @@ const s: Record<string, React.CSSProperties> = {
 
   gridReseaux: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 12 }, /*DKDK_CONTACT_UNIF — grille stable 2 colonnes*/
   gridPanneaux:{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 40 },
+  gridAll: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, gridAutoRows: '1fr', marginBottom: 40 }, /*DKDK_CONTACT_UNIF — une seule grille, rangees de hauteur egale*/
 
   card:    { background: 'var(--surface)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '18px 12px', minHeight: 140, textAlign: 'center' as const, textDecoration: 'none', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', color: 'var(--ink)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", width: '100%' }, /*DKDK_CONTACT_UNIF*/
   cardReseau:{ background: 'var(--surface)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '18px 12px', minHeight: 140, textAlign: 'center' as const, textDecoration: 'none', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', color: 'var(--ink)', width: '100%' }, /*DKDK_CONTACT_UNIF*/
@@ -152,19 +153,14 @@ export default function ContactPage() {
 
       <div style={s.body}>
 
-        {/* Ligne 1 : reseaux (dynamiques, liens externes) */}
-        {reseaux.length > 0 && (
-          <div style={{ ...s.gridReseaux, gridTemplateColumns: `repeat(2, 1fr)` }}>
-            {reseaux.map(r => (
-              <a key={r.key} href={r.href} target="_blank" rel="noopener noreferrer" style={s.cardReseau}>
-                {r.node}
-              </a>
-            ))}
-          </div>
-        )}
+        {/* Tous les panneaux dans UNE seule grille : rangees de hauteur egale, cellules identiques */}
+        <div style={s.gridAll}>
+          {reseaux.map(r => (
+            <a key={r.key} href={r.href} target="_blank" rel="noopener noreferrer" style={s.cardReseau}>
+              {r.node}
+            </a>
+          ))}
 
-        {/* Ligne 2 : Bug & Partenariat (defilent vers le formulaire) + FAQ (lien) */}
-        <div style={s.gridPanneaux}>
           <button type="button" style={s.card} onClick={() => allerAuFormulaire('Demande de retrait')}>
             <div style={s.cardIcon}>💸</div>
             <div style={s.cardT}>Retrait &amp; paiement</div>
@@ -174,7 +170,7 @@ export default function ContactPage() {
 
           <button type="button" style={s.card} onClick={() => allerAuFormulaire('Bug technique')}>
             <div style={s.cardIcon}>🐛</div>
-            <div style={s.cardT}>Bug & technique</div>
+            <div style={s.cardT}>Bug &amp; technique</div>
             <div style={s.cardS}>Signaler un problème</div>
             <div style={s.cardL}>Signaler un bug</div>
           </button>
@@ -182,7 +178,7 @@ export default function ContactPage() {
           <button type="button" style={s.card} onClick={() => allerAuFormulaire('Partenariat / Presse')}>
             <div style={s.cardIcon}>🤝</div>
             <div style={s.cardT}>Partenariat</div>
-            <div style={s.cardS}>Presse & collaborations</div>
+            <div style={s.cardS}>Presse &amp; collaborations</div>
             <div style={s.cardL}>Nous écrire</div>
           </button>
 
