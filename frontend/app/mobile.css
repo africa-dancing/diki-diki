@@ -358,7 +358,7 @@ html[data-star="off"] .dkdk-logo-star{ animation:none; }
 .dkdk-contact-wrap{max-width:700px;margin:0 auto;padding:24px 16px 4px}
 .dkdk-contact-body{max-width:700px;margin:0 auto;padding:0 16px}
 .dkdk-contact-list{display:flex;flex-direction:column;gap:10px;margin-top:18px;margin-bottom:40px}
-.dkdk-cc{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);text-decoration:none;color:var(--ink);cursor:pointer;font-family:'DM Sans',sans-serif;-webkit-appearance:none;appearance:none;width:100%;min-height:80px;min-width:0;overflow:hidden;text-align:left;transition:border-color .15s ease,transform .15s ease,background .15s ease}
+.dkdk-cc{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);text-decoration:none;color:var(--ink);cursor:pointer;font-family:'DM Sans',sans-serif;-webkit-appearance:none;appearance:none;width:100%;min-height:80px;min-width:0;overflow:hidden;text-align:left;transition:border-color .15s ease,transform .15s ease,background .15s ease}
 .dkdk-cc:hover{border-color:#e11d8f;transform:translateY(-2px);background:rgba(225,29,143,.06)}
 .dkdk-cc-badge{width:46px;height:46px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;background:radial-gradient(circle at 32% 28%,rgba(225,29,143,.28),rgba(225,29,143,.07));border:1px solid rgba(225,29,143,.4)}
 .dkdk-cc-badge.wa{background:radial-gradient(circle at 32% 28%,rgba(37,211,102,.30),rgba(37,211,102,.08));border-color:rgba(37,211,102,.5)}
@@ -372,3 +372,9 @@ html[data-star="off"] .dkdk-logo-star{ animation:none; }
   .dkdk-contact-body{max-width:1180px}
   .dkdk-contact-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:12px}
 }
+
+/*DKDK_CONTACT_BOX — grand panneau conteneur regroupant les 6 panneaux */
+.dkdk-contact-box{background:linear-gradient(180deg,rgba(126,3,128,.10),rgba(255,255,255,.02));border:1px solid rgba(225,29,143,.30);border-radius:20px;padding:22px;margin-top:18px;margin-bottom:40px;box-shadow:0 10px 40px -20px rgba(225,29,143,.4)}
+.dkdk-contact-box .dkdk-contact-list{margin-top:0;margin-bottom:0}
+.dkdk-contact-box-h{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:.04em;color:var(--ink);margin:0 0 16px;display:flex;align-items:center;gap:8px}
+.dkdk-contact-box-h .dot{width:8px;height:8px;border-radius:50%;background:#e11d8f;display:inline-block;flex:none}

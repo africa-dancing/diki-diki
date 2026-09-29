@@ -176,6 +176,8 @@ export default function ContactPage() {
       <div className="dkdk-contact-body">
 
         {/* Design B — liste horizontale pleine largeur (ultra stable) */}
+        <div className="dkdk-contact-box">
+        <div className="dkdk-contact-box-h"><span className="dot" />Comment nous joindre</div>
         <div className="dkdk-contact-list">
           {reseaux.map(r => (
             <a key={r.key} href={r.href} target="_blank" rel="noopener noreferrer" className="dkdk-cc">
@@ -223,6 +225,7 @@ export default function ContactPage() {
             </div>
             <span className="dkdk-cc-cta">Consulter la FAQ →</span>
           </a>
+        </div>
         </div>
 
         {/* Formulaire */}
