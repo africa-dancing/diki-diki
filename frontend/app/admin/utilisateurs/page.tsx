@@ -9,6 +9,64 @@ import { useEffect, useState } from 'react';
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR  = '#FFAA00';
 
+/*DKDK_DRAPEAUX — drapeau du pays deduit de l'indicatif international du numero (vraie image, s'affiche sur Windows) */
+const INDICATIFS: [string, string, string][] = [
+  ['211','SS','Soudan du Sud'],['212','MA','Maroc'],['213','DZ','Algérie'],['216','TN','Tunisie'],['218','LY','Libye'],
+  ['220','GM','Gambie'],['221','SN','Sénégal'],['222','MR','Mauritanie'],['223','ML','Mali'],['224','GN','Guinée'],
+  ['225','CI','Côte d’Ivoire'],['226','BF','Burkina Faso'],['227','NE','Niger'],['228','TG','Togo'],['229','BJ','Bénin'],
+  ['230','MU','Maurice'],['231','LR','Liberia'],['232','SL','Sierra Leone'],['233','GH','Ghana'],['234','NG','Nigeria'],
+  ['235','TD','Tchad'],['236','CF','Centrafrique'],['237','CM','Cameroun'],['238','CV','Cap-Vert'],['239','ST','Sao Tomé-et-Principe'],
+  ['240','GQ','Guinée équatoriale'],['241','GA','Gabon'],['242','CG','Congo'],['243','CD','RD Congo'],['244','AO','Angola'],
+  ['245','GW','Guinée-Bissau'],['248','SC','Seychelles'],['249','SD','Soudan'],['250','RW','Rwanda'],['251','ET','Éthiopie'],
+  ['252','SO','Somalie'],['253','DJ','Djibouti'],['254','KE','Kenya'],['255','TZ','Tanzanie'],['256','UG','Ouganda'],
+  ['257','BI','Burundi'],['258','MZ','Mozambique'],['260','ZM','Zambie'],['261','MG','Madagascar'],['262','RE','Réunion / Mayotte'],
+  ['263','ZW','Zimbabwe'],['264','NA','Namibie'],['265','MW','Malawi'],['266','LS','Lesotho'],['267','BW','Botswana'],
+  ['268','SZ','Eswatini'],['269','KM','Comores'],['291','ER','Érythrée'],
+  ['351','PT','Portugal'],['352','LU','Luxembourg'],['971','AE','Émirats arabes unis'],['966','SA','Arabie saoudite'],
+  ['20','EG','Égypte'],['27','ZA','Afrique du Sud'],['31','NL','Pays-Bas'],['32','BE','Belgique'],['33','FR','France'],
+  ['34','ES','Espagne'],['39','IT','Italie'],['41','CH','Suisse'],['44','GB','Royaume-Uni'],['49','DE','Allemagne'],
+  ['86','CN','Chine'],['90','TR','Turquie'],
+  ['1','US','États-Unis / Canada'],
+];
+
+function infoPays(phone: string | null): { iso: string; nom: string } | null {
+  if (!phone) return null;
+  let d = phone.replace(/[^0-9]/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (!d) return null;
+  let best: [string, string, string] | null = null;
+  for (const e of INDICATIFS) {
+    if (d.startsWith(e[0]) && (!best || e[0].length > best[0].length)) best = e;
+  }
+  return best ? { iso: best[1], nom: best[2] } : null;
+}
+
+function TelAvecDrapeau({ phone }: { phone: string | null }) {
+  if (!phone) return <>—</>;
+  const p = infoPays(phone);
+  const iso = p ? p.iso.toLowerCase() : null;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+      {iso ? (
+        <img
+          src={`https://flagcdn.com/20x15/${iso}.png`}
+          srcSet={`https://flagcdn.com/40x30/${iso}.png 2x`}
+          width={20}
+          height={15}
+          alt={p!.nom}
+          title={p!.nom}
+          loading="lazy"
+          style={{ borderRadius: 2, flex: 'none', boxShadow: '0 0 0 1px rgba(255,255,255,0.15)', objectFit: 'cover' }}
+        />
+      ) : (
+        <span aria-hidden style={{ width: 20, textAlign: 'center', opacity: 0.5 }}>🌍</span>
+      )}
+      <span>{phone}</span>
+    </span>
+  );
+}
+
+
 interface Membre {
   id: string;
   name: string | null;
@@ -111,7 +169,7 @@ export default function AdminUtilisateursPage() {
                     <tr key={u.id}>
                       <td style={{ ...td, fontWeight: 600 }}>{u.name || '—'}</td>
                       <td style={{ ...td, color: '#b8b2a4' }}>{u.email || '—'}</td>
-                      <td style={{ ...td, color: '#b8b2a4' }}>{u.phone || '—'}</td>
+                      <td style={{ ...td, color: '#b8b2a4' }}><TelAvecDrapeau phone={u.phone} /></td>
                       <td style={td}>{roleBadge(u.role)}</td>
                       <td style={{ ...td, textAlign: 'right', color: OR, fontWeight: 700 }}>{fmtWallet(u.wallet)} F</td>
                       <td style={{ ...td, color: '#8a8aa8' }}>{fmtDate(u.created_at)}</td>
