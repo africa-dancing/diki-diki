@@ -87,7 +87,7 @@ export default function ChallengesListPage() {
         )}
 
         {!loading && !error && brackets.length > 0 && (
-        <div className="dkdk-cards">
+        <div className="dkdk-cards dkdk-challenges-cards">
         {brackets.map(b => {
           const st = STATUS_CFG[b.status] ?? { label: b.status, color: 'var(--ink-soft)', bg: 'var(--surface)' };
           const count = b.bracket_participants?.[0]?.count ?? 0;
