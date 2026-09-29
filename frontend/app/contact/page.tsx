@@ -34,7 +34,7 @@ const s: Record<string, React.CSSProperties> = {
   cardSsm: { fontSize: 9, color: 'var(--ink-dim)', marginTop: 2 },
   cardL:   { color: OR, fontSize: 12, fontWeight: 600 },
 
-  formBox: { background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.12)', borderRadius: 16, padding: '32px' },
+  formBox: { background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.12)', borderRadius: 16, padding: '32px', maxWidth: 760, margin: '0 auto' }, /*DKDK_CONTACT_FORM_CENTER*/
   formH:   { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 19, color: 'var(--ink)', marginBottom: 24, textAlign: 'center' as const },
   label:   { display: 'block', fontSize: 13, color: 'var(--ink-soft)', marginBottom: 6, fontWeight: 500 },
   input:   { width: '100%', background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.15)', borderRadius: 8, color: 'var(--ink)', fontSize: 15, padding: '12px 14px', outline: 'none', boxSizing: 'border-box' as const, fontFamily: "'DM Sans', sans-serif", marginBottom: 16 },
@@ -162,7 +162,7 @@ export default function ContactPage() {
       <Navbar />
 
       <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
-        <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px 4px' }}>
+        <div className="dkdk-contact-wrap">
           <section style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '24px 20px', textAlign: 'center', color: '#fff', boxShadow: '0 8px 40px rgba(225,29,143,0.35)' }}>
             <span style={{ display: 'inline-block', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: 'var(--on-accent)', fontWeight: 800, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', padding: '5px 12px', borderRadius: 6 }}>🎭 Support</span>
             <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 26, lineHeight: 1.1, margin: '12px 0 8px', color: '#fff', textTransform: 'uppercase' }}>Nous contacter</h1>
@@ -173,7 +173,7 @@ export default function ContactPage() {
 
       
 
-      <div style={s.body}>
+      <div className="dkdk-contact-body">
 
         {/* Design B — liste horizontale pleine largeur (ultra stable) */}
         <div className="dkdk-contact-list">
