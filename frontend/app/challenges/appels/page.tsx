@@ -106,6 +106,16 @@ function contexteImpose(d?: string | null): string {
   return 'Les morceaux impos\u00e9s';
 }
 
+/*DKDK_CONTEXTE_COULEUR — code couleur du panneau selon la discipline : sport=bleu, autre artistique=magenta, musique=dore (defaut)*/
+function contexteCouleur(d?: string | null): { head: string; badgeBg: string; badgeInk: string } {
+  const x = (d || '').toLowerCase();
+  if (/(taekwondo|karat|judo|lutte|martia|art martial|boxe|combat|kung|jiu|foot|football|sport|athl|basket|hand|volley|tennis|course|nage|natation)/.test(x))
+    return { head: '#7fd6ff', badgeBg: 'linear-gradient(135deg,#2f9de0,#38d3ef)', badgeInk: '#012' };
+  if (/(humour|com[e\u00e9]|comedy|rire|stand|po[e\u00e9]sie|slam|conte|storytelling|th[e\u00e9][a\u00e2]tre)/.test(x))
+    return { head: '#f7c1ff', badgeBg: 'linear-gradient(135deg,#b06ab3,#f107a3)', badgeInk: '#fff' };
+  return { head: 'var(--ink-soft)', badgeBg: SOLID, badgeInk: ON_ACCENT };
+}
+
 /*DKDK_REF_URL — lien YouTube -> URL d'integration (lecteur sur place)*/
 function ytEmbed(url?: string | null): string | null {
   if (!url) return null;
@@ -448,6 +458,7 @@ function AppelCard({ appel }: { appel: Appel }) {
   const nom     = officiel ? 'Création' : (appel.createur_nom || 'Créateur');
   const ava     = officiel ? 'DKM' : initials(appel.createur_nom || appel.title || 'Créateur');
   const disc    = appel.discipline || 'talent';
+  const cx      = contexteCouleur(appel.discipline); /*DKDK_CONTEXTE_COULEUR*/
   const chant   = /(chant|voix|acap|a cappella)/.test(disc.toLowerCase()); /*DKDK_FLIP — reprise sans paroles pour le chant*/
   const nEtapes = appel.etapes?.length ?? 0;
   const cd    = countdown(appel.appel_deadline);
@@ -605,7 +616,7 @@ function AppelCard({ appel }: { appel: Appel }) {
               <div style={{ margin: '16px 0', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden' }}>
                 <div style={{
                   fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em',
-                  textTransform: 'uppercase', color: 'var(--ink-soft)',
+                  textTransform: 'uppercase', color: cx.head,
                   padding: '10px 14px', background: 'var(--surface)', borderBottom: '1px solid var(--line)',
                 }}>{contexteImpose(appel.discipline)}, par {isBloc ? 'vidéo' : 'étape'}</div>
                 {appel.etapes.map((e, i) => (
@@ -614,7 +625,7 @@ function AppelCard({ appel }: { appel: Appel }) {
                     borderBottom: i < appel.etapes.length - 1 ? '1px solid var(--line)' : 'none',
                   }}>
                     <span style={{
-                      fontWeight: 800, fontSize: 12, color: ON_ACCENT, background: SOLID,
+                      fontWeight: 800, fontSize: 12, color: cx.badgeInk, background: cx.badgeBg,
                       borderRadius: 7, padding: '5px 8px', whiteSpace: 'nowrap',
                     }}>{isBloc ? 'Vidéo' : 'Étape'} {e.round_number ?? i + 1}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
