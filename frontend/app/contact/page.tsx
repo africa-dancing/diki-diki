@@ -153,42 +153,52 @@ export default function ContactPage() {
 
       <div style={s.body}>
 
-        {/* Design A — cartes premium uniformes (grille + badge + survol) */}
-        <div className="dkdk-contact-grid">
+        {/* Design B — liste horizontale pleine largeur (ultra stable) */}
+        <div className="dkdk-contact-list">
           {reseaux.map(r => (
             <a key={r.key} href={r.href} target="_blank" rel="noopener noreferrer" className="dkdk-cc">
               <div className={('dkdk-cc-badge ' + r.badge).trim()}>{r.icon}</div>
-              <div className="dkdk-cc-t">{r.title}</div>
-              <div className="dkdk-cc-s">{r.sub}</div>
+              <div className="dkdk-cc-mid">
+                <div className="dkdk-cc-t">{r.title}</div>
+                <div className="dkdk-cc-s">{r.sub}</div>
+              </div>
               <span className="dkdk-cc-cta">{r.cta} →</span>
             </a>
           ))}
 
           <button type="button" className="dkdk-cc" onClick={() => allerAuFormulaire('Demande de retrait')}>
             <div className="dkdk-cc-badge">💸</div>
-            <div className="dkdk-cc-t">Retrait &amp; paiement</div>
-            <div className="dkdk-cc-s">Virement non reçu, retrait bloqué</div>
+            <div className="dkdk-cc-mid">
+              <div className="dkdk-cc-t">Retrait &amp; paiement</div>
+              <div className="dkdk-cc-s">Virement non reçu, retrait bloqué</div>
+            </div>
             <span className="dkdk-cc-cta">Nous écrire →</span>
           </button>
 
           <button type="button" className="dkdk-cc" onClick={() => allerAuFormulaire('Bug technique')}>
             <div className="dkdk-cc-badge">🐛</div>
-            <div className="dkdk-cc-t">Bug &amp; technique</div>
-            <div className="dkdk-cc-s">Signaler un problème technique</div>
+            <div className="dkdk-cc-mid">
+              <div className="dkdk-cc-t">Bug &amp; technique</div>
+              <div className="dkdk-cc-s">Signaler un problème technique</div>
+            </div>
             <span className="dkdk-cc-cta">Signaler un bug →</span>
           </button>
 
           <button type="button" className="dkdk-cc" onClick={() => allerAuFormulaire('Partenariat / Presse')}>
             <div className="dkdk-cc-badge">🤝</div>
-            <div className="dkdk-cc-t">Partenariat</div>
-            <div className="dkdk-cc-s">Presse &amp; collaborations</div>
+            <div className="dkdk-cc-mid">
+              <div className="dkdk-cc-t">Partenariat</div>
+              <div className="dkdk-cc-s">Presse &amp; collaborations</div>
+            </div>
             <span className="dkdk-cc-cta">Nous écrire →</span>
           </button>
 
           <a href="/faq" className="dkdk-cc">
             <div className="dkdk-cc-badge">❓</div>
-            <div className="dkdk-cc-t">FAQ</div>
-            <div className="dkdk-cc-s">Questions fréquentes</div>
+            <div className="dkdk-cc-mid">
+              <div className="dkdk-cc-t">FAQ</div>
+              <div className="dkdk-cc-s">Questions fréquentes</div>
+            </div>
             <span className="dkdk-cc-cta">Consulter la FAQ →</span>
           </a>
         </div>
