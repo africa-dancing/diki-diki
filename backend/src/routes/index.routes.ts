@@ -105,9 +105,16 @@ userRouter.delete('/:id', requireAuth, requireAdmin, async (req: any, res) => {
       return res.status(409).json({ error: 'BALANCE_NOT_EMPTY', message: 'Solde retirable de ' + solde + ' F : suppression impossible.' });
     }
 
-    // Garde-fou 4 : pas candidat dans un challenge en cours
-    const { data: parts } = await supabase
-      .from('bracket_participants').select('id, brackets(status)').eq('user_id', targetId);
+    // Garde-fou 4 : pas candidat dans un challenge en cours.
+    // Hint FK explicite (brackets a plusieurs FK vers bracket_participants) sinon embed ambigu.
+    // Fail-safe : si la lecture echoue, on REFUSE la suppression (on ne prend pas le risque).
+    const { data: parts, error: pErr } = await supabase
+      .from('bracket_participants')
+      .select('id, brackets!bracket_participants_bracket_id_fkey(status)')
+      .eq('user_id', targetId);
+    if (pErr) {
+      return res.status(409).json({ error: 'CHECK_FAILED', message: 'Impossible de verifier les participations en cours : suppression annulee par securite.' });
+    }
     const enCours = (parts || []).some((p: any) => p.brackets && _ACTIVE_BRACKET.includes(p.brackets.status));
     if (enCours) {
       return res.status(409).json({ error: 'ACTIVE_CHALLENGE', message: 'Ce candidat participe a un challenge en cours : suppression impossible.' });
