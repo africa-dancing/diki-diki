@@ -74,6 +74,7 @@ interface Membre {
   phone: string | null;
   role: string | null;
   wallet: number | null;
+  status?: string | null;
   created_at: string;
 }
 
@@ -83,6 +84,7 @@ export default function AdminUtilisateursPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState('');
   const [q, setQ]             = useState('');
+  const [busy, setBusy]       = useState<string | null>(null);
 
   const charger = () => {
     if (!admin?.token) return;
@@ -95,6 +97,40 @@ export default function AdminUtilisateursPage() {
   };
 
   useEffect(() => { charger(); /* eslint-disable-next-line */ }, [admin]);
+
+  const supprimer = async (u: Membre) => {
+    if (!admin?.token) return;
+    const ok = window.confirm(
+      'Supprimer cet utilisateur ?\n\n'
+      + (u.name || 'Sans nom') + '\n'
+      + (u.email || u.phone || '') + '\n\n'
+      + 'Son compte sera banni (reversible) : il ne pourra plus se connecter. Confirmer ?'
+    );
+    if (!ok) return;
+    setBusy(u.id);
+    try {
+      const r = await fetch(`${API}/users/${u.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${admin.token}` } });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { window.alert((d && d.message) || 'Suppression impossible.'); return; }
+      charger();
+    } catch { window.alert('Erreur reseau : suppression impossible.'); }
+    finally { setBusy(null); }
+  };
+
+  const reactiver = async (u: Membre) => {
+    if (!admin?.token) return;
+    const ok = window.confirm('Reactiver le compte de ' + (u.name || u.email || 'cet utilisateur') + ' ?');
+    if (!ok) return;
+    setBusy(u.id);
+    try {
+      const r = await fetch(`${API}/users/${u.id}/reactiver`, { method: 'PATCH', headers: { Authorization: `Bearer ${admin.token}` } });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { window.alert((d && d.message) || 'Reactivation impossible.'); return; }
+      charger();
+    } catch { window.alert('Erreur reseau : reactivation impossible.'); }
+    finally { setBusy(null); }
+  };
+
 
   const fmtDate = (s: string) => {
     try { return new Date(s).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
@@ -121,6 +157,9 @@ export default function AdminUtilisateursPage() {
     const label = isAdmin ? 'Admin' : isMod ? 'Modérateur' : 'Membre';
     return <span style={{ background: bg, color: fg, fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 20 }}>{label}</span>;
   };
+
+  const btnSup: React.CSSProperties = { background: 'rgba(230,60,60,0.10)', border: '1px solid rgba(230,60,60,0.35)', color: '#ff7070', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
+  const btnReact: React.CSSProperties = { background: 'rgba(74,222,128,0.10)', border: '1px solid rgba(74,222,128,0.35)', color: '#4ade80', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
 
   return (
     <AdminGuard>
@@ -162,17 +201,31 @@ export default function AdminUtilisateursPage() {
                     <th style={th}>Rôle</th>
                     <th style={{ ...th, textAlign: 'right' }}>Portefeuille</th>
                     <th style={th}>Inscrit le</th>
+                    <th style={{ ...th, textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map(u => (
                     <tr key={u.id}>
-                      <td style={{ ...td, fontWeight: 600 }}>{u.name || '—'}</td>
+                      <td style={{ ...td, fontWeight: 600, opacity: u.status === 'banned' ? 0.5 : 1 }}>
+                        {u.name || '—'}
+                        {u.status === 'banned' && <span style={{ marginLeft: 8, background: 'rgba(230,60,60,0.15)', color: '#ff7070', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>banni</span>}
+                      </td>
                       <td style={{ ...td, color: '#b8b2a4' }}>{u.email || '—'}</td>
                       <td style={{ ...td, color: '#b8b2a4' }}><TelAvecDrapeau phone={u.phone} /></td>
                       <td style={td}>{roleBadge(u.role)}</td>
                       <td style={{ ...td, textAlign: 'right', color: OR, fontWeight: 700 }}>{fmtWallet(u.wallet)} F</td>
                       <td style={{ ...td, color: '#8a8aa8' }}>{fmtDate(u.created_at)}</td>
+                      <td style={{ ...td, textAlign: 'right' }}>
+                        {(() => {
+                          const role = String(u.role || '').toLowerCase();
+                          const estAdmin = role === 'admin' || role === 'moderateur' || role === 'moderator';
+                          const estMoi = !!admin?.email && u.email === admin.email;
+                          if (estAdmin || estMoi) return <span style={{ color: '#4a4a5a', fontSize: 12 }}>—</span>;
+                          if (u.status === 'banned') return <button onClick={() => reactiver(u)} disabled={busy === u.id} style={btnReact}>{busy === u.id ? '…' : '↺ Réactiver'}</button>;
+                          return <button onClick={() => supprimer(u)} disabled={busy === u.id} style={btnSup}>{busy === u.id ? '…' : '🗑 Supprimer'}</button>;
+                        })()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

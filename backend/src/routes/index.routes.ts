@@ -56,12 +56,84 @@ userRouter.get('/', requireAuth, requireAdmin, async (req: any, res) => {
   try {
     const { data, error } = await supabase
       .from('users')
-      .select('id, name, email, phone, role, wallet, created_at')
+      .select('id, name, email, phone, role, wallet, created_at, status')
       .order('created_at', { ascending: false });
     if (error) throw error;
     res.json(data || []);
   } catch { res.status(500).json({ error: 'USERS_FETCH_FAILED' }); }
 });
+
+/*DKDK_USER_SOFT_DELETE — suppression REVERSIBLE (bannissement) d'un utilisateur.
+   Admin/modo uniquement. Garde-fous : jamais un admin, jamais soi-meme,
+   jamais si portefeuille>0 ni solde retirable>0, jamais si candidat dans un
+   challenge en cours. Reversible via PATCH /:id/reactiver. Aucun argent deplace. */
+const _ACTIVE_BRACKET = ['appel', 'in_progress', 'active', 'waiting_candidates', 'closing', 'open'];
+
+userRouter.delete('/:id', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const targetId = req.params.id;
+    const me = req.user?.userId;
+    if (targetId === me) {
+      return res.status(400).json({ error: 'SELF_DELETE_FORBIDDEN', message: 'Vous ne pouvez pas supprimer votre propre compte.' });
+    }
+
+    const { data: target, error: tErr } = await supabase
+      .from('users').select('id, name, role, status, wallet').eq('id', targetId).single();
+    if (tErr || !target) {
+      return res.status(404).json({ error: 'USER_NOT_FOUND', message: 'Utilisateur introuvable.' });
+    }
+
+    // Garde-fou 1 : jamais un administrateur / moderateur
+    if (['admin', 'moderateur', 'moderator'].includes(String(target.role || '').toLowerCase())) {
+      return res.status(403).json({ error: 'ADMIN_PROTECTED', message: 'Impossible de supprimer un administrateur.' });
+    }
+
+    // Garde-fou 2 : portefeuille affiche a zero
+    if (Number(target.wallet || 0) > 0) {
+      return res.status(409).json({ error: 'WALLET_NOT_EMPTY', message: 'Portefeuille non vide : suppression impossible.' });
+    }
+
+    // Garde-fou 3 : solde retirable reel (transactions) a zero
+    const [gainsRes, retraitsRes] = await Promise.all([
+      supabase.from('transactions').select('amount').eq('user_id', targetId).in('type', ['bracket_win', 'soutien_gain']).eq('status', 'success'),
+      supabase.from('transactions').select('amount').eq('user_id', targetId).eq('type', 'payout').in('status', ['pending', 'sent', 'success']),
+    ]);
+    const totalGains = (gainsRes.data || []).reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
+    const totalRetraits = (retraitsRes.data || []).reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
+    const solde = totalGains - totalRetraits;
+    if (solde > 0) {
+      return res.status(409).json({ error: 'BALANCE_NOT_EMPTY', message: 'Solde retirable de ' + solde + ' F : suppression impossible.' });
+    }
+
+    // Garde-fou 4 : pas candidat dans un challenge en cours
+    const { data: parts } = await supabase
+      .from('bracket_participants').select('id, brackets(status)').eq('user_id', targetId);
+    const enCours = (parts || []).some((p: any) => p.brackets && _ACTIVE_BRACKET.includes(p.brackets.status));
+    if (enCours) {
+      return res.status(409).json({ error: 'ACTIVE_CHALLENGE', message: 'Ce candidat participe a un challenge en cours : suppression impossible.' });
+    }
+
+    // Bannissement reversible
+    const { error: uErr } = await supabase
+      .from('users').update({ status: 'banned', updated_at: new Date().toISOString() }).eq('id', targetId);
+    if (uErr) throw uErr;
+    return res.json({ ok: true, id: targetId, status: 'banned' });
+  } catch {
+    return res.status(500).json({ error: 'USER_DELETE_FAILED', message: 'Echec de la suppression.' });
+  }
+});
+
+userRouter.patch('/:id/reactiver', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const { error } = await supabase
+      .from('users').update({ status: 'actif', updated_at: new Date().toISOString() }).eq('id', req.params.id);
+    if (error) throw error;
+    return res.json({ ok: true, id: req.params.id, status: 'actif' });
+  } catch {
+    return res.status(500).json({ error: 'USER_REACTIVATE_FAILED', message: 'Echec de la reactivation.' });
+  }
+});
+
 export { userRouter };
 
 // ─── Users Public — Profil + Vidéos + Earnings + Privacy ─────
