@@ -18,7 +18,7 @@ const s: Record<string, React.CSSProperties> = {
   h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1.4rem,4vw,2rem)', lineHeight: 1.1, margin: '0 0 8px', color: 'var(--red)' },
   sub:     { color: 'var(--ink-soft)', fontSize: 14, margin: 0 },
   divider: { height: 1, background: 'var(--line)', margin: '24px 0 32px' },
-  body:    { maxWidth: 760, margin: '0 auto', padding: '0 24px' },
+  body:    { maxWidth: 700, margin: '0 auto', padding: '0 16px' }, /*DKDK_CONTACT_ALIGN — meme largeur que le panneau magenta du titre (700/16)*/
 
   gridReseaux: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 },
   gridPanneaux:{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 40 },
