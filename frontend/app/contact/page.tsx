@@ -75,6 +75,28 @@ const YouTubeIcon = () => (
   </svg>
 );
 
+/*DKDK_CONTACT_ICONS — icones vectorielles propres (remplacent les emojis) */
+const IconWallet = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f072c0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+  </svg>
+);
+const IconTool = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f072c0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+  </svg>
+);
+const IconUsers = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f072c0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+const IconHelp = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f072c0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+);
+
 export default function ContactPage() {
   const [form, setForm] = useState({ nom: '', email: '', sujet: '', message: '' });
   const [sent, setSent] = useState(false);
@@ -167,7 +189,7 @@ export default function ContactPage() {
           ))}
 
           <button type="button" className="dkdk-cc" onClick={() => allerAuFormulaire('Demande de retrait')}>
-            <div className="dkdk-cc-badge">💸</div>
+            <div className="dkdk-cc-badge"><IconWallet /></div>
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">Retrait &amp; paiement</div>
               <div className="dkdk-cc-s">Virement non reçu, retrait bloqué</div>
@@ -176,7 +198,7 @@ export default function ContactPage() {
           </button>
 
           <button type="button" className="dkdk-cc" onClick={() => allerAuFormulaire('Bug technique')}>
-            <div className="dkdk-cc-badge">🐛</div>
+            <div className="dkdk-cc-badge"><IconTool /></div>
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">Bug &amp; technique</div>
               <div className="dkdk-cc-s">Signaler un problème technique</div>
@@ -185,7 +207,7 @@ export default function ContactPage() {
           </button>
 
           <button type="button" className="dkdk-cc" onClick={() => allerAuFormulaire('Partenariat / Presse')}>
-            <div className="dkdk-cc-badge">🤝</div>
+            <div className="dkdk-cc-badge"><IconUsers /></div>
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">Partenariat</div>
               <div className="dkdk-cc-s">Presse &amp; collaborations</div>
@@ -194,7 +216,7 @@ export default function ContactPage() {
           </button>
 
           <a href="/faq" className="dkdk-cc">
-            <div className="dkdk-cc-badge">❓</div>
+            <div className="dkdk-cc-badge"><IconHelp /></div>
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">FAQ</div>
               <div className="dkdk-cc-s">Questions fréquentes</div>
