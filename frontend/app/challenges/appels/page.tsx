@@ -97,6 +97,15 @@ function discEmoji(d?: string | null): string {
   return '🌟';
 }
 
+/*DKDK_CONTEXTE_IMPOSE — l'intitule du panneau s'adapte a la discipline : sport -> epreuves, musique/danse -> morceaux, autre artistique -> consignes*/
+function contexteImpose(d?: string | null): string {
+  const x = (d || '').toLowerCase();
+  if (/(taekwondo|karat|judo|lutte|martia|art martial|boxe|combat|kung|jiu|foot|football|sport|athl|basket|hand|volley|tennis|course|nage|natation)/.test(x)) return 'Les \u00e9preuves impos\u00e9es';
+  if (/(danse|dance|chant|voix|acap|a cappella|instrument|guitare|piano|percussion|kora|balafon|musiq)/.test(x)) return 'Les morceaux impos\u00e9s';
+  if (/(humour|com[e\u00e9]|comedy|rire|stand|po[e\u00e9]sie|slam|conte|storytelling|th[e\u00e9][a\u00e2]tre)/.test(x)) return 'Les consignes impos\u00e9es';
+  return 'Les morceaux impos\u00e9s';
+}
+
 /*DKDK_REF_URL — lien YouTube -> URL d'integration (lecteur sur place)*/
 function ytEmbed(url?: string | null): string | null {
   if (!url) return null;
@@ -598,7 +607,7 @@ function AppelCard({ appel }: { appel: Appel }) {
                   fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em',
                   textTransform: 'uppercase', color: 'var(--ink-soft)',
                   padding: '10px 14px', background: 'var(--surface)', borderBottom: '1px solid var(--line)',
-                }}>Les morceaux imposés, par {isBloc ? 'vidéo' : 'étape'}</div>
+                }}>{contexteImpose(appel.discipline)}, par {isBloc ? 'vidéo' : 'étape'}</div>
                 {appel.etapes.map((e, i) => (
                   <div key={e.round_number ?? i} style={{
                     display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
