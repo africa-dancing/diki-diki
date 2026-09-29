@@ -20,11 +20,11 @@ const s: Record<string, React.CSSProperties> = {
   divider: { height: 1, background: 'var(--line)', margin: '24px 0 32px' },
   body:    { maxWidth: 700, margin: '0 auto', padding: '0 16px' }, /*DKDK_CONTACT_ALIGN — meme largeur que le panneau magenta du titre (700/16)*/
 
-  gridReseaux: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 },
+  gridReseaux: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 12 }, /*DKDK_CONTACT_UNIF — grille stable 2 colonnes*/
   gridPanneaux:{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 40 },
 
-  card:    { background: 'var(--surface)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '18px 10px', textAlign: 'center' as const, textDecoration: 'none', display: 'block', color: 'var(--ink)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", width: '100%' },
-  cardReseau:{ background: 'var(--surface)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '14px 8px', textAlign: 'center' as const, textDecoration: 'none', display: 'block', color: 'var(--ink)' },
+  card:    { background: 'var(--surface)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '18px 12px', minHeight: 140, textAlign: 'center' as const, textDecoration: 'none', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', color: 'var(--ink)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", width: '100%' }, /*DKDK_CONTACT_UNIF*/
+  cardReseau:{ background: 'var(--surface)', border: `1px solid rgba(126,3,128,0.6)`, borderTop: `2px solid ${MAGENTA}`, borderRadius: 12, padding: '18px 12px', minHeight: 140, textAlign: 'center' as const, textDecoration: 'none', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', color: 'var(--ink)', width: '100%' }, /*DKDK_CONTACT_UNIF*/
   cardIcon:{ fontSize: 24, marginBottom: 6 },
   cardIconSm:{ fontSize: 22, marginBottom: 4 },
   cardT:   { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13, color: 'var(--ink)', marginBottom: 6 },
@@ -154,7 +154,7 @@ export default function ContactPage() {
 
         {/* Ligne 1 : reseaux (dynamiques, liens externes) */}
         {reseaux.length > 0 && (
-          <div style={{ ...s.gridReseaux, gridTemplateColumns: `repeat(${reseaux.length}, 1fr)` }}>
+          <div style={{ ...s.gridReseaux, gridTemplateColumns: `repeat(2, 1fr)` }}>
             {reseaux.map(r => (
               <a key={r.key} href={r.href} target="_blank" rel="noopener noreferrer" style={s.cardReseau}>
                 {r.node}
