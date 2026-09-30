@@ -91,6 +91,8 @@ export default function AdminUtilisateursPage() {
   const [msgTexte, setMsgTexte] = useState("Akwaba ! Bienvenue dans l'Ar\u00e8ne Diki-Diki, la sc\u00e8ne des talents africains. D\u00e9couvre les challenges, soutiens tes talents favoris et, quand tu es pr\u00eat, lance-toi. Le continent a besoin de ton talent !");
   const [onlyNew, setOnlyNew] = useState(false);
   const [sending, setSending] = useState(false);
+  const [flash, setFlash] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const toast = (type: 'ok' | 'err', text: string) => { setFlash({ type, text }); window.setTimeout(() => setFlash(null), 4500); };
 
   const charger = () => {
     if (!admin?.token) return;
@@ -177,8 +179,8 @@ export default function AdminUtilisateursPage() {
   const envoyerMessage = async () => {
     if (!admin?.token) return;
     const cibles = membresCibles();
-    if (cibles.length === 0) { window.alert('Aucun destinataire.'); return; }
-    if (!msgTexte.trim()) { window.alert('Le message est vide.'); return; }
+    if (cibles.length === 0) { toast('err', 'Aucun destinataire.'); return; }
+    if (!msgTexte.trim()) { toast('err', 'Le message est vide.'); return; }
     setSending(true);
     try {
       const r = await fetch(`${API}/admin/message`, {
@@ -187,10 +189,11 @@ export default function AdminUtilisateursPage() {
         body: JSON.stringify({ user_ids: cibles.map(u => u.id), title: msgTitre, message: msgTexte }),
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) { window.alert((d && d.message) || 'Envoi impossible.'); return; }
-      window.alert('\u2705 Message envoy\u00e9 \u00e0 ' + (d.sent ?? cibles.length) + ' membre(s).');
+      if (!r.ok) { toast('err', (d && d.message) || 'Envoi impossible.'); return; }
+      const n = (d.sent ?? cibles.length);
       setCompose(null);
-    } catch { window.alert('Erreur reseau : envoi impossible.'); }
+      toast('ok', '\u2705 Message envoy\u00e9 \u00e0 ' + n + ' membre' + (n > 1 ? 's' : '') + '.');
+    } catch { toast('err', 'Erreur reseau : envoi impossible.'); }
     finally { setSending(false); }
   };
 
@@ -361,6 +364,17 @@ export default function AdminUtilisateursPage() {
 
         </div>
       </div>
+        {flash && (
+          <div style={{ position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, maxWidth: 'calc(100vw - 32px)',
+            background: flash.type === 'ok' ? 'rgba(27,175,122,0.16)' : 'rgba(230,60,60,0.16)',
+            border: '1px solid ' + (flash.type === 'ok' ? 'rgba(27,175,122,0.6)' : 'rgba(230,60,60,0.6)'),
+            color: flash.type === 'ok' ? '#4ade80' : '#ff7070', fontSize: 14, fontWeight: 700,
+            padding: '13px 20px', borderRadius: 12, boxShadow: '0 12px 30px -8px rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)' }}
+            onClick={() => setFlash(null)} role="status">
+            {flash.text}
+          </div>
+        )}
+
     </AdminGuard>
   );
 }
