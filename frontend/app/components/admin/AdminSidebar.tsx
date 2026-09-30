@@ -7,6 +7,7 @@ import LogoDikiDiki from "../LogoDikiDiki";
 const MENU = [
   { href: '/admin',            icon: '🏠', label: 'Dashboard'         },
   { href: '/admin/utilisateurs', icon: '👥', label: 'Utilisateurs' }, /*DKDK_USERS_NAV*/
+  { href: '/admin/activite',   icon: '🧭', label: 'Qui fait quoi' }, /*DKDK_ACTIVITE_NAV*/
   { href: '/admin/moderation', icon: '🎬', label: 'Moderation videos' },
   { href: '/admin/mediatheque', icon: '🎵', label: 'Médiathèque' },
   { href: '/admin/reglages',   icon: '⚙️', label: 'Réglages Challenge' },

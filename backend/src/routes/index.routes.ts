@@ -209,6 +209,47 @@ userRouter.patch('/:id/reactiver', requireAuth, requireAdmin, async (req: any, r
 
 export { userRouter };
 
+// ─── Activité admin : « Qui fait quoi » (morceaux ajoutés + appels créés) ───
+import { Router as ActiviteRouter } from 'express';
+const activiteRouter = ActiviteRouter();
+
+activiteRouter.get('/activite', requireAuth, requireAdmin, async (_req: any, res) => {
+  try {
+    const [musRes, brkRes] = await Promise.all([
+      supabase.from('musiques').select('id, titre, artiste, status, created_at, submitted_by').order('created_at', { ascending: false }).limit(500),
+      supabase.from('brackets').select('id, code, title, discipline, status, created_at, user_id').order('created_at', { ascending: false }).limit(500),
+    ]);
+    const mus = musRes.data || [];
+    const brk = brkRes.data || [];
+    const ids = Array.from(new Set([
+      ...mus.map((m: any) => m.submitted_by).filter(Boolean),
+      ...brk.map((b: any) => b.user_id).filter(Boolean),
+    ]));
+    const nameById: Record<string, { name: string | null; email: string | null }> = {};
+    if (ids.length) {
+      const { data: us } = await supabase.from('users').select('id, name, email').in('id', ids);
+      for (const u of (us || [])) nameById[(u as any).id] = { name: (u as any).name, email: (u as any).email };
+    }
+    const morceaux = mus.map((m: any) => ({
+      id: m.id, titre: m.titre, artiste: m.artiste, statut: m.status, created_at: m.created_at,
+      auteur_id: m.submitted_by,
+      auteur_nom: (nameById[m.submitted_by] && nameById[m.submitted_by].name) || null,
+      auteur_email: (nameById[m.submitted_by] && nameById[m.submitted_by].email) || null,
+    }));
+    const appels = brk.map((b: any) => ({
+      id: b.id, code: b.code, titre: b.title, discipline: b.discipline, statut: b.status, created_at: b.created_at,
+      createur_id: b.user_id,
+      createur_nom: (nameById[b.user_id] && nameById[b.user_id].name) || null,
+      createur_email: (nameById[b.user_id] && nameById[b.user_id].email) || null,
+    }));
+    res.json({ success: true, data: { morceaux, appels } });
+  } catch {
+    res.status(500).json({ success: false, error: 'ACTIVITE_FETCH_FAILED' });
+  }
+});
+
+export { activiteRouter };
+
 // ─── Users Public — Profil + Vidéos + Earnings + Privacy ─────
 import { Router as UsersPublicRouter } from 'express';
 import * as usersCtrl from '../controllers/users.controller';

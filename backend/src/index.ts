@@ -14,6 +14,7 @@ import {
   voteRouter,
   walletRouter,
   userRouter,
+  activiteRouter,
   statsRouter,
   paymentRouter,
   videosPublicRouter,
@@ -79,6 +80,7 @@ app.use('/v1/videos',        videoRouter);
 app.use('/v1/wallet',        walletRouter);
 app.use('/v1/users',         usersPublicRouter);
 app.use('/v1/users',         userRouter);
+app.use('/v1/admin',         activiteRouter); /*DKDK_ACTIVITE*/
 app.use('/v1/ticker',        tickerRouter);
 app.use('/v1/categories',    categoryRouter);
 app.use('/v1/challenge-formats', formatRouter);
