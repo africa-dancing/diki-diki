@@ -245,13 +245,14 @@ export default function MonAffichePage() {
   return (
     <div style={{ minHeight: '100vh', background: 'radial-gradient(1200px 700px at 50% -10%, rgba(240,138,36,.16), transparent 60%),#161019', color: '#FBEFE0', fontFamily: 'Sora, system-ui, sans-serif', paddingBottom: 48 }}>
       <Navbar />
+      <div style={{ padding: '14px 24px 30px', minHeight: 60, background: 'radial-gradient(ellipse 80% 60% at 50% -10%, hsl(339, 98%, 49%) 0%, transparent 70%)' }} />
       <style>{`
         .maff-wrap{max-width:1080px;margin:0 auto;padding:22px 16px 10px}
-        .maff-head{text-align:center;margin-bottom:18px}
+        .maff-head{max-width:760px;margin:0 auto 22px;text-align:center;background:linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15));border:1px solid rgb(10,0,0);border-radius:16px;padding:22px 20px;box-shadow:0 8px 40px rgba(225,29,143,0.35)}
         .maff-kick{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#F6C453;font-weight:700}
         .maff-head h1{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:clamp(1.5rem,5vw,2.1rem);margin:.2em 0 .1em;line-height:1}
         .maff-head h1 .st{color:#FF0000}
-        .maff-head p{color:#cdbcae;font-size:13.5px;max-width:60ch;margin:0 auto;line-height:1.55}
+        .maff-head p{color:rgba(255,255,255,0.92);font-size:13.5px;max-width:60ch;margin:0 auto;line-height:1.55}
         .maff-grid{display:grid;grid-template-columns:minmax(200px,360px) minmax(0,1fr);gap:22px;align-items:start}
         @media (max-width:520px){ .maff-grid{grid-template-columns:1fr;gap:18px} }
         .maff-shell{position:relative;width:100%;max-width:420px;margin:0 auto;border-radius:22px;overflow:hidden;box-shadow:0 26px 60px -20px rgba(0,0,0,.7),0 0 0 1px #3a2c3f}
