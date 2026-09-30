@@ -292,8 +292,8 @@ export default function MonAffichePage() {
 
       <div className="maff-wrap">
         <header className="maff-head">
-          <div className="maff-kick">Mon espace — réservé aux membres</div>
-          <h1>Mon affiche « Vote pour moi <span className="st">★</span> »</h1>
+          <div className="maff-kick">★ ESPACE CRÉATION PUBLICITÉ ★</div>
+          <h1>CRÉER VOTRE AFFICHE PUBLICITAIRE</h1>
           <p>Ajoute ta photo, écris ton titre et ton nom, choisis une couleur, puis télécharge ton affiche verticale pour WhatsApp, tes statuts et TikTok.</p>
         </header>
 
