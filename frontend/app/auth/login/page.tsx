@@ -25,7 +25,15 @@ export default function LoginPage() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
   const [expired, setExpired]   = useState(false);
-  useEffect(() => { try { if (new URLSearchParams(window.location.search).get('expired') === '1') setExpired(true); } catch (e) {} }, []);
+  const [redirectTo, setRedirectTo] = useState('/home');
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('expired') === '1') setExpired(true);
+      const rd = params.get('redirect');
+      if (rd && rd.startsWith('/') && !rd.startsWith('//')) setRedirectTo(rd);
+    } catch (e) {}
+  }, []);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -49,7 +57,7 @@ export default function LoginPage() {
 
       localStorage.setItem('dkdk_token', data.token);
       localStorage.setItem('dkdk_user', JSON.stringify(data.user));
-      router.push('/home');
+      router.push(redirectTo);
     } catch (err: any) {
       setError(ERRORS[err.message] || 'Email ou mot de passe incorrect.');
     } finally { setLoading(false); }
@@ -70,7 +78,7 @@ export default function LoginPage() {
       localStorage.setItem('dkdk_token', data.token);
       localStorage.setItem('dkdk_user', JSON.stringify(data.user));
       if (!data.user || !data.user.phone) { router.push('/auth/ajouter-numero'); return; }
-      router.push('/home');
+      router.push(redirectTo);
     } catch (e: any) {
       const code = e && e.code;
       if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') { setLoading(false); return; }

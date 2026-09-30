@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
@@ -32,6 +33,29 @@ export default function MediathequePage() {
   const [filtre, setFiltre] = useState('Tous');
   const [openId, setOpenId] = useState<string | null>(null); /*DKDK_REF_URL — morceau dont le lecteur est ouvert*/
   const [hover, setHover] = useState<{ id: string; titre: string; danse?: string; top: number } | null>(null); /*DKDK_TRACK_BUBBLE — bulle flottante (survol PC + toucher mobile)*/
+  const router = useRouter();
+
+  /*DKDK_AUTH_GATE — compte obligatoire pour ajouter un morceau ou participer */
+  const estConnecte = () => { try { return !!localStorage.getItem('dkdk_token'); } catch { return false; } };
+  const versLogin = (dest: string) => router.push('/auth/login?redirect=' + encodeURIComponent(dest));
+
+  const ajouterMorceau = () => {
+    const dest = '/mediatheque/ajouter';
+    if (!estConnecte()) { versLogin(dest); return; }
+    router.push(dest);
+  };
+
+  /*DKDK_PARTICIPER — cherche un appel ouvert portant ce morceau ; sinon creer un challenge pre-rempli.
+     Non connecte -> login avec retour sur la bonne destination. */
+  const participer = async (m: Musique) => {
+    let dest = `/challenges/creer?track=${m.id}`;
+    try {
+      const r = await fetch(`${API}/brackets/track/${m.id}`, { cache: 'no-store' });
+      if (r.ok) { const d = await r.json(); if (d && d.success && d.data && d.data.id) dest = `/challenges/appels/${d.data.id}`; }
+    } catch {}
+    if (!estConnecte()) { versLogin(dest); return; }
+    router.push(dest);
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -62,9 +86,9 @@ export default function MediathequePage() {
           </div>
         </div>
 
-        <Link href='/mediatheque/ajouter' style={{ display: 'block', textAlign: 'center', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', fontWeight: 800, fontFamily: 'Syne,sans-serif', fontSize: 15, padding: '14px', borderRadius: 14, textDecoration: 'none', marginBottom: 20 }}>
+        <button onClick={ajouterMorceau} style={{ display: 'block', width: '100%', textAlign: 'center', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', fontWeight: 800, fontFamily: 'Syne,sans-serif', fontSize: 15, padding: '14px', borderRadius: 14, border: 'none', cursor: 'pointer', marginBottom: 20 }}>
           + Ajouter un morceau
-        </Link>
+        </button>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
           {CONTINENTS.map(c => (
@@ -111,7 +135,7 @@ export default function MediathequePage() {
             </div>
             {m.duree_sec ? <div style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0 }}>{fmtDuree(m.duree_sec)}</div> : null}
             {/*DKDK_PARTICIPER*/}
-            <Link href={`/challenges/creer?track=${m.id}`} onClick={(e) => e.stopPropagation()} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, textDecoration: 'none', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', whiteSpace: 'nowrap' }}>Participer</Link>
+            <button onClick={(e) => { e.stopPropagation(); participer(m); }} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', whiteSpace: 'nowrap' }}>Participer</button>
           </div>
         ))}
         </div>

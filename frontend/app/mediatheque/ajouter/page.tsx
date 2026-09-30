@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 
@@ -24,6 +24,11 @@ export default function AjouterMusiquePage() {
   const [coverUrl, setCoverUrl] = useState('');
   const [msg, setMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  /*DKDK_AUTH_GATE — compte obligatoire pour ajouter un morceau (redirige si non connecte) */
+  useEffect(() => {
+    if (!getToken()) router.push('/auth/login?redirect=' + encodeURIComponent('/mediatheque/ajouter'));
+  }, [router]);
 
   const search = async () => {
     if (!query.trim()) return;
