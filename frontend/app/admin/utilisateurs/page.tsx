@@ -85,6 +85,7 @@ export default function AdminUtilisateursPage() {
   const [error, setError]     = useState('');
   const [q, setQ]             = useState('');
   const [busy, setBusy]       = useState<string | null>(null);
+  const [showBannis, setShowBannis] = useState(false);
 
   const charger = () => {
     if (!admin?.token) return;
@@ -131,6 +132,27 @@ export default function AdminUtilisateursPage() {
     finally { setBusy(null); }
   };
 
+  const supprimerDefinitif = async (u: Membre) => {
+    if (!admin?.token) return;
+    const ok = window.confirm(
+      'SUPPRESSION DEFINITIVE (irreversible)\n\n'
+      + (u.name || 'Sans nom') + '\n'
+      + (u.email || u.phone || '') + '\n\n'
+      + 'Ce compte banni sera efface DEFINITIVEMENT de la base. Cette action est IRREVERSIBLE.\n'
+      + 'Elle sera refusee si le compte a le moindre historique (transactions, votes, participations).\n\n'
+      + 'Confirmer la suppression definitive ?'
+    );
+    if (!ok) return;
+    setBusy(u.id);
+    try {
+      const r = await fetch(`${API}/users/${u.id}/definitif`, { method: 'DELETE', headers: { Authorization: `Bearer ${admin.token}` } });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { window.alert((d && d.message) || 'Suppression definitive impossible.'); return; }
+      charger();
+    } catch { window.alert('Erreur reseau : suppression definitive impossible.'); }
+    finally { setBusy(null); }
+  };
+
 
   const fmtDate = (s: string) => {
     try { return new Date(s).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
@@ -138,7 +160,9 @@ export default function AdminUtilisateursPage() {
   };
   const fmtWallet = (n: number | null) => (n ?? 0).toLocaleString('fr-FR');
 
+  const nbBannis = membres.filter(u => u.status === 'banned').length;
   const filtered = membres.filter(u => {
+    if (!showBannis && u.status === 'banned') return false;
     const t = q.trim().toLowerCase();
     if (!t) return true;
     return (u.name || '').toLowerCase().includes(t)
@@ -160,6 +184,7 @@ export default function AdminUtilisateursPage() {
 
   const btnSup: React.CSSProperties = { background: 'rgba(230,60,60,0.10)', border: '1px solid rgba(230,60,60,0.35)', color: '#ff7070', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
   const btnReact: React.CSSProperties = { background: 'rgba(74,222,128,0.10)', border: '1px solid rgba(74,222,128,0.35)', color: '#4ade80', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
+  const btnDef: React.CSSProperties = { background: 'rgba(230,60,60,0.85)', border: '1px solid #ff4d4d', color: '#fff', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
 
   return (
     <AdminGuard>
@@ -169,10 +194,15 @@ export default function AdminUtilisateursPage() {
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
             <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: 'Syne, sans-serif', margin: 0 }}>👥 Utilisateurs</h1>
-            <button onClick={charger} style={{ background: 'rgba(255,170,0,0.10)', border: '1px solid rgba(255,170,0,0.3)', color: OR, fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, cursor: 'pointer' }}>↻ Rafraîchir</button>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button onClick={() => setShowBannis(v => !v)} style={{ background: showBannis ? 'rgba(230,60,60,0.14)' : 'rgba(255,255,255,0.05)', border: '1px solid ' + (showBannis ? 'rgba(230,60,60,0.4)' : '#2a2a3a'), color: showBannis ? '#ff8a8a' : '#9a9ab0', fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, cursor: 'pointer' }}>
+                {showBannis ? '🙈 Masquer les bannis' : `👁 Afficher les bannis${nbBannis ? ' (' + nbBannis + ')' : ''}`}
+              </button>
+              <button onClick={charger} style={{ background: 'rgba(255,170,0,0.10)', border: '1px solid rgba(255,170,0,0.3)', color: OR, fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, cursor: 'pointer' }}>↻ Rafraîchir</button>
+            </div>
           </div>
           <p style={{ fontSize: 13, color: '#8a8aa8', margin: '0 0 18px' }}>
-            {loading ? 'Chargement…' : `${membres.length} membre${membres.length > 1 ? 's' : ''} inscrit${membres.length > 1 ? 's' : ''}`}
+            {loading ? 'Chargement…' : `${membres.length} membre${membres.length > 1 ? 's' : ''} inscrit${membres.length > 1 ? 's' : ''}${nbBannis && !showBannis ? ` · ${nbBannis} banni${nbBannis > 1 ? 's' : ''} masqué${nbBannis > 1 ? 's' : ''}` : ''}`}
           </p>
 
           <input
@@ -222,7 +252,12 @@ export default function AdminUtilisateursPage() {
                           const estAdmin = role === 'admin' || role === 'moderateur' || role === 'moderator';
                           const estMoi = !!admin?.email && u.email === admin.email;
                           if (estAdmin || estMoi) return <span style={{ color: '#4a4a5a', fontSize: 12 }}>—</span>;
-                          if (u.status === 'banned') return <button onClick={() => reactiver(u)} disabled={busy === u.id} style={btnReact}>{busy === u.id ? '…' : '↺ Réactiver'}</button>;
+                          if (u.status === 'banned') return (
+                            <span style={{ display: 'inline-flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                              <button onClick={() => reactiver(u)} disabled={busy === u.id} style={btnReact}>{busy === u.id ? '…' : '↺ Réactiver'}</button>
+                              <button onClick={() => supprimerDefinitif(u)} disabled={busy === u.id} style={btnDef} title="Effacer definitivement de la base (irreversible)">{busy === u.id ? '…' : '✖ Supprimer définitivement'}</button>
+                            </span>
+                          );
                           return <button onClick={() => supprimer(u)} disabled={busy === u.id} style={btnSup}>{busy === u.id ? '…' : '🗑 Supprimer'}</button>;
                         })()}
                       </td>

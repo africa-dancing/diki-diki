@@ -141,6 +141,59 @@ userRouter.delete('/:id', requireAuth, requireAdmin, async (req: any, res) => {
   }
 });
 
+userRouter.delete('/:id/definitif', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const targetId = req.params.id;
+    const me = req.user?.userId;
+    if (targetId === me) {
+      return res.status(400).json({ error: 'SELF_DELETE_FORBIDDEN', message: 'Vous ne pouvez pas supprimer votre propre compte.' });
+    }
+
+    const { data: target, error: tErr } = await supabase
+      .from('users').select('id, name, role, wallet, status').eq('id', targetId).single();
+    if (tErr || !target) {
+      return res.status(404).json({ error: 'USER_NOT_FOUND', message: 'Utilisateur introuvable.' });
+    }
+    // 1) Jamais un administrateur
+    if (['admin', 'moderateur', 'moderator'].includes(String(target.role || '').toLowerCase())) {
+      return res.status(403).json({ error: 'ADMIN_PROTECTED', message: 'Impossible de supprimer un administrateur.' });
+    }
+    // 2) Uniquement un compte DEJA banni
+    if (target.status !== 'banned') {
+      return res.status(409).json({ error: 'NOT_BANNED', message: 'Bannissez d abord ce compte avant de le supprimer definitivement.' });
+    }
+    // 3) Portefeuille a zero
+    if (Number(target.wallet || 0) > 0) {
+      return res.status(409).json({ error: 'WALLET_NOT_EMPTY', message: 'Portefeuille non vide : suppression definitive impossible.' });
+    }
+    // 4) Aucun historique lie (protege la comptabilite). Fail-safe : erreur de lecture => refus.
+    const [txRes, voteRes, partRes] = await Promise.all([
+      supabase.from('transactions').select('id', { count: 'exact', head: true }).eq('user_id', targetId),
+      supabase.from('votes').select('id', { count: 'exact', head: true }).eq('voter_id', targetId),
+      supabase.from('bracket_participants').select('id', { count: 'exact', head: true }).eq('user_id', targetId),
+    ]);
+    if (txRes.error || voteRes.error || partRes.error) {
+      return res.status(409).json({ error: 'CHECK_FAILED', message: 'Impossible de verifier l historique : suppression definitive annulee par securite.' });
+    }
+    const nbTx = txRes.count || 0;
+    const nbVote = voteRes.count || 0;
+    const nbPart = partRes.count || 0;
+    if (nbTx > 0 || nbVote > 0 || nbPart > 0) {
+      return res.status(409).json({ error: 'HAS_HISTORY', message: 'Ce compte a de l historique (' + nbTx + ' transaction(s), ' + nbVote + ' vote(s), ' + nbPart + ' participation(s)) : gardez-le banni plutot que de le supprimer.' });
+    }
+
+    // 5) Suppression : d abord le portefeuille (solde 0), puis le compte.
+    await supabase.from('wallets').delete().eq('user_id', targetId);
+    const { error: dErr } = await supabase.from('users').delete().eq('id', targetId);
+    if (dErr) {
+      return res.status(500).json({ error: 'USER_HARD_DELETE_FAILED', message: 'Suppression definitive impossible : ' + (dErr.message || 'erreur base de donnees') + (dErr.code ? ' [' + dErr.code + ']' : '') });
+    }
+    return res.json({ ok: true, id: targetId, deleted: true });
+  } catch {
+    return res.status(500).json({ error: 'USER_HARD_DELETE_FAILED', message: 'Suppression definitive impossible.' });
+  }
+});
+
 userRouter.patch('/:id/reactiver', requireAuth, requireAdmin, async (req: any, res) => {
   try {
     const { error } = await supabase
