@@ -199,6 +199,7 @@ export default function Navbar() {
                 { href: '/mediatheque',       label: 'Médiathèque' },
                 { href: '/challenges',        label: 'Challenge' },
                 { href: '/submit',            label: 'Ajouter une vidéo', hide: !token },
+                { href: '/mon-affiche',      label: 'Mon affiche', hide: !token },
                 { href: '/compte',            label: 'Compte', hide: !token },
                 { href: '/recharge',          label: 'Recharge', hide: !token },
                 { href: '/retrait',           label: 'Retrait', hide: !token },
