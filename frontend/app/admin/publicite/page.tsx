@@ -27,6 +27,7 @@ export default function AdminPublicitePage() {
   const [busy, setBusy]     = useState(false);
   const [info, setInfo]     = useState('');
   const [pubAccueil, setPubAccueil] = useState(false);
+  const [edit, setEdit] = useState<any | null>(null);
 
   const charger = () => {
     if (!admin?.token) return;
@@ -125,6 +126,52 @@ export default function AdminPublicitePage() {
     </div>
   );
 
+  const ouvrirEdition = (a: Annonce) => setEdit({
+    id: a.id,
+    annonceur: a.annonceur || '',
+    titre: a.titre || '',
+    description: a.description || '',
+    lien_url: a.lien_url || '',
+    pays_cibles: a.pays_cibles || '',
+    frequence: String(a.frequence ?? 5),
+    date_debut: a.date_debut || '',
+    date_fin: a.date_fin || '',
+    plafond_impressions: a.plafond_impressions != null ? String(a.plafond_impressions) : '',
+    impressions: String(a.impressions ?? 0),
+  });
+
+  const enregistrerEdition = async () => {
+    if (!edit || !admin?.token) return;
+    setBusy(true); setInfo('');
+    try {
+      const body: any = {
+        annonceur: edit.annonceur, titre: edit.titre, description: edit.description, lien_url: edit.lien_url,
+        pays_cibles: edit.pays_cibles, frequence: Number(edit.frequence) || 5,
+        date_debut: edit.date_debut || null, date_fin: edit.date_fin || null,
+        plafond_impressions: edit.plafond_impressions === '' ? null : Number(edit.plafond_impressions),
+        impressions: Number(edit.impressions) || 0,
+      };
+      const r = await fetch(`${API}/annonces/${edit.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin.token}` },
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) throw new Error();
+      setInfo('\u2713 Publicit\u00e9 mise \u00e0 jour.');
+      setEdit(null);
+      charger();
+    } catch { setInfo('\u2717 Erreur lors de la mise \u00e0 jour.'); }
+    finally { setBusy(false); }
+  };
+
+  const champE = (label: string, key: string, ph = '', type = 'text') => (
+    <div style={{ marginBottom: 13 }}>
+      <label style={{ display: 'block', fontSize: 12.5, color: '#b9b9c8', marginBottom: 5 }}>{label}</label>
+      <input type={type} value={edit?.[key] ?? ''} placeholder={ph} onChange={e => setEdit({ ...edit, [key]: e.target.value })}
+        style={{ width: '100%', padding: '10px 12px', borderRadius: 9, border: '1px solid rgba(255,170,0,0.22)', background: '#0a0a0f', color: '#fff', fontSize: 14 }} />
+    </div>
+  );
+
   return (
     <AdminGuard>
       <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0a0f', color: '#e8e0d0' }}>
@@ -218,6 +265,7 @@ export default function AdminPublicitePage() {
                         <td style={{ padding: '11px 10px', borderBottom: '1px solid #26263a', fontFamily: 'Syne, sans-serif', fontWeight: 800, color: OR }}>{(a.impressions ?? 0).toLocaleString('fr-FR')}</td>
                         <td style={{ padding: '11px 10px', borderBottom: '1px solid #26263a' }}>{(a.clics ?? 0).toLocaleString('fr-FR')}</td>
                         <td style={{ padding: '11px 10px', borderBottom: '1px solid #26263a', whiteSpace: 'nowrap' }}>
+                          <button onClick={() => ouvrirEdition(a)} disabled={busy} style={{ background: 'none', border: '1px solid rgba(255,170,0,.4)', color: OR, fontSize: 12, padding: '5px 10px', borderRadius: 7, cursor: 'pointer', marginRight: 6 }}>Modifier</button>
                           <button onClick={() => basculer(a)} disabled={busy} style={{ background: 'none', border: '1px solid #26263a', color: '#b9b9c8', fontSize: 12, padding: '5px 10px', borderRadius: 7, cursor: 'pointer', marginRight: 6 }}>{a.actif ? 'Pause' : 'Activer'}</button>
                           <button onClick={() => supprimer(a)} disabled={busy} style={{ background: 'none', border: '1px solid rgba(225,6,0,.4)', color: '#e10600', fontSize: 12, padding: '5px 10px', borderRadius: 7, cursor: 'pointer' }}>Supprimer</button>
                         </td>
@@ -229,6 +277,35 @@ export default function AdminPublicitePage() {
             )}
             <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)', marginTop: 12 }}>La colonne « Vues » est ta preuve à montrer à l’entreprise pour la facturer et la fidéliser.</p>
           </div>
+
+          {edit && (
+            <div onClick={() => !busy && setEdit(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16 }}>
+              <div onClick={e => e.stopPropagation()} style={{ background: '#12121a', border: '1px solid rgba(255,170,0,0.25)', borderRadius: 14, padding: 22, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto' }}>
+                <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 16, color: '#fff', margin: '0 0 4px' }}>✏️ Modifier la publicité</h3>
+                <p style={{ fontSize: 12, color: '#7a7a8c', margin: '0 0 16px' }}>Prolonge la date de fin, ajuste le plafond ou le nombre de vues, puis enregistre.</p>
+                {champE('Nom de l\u2019entreprise (annonceur)', 'annonceur')}
+                {champE('Accroche (titre affich\u00e9)', 'titre')}
+                {champE('Sous-texte', 'description')}
+                {champE('Lien \u00ab En savoir plus \u00bb', 'lien_url', 'https://\u2026')}
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: 140 }}>{champE('Pays cibl\u00e9(s) \u2014 vide = tous', 'pays_cibles', 'BJ, TG')}</div>
+                  <div style={{ flex: 1, minWidth: 140 }}>{champE('Passe toutes les\u2026 vid\u00e9os', 'frequence', '5', 'number')}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: 140 }}>{champE('D\u00e9but', 'date_debut', '', 'date')}</div>
+                  <div style={{ flex: 1, minWidth: 140 }}>{champE('Fin (prolonger ici)', 'date_fin', '', 'date')}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: 140 }}>{champE('Plafond de vues (vide = illimit\u00e9)', 'plafond_impressions', '', 'number')}</div>
+                  <div style={{ flex: 1, minWidth: 140 }}>{champE('Nombre de vues actuel', 'impressions', '0', 'number')}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+                  <button onClick={enregistrerEdition} disabled={busy} style={{ background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#000', border: 'none', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 14, padding: '11px 18px', borderRadius: 10, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? '\u2026' : 'Enregistrer les modifications'}</button>
+                  <button onClick={() => setEdit(null)} disabled={busy} style={{ background: 'none', border: '1px solid #26263a', color: '#b9b9c8', fontSize: 13, padding: '11px 18px', borderRadius: 10, cursor: 'pointer' }}>Annuler</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AdminGuard>

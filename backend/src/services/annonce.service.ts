@@ -104,7 +104,7 @@ export async function listAnnoncesActives(pays?: string) {
 }
 
 export async function updateAnnonce(id: string, patch: Record<string, any>) {
-  const autorises = ['annonceur','titre','description','lien_url','pays_cibles','frequence','date_debut','date_fin','plafond_impressions','ordre','actif','media_url','media_type'];
+  const autorises = ['annonceur','titre','description','lien_url','pays_cibles','frequence','date_debut','date_fin','plafond_impressions','ordre','actif','media_url','media_type','impressions','clics'];
   const clean: Record<string, any> = {};
   for (const k of autorises) if (k in patch) clean[k] = patch[k];
   clean.updated_at = new Date().toISOString();
