@@ -86,6 +86,11 @@ export default function AdminUtilisateursPage() {
   const [q, setQ]             = useState('');
   const [busy, setBusy]       = useState<string | null>(null);
   const [showBannis, setShowBannis] = useState(false);
+  const [compose, setCompose] = useState<null | { mode: 'one' | 'group'; user?: Membre }>(null);
+  const [msgTitre, setMsgTitre] = useState('Bienvenue dans l\u2019Ar\u00e8ne Diki-Diki \ud83c\udf89');
+  const [msgTexte, setMsgTexte] = useState("Akwaba ! Bienvenue dans l'Ar\u00e8ne Diki-Diki, la sc\u00e8ne des talents africains. D\u00e9couvre les challenges, soutiens tes talents favoris et, quand tu es pr\u00eat, lance-toi. Le continent a besoin de ton talent !");
+  const [onlyNew, setOnlyNew] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const charger = () => {
     if (!admin?.token) return;
@@ -154,6 +159,41 @@ export default function AdminUtilisateursPage() {
   };
 
 
+
+  const membresCibles = (): Membre[] => {
+    if (compose && compose.mode === 'one' && compose.user) return [compose.user];
+    let list = membres.filter(u => {
+      const role = String(u.role || '').toLowerCase();
+      const estAdmin = role === 'admin' || role === 'moderateur' || role === 'moderator';
+      return !estAdmin && u.status !== 'banned';
+    });
+    if (onlyNew) {
+      const cutoff = Date.now() - 7 * 24 * 3600 * 1000;
+      list = list.filter(u => { const t = Date.parse(u.created_at); return !isNaN(t) && t >= cutoff; });
+    }
+    return list;
+  };
+
+  const envoyerMessage = async () => {
+    if (!admin?.token) return;
+    const cibles = membresCibles();
+    if (cibles.length === 0) { window.alert('Aucun destinataire.'); return; }
+    if (!msgTexte.trim()) { window.alert('Le message est vide.'); return; }
+    setSending(true);
+    try {
+      const r = await fetch(`${API}/admin/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin.token}` },
+        body: JSON.stringify({ user_ids: cibles.map(u => u.id), title: msgTitre, message: msgTexte }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { window.alert((d && d.message) || 'Envoi impossible.'); return; }
+      window.alert('\u2705 Message envoy\u00e9 \u00e0 ' + (d.sent ?? cibles.length) + ' membre(s).');
+      setCompose(null);
+    } catch { window.alert('Erreur reseau : envoi impossible.'); }
+    finally { setSending(false); }
+  };
+
   const fmtDate = (s: string) => {
     try { return new Date(s).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
     catch { return s || '—'; }
@@ -185,6 +225,7 @@ export default function AdminUtilisateursPage() {
   const btnSup: React.CSSProperties = { background: 'rgba(230,60,60,0.10)', border: '1px solid rgba(230,60,60,0.35)', color: '#ff7070', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
   const btnReact: React.CSSProperties = { background: 'rgba(74,222,128,0.10)', border: '1px solid rgba(74,222,128,0.35)', color: '#4ade80', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
   const btnDef: React.CSSProperties = { background: 'rgba(230,60,60,0.85)', border: '1px solid #ff4d4d', color: '#fff', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
+  const btnMsg: React.CSSProperties = { background: 'rgba(74,163,255,0.12)', border: '1px solid rgba(74,163,255,0.4)', color: '#7ab8ff', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
 
   return (
     <AdminGuard>
@@ -195,6 +236,7 @@ export default function AdminUtilisateursPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
             <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: 'Syne, sans-serif', margin: 0 }}>👥 Utilisateurs</h1>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button onClick={() => setCompose({ mode: 'group' })} style={{ background: 'rgba(74,163,255,0.14)', border: '1px solid rgba(74,163,255,0.4)', color: '#7ab8ff', fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 8, cursor: 'pointer' }}>✉️ Message de bienvenue</button>
               <button onClick={() => setShowBannis(v => !v)} style={{ background: showBannis ? 'rgba(230,60,60,0.14)' : 'rgba(255,255,255,0.05)', border: '1px solid ' + (showBannis ? 'rgba(230,60,60,0.4)' : '#2a2a3a'), color: showBannis ? '#ff8a8a' : '#9a9ab0', fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, cursor: 'pointer' }}>
                 {showBannis ? '🙈 Masquer les bannis' : `👁 Afficher les bannis${nbBannis ? ' (' + nbBannis + ')' : ''}`}
               </button>
@@ -258,7 +300,12 @@ export default function AdminUtilisateursPage() {
                               <button onClick={() => supprimerDefinitif(u)} disabled={busy === u.id} style={btnDef} title="Effacer definitivement de la base (irreversible)">{busy === u.id ? '…' : '✖ Supprimer définitivement'}</button>
                             </span>
                           );
-                          return <button onClick={() => supprimer(u)} disabled={busy === u.id} style={btnSup}>{busy === u.id ? '…' : '🗑 Supprimer'}</button>;
+                          return (
+                            <span style={{ display: 'inline-flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                              <button onClick={() => setCompose({ mode: 'one', user: u })} style={btnMsg}>✉️ Message</button>
+                              <button onClick={() => supprimer(u)} disabled={busy === u.id} style={btnSup}>{busy === u.id ? '…' : '🗑 Supprimer'}</button>
+                            </span>
+                          );
                         })()}
                       </td>
                     </tr>
@@ -267,6 +314,50 @@ export default function AdminUtilisateursPage() {
               </table>
             </div>
           )}
+
+        {compose && (() => {
+          const cibles = membresCibles();
+          const estGroupe = compose.mode === 'group';
+          return (
+            <div onClick={() => !sending && setCompose(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16 }}>
+              <div onClick={e => e.stopPropagation()} style={{ background: '#12121c', border: '1px solid rgba(74,163,255,0.3)', borderRadius: 14, padding: 22, width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto' }}>
+                <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 17, color: '#fff', margin: '0 0 4px' }}>✉️ Message de bienvenue</h3>
+                <p style={{ fontSize: 12.5, color: '#8a8aa8', margin: '0 0 16px', lineHeight: 1.5 }}>
+                  Envoi d’une notification in-app (gratuite, visible dans « Notifications » du membre). Aucun SMS n’est envoyé.
+                </p>
+
+                <div style={{ background: '#0d0d16', border: '1px solid #1e1e2e', borderRadius: 10, padding: '10px 12px', marginBottom: 14, fontSize: 13, color: '#e8e0d0' }}>
+                  {estGroupe ? (
+                    <span><b style={{ color: '#7ab8ff' }}>{cibles.length}</b> destinataire{cibles.length > 1 ? 's' : ''} (membres, hors admins et bannis).</span>
+                  ) : (
+                    <span>Destinataire : <b style={{ color: '#7ab8ff' }}>{compose.user?.name || compose.user?.email || compose.user?.phone || 'membre'}</b></span>
+                  )}
+                </div>
+
+                {estGroupe && (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#b8b2a4', marginBottom: 14, cursor: 'pointer' }}>
+                    <input type="checkbox" checked={onlyNew} onChange={e => setOnlyNew(e.target.checked)} />
+                    Seulement les nouveaux inscrits (7 derniers jours)
+                  </label>
+                )}
+
+                <div style={{ marginBottom: 13 }}>
+                  <label style={{ display: 'block', fontSize: 12.5, color: '#b9b9c8', marginBottom: 5, fontWeight: 700 }}>Titre</label>
+                  <input type="text" value={msgTitre} maxLength={100} onChange={e => setMsgTitre(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 9, border: '1px solid #2c2c44', background: '#0a0a12', color: '#fff', fontSize: 14 }} />
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 12.5, color: '#b9b9c8', marginBottom: 5, fontWeight: 700 }}>Message</label>
+                  <textarea value={msgTexte} maxLength={2000} onChange={e => setMsgTexte(e.target.value)} rows={5} style={{ width: '100%', padding: '10px 12px', borderRadius: 9, border: '1px solid #2c2c44', background: '#0a0a12', color: '#fff', fontSize: 14, fontFamily: 'inherit', resize: 'vertical' }} />
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <button onClick={envoyerMessage} disabled={sending || cibles.length === 0} style={{ background: 'linear-gradient(135deg,#2f9de0,#38d3ef)', color: '#012', border: 'none', fontWeight: 800, fontSize: 14, padding: '11px 18px', borderRadius: 10, cursor: sending ? 'default' : 'pointer', opacity: (sending || cibles.length === 0) ? 0.6 : 1 }}>{sending ? '\u2026' : ('Envoyer \u00e0 ' + cibles.length + ' membre' + (cibles.length > 1 ? 's' : ''))}</button>
+                  <button onClick={() => setCompose(null)} disabled={sending} style={{ background: 'none', border: '1px solid #26263a', color: '#b9b9c8', fontSize: 13, padding: '11px 18px', borderRadius: 10, cursor: 'pointer' }}>Annuler</button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         </div>
       </div>

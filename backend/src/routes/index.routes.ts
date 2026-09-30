@@ -248,6 +248,24 @@ activiteRouter.get('/activite', requireAuth, requireAdmin, async (_req: any, res
   }
 });
 
+
+// ── Message de bienvenue (notification in-app) — ciblé ou groupé, admin only ──
+activiteRouter.post('/message', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const body = req.body || {};
+    const ids: string[] = Array.isArray(body.user_ids) ? body.user_ids.filter((x: any) => typeof x === 'string' && x) : [];
+    if (!ids.length) return res.status(400).json({ error: 'NO_RECIPIENTS', message: 'Aucun destinataire selectionne.' });
+    const message = String(body.message || '').trim();
+    if (!message) return res.status(400).json({ error: 'EMPTY_MESSAGE', message: 'Le message est vide.' });
+    const title = (String(body.title || '').trim() || 'Bienvenue dans l Arene Diki-Diki').slice(0, 100);
+    const rows = ids.slice(0, 2000).map((id) => ({ user_id: id, type: 'welcome', title, message: message.slice(0, 2000), data: {} }));
+    const { error } = await supabase.from('notifications').insert(rows);
+    if (error) throw error;
+    return res.json({ ok: true, sent: rows.length });
+  } catch {
+    return res.status(500).json({ error: 'MESSAGE_FAILED', message: 'Envoi du message impossible.' });
+  }
+});
 export { activiteRouter };
 
 // ─── Users Public — Profil + Vidéos + Earnings + Privacy ─────
