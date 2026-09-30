@@ -54,10 +54,19 @@ import { Router as UserRouter } from 'express';
 const userRouter = UserRouter();
 userRouter.get('/', requireAuth, requireAdmin, async (req: any, res) => {
   try {
-    const { data, error } = await supabase
+    // On tente avec 'status' ; si la colonne n'existe pas encore, repli sans elle.
+    let data: any = null;
+    let error: any = null;
+    ({ data, error } = await supabase
       .from('users')
       .select('id, name, email, phone, role, wallet, created_at, status')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }));
+    if (error) {
+      ({ data, error } = await supabase
+        .from('users')
+        .select('id, name, email, phone, role, wallet, created_at')
+        .order('created_at', { ascending: false }));
+    }
     if (error) throw error;
     res.json(data || []);
   } catch { res.status(500).json({ error: 'USERS_FETCH_FAILED' }); }
@@ -78,7 +87,7 @@ userRouter.delete('/:id', requireAuth, requireAdmin, async (req: any, res) => {
     }
 
     const { data: target, error: tErr } = await supabase
-      .from('users').select('id, name, role, status, wallet').eq('id', targetId).single();
+      .from('users').select('id, name, role, wallet').eq('id', targetId).single();
     if (tErr || !target) {
       return res.status(404).json({ error: 'USER_NOT_FOUND', message: 'Utilisateur introuvable.' });
     }
@@ -123,7 +132,9 @@ userRouter.delete('/:id', requireAuth, requireAdmin, async (req: any, res) => {
     // Bannissement reversible
     const { error: uErr } = await supabase
       .from('users').update({ status: 'banned', updated_at: new Date().toISOString() }).eq('id', targetId);
-    if (uErr) throw uErr;
+    if (uErr) {
+      return res.status(500).json({ error: 'STATUS_COLUMN_MISSING', message: "La colonne 'status' est absente en base : ajoutez-la dans Supabase pour activer le bannissement." });
+    }
     return res.json({ ok: true, id: targetId, status: 'banned' });
   } catch {
     return res.status(500).json({ error: 'USER_DELETE_FAILED', message: 'Echec de la suppression.' });
@@ -134,7 +145,9 @@ userRouter.patch('/:id/reactiver', requireAuth, requireAdmin, async (req: any, r
   try {
     const { error } = await supabase
       .from('users').update({ status: 'actif', updated_at: new Date().toISOString() }).eq('id', req.params.id);
-    if (error) throw error;
+    if (error) {
+      return res.status(500).json({ error: 'STATUS_COLUMN_MISSING', message: "La colonne 'status' est absente en base : ajoutez-la dans Supabase." });
+    }
     return res.json({ ok: true, id: req.params.id, status: 'actif' });
   } catch {
     return res.status(500).json({ error: 'USER_REACTIVATE_FAILED', message: 'Echec de la reactivation.' });

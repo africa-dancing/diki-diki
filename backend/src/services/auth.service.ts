@@ -205,7 +205,7 @@ export async function loginUser(identifier: string, password: string) {
 
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, email, phone, name, role, password, is_verified, avatar_url, country, wallet, totp_secret, status')
+    .select('id, email, phone, name, role, password, is_verified, avatar_url, country, wallet, totp_secret')
     .eq(isEmail ? 'email' : 'phone', identifier)
     .single();
 
@@ -219,8 +219,11 @@ export async function loginUser(identifier: string, password: string) {
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) throw new Error('INVALID_CREDENTIALS');
 
-  /*DKDK_BAN_LOGIN — un compte banni/supprime ne peut plus se connecter */
-  if ((user as any).status === 'banned') throw new Error('ACCOUNT_BANNED');
+  /*DKDK_BAN_LOGIN — compte banni/supprime : connexion refusee.
+     Tolerant : si la colonne 'status' n'existe pas encore en base, la
+     requete echoue silencieusement (data=null) et la connexion continue. */
+  const { data: _st } = await supabase.from('users').select('status').eq('id', user.id).maybeSingle();
+  if (_st && (_st as any).status === 'banned') throw new Error('ACCOUNT_BANNED');
 
   const { password: _omit, totp_secret: _omitTotp, ...safeUser } = user;
 
