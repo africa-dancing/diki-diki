@@ -131,9 +131,9 @@ userRouter.delete('/:id', requireAuth, requireAdmin, async (req: any, res) => {
 
     // Bannissement reversible
     const { error: uErr } = await supabase
-      .from('users').update({ status: 'banned', updated_at: new Date().toISOString() }).eq('id', targetId);
+      .from('users').update({ status: 'banned' }).eq('id', targetId);
     if (uErr) {
-      return res.status(500).json({ error: 'STATUS_COLUMN_MISSING', message: "La colonne 'status' est absente en base : ajoutez-la dans Supabase pour activer le bannissement." });
+      return res.status(500).json({ error: 'USER_DELETE_FAILED', message: 'Suppression impossible : ' + (uErr.message || 'erreur base de donnees') + (uErr.code ? ' [' + uErr.code + ']' : '') });
     }
     return res.json({ ok: true, id: targetId, status: 'banned' });
   } catch {
@@ -144,9 +144,9 @@ userRouter.delete('/:id', requireAuth, requireAdmin, async (req: any, res) => {
 userRouter.patch('/:id/reactiver', requireAuth, requireAdmin, async (req: any, res) => {
   try {
     const { error } = await supabase
-      .from('users').update({ status: 'actif', updated_at: new Date().toISOString() }).eq('id', req.params.id);
+      .from('users').update({ status: 'actif' }).eq('id', req.params.id);
     if (error) {
-      return res.status(500).json({ error: 'STATUS_COLUMN_MISSING', message: "La colonne 'status' est absente en base : ajoutez-la dans Supabase." });
+      return res.status(500).json({ error: 'USER_REACTIVATE_FAILED', message: 'Reactivation impossible : ' + (error.message || 'erreur base de donnees') + (error.code ? ' [' + error.code + ']' : '') });
     }
     return res.json({ ok: true, id: req.params.id, status: 'actif' });
   } catch {
