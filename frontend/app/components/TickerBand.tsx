@@ -78,17 +78,17 @@ export default function TickerBand() {
 
   return (
     <div
-      style={{ background:'#FF6B00', height:34, display:'flex', alignItems:'center', overflow:'hidden', borderTop:'1px solid rgba(0,0,0,0.15)', flexShrink:0 }}
+      style={{ background:'#FF6B00', height:46, display:'flex', alignItems:'center', overflow:'hidden', borderTop:'1px solid rgba(0,0,0,0.15)', flexShrink:0 }}
       onMouseEnter={() => { hoverRef.current = true; }}
       onMouseLeave={() => { hoverRef.current = false; }}
     >
       <div style={{ background:'rgba(0,0,0,0.2)', padding:'0 12px', height:'100%', display:'flex', alignItems:'center', flexShrink:0, borderRight:'1px solid rgba(0,0,0,0.15)' }}>
-        <span style={{ fontSize:15 }}>📢</span>
+        <span style={{ fontSize:19 }}>📢</span>
       </div>
       <div style={{ flex:1, overflow:'hidden' }}>
         <div
           ref={trackRef}
-          style={{ display:'inline-block', whiteSpace:'nowrap', fontSize:13, fontWeight:700, color:'#000', fontFamily:'DM Sans, sans-serif', willChange:'transform' }}
+          style={{ display:'inline-block', whiteSpace:'nowrap', fontSize:18, fontWeight:800, color:'#000', fontFamily:'DM Sans, sans-serif', willChange:'transform' }}
         >
           {`${text}   ●   ${text}   ●   `}
         </div>
@@ -97,7 +97,7 @@ export default function TickerBand() {
         onClick={toggle}
         aria-label={paused ? 'Reprendre le défilement' : 'Mettre en pause le défilement'}
         title={paused ? 'Reprendre' : 'Pause'}
-        style={{ flexShrink:0, height:'100%', padding:'0 12px', background:'rgba(0,0,0,0.2)', border:'none', borderLeft:'1px solid rgba(0,0,0,0.15)', color:'#000', fontSize:13, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}
+        style={{ flexShrink:0, height:'100%', padding:'0 12px', background:'rgba(0,0,0,0.2)', border:'none', borderLeft:'1px solid rgba(0,0,0,0.15)', color:'#000', fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}
       >
         {paused ? '▶' : '⏸'}
       </button>
