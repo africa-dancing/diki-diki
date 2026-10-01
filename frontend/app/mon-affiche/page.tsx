@@ -243,7 +243,7 @@ export default function MonAffichePage() {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'radial-gradient(1200px 700px at 50% -10%, rgba(240,138,36,.16), transparent 60%),#161019', color: '#FBEFE0', fontFamily: 'Sora, system-ui, sans-serif', paddingBottom: 48 }}>
+    <div style={{ minHeight: '100vh', background: '#000000', color: '#FBEFE0', fontFamily: 'Sora, system-ui, sans-serif', paddingBottom: 48 }}>
       <Navbar />
       <div style={{ padding: '14px 24px 30px', minHeight: 60, background: 'radial-gradient(ellipse 80% 60% at 50% -10%, hsl(339, 98%, 49%) 0%, transparent 70%)' }} />
       <style>{`
