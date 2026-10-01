@@ -110,13 +110,14 @@ export default function MonAffichePage() {
 
       function draw() {
         ctx.clearRect(0, 0, W, H);
-        ctx.fillStyle = '#0d0a0c'; ctx.fillRect(0, 0, W, H);
-        var g1 = ctx.createRadialGradient(W * 0.92, H * 0.05, 40, W * 0.92, H * 0.05, W * 1.0);
-        g1.addColorStop(0, hexA(theme.frame, 0.55)); g1.addColorStop(0.5, hexA(theme.frame, 0.13)); g1.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = g1; ctx.fillRect(0, 0, W, H);
-        var g2 = ctx.createRadialGradient(W * 0.06, H * 0.97, 40, W * 0.06, H * 0.97, W * 0.95);
-        g2.addColorStop(0, hexA(theme.frame, 0.45)); g2.addColorStop(0.5, hexA(theme.frame, 0.11)); g2.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+        var bg = ctx.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, '#241617'); bg.addColorStop(0.5, '#180d0e'); bg.addColorStop(1, '#120a0b');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+        var tg = ctx.createRadialGradient(W / 2, 150, 40, W / 2, 150, 880);
+        tg.addColorStop(0, hexA(theme.frame, 0.42)); tg.addColorStop(0.5, hexA(theme.frame, 0.12)); tg.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 900);
+        // UNE grande etoile rouge sombre derriere la pastille (haut masque par la photo)
+        drawStar(W / 2, 1452, 300, '#521216', 0, 1);
 
         var logoBottom = drawOfficialLogo(648, 62);
         var kind = disciplineKind(el.disc.value);
@@ -125,9 +126,6 @@ export default function MonAffichePage() {
         var ks = fitFont(kicker, 'Sora, sans-serif', '700', W - 110, 25, 17);
         ctx.font = '700 ' + ks + 'px Sora, sans-serif'; ctx.fillText(kicker, W / 2, logoBottom + 42);
 
-        // etoiles rouges qui depassent derriere les coins bas de la photo
-        drawStar(FR.x + 28, FR.y + FR.h - 4, 96, '#E11D2E', -0.12, 1);
-        drawStar(FR.x + FR.w - 28, FR.y + FR.h - 4, 96, '#E11D2E', 0.12, 1);
         ctx.save();
         roundRect(ctx, FR.x, FR.y, FR.w, FR.h, FR.r);
         ctx.shadowColor = theme.glowFrame; ctx.shadowBlur = 62; ctx.fillStyle = '#241826'; ctx.fill(); ctx.shadowBlur = 0; ctx.clip();
@@ -161,7 +159,6 @@ export default function MonAffichePage() {
 
         // pastille discipline
         var disc = (el.disc.value || '').trim().toUpperCase(), chipY = 1332;
-        drawStar(W / 2, chipY, 80, '#E11D2E', 0, 0.96);
         if (disc) {
           ctx.font = '700 34px Sora, sans-serif';
           var cw = ctx.measureText(disc).width, padX = 34, ch = 64, cx = W / 2 - cw / 2 - padX, cwFull = cw + padX * 2;
