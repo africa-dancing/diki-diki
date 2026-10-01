@@ -423,7 +423,7 @@ export default function MonAffichePage() {
               <div className="maff-note" id="chNote"></div>
             </div>
             <div className="maff-field"><label htmlFor="titre">Titre principal</label><input id="titre" type="text" maxLength={46} placeholder="Ex : 3 Séries de 12 Lancers Francs" defaultValue="VOTE POUR MOI" /></div>
-            <div className="maff-field"><label htmlFor="nom">Nom du candidat</label><input id="nom" type="text" maxLength={22} placeholder="Ex : A. SHALOM" defaultValue="A. SHALOM" /></div>
+            <div className="maff-field"><label htmlFor="nom">Nom du candidat</label><input id="nom" type="text" maxLength={22} placeholder="Ex : ton nom ou pseudo" /></div>
             <div className="maff-field"><label htmlFor="disc">Discipline</label><input id="disc" type="text" maxLength={18} placeholder="Ex : Basket" defaultValue="CHALLENGE BASKET" /></div>
             <div className="maff-field"><label htmlFor="msg">Message court (optionnel)</label><input id="msg" type="text" maxLength={34} placeholder="Ex : Soutiens-moi dans l'Arène !" defaultValue="Merci de voter pour moi !" /></div>
 
