@@ -106,7 +106,7 @@ export async function verifyTotp(req: AuthRequest, res: Response) {
 
     // SÉCURITÉ (H1) : code valide → on délivre le VRAI jeton complet (7 j), qui remplace
     // le jeton "en attente" reçu à la connexion. C'est ce jeton qui ouvre l'admin.
-    const fullToken = jwt.sign({ userId, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    const fullToken = jwt.sign({ userId, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
     setAuthCookie(res, fullToken); // cookie httpOnly = ce vrai jeton (additif au JSON)
     return res.json({ success: true, totp_required: true, token: fullToken });
   } catch (e: any) {

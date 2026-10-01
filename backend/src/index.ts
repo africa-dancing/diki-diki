@@ -50,6 +50,7 @@ app.use(helmet());
 app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:3001', 'https://podiumarenachallenge.com', 'https://diki-diki.vercel.app', 'https://diki-diki.com', 'https://www.diki-diki.com', /^https:\/\/diki-diki.*\.vercel\.app$/],
   credentials: true,
+  exposedHeaders: ['X-New-Token'], /*DKDK_SLIDING_SESSION — le frontend doit pouvoir lire le jeton renouvele*/
 }));
 app.use(rateLimit({ windowMs: 60 * 1000, max: 100 }));
 // SÉCURITÉ (#4) : rate-limit distribué Upstash ciblé sur les routes sensibles

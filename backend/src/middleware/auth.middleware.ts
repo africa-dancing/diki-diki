@@ -11,6 +11,14 @@ if (!_jwtSecret) {
 }
 const JWT_SECRET: string = _jwtSecret;
 
+// ── Session glissante (DKDK_SLIDING_SESSION) ────────────────────────
+// Le jeton vit 30 jours ; tant que l'utilisateur est actif, requireAuth en
+// re-emet un neuf des qu'un jour de vie a ete consomme -> jamais deconnecte
+// en pleine utilisation. Expiration seulement apres 30 j d'inactivite reelle.
+const JWT_EXPIRES_IN = '30d';
+const MAX_AGE_SEC    = 30 * 24 * 60 * 60;
+const RENEW_AFTER_SEC = 24 * 60 * 60; // re-emet si plus d'1 jour deja consomme
+
 export interface AuthRequest extends Request {
   user?: { userId: string; role: string; totp_pending?: boolean };
 }
@@ -27,7 +35,7 @@ const COOKIE_OPTS = {
   httpOnly: true as const,
   secure:   true as const,       // HTTPS uniquement
   sameSite: 'lax' as const,      // first-party via le proxy Next.js
-  maxAge:   7 * 24 * 60 * 60 * 1000, // 7 jours, aligné sur l'expiration du JWT
+  maxAge:   30 * 24 * 60 * 60 * 1000, // 30 jours, aligné sur l'expiration du JWT (session glissante)
   path:     '/',
 };
 
@@ -69,8 +77,20 @@ export async function requireAuth(
     return res.status(401).json({ error: 'TOKEN_MISSING' });
   }
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; role: string };
-    req.user = decoded;
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    req.user = { userId: decoded.userId, role: decoded.role, totp_pending: decoded.totp_pending };
+    // Session glissante : si plus d'un jour de vie est deja consomme, on re-emet un
+    // jeton neuf (30 j) dans l'en-tete X-New-Token (+ cookie). Le frontend le remplace.
+    try {
+      if (!decoded.totp_pending && typeof decoded.exp === 'number') {
+        const now = Math.floor(Date.now() / 1000);
+        if ((decoded.exp - now) < (MAX_AGE_SEC - RENEW_AFTER_SEC)) {
+          const fresh = jwt.sign({ userId: decoded.userId, role: decoded.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+          res.setHeader('X-New-Token', fresh);
+          try { res.cookie(AUTH_COOKIE, fresh, COOKIE_OPTS); } catch { /* no-op */ }
+        }
+      }
+    } catch { /* un echec de renouvellement ne doit jamais bloquer la requete */ }
     next();
   } catch (err) {
     return res.status(401).json({ error: 'TOKEN_INVALID' });

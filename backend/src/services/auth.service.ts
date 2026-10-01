@@ -29,7 +29,7 @@ if (!_jwtSecret) {
   throw new Error('FATAL: JWT_SECRET est absent des variables d\'environnement. Le serveur refuse de demarrer.');
 }
 const JWT_SECRET: string = _jwtSecret;
-const JWT_EXPIRES_IN = '7d';
+const JWT_EXPIRES_IN = '30d';
 const OTP_TTL        = 600; // 10 minutes
 
 // ─── Helpers ─────────────────────────────────────────────────
