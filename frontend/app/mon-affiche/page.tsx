@@ -244,6 +244,7 @@ export default function MonAffichePage() {
       <div style={{ padding: '14px 24px 30px', minHeight: 60, background: 'radial-gradient(ellipse 80% 60% at 50% -10%, hsl(339, 98%, 49%) 0%, transparent 70%)' }} />
       <style>{`
         .maff-wrap{max-width:1080px;margin:0 auto;padding:22px 16px 10px}
+        .maff-wrap *{box-sizing:border-box}
         .maff-head{max-width:760px;margin:0 auto 22px;text-align:center;background:linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15));border:1px solid rgb(10,0,0);border-radius:16px;padding:22px 20px;box-shadow:0 8px 40px rgba(225,29,143,0.35)}
         .maff-kick{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#F6C453;font-weight:700}
         .maff-head h1{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:clamp(1.5rem,5vw,2.1rem);margin:.2em 0 .1em;line-height:1}
@@ -255,7 +256,7 @@ export default function MonAffichePage() {
         #poster{display:block;width:100%;height:auto;touch-action:none;cursor:grab;background:#221826}
         #poster.drag{cursor:grabbing}
         .maff-hint{font-size:12px;color:#cdbcae;text-align:center;margin-top:10px}
-        .maff-panel{background:linear-gradient(180deg,#221826,#2c2030);border:1px solid #3a2c3f;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:16px}
+        .maff-panel{background:linear-gradient(180deg,#221826,#2c2030);border:1px solid #3a2c3f;border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
         .maff-field{display:flex;flex-direction:column;gap:6px}
         .maff-field label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#F6C453;font-weight:700}
         .maff-field input[type=text]{width:100%;padding:11px 12px;border-radius:11px;border:1px solid #3a2c3f;background:#1b1420;color:#FBEFE0;font:inherit;font-size:15px}
