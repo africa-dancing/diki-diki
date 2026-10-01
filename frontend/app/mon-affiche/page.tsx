@@ -117,7 +117,7 @@ export default function MonAffichePage() {
         tg.addColorStop(0, hexA(theme.frame, 0.42)); tg.addColorStop(0.5, hexA(theme.frame, 0.12)); tg.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 900);
         // UNE grande etoile rouge sombre derriere la pastille (haut masque par la photo)
-        drawStar(W / 2, 1452, 300, '#521216', 0, 1);
+        drawStar(W / 2, 1055, 360, '#521216', 0, 1);
 
         var logoBottom = drawOfficialLogo(648, 62);
         var kind = disciplineKind(el.disc.value);
