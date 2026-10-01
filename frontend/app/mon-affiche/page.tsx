@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 
 const LIEN_FIXE = 'www.diki-diki.com';
+const QR_B64 = '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';
 
 export default function MonAffichePage() {
   const ran = useRef(false);
@@ -57,6 +58,7 @@ export default function MonAffichePage() {
       var cv: any = q('poster'); if (!cv) return; var ctx = cv.getContext('2d'); var W = 1080, H = 1920;
       var FR = { x: 72, y: 300, w: 936, h: 1000, r: 44 };
       var img: any = null, iw = 0, ih = 0, zoom = 1, panX = 0, panY = 0;
+      var qrImg: any = (typeof Image !== 'undefined') ? new Image() : null;
       var el = { titre: q('titre'), nom: q('nom'), disc: q('disc'), msg: q('msg'), zoom: q('zoom') };
 
       function roundRect(c: any, x: number, y: number, w: number, h: number, r: number) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
@@ -185,18 +187,22 @@ export default function MonAffichePage() {
         var msg = (el.msg.value || '').trim();
         if (msg) { var ms = fitFont(msg, 'Sora, sans-serif', '400', W - 160, 34, 22); ctx.font = '400 ' + ms + 'px Sora, sans-serif'; ctx.fillStyle = theme.msg; ctx.fillText(msg, W / 2, 1656); }
 
-        // pied (lien fixe)
-        var by2 = 1720, bh = 146, bx2 = 72, bw = W - 144;
+        // pied (lien fixe) + QR code vers la plateforme
+        var by2 = 1716, bh = 152, bx2 = 72, bw = W - 144;
         roundRect(ctx, bx2, by2, bw, bh, 30);
         var fg = ctx.createLinearGradient(bx2, by2, bx2 + bw, by2 + bh); fg.addColorStop(0, light(theme.foot1, 14)); fg.addColorStop(.5, theme.foot1); fg.addColorStop(1, theme.foot2);
         ctx.save(); ctx.shadowColor = hexA(theme.foot1, .55); ctx.shadowBlur = 30; ctx.fillStyle = fg; ctx.fill(); ctx.restore();
         roundRect(ctx, bx2 + 8, by2 + 6, bw - 16, bh / 2 - 4, 24);
         var fhg = ctx.createLinearGradient(0, by2, 0, by2 + bh / 2); fhg.addColorStop(0, 'rgba(255,255,255,.30)'); fhg.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.fillStyle = fhg; ctx.fill();
-        ctx.fillStyle = theme.footInk; ctx.font = '700 22px Sora, sans-serif'; ctx.textAlign = 'center';
-        ctx.globalAlpha = .85; ctx.fillText('SOUTIENS TON TALENT SUR', W / 2, by2 + 52); ctx.globalAlpha = 1;
-        var ls = fitFont(LIEN_FIXE, 'Sora, sans-serif', '800', bw - 80, 52, 26);
-        ctx.font = '800 ' + ls + 'px Sora, sans-serif'; ctx.fillStyle = theme.footInk; ctx.fillText(LIEN_FIXE, W / 2, by2 + 112);
+        var qs = 120, qm = 16, qx = bx2 + bw - qm - qs, qy = by2 + (bh - qs) / 2;
+        roundRect(ctx, qx - 7, qy - 7, qs + 14, qs + 14, 12); ctx.fillStyle = '#ffffff'; ctx.fill();
+        if (qrImg && qrImg.complete && qrImg.naturalWidth) ctx.drawImage(qrImg, qx, qy, qs, qs);
+        var tcx = (bx2 + (qx - 16)) / 2;
+        ctx.fillStyle = theme.footInk; ctx.textAlign = 'center';
+        ctx.globalAlpha = .85; ctx.font = '700 20px Sora, sans-serif'; ctx.fillText('SOUTIENS TON TALENT SUR', tcx, by2 + 56); ctx.globalAlpha = 1;
+        var ls = fitFont(LIEN_FIXE, 'Sora, sans-serif', '800', (qx - 16 - bx2) - 24, 46, 22);
+        ctx.font = '800 ' + ls + 'px Sora, sans-serif'; ctx.fillStyle = theme.footInk; ctx.fillText(LIEN_FIXE, tcx, by2 + 108);
       }
 
       // themes UI
@@ -234,6 +240,7 @@ export default function MonAffichePage() {
       q('gen').addEventListener('click', function () { draw(); var url = cv.toDataURL('image/png'); result.src = url; saveBox.hidden = false; saveBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
       q('dl').addEventListener('click', function () { try { var a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = 'affiche-diki-diki.png'; document.body.appendChild(a); a.click(); a.remove(); } catch (e) {} });
 
+      if (qrImg) { qrImg.onload = function () { draw(); }; qrImg.src = 'data:image/png;base64,' + QR_B64; }
       draw();
       if ((document as any).fonts && (document as any).fonts.ready) { (document as any).fonts.ready.then(draw); }
       setTimeout(draw, 400);
