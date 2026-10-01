@@ -20,6 +20,7 @@ const s: Record<string, React.CSSProperties> = {
   stCard:  { background: 'var(--nav-surface, rgba(255,255,255,0.03))', border: '1px solid var(--line)', borderRadius: 14, padding: '16px 10px', textAlign: 'center' as const },
   stName:  { fontWeight: 800, fontSize: 13.5, marginTop: 10 },
   stMeta:  { color: 'var(--ink-soft)', fontSize: 11.5, marginTop: 2 },
+  iconBadge:{ width: 42, height: 42, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, background: 'radial-gradient(circle at 50% 40%, rgba(255,170,0,0.28), rgba(255,255,255,0.03))', border: '1px solid var(--line)', boxShadow: '0 0 18px rgba(255,170,0,0.25)' },
   grid2:   { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginTop: 12 },
   liCard:  { border: '1px solid var(--line)', borderRadius: 12, padding: '12px 14px', fontSize: 13.5, lineHeight: 1.5 },
   liStrong:{ fontWeight: 700, color: 'var(--ink)' },
@@ -38,10 +39,10 @@ const STATUTS: Statut[] = [
 ];
 
 const GAINS = [
-  { t: 'Voter', v: '+1 Écho par vote payant' },
-  { t: 'Parrainer un ami', v: '+3 Échos (une fois l’ami inscrit et votant)' },
-  { t: 'Partager (vérifié)', v: '+2 Échos' },
-  { t: 'Commenter', v: '+1 Écho' },
+  { e: '🗳️', t: 'Voter', v: '+1 Écho par vote payant' },
+  { e: '🤝', t: 'Parrainer un ami', v: '+3 Échos — une fois l’ami inscrit et votant' },
+  { e: '📣', t: 'Partager (vérifié)', v: '+2 Échos' },
+  { e: '💬', t: 'Commenter', v: '+1 Écho' },
 ];
 
 const AVANTAGES: { statut: StatutEcho; s: string; v: string }[] = [
@@ -103,10 +104,14 @@ export default function LesEchosPage() {
 
         {/* COMMENT GAGNER */}
         <h2 style={s.h2}>Comment gagner des Échos</h2>
-        <div style={s.grid2}>
+        <div style={s.grid4} className="dkdk-echo-grid4">
           {GAINS.map((g) => (
-            <div key={g.t} style={s.liCard}>
-              <span style={s.liStrong}>{g.t}</span> <span style={{ color: 'var(--ink-soft)' }}>— {g.v}</span>
+            <div key={g.t} style={s.stCard}>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <span style={s.iconBadge}>{g.e}</span>
+              </div>
+              <div style={s.stName}>{g.t}</div>
+              <div style={s.stMeta}>{g.v}</div>
             </div>
           ))}
         </div>
@@ -114,11 +119,14 @@ export default function LesEchosPage() {
 
         {/* AVANTAGES */}
         <h2 style={s.h2}>Tes avantages, statut par statut</h2>
-        <div style={s.grid2}>
+        <div style={s.grid4} className="dkdk-echo-grid4">
           {AVANTAGES.map((a) => (
-            <div key={a.s} style={{ ...s.liCard, display: 'flex', alignItems: 'center', gap: 10 }}>
-              <EchoIcon statut={a.statut} size={26} />
-              <span><span style={s.liStrong}>{a.s}</span> <span style={{ color: 'var(--ink-soft)' }}>— {a.v}</span></span>
+            <div key={a.s} style={s.stCard}>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <EchoIcon statut={a.statut} size={42} />
+              </div>
+              <div style={s.stName}>{a.s}</div>
+              <div style={s.stMeta}>{a.v}</div>
             </div>
           ))}
         </div>
