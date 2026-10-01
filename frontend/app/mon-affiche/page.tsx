@@ -64,6 +64,7 @@ export default function MonAffichePage() {
       function coverScale() { return Math.max(FR.w / iw, FR.h / ih); }
       function clampPan() { if (!img) return; var eff = coverScale() * zoom, dw = iw * eff, dh = ih * eff; var mx = Math.max(0, (dw - FR.w) / 2), my = Math.max(0, (dh - FR.h) / 2); panX = Math.max(-mx, Math.min(mx, panX)); panY = Math.max(-my, Math.min(my, panY)); }
       function star(cx: number, cy: number, rO: number, pts: number) { var rI = rO * 0.42, step = Math.PI / pts; ctx.beginPath(); for (var i = 0; i < 2 * pts; i++) { var r = (i % 2 === 0) ? rO : rI; var a = -Math.PI / 2 + i * step; var x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r; if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.closePath(); }
+      function drawStar(cx: number, cy: number, r: number, color: string, rot: number, alpha: number) { ctx.save(); ctx.globalAlpha = (alpha == null ? 1 : alpha); ctx.translate(cx, cy); ctx.rotate(rot || 0); star(0, 0, r, 5); ctx.fillStyle = color; ctx.fill(); ctx.restore(); }
 
       // Titre principal : TOUJOURS sur une seule ligne. On reduit la taille pour les titres longs.
       function layoutTitle(text: string, maxW: number) {
@@ -109,21 +110,24 @@ export default function MonAffichePage() {
 
       function draw() {
         ctx.clearRect(0, 0, W, H);
-        var gg = ctx.createLinearGradient(0, 0, 0, H);
-        gg.addColorStop(0, theme.bg1); gg.addColorStop(.55, theme.bg2); gg.addColorStop(1, theme.bg3);
-        ctx.fillStyle = gg; ctx.fillRect(0, 0, W, H);
-        var rg = ctx.createRadialGradient(W / 2, 120, 60, W / 2, 120, 760);
-        rg.addColorStop(0, theme.glow); rg.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = rg; ctx.fillRect(0, 0, W, 760);
-        ctx.save(); ctx.globalAlpha = .13; ctx.fillStyle = theme.star; star(W / 2, 980, 560, 5); ctx.fill(); ctx.restore();
+        ctx.fillStyle = '#0d0a0c'; ctx.fillRect(0, 0, W, H);
+        var g1 = ctx.createRadialGradient(W * 0.92, H * 0.05, 40, W * 0.92, H * 0.05, W * 1.0);
+        g1.addColorStop(0, hexA(theme.frame, 0.55)); g1.addColorStop(0.5, hexA(theme.frame, 0.13)); g1.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g1; ctx.fillRect(0, 0, W, H);
+        var g2 = ctx.createRadialGradient(W * 0.06, H * 0.97, 40, W * 0.06, H * 0.97, W * 0.95);
+        g2.addColorStop(0, hexA(theme.frame, 0.45)); g2.addColorStop(0.5, hexA(theme.frame, 0.11)); g2.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
 
         var logoBottom = drawOfficialLogo(648, 62);
         var kind = disciplineKind(el.disc.value);
         var kicker = kind === 'sport' ? 'L’ARÈNE SPORTIVE DES TALENTS AFRICAINS' : kind === 'art' ? 'L’ARÈNE ARTISTIQUE DES TALENTS AFRICAINS' : 'L’ARÈNE DES TALENTS AFRICAINS';
-        ctx.textAlign = 'center'; ctx.fillStyle = theme.or;
+        ctx.textAlign = 'center'; ctx.fillStyle = '#F5EFE3';
         var ks = fitFont(kicker, 'Sora, sans-serif', '700', W - 110, 25, 17);
         ctx.font = '700 ' + ks + 'px Sora, sans-serif'; ctx.fillText(kicker, W / 2, logoBottom + 42);
 
+        // etoiles rouges qui depassent derriere les coins bas de la photo
+        drawStar(FR.x + 28, FR.y + FR.h - 4, 96, '#E11D2E', -0.12, 1);
+        drawStar(FR.x + FR.w - 28, FR.y + FR.h - 4, 96, '#E11D2E', 0.12, 1);
         ctx.save();
         roundRect(ctx, FR.x, FR.y, FR.w, FR.h, FR.r);
         ctx.shadowColor = theme.glowFrame; ctx.shadowBlur = 62; ctx.fillStyle = '#241826'; ctx.fill(); ctx.shadowBlur = 0; ctx.clip();
@@ -157,6 +161,7 @@ export default function MonAffichePage() {
 
         // pastille discipline
         var disc = (el.disc.value || '').trim().toUpperCase(), chipY = 1332;
+        drawStar(W / 2, chipY, 80, '#E11D2E', 0, 0.96);
         if (disc) {
           ctx.font = '700 34px Sora, sans-serif';
           var cw = ctx.measureText(disc).width, padX = 34, ch = 64, cx = W / 2 - cw / 2 - padX, cwFull = cw + padX * 2;
@@ -175,9 +180,9 @@ export default function MonAffichePage() {
 
         // nom
         var nom = (el.nom.value || '').trim().toUpperCase() || 'TON NOM';
-        var ns = fitFont(nom, 'Sora, sans-serif', '800', W - 160, 76, 34);
-        ctx.font = '800 ' + ns + 'px Sora, sans-serif';
-        ctx.save(); ctx.shadowColor = hexA(theme.nameCol, .6); ctx.shadowBlur = 24; ctx.fillStyle = theme.nameCol; ctx.fillText(nom, W / 2, 1590); ctx.restore();
+        var ns = fitFont(nom, 'Anton, sans-serif', '400', W - 150, 92, 40);
+        ctx.font = '400 ' + ns + 'px Anton, sans-serif';
+        ctx.save(); ctx.shadowColor = hexA(theme.nameCol, .5); ctx.shadowBlur = 22; ctx.fillStyle = theme.nameCol; ctx.fillText(nom, W / 2, 1602); ctx.restore();
 
         // message
         var msg = (el.msg.value || '').trim();
