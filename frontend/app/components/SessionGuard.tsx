@@ -12,6 +12,11 @@ export default function SessionGuard() {
     w.fetch = async (...args: any[]) => {
       const res = await orig(...args);
       try {
+        // Session glissante : si le backend renvoie un jeton renouvele, on le remplace.
+        try {
+          const nt = res && res.headers && res.headers.get ? res.headers.get('X-New-Token') : null;
+          if (nt && typeof nt === 'string' && nt.length > 20) localStorage.setItem('dkdk_token', nt);
+        } catch (_) {}
         if (res && res.status === 401) {
           const a0 = args[0];
           const url = typeof a0 === 'string' ? a0 : (a0 && a0.url) || '';
