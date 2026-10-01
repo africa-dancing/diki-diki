@@ -185,7 +185,6 @@ export default function ContactPage() {
               <div className="dkdk-cc-mid">
                 <div className="dkdk-cc-t">{r.title}</div>
                 <div className="dkdk-cc-cta">{r.cta} →</div>
-                <div className="dkdk-cc-s">{r.sub}</div>
               </div>
             </a>
           ))}
@@ -195,7 +194,6 @@ export default function ContactPage() {
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">Retrait &amp; paiement</div>
               <div className="dkdk-cc-cta">Nous écrire →</div>
-              <div className="dkdk-cc-s">Virement non reçu, retrait bloqué</div>
             </div>
           </button>
 
@@ -204,7 +202,6 @@ export default function ContactPage() {
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">Bug &amp; technique</div>
               <div className="dkdk-cc-cta">Signaler un bug →</div>
-              <div className="dkdk-cc-s">Signaler un problème technique</div>
             </div>
           </button>
 
@@ -213,7 +210,6 @@ export default function ContactPage() {
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">Partenariat</div>
               <div className="dkdk-cc-cta">Nous écrire →</div>
-              <div className="dkdk-cc-s">Presse &amp; collaborations</div>
             </div>
           </button>
 
@@ -222,7 +218,6 @@ export default function ContactPage() {
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">FAQ</div>
               <div className="dkdk-cc-cta">Consulter la FAQ →</div>
-              <div className="dkdk-cc-s">Questions fréquentes</div>
             </div>
           </a>
         </div>
