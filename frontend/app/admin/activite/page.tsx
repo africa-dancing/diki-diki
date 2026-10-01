@@ -18,14 +18,21 @@ interface Morceau {
   id: string; titre: string | null; artiste: string | null; statut: string | null;
   created_at: string; auteur_id: string | null; auteur_nom: string | null; auteur_email: string | null;
 }
+interface Affiche {
+  id: string; titre: string | null; discipline: string | null;
+  bracket_id: string | null; bracket_code: string | null;
+  statut_lien: string | null; created_at: string;
+  auteur_id: string | null; auteur_nom: string | null; auteur_email: string | null;
+}
 
 export default function AdminActivitePage() {
   const { admin } = useAdminAuth();
   const [appels, setAppels]     = useState<Appel[]>([]);
   const [morceaux, setMorceaux] = useState<Morceau[]>([]);
+  const [affiches, setAffiches]  = useState<Affiche[]>([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState('');
-  const [onglet, setOnglet]     = useState<'appels' | 'morceaux'>('appels');
+  const [onglet, setOnglet]     = useState<'appels' | 'morceaux' | 'affiches'>('appels');
   const [q, setQ]               = useState('');
 
   const charger = () => {
@@ -33,7 +40,7 @@ export default function AdminActivitePage() {
     setLoading(true); setError('');
     fetch(`${API}/admin/activite`, { cache: 'no-store', headers: { Authorization: `Bearer ${admin.token}` } })
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(d => { setAppels(d?.data?.appels ?? []); setMorceaux(d?.data?.morceaux ?? []); })
+      .then(d => { setAppels(d?.data?.appels ?? []); setMorceaux(d?.data?.morceaux ?? []); setAffiches(d?.data?.affiches ?? []); })
       .catch(() => setError('Erreur de chargement de l’activité.'))
       .finally(() => setLoading(false));
   };
@@ -42,6 +49,17 @@ export default function AdminActivitePage() {
   const fmtDate = (s: string) => {
     try { return new Date(s).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
     catch { return s || '—'; }
+  };
+
+  const lienBadge = (st: string | null) => {
+    const s = String(st || '').toLowerCase();
+    const map: Record<string, [string, string, string]> = {
+      valide:        ['rgba(74,222,128,0.12)', '#4ade80', '✅ Rattachée'],
+      suspecte:      ['rgba(230,60,60,0.14)',  '#ff7070', '⚠️ Suspecte'],
+      non_rattachee: ['rgba(255,255,255,0.06)','#b8b2a4', '◻️ Générique'],
+    };
+    const [bg, fg, label] = map[s] || map['non_rattachee'];
+    return <span style={{ background: bg, color: fg, fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 20, whiteSpace: 'nowrap' }}>{label}</span>;
   };
 
   const statutBadge = (st: string | null) => {
@@ -76,7 +94,29 @@ export default function AdminActivitePage() {
     || (m.titre || '').toLowerCase().includes(t)
     || (m.artiste || '').toLowerCase().includes(t));
 
-  const tab = (key: 'appels' | 'morceaux', label: string, n: number) => (
+  const affichesF = affiches.filter(a => !t
+    || (a.auteur_nom || '').toLowerCase().includes(t)
+    || (a.auteur_email || '').toLowerCase().includes(t)
+    || (a.titre || '').toLowerCase().includes(t)
+    || (a.discipline || '').toLowerCase().includes(t)
+    || (a.bracket_code || '').toLowerCase().includes(t));
+
+  // Compteur par utilisateur (pont fidelite : tout comptabilise par personne)
+  const compteurs = (() => {
+    const by: Record<string, { nom: string | null; email: string | null; total: number; valide: number; suspecte: number; generique: number; last: string }> = {};
+    for (const a of affichesF) {
+      const k = a.auteur_id || 'inconnu';
+      if (!by[k]) by[k] = { nom: a.auteur_nom, email: a.auteur_email, total: 0, valide: 0, suspecte: 0, generique: 0, last: a.created_at };
+      const r = by[k]; r.total++;
+      if (a.statut_lien === 'valide') r.valide++;
+      else if (a.statut_lien === 'suspecte') r.suspecte++;
+      else r.generique++;
+      if (a.created_at > r.last) r.last = a.created_at;
+    }
+    return Object.values(by).sort((x, y) => y.total - x.total);
+  })();
+
+  const tab = (key: 'appels' | 'morceaux' | 'affiches', label: string, n: number) => (
     <button onClick={() => setOnglet(key)} style={{
       padding: '9px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer',
       border: '1px solid ' + (onglet === key ? 'rgba(255,170,0,0.4)' : '#26263a'),
@@ -101,6 +141,7 @@ export default function AdminActivitePage() {
           <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
             {tab('appels', '📣 Appels créés', appels.length)}
             {tab('morceaux', '🎵 Morceaux ajoutés', morceaux.length)}
+            {tab('affiches', '🖼️ Affiches générées', affiches.length)}
           </div>
 
           <input
@@ -141,7 +182,7 @@ export default function AdminActivitePage() {
                 </table>
               </div>
             )
-          ) : (
+          ) : onglet === 'morceaux' ? (
             morceauxF.length === 0 ? (
               <div style={{ color: '#8a8aa8', fontSize: 14, padding: '30px 0' }}>Aucun morceau ajouté pour l’instant.</div>
             ) : (
@@ -166,6 +207,63 @@ export default function AdminActivitePage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )
+          ) : (
+            affichesF.length === 0 ? (
+              <div style={{ color: '#8a8aa8', fontSize: 14, padding: '30px 0' }}>Aucune affiche générée pour l’instant.</div>
+            ) : (
+              <div>
+                <h2 style={{ fontSize: 14, fontWeight: 700, color: '#b8b2a4', margin: '0 0 10px' }}>Compteur par utilisateur <span style={{ color: '#7a7a8c', fontWeight: 400 }}>(base du programme de fidélité)</span></h2>
+                <div style={{ overflowX: 'auto', border: '1px solid #1e1e2e', borderRadius: 12, background: '#0d0d14', marginBottom: 22 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
+                    <thead><tr>
+                      <th style={th}>Utilisateur</th>
+                      <th style={th}>Affiches</th>
+                      <th style={th}>✅ Rattachées</th>
+                      <th style={th}>⚠️ Suspectes</th>
+                      <th style={th}>◻️ Génériques</th>
+                      <th style={th}>Dernière</th>
+                    </tr></thead>
+                    <tbody>
+                      {compteurs.map((c, i) => (
+                        <tr key={i}>
+                          <td style={td}>{auteur(c.nom, c.email)}</td>
+                          <td style={{ ...td, fontWeight: 700 }}>{c.total}</td>
+                          <td style={{ ...td, color: '#4ade80' }}>{c.valide}</td>
+                          <td style={{ ...td, color: c.suspecte ? '#ff7070' : '#8a8aa8' }}>{c.suspecte}</td>
+                          <td style={{ ...td, color: '#b8b2a4' }}>{c.generique}</td>
+                          <td style={{ ...td, color: '#8a8aa8' }}>{fmtDate(c.last)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <h2 style={{ fontSize: 14, fontWeight: 700, color: '#b8b2a4', margin: '0 0 10px' }}>Journal détaillé</h2>
+                <div style={{ overflowX: 'auto', border: '1px solid #1e1e2e', borderRadius: 12, background: '#0d0d14' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 820 }}>
+                    <thead><tr>
+                      <th style={th}>Auteur</th>
+                      <th style={th}>Titre</th>
+                      <th style={th}>Discipline</th>
+                      <th style={th}>Challenge</th>
+                      <th style={th}>Lien</th>
+                      <th style={th}>Généré le</th>
+                    </tr></thead>
+                    <tbody>
+                      {affichesF.map(a => (
+                        <tr key={a.id}>
+                          <td style={td}>{auteur(a.auteur_nom, a.auteur_email)}</td>
+                          <td style={{ ...td, fontWeight: 600 }}>{a.titre || '—'}</td>
+                          <td style={{ ...td, color: '#b8b2a4' }}>{a.discipline || '—'}</td>
+                          <td style={{ ...td, color: '#b8b2a4' }}>{a.bracket_code || '—'}</td>
+                          <td style={td}>{lienBadge(a.statut_lien)}</td>
+                          <td style={{ ...td, color: '#8a8aa8' }}>{fmtDate(a.created_at)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )
           )}
