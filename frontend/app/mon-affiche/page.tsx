@@ -239,11 +239,10 @@ export default function MonAffichePage() {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'Sora, system-ui, sans-serif', paddingBottom: 48 }}>
+    <div style={{ minHeight: '100vh', background: 'radial-gradient(ellipse 115% 44% at 50% 0%, hsla(339,98%,49%,0.5) 0%, transparent 62%), var(--bg)', color: 'var(--ink)', fontFamily: 'Sora, system-ui, sans-serif', paddingBottom: 48 }}>
       <Navbar />
-      <div style={{ padding: '14px 24px 30px', minHeight: 60, background: 'radial-gradient(ellipse 80% 60% at 50% -10%, hsl(339, 98%, 49%) 0%, transparent 70%)' }} />
       <style>{`
-        .maff-wrap{max-width:1080px;margin:0 auto;padding:22px 16px 10px}
+        .maff-wrap{max-width:1080px;margin:0 auto;padding:16px 16px 10px}
         .maff-wrap *{box-sizing:border-box}
         .maff-head{max-width:760px;margin:0 auto 22px;text-align:center;background:linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15));border:1px solid rgb(10,0,0);border-radius:16px;padding:22px 20px;box-shadow:0 8px 40px rgba(225,29,143,0.35)}
         .maff-kick{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#F6C453;font-weight:700}
