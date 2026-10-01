@@ -5,7 +5,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const VIDEO_URL = process.env.NEXT_PUBLIC_WELCOME_VIDEO_URL || '';
+const ENV_URL  = process.env.NEXT_PUBLIC_WELCOME_VIDEO_URL || '';
+const API       = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const SEEN_KEY  = 'dkdk_welcome_seen';
 
 function ytId(url: string): string | null {
@@ -16,12 +17,25 @@ function ytId(url: string): string | null {
 export default function WelcomeVideo() {
   const router = useRouter();
   const [show, setShow] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
 
   useEffect(() => {
-    if (!VIDEO_URL) return; // aucune vidéo configurée -> inerte
+    // Gérée depuis l'admin (Réglages → welcome_video_url). Vide = désactivée.
     let token: string | null = null, seen: string | null = null;
     try { token = localStorage.getItem('dkdk_token'); seen = localStorage.getItem(SEEN_KEY); } catch {}
-    if (token && !seen) setShow(true); // uniquement connecté + jamais vue
+    if (!token || seen) return; // uniquement connecté + jamais vue
+    (async () => {
+      let url = ENV_URL; // repli si le réglage n'existe pas encore en base
+      try {
+        const r = await fetch(`${API}/settings`, { cache: 'no-store' });
+        if (r.ok) {
+          const d = await r.json();
+          const row = (d?.data || []).find((x: any) => x.key === 'welcome_video_url');
+          if (row) url = row.value || ''; // clé présente = source autoritaire (vide = off)
+        }
+      } catch {}
+      if (url) { setVideoUrl(url); setShow(true); }
+    })();
   }, []);
 
   const marquerVu = () => { try { localStorage.setItem(SEEN_KEY, '1'); } catch {} };
@@ -29,7 +43,7 @@ export default function WelcomeVideo() {
   const passer    = () => { marquerVu(); setShow(false); };
 
   if (!show) return null;
-  const yt = ytId(VIDEO_URL);
+  const yt = ytId(videoUrl);
 
   return (
     <div
@@ -58,7 +72,7 @@ export default function WelcomeVideo() {
             />
           ) : (
             <video
-              src={VIDEO_URL}
+              src={videoUrl}
               autoPlay
               controls
               playsInline

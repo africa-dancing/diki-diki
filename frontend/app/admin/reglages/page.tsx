@@ -68,6 +68,20 @@ export default function AdminReglagesPage() {
     }
   };
 
+  const desactiverVideo = async () => {
+    setValeurs(v => ({ ...v, welcome_video_url: '' }));
+    setBusyKey('welcome_video_url'); setInfo('');
+    try {
+      const r = await fetch(`${API}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin.token}` },
+        body: JSON.stringify({ key: 'welcome_video_url', value: '', description: 'URL de la video de bienvenue (YouTube ou MP4) — vide = desactivee' }),
+      });
+      if (!r.ok) throw new Error();
+      setInfo('✓ Vidéo de bienvenue désactivée.');
+    } catch { setInfo('✗ Erreur lors de la désactivation.'); } finally { setBusyKey(null); }
+  };
+
   const trouver = (key: string) => reglages.find(r => r.key === key);
 
   return (
@@ -113,6 +127,43 @@ export default function AdminReglagesPage() {
                 </button>
               </div>
               <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)', margin: '4px 2px 0' }}>Le changement s’applique au prochain chargement des pages. « Clignotant » est l’effet par défaut.</p>
+            </div>
+          )}
+
+          {!loading && (
+            <div style={{ marginBottom: 28 }}>
+              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 16, color: '#fff', margin: '0 0 12px' }}>
+                🎬 Vidéo de bienvenue
+              </h2>
+              <div style={{ padding: '12px 14px', background: '#15151c', borderRadius: 10, border: '1px solid rgba(255,170,0,0.12)' }}>
+                <div style={{ fontSize: 13, color: '#e8e0d0', marginBottom: 2 }}>Popup joué une fois à la 1ʳᵉ visite de l’accueil (connecté). Lien YouTube ou URL d’un fichier MP4.</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 8 }}>welcome_video_url — <b>vide = désactivée</b></div>
+                <div style={{ fontSize: 12, color: valeurs['welcome_video_url'] ? '#4ade80' : 'rgba(255,255,255,0.45)', marginBottom: 10, wordBreak: 'break-all' }}>
+                  {valeurs['welcome_video_url'] ? ('Actuelle : ' + valeurs['welcome_video_url']) : 'Aucune vidéo active actuellement.'}
+                </div>
+                <input
+                  value={valeurs['welcome_video_url'] ?? ''}
+                  onChange={e => setValeurs({ ...valeurs, welcome_video_url: e.target.value })}
+                  placeholder="https://youtu.be/… ou https://…/video.mp4"
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 8, border: '1px solid rgba(255,170,0,0.25)', background: '#0a0a0f', color: '#fff', fontSize: 14, marginBottom: 10 }}
+                />
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => enregistrer('welcome_video_url', 'URL de la video de bienvenue (YouTube ou MP4) — vide = desactivee')}
+                    disabled={busyKey === 'welcome_video_url'}
+                    style={{ background: OR, color: '#000', fontWeight: 700, fontSize: 13, padding: '9px 18px', borderRadius: 8, border: 'none', cursor: busyKey === 'welcome_video_url' ? 'default' : 'pointer', opacity: busyKey === 'welcome_video_url' ? 0.6 : 1 }}
+                  >
+                    Enregistrer
+                  </button>
+                  <button
+                    onClick={desactiverVideo}
+                    disabled={busyKey === 'welcome_video_url'}
+                    style={{ background: 'transparent', color: '#f87171', fontWeight: 700, fontSize: 13, padding: '9px 18px', borderRadius: 8, border: '1px solid rgba(248,113,113,0.4)', cursor: busyKey === 'welcome_video_url' ? 'default' : 'pointer' }}
+                  >
+                    Vider / désactiver
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
