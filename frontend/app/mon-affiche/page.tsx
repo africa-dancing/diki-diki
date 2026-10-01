@@ -32,11 +32,7 @@ export default function MonAffichePage() {
 
     var q = function (id: string): any { return document.getElementById(id); };
 
-    // Pre-remplir le nom depuis le profil
-    try {
-      var raw = localStorage.getItem('dkdk_user');
-      if (raw) { var u = JSON.parse(raw); var nm = (u && (u.name || u.stage_name || u.first_name)) || ''; if (nm && q('nom')) q('nom').value = String(nm).toUpperCase().slice(0, 22); }
-    } catch (e) {}
+    // (Pas de pre-remplissage du nom : aucun prenom de membre n'est affiche.)
 
     (function () {
       'use strict';
@@ -243,7 +239,7 @@ export default function MonAffichePage() {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000000', color: '#FBEFE0', fontFamily: 'Sora, system-ui, sans-serif', paddingBottom: 48 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'Sora, system-ui, sans-serif', paddingBottom: 48 }}>
       <Navbar />
       <div style={{ padding: '14px 24px 30px', minHeight: 60, background: 'radial-gradient(ellipse 80% 60% at 50% -10%, hsl(339, 98%, 49%) 0%, transparent 70%)' }} />
       <style>{`
