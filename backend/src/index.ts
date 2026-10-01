@@ -23,6 +23,7 @@ import {
   blocObjectifsRouter,
   usersPublicRouter,
   tickerRouter,
+  afficheRouter,
 } from './routes/index.routes';
 import { videoRouter }                                  from './routes/video.routes';
 import { notificationRouter, startNotificationCron }   from './routes/notification.routes';
@@ -81,6 +82,7 @@ app.use('/v1/wallet',        walletRouter);
 app.use('/v1/users',         usersPublicRouter);
 app.use('/v1/users',         userRouter);
 app.use('/v1/admin',         activiteRouter); /*DKDK_ACTIVITE*/
+app.use('/v1/affiches',      afficheRouter); /*DKDK_AFFICHE_TRACKING*/
 app.use('/v1/ticker',        tickerRouter);
 app.use('/v1/categories',    categoryRouter);
 app.use('/v1/challenge-formats', formatRouter);

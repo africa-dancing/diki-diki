@@ -242,7 +242,29 @@ activiteRouter.get('/activite', requireAuth, requireAdmin, async (_req: any, res
       createur_nom: (nameById[b.user_id] && nameById[b.user_id].name) || null,
       createur_email: (nameById[b.user_id] && nameById[b.user_id].email) || null,
     }));
-    res.json({ success: true, data: { morceaux, appels } });
+    // Affiches generees (journal + compteur) — resilient si la table n'existe pas encore.
+    let affiches: any[] = [];
+    try {
+      const { data: aff } = await supabase
+        .from('affiche_generations')
+        .select('id, user_id, bracket_id, bracket_code, titre, discipline, statut_lien, created_at')
+        .order('created_at', { ascending: false }).limit(500);
+      const missing = Array.from(new Set((aff || []).map((a: any) => a.user_id).filter(Boolean)))
+        .filter((id: any) => !nameById[id]);
+      if (missing.length) {
+        const { data: us2 } = await supabase.from('users').select('id, name, email').in('id', missing);
+        for (const u of (us2 || [])) nameById[(u as any).id] = { name: (u as any).name, email: (u as any).email };
+      }
+      affiches = (aff || []).map((a: any) => ({
+        id: a.id, titre: a.titre, discipline: a.discipline,
+        bracket_id: a.bracket_id, bracket_code: a.bracket_code,
+        statut_lien: a.statut_lien, created_at: a.created_at,
+        auteur_id: a.user_id,
+        auteur_nom: (nameById[a.user_id] && nameById[a.user_id].name) || null,
+        auteur_email: (nameById[a.user_id] && nameById[a.user_id].email) || null,
+      }));
+    } catch { affiches = []; }
+    res.json({ success: true, data: { morceaux, appels, affiches } });
   } catch {
     res.status(500).json({ success: false, error: 'ACTIVITE_FETCH_FAILED' });
   }
@@ -266,6 +288,85 @@ activiteRouter.post('/message', requireAuth, requireAdmin, async (req: any, res)
     return res.status(500).json({ error: 'MESSAGE_FAILED', message: 'Envoi du message impossible.' });
   }
 });
+
+// ─── Affiches (generateur /mon-affiche) ───────────────────────────────
+// Tracabilite + rattachement a un vrai challenge (detection des fausses affiches).
+// AUCUNE logique d'argent : simple journal, pont vers le futur module fidelite.
+import { Router as AfficheRouter } from 'express';
+const afficheRouter = AfficheRouter();
+
+// Les challenges reels de l'utilisateur, auxquels il peut rattacher une affiche :
+// ceux ou il est candidat (bracket_participants) + ceux qu'il a crees (brackets.user_id).
+afficheRouter.get('/mes-challenges', requireAuth, async (req: any, res) => {
+  try {
+    const me = req.user?.userId;
+    if (!me) return res.status(401).json({ success: false, error: 'NO_AUTH' });
+    const [partRes, ownRes] = await Promise.all([
+      supabase.from('bracket_participants')
+        .select('bracket_id, brackets!bracket_participants_bracket_id_fkey(id, code, title, discipline, status)')
+        .eq('user_id', me),
+      supabase.from('brackets')
+        .select('id, code, title, discipline, status')
+        .eq('user_id', me).order('created_at', { ascending: false }).limit(200),
+    ]);
+    const byId: Record<string, any> = {};
+    for (const p of (partRes.data || [])) {
+      const b = (p as any).brackets; if (!b || !b.id) continue;
+      byId[b.id] = { id: b.id, code: b.code, title: b.title, discipline: b.discipline, status: b.status, role: 'candidat' };
+    }
+    for (const b of (ownRes.data || [])) {
+      const id = (b as any).id;
+      if (byId[id]) byId[id].role = 'candidat+createur';
+      else byId[id] = { id, code: (b as any).code, title: (b as any).title, discipline: (b as any).discipline, status: (b as any).status, role: 'createur' };
+    }
+    return res.json({ success: true, data: Object.values(byId) });
+  } catch {
+    return res.status(500).json({ success: false, error: 'CHALLENGES_FETCH_FAILED' });
+  }
+});
+
+// Enregistre une affiche generee + verifie le rattachement au challenge.
+// statut_lien : 'valide' (lien confirme) | 'suspecte' (challenge annonce mais aucun lien reel) | 'non_rattachee'
+afficheRouter.post('/', requireAuth, async (req: any, res) => {
+  try {
+    const me = req.user?.userId;
+    if (!me) return res.status(401).json({ success: false, error: 'NO_AUTH' });
+    const body = req.body || {};
+    const bracketId = (typeof body.bracket_id === 'string' && body.bracket_id) ? body.bracket_id : null;
+    const titre = String(body.titre || '').trim().slice(0, 120) || null;
+    const discipline = String(body.discipline || '').trim().slice(0, 80) || null;
+
+    let statut = 'non_rattachee';
+    let bracketCode: string | null = null;
+    if (bracketId) {
+      // Lien reel ? candidat de ce bracket OU createur de ce bracket.
+      const [asPart, asOwner] = await Promise.all([
+        supabase.from('bracket_participants').select('id').eq('bracket_id', bracketId).eq('user_id', me).limit(1),
+        supabase.from('brackets').select('id, code').eq('id', bracketId).eq('user_id', me).limit(1),
+      ]);
+      const linked = ((asPart.data || []).length > 0) || ((asOwner.data || []).length > 0);
+      statut = linked ? 'valide' : 'suspecte';
+      // code du challenge (snapshot) — recupere meme si lie via participation
+      const { data: bc } = await supabase.from('brackets').select('code').eq('id', bracketId).limit(1).single();
+      bracketCode = (bc && (bc as any).code) || ((asOwner.data || [])[0] as any)?.code || null;
+    }
+
+    const { error } = await supabase.from('affiche_generations').insert({
+      user_id: me, bracket_id: bracketId, bracket_code: bracketCode,
+      titre, discipline, statut_lien: statut,
+    });
+    if (error) {
+      // Table pas encore creee : ne pas casser l'experience de generation cote candidat.
+      return res.json({ success: true, statut_lien: statut, logged: false });
+    }
+    return res.json({ success: true, statut_lien: statut, logged: true });
+  } catch {
+    return res.status(500).json({ success: false, error: 'AFFICHE_LOG_FAILED' });
+  }
+});
+
+export { afficheRouter };
+
 export { activiteRouter };
 
 // ─── Users Public — Profil + Vidéos + Earnings + Privacy ─────
