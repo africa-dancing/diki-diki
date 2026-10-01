@@ -184,9 +184,9 @@ export default function ContactPage() {
               <div className={('dkdk-cc-badge ' + r.badge).trim()}>{r.icon}</div>
               <div className="dkdk-cc-mid">
                 <div className="dkdk-cc-t">{r.title}</div>
+                <div className="dkdk-cc-cta">{r.cta} →</div>
                 <div className="dkdk-cc-s">{r.sub}</div>
               </div>
-              <span className="dkdk-cc-cta">{r.cta} →</span>
             </a>
           ))}
 
@@ -194,36 +194,36 @@ export default function ContactPage() {
             <div className="dkdk-cc-badge"><IconWallet /></div>
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">Retrait &amp; paiement</div>
+              <div className="dkdk-cc-cta">Nous écrire →</div>
               <div className="dkdk-cc-s">Virement non reçu, retrait bloqué</div>
             </div>
-            <span className="dkdk-cc-cta">Nous écrire →</span>
           </button>
 
           <button type="button" className="dkdk-cc" onClick={() => allerAuFormulaire('Bug technique')}>
             <div className="dkdk-cc-badge"><IconTool /></div>
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">Bug &amp; technique</div>
+              <div className="dkdk-cc-cta">Signaler un bug →</div>
               <div className="dkdk-cc-s">Signaler un problème technique</div>
             </div>
-            <span className="dkdk-cc-cta">Signaler un bug →</span>
           </button>
 
           <button type="button" className="dkdk-cc" onClick={() => allerAuFormulaire('Partenariat / Presse')}>
             <div className="dkdk-cc-badge"><IconUsers /></div>
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">Partenariat</div>
+              <div className="dkdk-cc-cta">Nous écrire →</div>
               <div className="dkdk-cc-s">Presse &amp; collaborations</div>
             </div>
-            <span className="dkdk-cc-cta">Nous écrire →</span>
           </button>
 
           <a href="/faq" className="dkdk-cc">
             <div className="dkdk-cc-badge"><IconHelp /></div>
             <div className="dkdk-cc-mid">
               <div className="dkdk-cc-t">FAQ</div>
+              <div className="dkdk-cc-cta">Consulter la FAQ →</div>
               <div className="dkdk-cc-s">Questions fréquentes</div>
             </div>
-            <span className="dkdk-cc-cta">Consulter la FAQ →</span>
           </a>
         </div>
         </div>
