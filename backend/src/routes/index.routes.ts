@@ -288,6 +288,7 @@ activiteRouter.post('/message', requireAuth, requireAdmin, async (req: any, res)
     let emailed = 0, skipped_no_email = 0, email_errors = 0;
     try {
       const RESEND = process.env.RESEND_API_KEY;
+      const REPLY_TO = process.env.SUPPORT_REPLY_TO || process.env.CONTACT_TO || 'ifedeg@gmail.com';
       const { data: us } = await supabase.from('users').select('id, email, name').in('id', ids.slice(0, 2000));
       const list = us || [];
       skipped_no_email += Math.max(0, ids.length - list.length); // comptes introuvables
@@ -303,6 +304,7 @@ activiteRouter.post('/message', requireAuth, requireAdmin, async (req: any, res)
             body: JSON.stringify({
               from: 'Diki-Diki <support@diki-diki.com>',
               to: [String(to)],
+              reply_to: [REPLY_TO],
               subject: title,
               text: message.slice(0, 2000),
               html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:20px;color:#1a1a1a"><h2 style="color:#e11d8f;margin:0 0 12px">${title}</h2><div style="font-size:15px;line-height:1.6">${htmlMsg}</div><p style="margin-top:24px;font-size:12px;color:#888">Diki-Diki — l'Arène des talents africains · <a href="https://www.diki-diki.com">www.diki-diki.com</a></p></div>`,

@@ -141,8 +141,9 @@ contactRouter.post('/', async (req: Request, res: Response) => {
       await envoyerEmail({
         from: `Diki-Diki <support@diki-diki.com>`,
         to: [email],
+        reply_to: [process.env.SUPPORT_REPLY_TO || process.env.CONTACT_TO || 'ifedeg@gmail.com'],
         subject: 'Nous avons bien recu votre message - Diki-Diki',
-        text: `Bonjour ${nom},\n\nNous avons bien recu votre message concernant "${sujet}".\nNotre equipe vous repondra sous 24h ouvrables.\n\nRappel de votre message :\n${message}\n\n--\nL'equipe Diki-Diki\nsupport@diki-diki.com`,
+        text: `Bonjour ${nom},\n\nNous avons bien recu votre message concernant "${sujet}".\nNotre equipe vous repondra sous 24h ouvrables.\n\nRappel de votre message :\n${message}\n\n--\nL'equipe Diki-Diki`,
       });
 
       await supabase.from('contact_messages').update({ email_envoye: true }).eq('id', msg.id);
