@@ -59,7 +59,7 @@ const faqs = [
       },
       {
         q: "Parcours ou Bloc groupé : quelle différence ?",
-        a: `Un challenge suit l'un de deux modèles :\n\n• Parcours (élimination progressive) — étape par étape : à chaque étape le candidat fournit une vidéo, le public vote, et les moins votés sont éliminés. La dernière étape est un « match de classement » : les finalistes s'affrontent une dernière fois, sans élimination. L'ordre du podium (1er, 2e, 3e) tient compte du total des votes cumulés sur l'ensemble des étapes du parcours, pas seulement de ceux de cette dernière étape.\n\n• Bloc groupé (classement final) — le candidat fournit toutes ses vidéos d'emblée ; il n'y a qu'un seul décompte à la fin, un seul classement.`,
+        a: `Un challenge suit l'un de deux modèles :\n\n• **Parcours** (élimination progressive) — étape par étape : à chaque étape le candidat fournit une vidéo, le public vote, et les moins votés sont éliminés. La dernière étape est un « match de classement » : les finalistes s'affrontent une dernière fois, sans élimination. L'ordre du podium (1er, 2e, 3e) tient compte du total des votes cumulés sur l'ensemble des étapes du parcours, pas seulement de ceux de cette dernière étape.\n\n• **Bloc groupé** (classement final) — le candidat fournit toutes ses vidéos d'emblée ; il n'y a qu'un seul décompte à la fin, un seul classement.`,
       },
       {
         q: "Un challenge en solo ou en groupe ?",
@@ -85,7 +85,7 @@ const faqs = [
       { q: 'Comment rejoindre un appel sur le Mur des appels ?', a: "Le Mur des appels liste les challenges ouverts. Ouvrez celui qui vous inspire : vous y voyez la discipline, le format, les morceaux imposés (souvent avec une vidéo de référence à écouter) et l'objectif à collecter.\n\nPour rejoindre : touchez le panneau, choisissez une de vos vidéos approuvées, puis validez « Rejoindre l'appel ». Dès que toutes les places sont prises, le challenge démarre automatiquement." },
       { q: "Combien coûte l'inscription à un challenge ?", a: "Pour les candidats, l'inscription à un challenge est 100 % gratuite.\n\nLes votes du public n'ont rien à voir avec l'inscription : voter n'est pas un « droit d'entrée ». Les votes servent à soutenir les candidats et à constituer la cagnotte du challenge — ils ne sont en aucun cas reliés à l'inscription d'un candidat.\n\nSeule exception : réutiliser une même vidéo déjà engagée dans un autre challenge peut entraîner des frais d'inscription, fixés par l'administration et affichés avant de confirmer." },
       { q: 'Puis-je participer à plusieurs challenges en même temps ?', a: "Oui, vous pouvez rejoindre plusieurs challenges. Chaque challenge est prévu pour sa propre vidéo ; réutiliser une même vidéo dans un autre challenge reste possible mais est encadré par la plateforme (des frais d'inscription, fixés par l'administration, peuvent s'appliquer)." },
-      { q: 'Puis-je changer ma vidéo entre deux étapes ?', a: "Oui — c'est le principe du modèle Parcours : vous soumettez une nouvelle vidéo avant chaque nouvelle étape, depuis Mes vidéos. Les scores qui déterminent les éliminations repartent de zéro à chaque étape, mais le classement final du podium tient compte du total des votes cumulés sur toutes les étapes (voir « Comment les gagnants et les éliminés sont-ils désignés ? »).\n\nEn modèle Bloc groupé, à l'inverse, vous fournissez toutes vos vidéos dès le départ, pour un seul classement final." },
+      { q: 'Puis-je changer ma vidéo entre deux étapes ?', a: "Oui — c'est le principe du modèle **Parcours** : vous soumettez une nouvelle vidéo avant chaque nouvelle étape, depuis Mes vidéos. Les scores qui déterminent les éliminations repartent de zéro à chaque étape, mais le classement final du podium tient compte du total des votes cumulés sur toutes les étapes (voir « Comment les gagnants et les éliminés sont-ils désignés ? »).\n\nEn modèle **Bloc groupé**, à l'inverse, vous fournissez toutes vos vidéos dès le départ, pour un seul classement final." },
     ],
   },
   {
@@ -239,6 +239,14 @@ function FormatsGrid() {
   );
 }
 
+function renderRich(line: string) {
+  // **terme** -> mis en evidence, plus grand et colore (DKDK_FAQ_EMPH)
+  const parts = line.split(/\*\*(.+?)\*\*/g);
+  return parts.map((seg, j) => (j % 2 === 1)
+    ? <strong key={j} style={{ fontSize: 17, fontWeight: 800, color: OR }}>{seg}</strong>
+    : <span key={j}>{seg}</span>);
+}
+
 function FaqItem({ q, a, node }: { q: string; a: string; node?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
@@ -250,7 +258,7 @@ function FaqItem({ q, a, node }: { q: string; a: string; node?: React.ReactNode 
       {open && (
         <div style={s.a}>
           {a.split('\n').map((line, i) => (
-            <span key={i}>{line}{i < a.split('\n').length - 1 && <br />}</span>
+            <span key={i}>{renderRich(line)}{i < a.split('\n').length - 1 && <br />}</span>
           ))}
           {node ? <div style={{ marginTop: 12 }}>{node}</div> : null}
         </div>
