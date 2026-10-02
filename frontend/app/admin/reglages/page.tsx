@@ -82,6 +82,20 @@ export default function AdminReglagesPage() {
     } catch { setInfo('✗ Erreur lors de la désactivation.'); } finally { setBusyKey(null); }
   };
 
+  const desactiverBandeau = async () => {
+    setValeurs(v => ({ ...v, pub_accueil_bandeau: '' }));
+    setBusyKey('pub_accueil_bandeau'); setInfo('');
+    try {
+      const r = await fetch(`${API}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin.token}` },
+        body: JSON.stringify({ key: 'pub_accueil_bandeau', value: '', description: 'Texte de la bande-annonce defilante de l accueil — vide = masquee' }),
+      });
+      if (!r.ok) throw new Error();
+      setInfo('✓ Bande-annonce désactivée.');
+    } catch { setInfo('✗ Erreur lors de la désactivation.'); } finally { setBusyKey(null); }
+  };
+
   const trouver = (key: string) => reglages.find(r => r.key === key);
 
   return (
@@ -159,6 +173,43 @@ export default function AdminReglagesPage() {
                     onClick={desactiverVideo}
                     disabled={busyKey === 'welcome_video_url'}
                     style={{ background: 'transparent', color: '#f87171', fontWeight: 700, fontSize: 13, padding: '9px 18px', borderRadius: 8, border: '1px solid rgba(248,113,113,0.4)', cursor: busyKey === 'welcome_video_url' ? 'default' : 'pointer' }}
+                  >
+                    Vider / désactiver
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!loading && (
+            <div style={{ marginBottom: 28 }}>
+              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 16, color: '#fff', margin: '0 0 12px' }}>
+                📢 Bande-annonce de l&apos;accueil
+              </h2>
+              <div style={{ padding: '12px 14px', background: '#15151c', borderRadius: 10, border: '1px solid rgba(255,170,0,0.12)' }}>
+                <div style={{ fontSize: 13, color: '#e8e0d0', marginBottom: 2 }}>Message défilant qui traverse le panneau « À LA UNE » de l&apos;accueil. Idéal pour un appel à candidats sur un challenge. Le clic mène au Mur des appels.</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 8 }}>pub_accueil_bandeau — <b>vide = masquée</b>. Pense à mettre à jour le nombre de places quand elles se remplissent.</div>
+                <div style={{ fontSize: 12, color: valeurs['pub_accueil_bandeau'] ? '#4ade80' : 'rgba(255,255,255,0.45)', marginBottom: 10, wordBreak: 'break-word' }}>
+                  {valeurs['pub_accueil_bandeau'] ? ('En cours : ' + valeurs['pub_accueil_bandeau']) : 'Aucune bande-annonce active actuellement.'}
+                </div>
+                <input
+                  value={valeurs['pub_accueil_bandeau'] ?? ''}
+                  onChange={e => setValeurs({ ...valeurs, pub_accueil_bandeau: e.target.value })}
+                  placeholder="Ex : 11 places disponibles — fan de basket ? Rejoins ce challenge maintenant !"
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 8, border: '1px solid rgba(255,170,0,0.25)', background: '#0a0a0f', color: '#fff', fontSize: 14, marginBottom: 10 }}
+                />
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => enregistrer('pub_accueil_bandeau', 'Texte de la bande-annonce defilante de l accueil — vide = masquee')}
+                    disabled={busyKey === 'pub_accueil_bandeau'}
+                    style={{ background: OR, color: '#000', fontWeight: 700, fontSize: 13, padding: '9px 18px', borderRadius: 8, border: 'none', cursor: busyKey === 'pub_accueil_bandeau' ? 'default' : 'pointer', opacity: busyKey === 'pub_accueil_bandeau' ? 0.6 : 1 }}
+                  >
+                    Enregistrer
+                  </button>
+                  <button
+                    onClick={desactiverBandeau}
+                    disabled={busyKey === 'pub_accueil_bandeau'}
+                    style={{ background: 'transparent', color: '#f87171', fontWeight: 700, fontSize: 13, padding: '9px 18px', borderRadius: 8, border: '1px solid rgba(248,113,113,0.4)', cursor: busyKey === 'pub_accueil_bandeau' ? 'default' : 'pointer' }}
                   >
                     Vider / désactiver
                   </button>

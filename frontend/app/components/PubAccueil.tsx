@@ -9,14 +9,17 @@ interface Annonce {
 }
 
 /* Galerie d'affiches (accueil uniquement). Grille de vignettes :
-   - au SURVOL de la souris (PC) → l'affiche s'ouvre en grand (aperçu), et se referme quand la souris part ;
-   - au CLIC / TOUCHER → agrandissement verrouillé (avec ✕ et « En savoir plus »), utile sur mobile.
-   Ne s'affiche que si le réglage `pub_accueil_active` = '1' ET qu'il existe des pubs actives. */
+   - au SURVOL de la souris (PC) -> l'affiche s'ouvre en grand (apercu), et se referme quand la souris part ;
+   - au CLIC / TOUCHER -> agrandissement verrouille (avec ✕ et « En savoir plus »), utile sur mobile.
+   Une bande-annonce defilante (texte pilote depuis l'admin : cle `pub_accueil_bandeau`) peut traverser
+   le haut du panneau pour un appel a l'action (ex : recrutement de candidats sur un challenge).
+   Le panneau s'affiche si `pub_accueil_active` = '1' ET qu'il existe des pubs actives, OU s'il y a une bande-annonce. */
 export default function PubAccueil() {
   const [ann, setAnn]   = useState<Annonce[]>([]);
   const [on, setOn]     = useState(false);
-  const [sel, setSel]   = useState<Annonce | null>(null);   // clic (verrouillé, interactif)
-  const [hover, setHov] = useState<Annonce | null>(null);   // survol (aperçu, non bloquant)
+  const [bandeau, setBandeau] = useState('');           // texte de la bande-annonce (vide = masquee)
+  const [sel, setSel]   = useState<Annonce | null>(null);   // clic (verrouille, interactif)
+  const [hover, setHov] = useState<Annonce | null>(null);   // survol (apercu, non bloquant)
 
   useEffect(() => {
     let alive = true;
@@ -25,19 +28,25 @@ export default function PubAccueil() {
       fetch(`${API}/annonces/actives`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
     ]).then(([s, a]) => {
       if (!alive) return;
-      const actif = (s?.data || []).find((x: any) => x.key === 'pub_accueil_active')?.value;
+      const data = s?.data || [];
+      const actif = data.find((x: any) => x.key === 'pub_accueil_active')?.value;
       setOn(String(actif).trim() === '1' || String(actif).trim() === 'true');
+      const bText = data.find((x: any) => x.key === 'pub_accueil_bandeau')?.value;
+      setBandeau(typeof bText === 'string' ? bText.trim() : '');
       setAnn(a?.data || []);
     });
     return () => { alive = false; };
   }, []);
 
-  useEffect(() => {
-    if (!on || ann.length === 0) return;
-    ann.forEach(a => { fetch(`${API}/annonces/${a.id}/impression`, { method: 'POST' }).catch(() => {}); });
-  }, [on, ann]);
+  const hasAds = on && ann.length > 0;
 
-  if (!on || ann.length === 0) return null;
+  useEffect(() => {
+    if (!hasAds) return;
+    ann.forEach(a => { fetch(`${API}/annonces/${a.id}/impression`, { method: 'POST' }).catch(() => {}); });
+  }, [hasAds, ann]);
+
+  // Le panneau apparait s'il y a des pubs actives OU une bande-annonce a diffuser.
+  if (!hasAds && !bandeau) return null;
 
   const estImage = (a: Annonce) => (a.media_type || '').startsWith('image');
   const ouvrirLien = (a: Annonce) => {
@@ -46,39 +55,65 @@ export default function PubAccueil() {
   };
 
   const shown = sel || hover;        // ce qu'on affiche en grand
-  const locked = !!sel;              // clic = verrouillé (interactif), survol = aperçu
+  const locked = !!sel;              // clic = verrouille (interactif), survol = apercu
 
   return (
     <div style={{ padding: '4px 16px 10px', display: 'flex', justifyContent: 'center' }}>
       <div style={{ width: '100%', maxWidth: 720, background: '#12121a', border: '1px solid rgba(255,170,0,0.2)', borderRadius: 16, padding: 12 }}>
-        <span style={{ display: 'inline-block', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', padding: '3px 9px', borderRadius: 6, marginBottom: 10 }}>PUBLICITÉ · À LA UNE</span>
+        {hasAds && (
+          <span style={{ display: 'inline-block', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', padding: '3px 9px', borderRadius: 6, marginBottom: 10 }}>PUBLICITÉ · À LA UNE</span>
+        )}
 
-        <div className="dkdk-pub-grid">
-          {ann.map(a => (
-            <button key={a.id}
-              onClick={() => setSel(a)}
-              onMouseEnter={() => setHov(a)}
-              onMouseLeave={() => setHov(h => (h === a ? null : h))}
-              title={a.titre || a.annonceur}
-              style={{ position: 'relative', aspectRatio: '3 / 4', borderRadius: 10, overflow: 'hidden', border: '1px solid #26263a', cursor: 'pointer', padding: 0, background: '#0a0a0f' }}>
-              {a.media_url && estImage(a) && (
-                <img src={a.media_url} alt={a.annonceur} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              )}
-              {a.media_url && !estImage(a) && (
-                <video src={a.media_url} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#000' }} />
-              )}
-              {!a.media_url && (
-                <span style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 12, padding: 6, textAlign: 'center' }}>{a.titre || a.annonceur}</span>
-              )}
-              <span style={{ position: 'absolute', bottom: 5, right: 5, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff' }}>⤢</span>
-              <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'linear-gradient(to top,rgba(0,0,0,.82),transparent)', color: '#fff', fontSize: 10.5, fontWeight: 700, padding: '14px 5px 5px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.titre || a.annonceur}</span>
-            </button>
-          ))}
-        </div>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 8, textAlign: 'center' }}>Survole une affiche pour l&apos;agrandir · clique pour la garder ouverte.</div>
+        {/* Bande-annonce defilante (appel a l'action). Texte pilote depuis l'admin. */}
+        {bandeau && (
+          <>
+            <style>{`@keyframes dkdk-marq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}`}</style>
+            <a href="/challenges/appels" aria-label={bandeau} style={{ textDecoration: 'none', display: 'block', marginBottom: hasAds ? 10 : 2 }}>
+              <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 10, border: '1px solid rgba(255,170,0,0.55)', background: 'linear-gradient(90deg,#1b1206,#2b1d02)', padding: '9px 0' }}>
+                <div style={{ display: 'inline-flex', whiteSpace: 'nowrap', animation: 'dkdk-marq 20s linear infinite', willChange: 'transform' }}>
+                  {[0, 1].map(k => (
+                    <span key={k} aria-hidden={k === 1} style={{ display: 'inline-flex', alignItems: 'center', paddingRight: 48, fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 14.5, color: '#FFCB4D' }}>
+                      <span style={{ marginRight: 14, fontSize: 16 }}>📣</span>
+                      {bandeau}
+                      <span style={{ marginLeft: 18, background: '#FFAA00', color: '#000', fontWeight: 900, fontSize: 12, padding: '3px 12px', borderRadius: 20, whiteSpace: 'nowrap' }}>REJOINDRE ▸</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </a>
+          </>
+        )}
+
+        {hasAds && (
+          <>
+            <div className="dkdk-pub-grid">
+              {ann.map(a => (
+                <button key={a.id}
+                  onClick={() => setSel(a)}
+                  onMouseEnter={() => setHov(a)}
+                  onMouseLeave={() => setHov(h => (h === a ? null : h))}
+                  title={a.titre || a.annonceur}
+                  style={{ position: 'relative', aspectRatio: '3 / 4', borderRadius: 10, overflow: 'hidden', border: '1px solid #26263a', cursor: 'pointer', padding: 0, background: '#0a0a0f' }}>
+                  {a.media_url && estImage(a) && (
+                    <img src={a.media_url} alt={a.annonceur} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  )}
+                  {a.media_url && !estImage(a) && (
+                    <video src={a.media_url} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#000' }} />
+                  )}
+                  {!a.media_url && (
+                    <span style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 12, padding: 6, textAlign: 'center' }}>{a.titre || a.annonceur}</span>
+                  )}
+                  <span style={{ position: 'absolute', bottom: 5, right: 5, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff' }}>⤢</span>
+                  <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'linear-gradient(to top,rgba(0,0,0,.82),transparent)', color: '#fff', fontSize: 10.5, fontWeight: 700, padding: '14px 5px 5px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.titre || a.annonceur}</span>
+                </button>
+              ))}
+            </div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 8, textAlign: 'center' }}>Survole une affiche pour l&apos;agrandir · clique pour la garder ouverte.</div>
+          </>
+        )}
       </div>
 
-      {/* Agrandissement : survol (aperçu, non bloquant) OU clic (verrouillé, interactif) */}
+      {/* Agrandissement : survol (apercu, non bloquant) OU clic (verrouille, interactif) */}
       {shown && (
         <div
           onClick={() => setSel(null)}
