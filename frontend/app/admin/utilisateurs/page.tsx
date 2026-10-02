@@ -191,8 +191,12 @@ export default function AdminUtilisateursPage() {
       const d = await r.json().catch(() => ({}));
       if (!r.ok) { toast('err', (d && d.message) || 'Envoi impossible.'); return; }
       const n = (d.sent ?? cibles.length);
+      const emailed = d.emailed ?? 0;
+      const skip = d.skipped_no_email ?? 0;
       setCompose(null);
-      toast('ok', '\u2705 Message envoy\u00e9 \u00e0 ' + n + ' membre' + (n > 1 ? 's' : '') + '.');
+      let t = '\u2705 Notification \u00e0 ' + n + ' membre' + (n > 1 ? 's' : '') + ' \u00b7 ' + emailed + ' e-mail' + (emailed > 1 ? 's' : '') + ' envoy\u00e9' + (emailed > 1 ? 's' : '');
+      if (skip > 0) t += ' (' + skip + ' sans adresse e-mail)';
+      toast('ok', t + '.');
     } catch { toast('err', 'Erreur reseau : envoi impossible.'); }
     finally { setSending(false); }
   };

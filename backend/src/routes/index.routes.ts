@@ -283,7 +283,37 @@ activiteRouter.post('/message', requireAuth, requireAdmin, async (req: any, res)
     const rows = ids.slice(0, 2000).map((id) => ({ user_id: id, type: 'welcome', title, message: message.slice(0, 2000), data: {} }));
     const { error } = await supabase.from('notifications').insert(rows);
     if (error) throw error;
-    return res.json({ ok: true, sent: rows.length });
+
+    // ── Envoi e-mail en plus de la notification in-app (Resend, best-effort) ──
+    let emailed = 0, skipped_no_email = 0, email_errors = 0;
+    try {
+      const RESEND = process.env.RESEND_API_KEY;
+      const { data: us } = await supabase.from('users').select('id, email, name').in('id', ids.slice(0, 2000));
+      const list = us || [];
+      skipped_no_email += Math.max(0, ids.length - list.length); // comptes introuvables
+      const htmlMsg = message.slice(0, 2000).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+      for (const u of list) {
+        const to = (u as any).email;
+        if (!to || !/.+@.+\..+/.test(String(to))) { skipped_no_email++; continue; }
+        if (!RESEND) { email_errors++; continue; }
+        try {
+          const r = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${RESEND}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              from: 'Diki-Diki <support@diki-diki.com>',
+              to: [String(to)],
+              subject: title,
+              text: message.slice(0, 2000),
+              html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:20px;color:#1a1a1a"><h2 style="color:#e11d8f;margin:0 0 12px">${title}</h2><div style="font-size:15px;line-height:1.6">${htmlMsg}</div><p style="margin-top:24px;font-size:12px;color:#888">Diki-Diki — l'Arène des talents africains · <a href="https://www.diki-diki.com">www.diki-diki.com</a></p></div>`,
+            }),
+          });
+          if (!r.ok) { email_errors++; } else { emailed++; }
+        } catch { email_errors++; }
+      }
+    } catch { /* e-mail best-effort : ne bloque jamais la notification in-app */ }
+
+    return res.json({ ok: true, sent: rows.length, emailed, skipped_no_email, email_errors });
   } catch {
     return res.status(500).json({ error: 'MESSAGE_FAILED', message: 'Envoi du message impossible.' });
   }
