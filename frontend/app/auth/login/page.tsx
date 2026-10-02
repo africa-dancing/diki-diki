@@ -25,11 +25,13 @@ export default function LoginPage() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
   const [expired, setExpired]   = useState(false);
+  const [diag, setDiag]       = useState<any>(null); /*DKDK_LOGOUT_DIAG*/
   const [redirectTo, setRedirectTo] = useState('/home');
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       if (params.get('expired') === '1') setExpired(true);
+      try { const _raw = localStorage.getItem('dkdk_last_logout'); if (_raw) setDiag(JSON.parse(_raw)); } catch (_e) {} /*DKDK_LOGOUT_DIAG*/
       const rd = params.get('redirect');
       if (rd && rd.startsWith('/') && !rd.startsWith('//')) setRedirectTo(rd);
     } catch (e) {}
@@ -140,6 +142,16 @@ export default function LoginPage() {
           </p>
 
           {expired && <div className="error-msg" style={{ background:'rgba(255,170,0,0.1)', border:'1px solid rgba(255,170,0,0.3)', color:'#FFD27a' }}>⏳ Ta session a expiré. Reconnecte-toi pour continuer.</div>}
+
+          {expired && diag && (
+            <div style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.15)', color:'#cfcfe0', fontSize:12, lineHeight:1.55, textAlign:'left', borderRadius:10, padding:'10px 12px', marginBottom:12 }}>
+              <b style={{ color:'#fff' }}>Diagnostic session (à me communiquer) :</b><br/>
+              cause : <b>{diag.error || '—'}</b>{diag.reallyExpired ? ' · vraie expiration' : ' · PAS une expiration (jeton refusé)'}<br/>
+              {typeof diag.minutesLeftWhenKicked === 'number' && <>temps restant à la coupure : <b>{diag.minutesLeftWhenKicked} min</b><br/></>}
+              appel : {String(diag.url || '').replace(/^https?:\/\/[^/]+/, '').slice(0, 90) || '—'}<br/>
+              heure : {diag.at || '—'}
+            </div>
+          )}
 
           <div className="social-row">
             <button type="button" className="btn-social" onClick={handleGoogle} disabled={loading}>
