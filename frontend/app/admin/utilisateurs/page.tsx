@@ -94,6 +94,33 @@ export default function AdminUtilisateursPage() {
   const [flash, setFlash] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const toast = (type: 'ok' | 'err', text: string) => { setFlash({ type, text }); window.setTimeout(() => setFlash(null), 4500); };
 
+  // ── Edition profil (nom / email / telephone) ──
+  const [edit, setEdit] = useState<null | Membre>(null);
+  const [edName, setEdName]   = useState('');
+  const [edEmail, setEdEmail] = useState('');
+  const [edPhone, setEdPhone] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+  const openEdit = (u: Membre) => { setEdit(u); setEdName(u.name || ''); setEdEmail(u.email || ''); setEdPhone(u.phone || ''); };
+  const enregistrerEdit = async () => {
+    if (!admin?.token || !edit) return;
+    const em = edEmail.trim();
+    if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { toast('err', 'Adresse e-mail invalide.'); return; }
+    setSavingEdit(true);
+    try {
+      const r = await fetch(`${API}/users/${edit.id}/profil`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${admin.token}` },
+        body: JSON.stringify({ name: edName, email: em, phone: edPhone }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { toast('err', (d && d.message) || 'Modification impossible.'); return; }
+      setEdit(null);
+      toast('ok', '\u2705 Profil mis \u00e0 jour.');
+      charger();
+    } catch { toast('err', 'Erreur reseau : modification impossible.'); }
+    finally { setSavingEdit(false); }
+  };
+
   const charger = () => {
     if (!admin?.token) return;
     setLoading(true); setError('');
@@ -230,6 +257,9 @@ export default function AdminUtilisateursPage() {
   };
 
   const btnSup: React.CSSProperties = { background: 'rgba(230,60,60,0.10)', border: '1px solid rgba(230,60,60,0.35)', color: '#ff7070', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
+  const btnEdit: React.CSSProperties = { background: 'rgba(255,170,0,0.12)', border: '1px solid rgba(255,170,0,0.4)', color: '#FFC85C', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
+  const lblEd: React.CSSProperties = { display: 'block', fontSize: 12.5, color: '#b9b9c8', marginBottom: 5, fontWeight: 700 };
+  const inpEd: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 9, border: '1px solid #2c2c44', background: '#0a0a12', color: '#fff', fontSize: 14 };
   const btnReact: React.CSSProperties = { background: 'rgba(74,222,128,0.10)', border: '1px solid rgba(74,222,128,0.35)', color: '#4ade80', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
   const btnDef: React.CSSProperties = { background: 'rgba(230,60,60,0.85)', border: '1px solid #ff4d4d', color: '#fff', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
   const btnMsg: React.CSSProperties = { background: 'rgba(74,163,255,0.12)', border: '1px solid rgba(74,163,255,0.4)', color: '#7ab8ff', fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap' };
@@ -300,15 +330,21 @@ export default function AdminUtilisateursPage() {
                           const role = String(u.role || '').toLowerCase();
                           const estAdmin = role === 'admin' || role === 'moderateur' || role === 'moderator';
                           const estMoi = !!admin?.email && u.email === admin.email;
-                          if (estAdmin || estMoi) return <span style={{ color: '#4a4a5a', fontSize: 12 }}>—</span>;
+                          if (estAdmin || estMoi) return (
+                            <span style={{ display: 'inline-flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                              <button onClick={() => openEdit(u)} style={btnEdit}>✏️ Modifier</button>
+                            </span>
+                          );
                           if (u.status === 'banned') return (
                             <span style={{ display: 'inline-flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                              <button onClick={() => openEdit(u)} style={btnEdit}>✏️ Modifier</button>
                               <button onClick={() => reactiver(u)} disabled={busy === u.id} style={btnReact}>{busy === u.id ? '…' : '↺ Réactiver'}</button>
                               <button onClick={() => supprimerDefinitif(u)} disabled={busy === u.id} style={btnDef} title="Effacer definitivement de la base (irreversible)">{busy === u.id ? '…' : '✖ Supprimer définitivement'}</button>
                             </span>
                           );
                           return (
                             <span style={{ display: 'inline-flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                              <button onClick={() => openEdit(u)} style={btnEdit}>✏️ Modifier</button>
                               <button onClick={() => setCompose({ mode: 'one', user: u })} style={btnMsg}>✉️ Message</button>
                               <button onClick={() => supprimer(u)} disabled={busy === u.id} style={btnSup}>{busy === u.id ? '…' : '🗑 Supprimer'}</button>
                             </span>
@@ -368,6 +404,22 @@ export default function AdminUtilisateursPage() {
 
         </div>
       </div>
+        {edit && (
+          <div onClick={() => !savingEdit && setEdit(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16 }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: '#12121c', border: '1px solid rgba(255,170,0,0.3)', borderRadius: 14, padding: 22, width: '100%', maxWidth: 480 }}>
+              <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 17, color: '#fff', margin: '0 0 4px' }}>✏️ Modifier le profil</h3>
+              <p style={{ fontSize: 12.5, color: '#8a8aa8', margin: '0 0 16px' }}>Compte : <b style={{ color: '#FFC85C' }}>{edit.name || edit.email || edit.id}</b>{edit.role ? ' · rôle ' + edit.role : ''}</p>
+              <div style={{ marginBottom: 13 }}><label style={lblEd}>Nom</label><input type="text" value={edName} maxLength={120} onChange={e => setEdName(e.target.value)} style={inpEd} /></div>
+              <div style={{ marginBottom: 13 }}><label style={lblEd}>Adresse e-mail</label><input type="email" value={edEmail} maxLength={160} onChange={e => setEdEmail(e.target.value)} placeholder="ex : support@diki-diki.com" style={inpEd} /></div>
+              <div style={{ marginBottom: 16 }}><label style={lblEd}>Téléphone</label><input type="tel" value={edPhone} maxLength={30} onChange={e => setEdPhone(e.target.value)} placeholder="ex : +229XXXXXXXXXX" style={inpEd} /></div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button onClick={enregistrerEdit} disabled={savingEdit} style={{ background: 'linear-gradient(135deg,#FF8A00,#FFC400)', color: '#1a1200', border: 'none', fontWeight: 800, fontSize: 14, padding: '11px 18px', borderRadius: 10, cursor: savingEdit ? 'default' : 'pointer', opacity: savingEdit ? 0.6 : 1 }}>{savingEdit ? '…' : 'Enregistrer'}</button>
+                <button onClick={() => setEdit(null)} disabled={savingEdit} style={{ background: 'none', border: '1px solid #26263a', color: '#b9b9c8', fontSize: 13, padding: '11px 18px', borderRadius: 10, cursor: 'pointer' }}>Annuler</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {flash && (
           <div style={{ position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, maxWidth: 'calc(100vw - 32px)',
             background: flash.type === 'ok' ? 'rgba(27,175,122,0.16)' : 'rgba(230,60,60,0.16)',

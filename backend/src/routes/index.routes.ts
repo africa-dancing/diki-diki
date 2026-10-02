@@ -207,6 +207,39 @@ userRouter.patch('/:id/reactiver', requireAuth, requireAdmin, async (req: any, r
   }
 });
 
+// Modifier le profil d'un utilisateur (admin) : nom, email, telephone. Aucun autre champ touche.
+userRouter.patch('/:id/profil', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const targetId = req.params.id;
+    const b = req.body || {};
+    const updates: any = {};
+    if (typeof b.name === 'string')  updates.name  = b.name.trim().slice(0, 120);
+    if (typeof b.email === 'string') {
+      const email = b.email.trim().toLowerCase();
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ error: 'EMAIL_INVALID', message: 'Adresse e-mail invalide.' });
+      }
+      updates.email = email || null;
+    }
+    if (typeof b.phone === 'string') updates.phone = b.phone.trim().slice(0, 30) || null;
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'NOTHING_TO_UPDATE', message: 'Aucune donnee a modifier.' });
+    }
+    const { data, error } = await supabase
+      .from('users').update(updates).eq('id', targetId)
+      .select('id, name, email, phone, role, wallet, created_at, status');
+    if (error) {
+      const dup = (error.code === '23505') || /duplicate|unique/i.test(error.message || '');
+      if (dup) return res.status(409).json({ error: 'EMAIL_TAKEN', message: 'Cette adresse e-mail est deja utilisee par un autre compte.' });
+      return res.status(500).json({ error: 'USER_UPDATE_FAILED', message: 'Modification impossible : ' + (error.message || 'erreur base de donnees') });
+    }
+    if (!data || data.length === 0) return res.status(404).json({ error: 'USER_NOT_FOUND', message: 'Utilisateur introuvable.' });
+    return res.json({ ok: true, user: data[0] });
+  } catch {
+    return res.status(500).json({ error: 'USER_UPDATE_FAILED', message: 'Echec de la modification.' });
+  }
+});
+
 export { userRouter };
 
 // ─── Activité admin : « Qui fait quoi » (morceaux ajoutés + appels créés) ───
