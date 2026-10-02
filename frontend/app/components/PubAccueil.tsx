@@ -69,13 +69,13 @@ export default function PubAccueil() {
           <>
             <style>{`@keyframes dkdk-marq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}`}</style>
             <a href="/challenges/appels" aria-label={bandeau} style={{ textDecoration: 'none', display: 'block', marginBottom: hasAds ? 10 : 2 }}>
-              <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 10, border: '1px solid rgba(255,170,0,0.55)', background: 'linear-gradient(90deg,#1b1206,#2b1d02)', padding: '9px 0' }}>
+              <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 10, border: '1px solid rgba(0,0,0,0.12)', background: '#ffffff', padding: '12px 0' }}>
                 <div style={{ display: 'inline-flex', whiteSpace: 'nowrap', animation: 'dkdk-marq 20s linear infinite', willChange: 'transform' }}>
                   {[0, 1].map(k => (
-                    <span key={k} aria-hidden={k === 1} style={{ display: 'inline-flex', alignItems: 'center', paddingRight: 48, fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 14.5, color: '#FFCB4D' }}>
-                      <span style={{ marginRight: 14, fontSize: 16 }}>📣</span>
+                    <span key={k} aria-hidden={k === 1} style={{ display: 'inline-flex', alignItems: 'center', paddingRight: 48, fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 18.5, color: '#111' }}>
+                      <span style={{ marginRight: 14, fontSize: 21 }}>📣</span>
                       {bandeau}
-                      <span style={{ marginLeft: 18, background: '#FFAA00', color: '#000', fontWeight: 900, fontSize: 12, padding: '3px 12px', borderRadius: 20, whiteSpace: 'nowrap' }}>REJOINDRE ▸</span>
+                      <span style={{ marginLeft: 18, background: '#FF1414', color: '#fff', fontWeight: 900, fontSize: 14, padding: '4px 15px', borderRadius: 20, whiteSpace: 'nowrap' }}>REJOINDRE ▸</span>
                     </span>
                   ))}
                 </div>
