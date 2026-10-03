@@ -109,9 +109,9 @@ export default function MessagerieSection() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 18, fontWeight: 800, color: 'var(--ink)' }}>💬 Messagerie</div>
-        <button onClick={() => setShowSettings(s => !s)} style={{ background: 'transparent', border: '1px solid var(--line-strong)', color: 'var(--ink)', borderRadius: 50, padding: '7px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>⚙️ Réglages</button>
+      <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', borderRadius: 18, padding: '18px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 20, fontWeight: 800, color: '#fff' }}>💬 Messagerie</div>
+        <button onClick={() => setShowSettings(s => !s)} style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.35)', color: '#fff', borderRadius: 50, padding: '7px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap' }}>⚙️ Réglages</button>
       </div>
 
       {showSettings && (
