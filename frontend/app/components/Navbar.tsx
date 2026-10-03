@@ -201,6 +201,7 @@ export default function Navbar() {
                 { href: '/submit',            label: 'Ajouter une vidéo', hide: !token },
                 { href: '/compte',            label: 'Compte', hide: !token },
                 { href: '/mon-affiche',       label: 'Mon affiche', hide: !token },
+                { href: '/messages',          label: 'Messagerie', hide: !token },
                 { href: '/recharge',          label: 'Recharge', hide: !token },
                 { href: '/retrait',           label: 'Retrait', hide: !token },
                 { href: '/contact',           label: 'Contact' },
