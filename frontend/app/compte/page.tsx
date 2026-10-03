@@ -9,6 +9,7 @@ import TickerBand from '../components/TickerBand';
 import TranslateWidget from '../components/TranslateWidget';
 import ParcoursSection from './ParcoursSection';/*DKDK_IMPORT_PARCOURS*/
 import MessagerieSection from './MessagerieSection';/*DKDK_IMPORT_MESSAGERIE*/
+import CompteTabs from './CompteTabs';/*DKDK_IMPORT_COMPTETABS*/
 import { useAnalytics } from '../hooks/useAnalytics'; /*DKDK_HEARTBEAT*/
 
 // ✅ Étoile rouge — identique au logo
@@ -41,15 +42,7 @@ interface Contest     { id:string;title:string;discipline:string;comp_type:'duo'
 interface VoteState   { voted:boolean;votedVideoId?:string; }
 interface Privacy     { name_visible:boolean;photo_visible:boolean;phone_visible:boolean;email_visible:boolean;score_visible:boolean;location_visible:boolean; }
 
-const TABS: {id:TabId;emoji:string;label:string}[] = [
-  {id:'dashboard',   emoji:'📊', label:'Tableau de bord'},
-  {id:'videos',      emoji:'🎬', label:'Mes vidéos'},
-  {id:'competitions',emoji:'🏆', label:'Mes challenges'},/*DKDK_TAB_MESCHALLENGES*/
-  {id:'education',   emoji:'📚', label:'Éducation & Savoirs'},
-  {id:'finances',    emoji:'💳', label:'Finances'},
-  {id:'messagerie',  emoji:'💬', label:'Messagerie'},/*DKDK_TAB_MESSAGERIE*/
-  {id:'settings',    emoji:'🔒', label:'Confidentialité'},
-];
+
 
 const card: React.CSSProperties = { background:'var(--surface)',border:'1px solid var(--line)',borderRadius:18,padding:'18px 20px',marginBottom:12 };
 const btnPrimary: React.CSSProperties = { background:'linear-gradient(135deg,#FF6B00,#FFD700)',border:'none',borderRadius:50,padding:'9px 20px',fontSize:13,fontWeight:700,color:'#150c00',cursor:'pointer',fontFamily:'DM Sans, sans-serif' };
@@ -360,16 +353,14 @@ export default function ComptePage() {
     fetch(`${API}/users/earnings`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.ok?r.json():null).then(d=>{if(d)setTotalEarned(d.total_earned??d.earnings??0);}).catch(()=>{});
   },[router,fetchVideos]);
 
-  useEffect(()=>{ try{ const _tb=new URLSearchParams(window.location.search).get('tab'); if(_tb==='messagerie') setActiveTab('messagerie'); }catch{} },[]);/*DKDK_TAB_DEEPLINK*/
+  useEffect(()=>{ try{ const _tb=new URLSearchParams(window.location.search).get('tab'); const _ok=['dashboard','videos','competitions','finances','messagerie','settings']; if(_tb && _ok.includes(_tb)) setActiveTab(_tb as TabId); }catch{} },[]);/*DKDK_TAB_DEEPLINK*/
 
   const handleLogout=()=>{localStorage.removeItem('dkdk_token');localStorage.removeItem('dkdk_user');router.push('/home');};
 
   return (
     <div style={{minHeight:'100vh',background:'var(--bg)',color:'var(--ink)',fontFamily:'DM Sans,sans-serif',paddingBottom:60}}>
       <Navbar /> {/*DKDK_COMPTE_NAVBAR*/}
-      <div style={{background:'var(--bg)',borderBottom:'1px solid var(--line)',padding:'0 20px',display:'flex',gap:2,overflowX:'auto',scrollbarWidth:'none'}}>
-        {TABS.map(tab=>{ /*DKDK_TAB_EDU_SOON*/ const _soon = tab.id==='education'; return [(<button key={tab.id} onClick={()=>{ if(!_soon) setActiveTab(tab.id); }} disabled={_soon} style={{display:'flex',alignItems:'center',gap:6,padding:'14px 16px',background:'none',border:'none',borderBottom:`2px solid ${activeTab===tab.id?'var(--or)':'transparent'}`,color:_soon?'var(--ink-soft)':(activeTab===tab.id?'var(--or)':'var(--ink)'),fontSize:13,fontWeight:activeTab===tab.id?800:600,cursor:_soon?'not-allowed':'pointer',whiteSpace:'nowrap',transition:'all .2s',fontFamily:'DM Sans,sans-serif'}}><span>{tab.emoji}</span><span>{tab.label}</span>{_soon && (<span style={{background:'rgba(255,170,0,0.15)',color:'var(--or)',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:20,marginLeft:2}}>bientôt</span>)}</button>), (tab.id==='videos' ? (<button key="tab-affiche" onClick={()=>router.push('/mon-affiche')} style={{display:'flex',alignItems:'center',gap:6,padding:'14px 16px',background:'none',border:'none',borderBottom:'2px solid transparent',color:'var(--ink)',fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',fontFamily:'DM Sans,sans-serif'}}><span>🖼️</span><span>Mon affiche</span></button>) : null)]; })}<button onClick={()=>router.push('/home')} style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:6,padding:'14px 16px',background:'none',border:'none',color:'var(--ink)',fontSize:13,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap',fontFamily:'DM Sans,sans-serif'}} /*DKDK_BTN_ACCUEIL*/>&#8592; &#127968; Accueil</button>
-      </div>
+      <CompteTabs current={activeTab} onSelect={(id)=>setActiveTab(id as TabId)} />
 
       {/*DKDK_HALO*/}
       <div style={{ height: 200, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', marginBottom: -200, pointerEvents: 'none' }} />
