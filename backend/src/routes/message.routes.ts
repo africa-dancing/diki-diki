@@ -206,8 +206,8 @@ messageRouter.post('/', requireAuth, async (req: any, res) => {
           body: JSON.stringify({
             from: 'Diki-Diki <support@diki-diki.com>', to: [String(to)], reply_to: [REPLY_TO],
             subject: 'Nouveau message sur Diki-Diki',
-            text: 'Tu as recu un nouveau message sur Diki-Diki. Connecte-toi pour le lire : https://www.diki-diki.com/messages',
-            html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:20px;color:#1a1a1a"><h2 style="color:#e11d8f;margin:0 0 12px">Nouveau message \u{1F4AC}</h2><p style="font-size:15px;line-height:1.6">Tu as recu un nouveau message sur Diki-Diki.</p><p><a href="https://www.diki-diki.com/messages" style="display:inline-block;background:#FFAA00;color:#000;font-weight:700;padding:10px 18px;border-radius:8px;text-decoration:none">Lire le message</a></p><p style="margin-top:24px;font-size:12px;color:#888">Diki-Diki — l'Arene des talents africains · <a href="https://www.diki-diki.com">www.diki-diki.com</a></p></div>`,
+            text: 'Tu as recu un nouveau message sur Diki-Diki. Connecte-toi pour le lire : https://www.diki-diki.com/compte?tab=messagerie',
+            html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:20px;color:#1a1a1a"><h2 style="color:#e11d8f;margin:0 0 12px">Nouveau message \u{1F4AC}</h2><p style="font-size:15px;line-height:1.6">Tu as recu un nouveau message sur Diki-Diki.</p><p><a href="https://www.diki-diki.com/compte?tab=messagerie" style="display:inline-block;background:#FFAA00;color:#000;font-weight:700;padding:10px 18px;border-radius:8px;text-decoration:none">Lire le message</a></p><p style="margin-top:24px;font-size:12px;color:#888">Diki-Diki — l'Arene des talents africains · <a href="https://www.diki-diki.com">www.diki-diki.com</a></p></div>`,
           }),
         });
       }

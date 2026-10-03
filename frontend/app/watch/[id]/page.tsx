@@ -1100,7 +1100,7 @@ export default function WatchPage() {
         )}
         {/*DKDK_MESSAGERIE — ecrire au candidat en lecture*/}
         {candidates[currentVideoIndex]?.user_id && (
-          <a href={`/messages?to=${candidates[currentVideoIndex]?.user_id}`} onClick={e => e.stopPropagation()}
+          <a href={`/compte?tab=messagerie&to=${candidates[currentVideoIndex]?.user_id}`} onClick={e => e.stopPropagation()}
             style={{ position: 'absolute', top: 24, right: 10, background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,170,0,0.5)', borderRadius: 20, padding: '4px 10px', fontSize: 9, color: '#FFAA00', fontWeight: 800, zIndex: 10, textDecoration: 'none' }}>
             ✉️ Message
           </a>

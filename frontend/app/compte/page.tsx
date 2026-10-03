@@ -8,6 +8,7 @@ import Link from 'next/link';
 import TickerBand from '../components/TickerBand';
 import TranslateWidget from '../components/TranslateWidget';
 import ParcoursSection from './ParcoursSection';/*DKDK_IMPORT_PARCOURS*/
+import MessagerieSection from './MessagerieSection';/*DKDK_IMPORT_MESSAGERIE*/
 import { useAnalytics } from '../hooks/useAnalytics'; /*DKDK_HEARTBEAT*/
 
 // ✅ Étoile rouge — identique au logo
@@ -32,7 +33,7 @@ const COUNTRIES = [
 ];
 
 // ✅ 'education' ajouté au TabId
-type TabId = 'dashboard'|'videos'|'competitions'|'education'|'finances'|'settings';
+type TabId = 'dashboard'|'videos'|'competitions'|'education'|'finances'|'messagerie'|'settings';
 interface UserProfile { id:string;name:string;email:string;country?:string;photo_url?:string;bio?:string; }
 interface UserVideo   { id:string;title:string;discipline?:string;status:'draft'|'pending'|'approved'|'rejected';views?:number;vote_count?:number;created_at:string;rejection_reason?:string; }
 interface Candidate   { id:string;name:string;stage_name?:string;track_title?:string;track_artist?:string;votes:number;percentage:number;video?:{id:string;storage_url?:string;thumbnail_url?:string}; }
@@ -46,6 +47,7 @@ const TABS: {id:TabId;emoji:string;label:string}[] = [
   {id:'competitions',emoji:'🏆', label:'Mes challenges'},/*DKDK_TAB_MESCHALLENGES*/
   {id:'education',   emoji:'📚', label:'Éducation & Savoirs'},
   {id:'finances',    emoji:'💳', label:'Finances'},
+  {id:'messagerie',  emoji:'💬', label:'Messagerie'},/*DKDK_TAB_MESSAGERIE*/
   {id:'settings',    emoji:'🔒', label:'Confidentialité'},
 ];
 
@@ -358,6 +360,8 @@ export default function ComptePage() {
     fetch(`${API}/users/earnings`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.ok?r.json():null).then(d=>{if(d)setTotalEarned(d.total_earned??d.earnings??0);}).catch(()=>{});
   },[router,fetchVideos]);
 
+  useEffect(()=>{ try{ const _tb=new URLSearchParams(window.location.search).get('tab'); if(_tb==='messagerie') setActiveTab('messagerie'); }catch{} },[]);/*DKDK_TAB_DEEPLINK*/
+
   const handleLogout=()=>{localStorage.removeItem('dkdk_token');localStorage.removeItem('dkdk_user');router.push('/home');};
 
   return (
@@ -375,6 +379,7 @@ export default function ComptePage() {
         {activeTab==='competitions'&&(loading?<div style={{textAlign:'center',padding:'40px',color:'var(--ink-soft)'}}>⏳ Chargement…</div>:<ParcoursSection/>/*DKDK_USE_PARCOURS*/)}
         {activeTab==='education'&&<EducationSection router={router}/>}
         {activeTab==='finances'&&<FinancesSection balance={balance} totalEarned={totalEarned} router={router}/>}
+        {activeTab==='messagerie'&&<MessagerieSection/>}/*DKDK_RENDER_MESSAGERIE*/
         {activeTab==='settings'&&(
           <div>
             <div style={{background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',borderRadius:18,padding:'22px 20px',marginBottom:18,textAlign:'center'}}><div style={{fontSize:38,marginBottom:8}}>⚙️</div><div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:20,color:'#fff',marginBottom:6}}>Paramètres</div><div style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.6}}>Gère ta confidentialité et ton compte</div></div>
