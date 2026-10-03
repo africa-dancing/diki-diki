@@ -379,7 +379,7 @@ export default function ComptePage() {
         {activeTab==='competitions'&&(loading?<div style={{textAlign:'center',padding:'40px',color:'var(--ink-soft)'}}>⏳ Chargement…</div>:<ParcoursSection/>/*DKDK_USE_PARCOURS*/)}
         {activeTab==='education'&&<EducationSection router={router}/>}
         {activeTab==='finances'&&<FinancesSection balance={balance} totalEarned={totalEarned} router={router}/>}
-        {activeTab==='messagerie'&&<MessagerieSection/>}/*DKDK_RENDER_MESSAGERIE*/
+        {activeTab==='messagerie'&&<MessagerieSection/>}
         {activeTab==='settings'&&(
           <div>
             <div style={{background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',borderRadius:18,padding:'22px 20px',marginBottom:18,textAlign:'center'}}><div style={{fontSize:38,marginBottom:8}}>⚙️</div><div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:20,color:'#fff',marginBottom:6}}>Paramètres</div><div style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.6}}>Gère ta confidentialité et ton compte</div></div>
