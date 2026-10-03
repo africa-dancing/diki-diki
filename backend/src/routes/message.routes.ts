@@ -57,10 +57,10 @@ messageRouter.get('/', requireAuth, async (req: any, res) => {
     }
     const others = Object.keys(convo);
     if (others.length) {
-      const { data: us } = await supabase.from('users').select('id, name').in('id', others);
-      const nameById: Record<string, string> = {};
-      for (const u of (us || []) as any[]) nameById[u.id] = u.name || 'Utilisateur';
-      for (const o of others) convo[o].name = nameById[o] || 'Utilisateur';
+      const { data: us } = await supabase.from('users').select('id, name, username').in('id', others);
+      const byId: Record<string, any> = {};
+      for (const u of (us || []) as any[]) byId[u.id] = u;
+      for (const o of others) { convo[o].name = byId[o]?.name || 'Utilisateur'; convo[o].username = byId[o]?.username || null; }
     }
     const list = Object.values(convo).sort((a: any, b: any) => (a.last_at < b.last_at ? 1 : -1));
     return res.json({ success: true, data: list });
@@ -138,12 +138,12 @@ messageRouter.get('/thread/:userId', requireAuth, async (req: any, res) => {
     // marque comme lus les entrants
     await supabase.from('messages').update({ read_at: new Date().toISOString() })
       .eq('recipient_id', me).eq('sender_id', other).is('read_at', null);
-    const { data: ou } = await supabase.from('users').select('id, name, messages_enabled').eq('id', other).limit(1).single();
+    const { data: ou } = await supabase.from('users').select('id, name, username, messages_enabled').eq('id', other).limit(1).single();
     const otherIsCandidate = await isCandidate(other);
     const hasIncoming = (data || []).some((m: any) => m.sender_id === other);
     const blocked = await blockedBetween(me, other);
     const canMessage = !blocked && ((ou as any)?.messages_enabled !== false) && (otherIsCandidate || hasIncoming);
-    return res.json({ success: true, other: { id: other, name: (ou as any)?.name || 'Utilisateur' }, can_message: canMessage, blocked, data: data || [] });
+    return res.json({ success: true, other: { id: other, name: (ou as any)?.name || 'Utilisateur', username: (ou as any)?.username || null }, can_message: canMessage, blocked, data: data || [] });
   } catch { return res.status(500).json({ error: 'THREAD_FAILED' }); }
 });
 

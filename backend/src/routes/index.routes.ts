@@ -449,6 +449,55 @@ usersPublicRouter.put('/email',    requireAuth, usersCtrl.updateEmail);    /*DKD
 usersPublicRouter.put('/password', requireAuth, usersCtrl.updatePassword);
 usersPublicRouter.put('/security', requireAuth, usersCtrl.updateSecurity);
 
+// ─── Pseudo unique (@handle) : verifier / enregistrer / rechercher ───── /*DKDK_USERNAME*/
+const _unReserved = new Set(['admin','support','diki','dikidiki','diki-diki','moderateur','moderator','root','contact','help','aide','staff','officiel','official','www','api']);
+function _unNorm(x: any): string { return String(x || '').trim().toLowerCase().replace(/^@/, ''); }
+function _unValid(u: string): boolean { return /^[a-z0-9_]{3,20}$/.test(u); }
+function _sanitizeQ(q: string): string { return q.replace(/[^\p{L}\p{N}_ \-]/gu, '').slice(0, 40); }
+
+usersPublicRouter.get('/username/check', requireAuth, async (req: any, res) => {
+  try {
+    const u = _unNorm(req.query.u);
+    if (!_unValid(u)) return res.json({ ok: false, available: false, reason: 'INVALID' });
+    if (_unReserved.has(u)) return res.json({ ok: false, available: false, reason: 'RESERVED' });
+    const { data } = await supabase.from('users').select('id').ilike('username', u).limit(1);
+    const taken = (data || []).length > 0 && (data as any)[0].id !== req.user.userId;
+    return res.json({ ok: true, available: !taken });
+  } catch { return res.json({ ok: false, available: false, reason: 'ERROR' }); }
+});
+
+usersPublicRouter.get('/me/username', requireAuth, async (req: any, res) => {
+  try {
+    const { data } = await supabase.from('users').select('username').eq('id', req.user.userId).limit(1).single();
+    return res.json({ success: true, username: (data as any)?.username || null });
+  } catch { return res.json({ success: true, username: null }); }
+});
+
+usersPublicRouter.put('/username', requireAuth, async (req: any, res) => {
+  try {
+    const u = _unNorm((req.body || {}).username);
+    if (!_unValid(u)) return res.status(400).json({ error: 'INVALID', message: '3 a 20 caracteres : lettres minuscules, chiffres, _' });
+    if (_unReserved.has(u)) return res.status(400).json({ error: 'RESERVED', message: 'Ce pseudo est reserve.' });
+    const { error } = await supabase.from('users').update({ username: u }).eq('id', req.user.userId);
+    if (error) { if ((error as any).code === '23505') return res.status(409).json({ error: 'TAKEN', message: 'Ce pseudo est deja pris.' }); throw error; }
+    return res.json({ success: true, username: u });
+  } catch { return res.status(500).json({ error: 'USERNAME_FAILED' }); }
+});
+
+usersPublicRouter.get('/search', requireAuth, async (req: any, res) => {
+  try {
+    const me = req.user.userId;
+    const q = _sanitizeQ(String(req.query.q || '').trim());
+    if (q.length < 2) return res.json({ success: true, data: [] });
+    const { data } = await supabase.from('users').select('id, name, username').or(`username.ilike.%${q}%,name.ilike.%${q}%`).limit(20);
+    const rows = (data || []).filter((u: any) => u.id !== me);
+    const ids = rows.map((u: any) => u.id);
+    const cand = new Set<string>();
+    if (ids.length) { const { data: parts } = await supabase.from('bracket_participants').select('user_id').in('user_id', ids); for (const p of (parts || []) as any[]) cand.add(p.user_id); }
+    return res.json({ success: true, data: rows.map((u: any) => ({ id: u.id, name: u.name || 'Utilisateur', username: u.username || null, candidate: cand.has(u.id) })) });
+  } catch { return res.status(500).json({ error: 'SEARCH_FAILED' }); }
+});
+
 // Routes dynamiques
 usersPublicRouter.get('/me/full',         requireAuth, usersCtrl.getMyFull);      /*DKDK_PROFILE_FULL*/
 usersPublicRouter.put('/profile',         requireAuth, usersCtrl.updateProfile);  /*DKDK_PROFILE_PUT*/

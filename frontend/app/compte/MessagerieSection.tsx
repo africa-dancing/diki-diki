@@ -18,7 +18,7 @@ function timeAgo(d: string): string {
   if (j < 7) return `il y a ${j}j`; return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 
-interface Convo { user_id: string; name: string; last_body: string; last_at: string; unread: number; }
+interface Convo { user_id: string; name: string; username?: string | null; last_body: string; last_at: string; unread: number; }
 interface Msg { id: string; sender_id: string; recipient_id: string; body: string; created_at: string; read_at: string | null; }
 
 const card: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 16, marginBottom: 12 };
@@ -27,7 +27,7 @@ export default function MessagerieSection() {
   const me = myId();
   const [convos, setConvos] = useState<Convo[]>([]);
   const [active, setActive] = useState<string | null>(null);
-  const [other, setOther] = useState<{ id: string; name: string } | null>(null);
+  const [other, setOther] = useState<{ id: string; name: string; username?: string | null } | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [canMsg, setCanMsg] = useState(true);
   const [blocked, setBlocked] = useState(false);
@@ -37,6 +37,12 @@ export default function MessagerieSection() {
   const [showSettings, setShowSettings] = useState(false);
   const [enabled, setEnabled] = useState(true);
   const [blocks, setBlocks] = useState<{ user_id: string; name: string }[]>([]);
+  const [q, setQ] = useState('');
+  const [results, setResults] = useState<{ id: string; name: string; username: string | null; candidate: boolean }[]>([]);
+  const [myHandle, setMyHandle] = useState<string | null>(null);
+  const [handleInput, setHandleInput] = useState('');
+  const [handleMsg, setHandleMsg] = useState('');
+  const [savingHandle, setSavingHandle] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const loadInbox = useCallback(async () => {
@@ -51,6 +57,7 @@ export default function MessagerieSection() {
   const loadSettings = useCallback(async () => {
     try { const r = await authFetch('/messages/settings'); if (r.ok) { const d = await r.json(); setEnabled(d.messages_enabled !== false); } } catch {}
     try { const r = await authFetch('/messages/blocks'); if (r.ok) { const d = await r.json(); setBlocks(d.data || []); } } catch {}
+    try { const r = await authFetch('/users/me/username'); if (r.ok) { const d = await r.json(); setMyHandle(d.username || null); setHandleInput(d.username || ''); } } catch {}
   }, []);
 
   useEffect(() => {
@@ -59,6 +66,19 @@ export default function MessagerieSection() {
   }, [loadInbox, loadSettings]);
   useEffect(() => { if (active) loadThread(active); }, [active, loadThread]);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
+  useEffect(() => {
+    const term = q.trim(); if (term.length < 2) { setResults([]); return; }
+    let alive = true;
+    const t = setTimeout(async () => { try { const r = await authFetch('/users/search?q=' + encodeURIComponent(term)); if (r.ok && alive) { const d = await r.json(); setResults(d.data || []); } } catch {} }, 250);
+    return () => { alive = false; clearTimeout(t); };
+  }, [q]);
+  const saveHandle = async () => {
+    const u = handleInput.trim().toLowerCase().replace(/^@/, '');
+    setSavingHandle(true); setHandleMsg('');
+    try { const r = await authFetch('/users/username', { method: 'PUT', body: JSON.stringify({ username: u }) }); const d = await r.json().catch(() => ({})); if (!r.ok) setHandleMsg(d.message || 'Impossible.'); else { setMyHandle(d.username); setHandleMsg('✓ Pseudo enregistré : @' + d.username); } } catch { setHandleMsg('Erreur réseau.'); }
+    setSavingHandle(false);
+  };
+  const openUser = (uid: string) => { setQ(''); setResults([]); setActive(uid); };
 
   const back = () => { setActive(null); setOther(null); setMsgs([]); setInfo(''); loadInbox(); };
   const send = async () => {
@@ -96,6 +116,17 @@ export default function MessagerieSection() {
 
       {showSettings && (
         <div style={{ ...card, padding: 14 }}>
+          <div style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid var(--line)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>Ton pseudo (@)</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginBottom: 8 }}>{myHandle ? <>Actuel : <b style={{ color: 'var(--or)' }}>@{myHandle}</b></> : "Choisis un pseudo unique pour qu'on puisse te trouver et t'écrire par ton nom."}</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <span style={{ color: 'var(--ink-soft)' }}>@</span>
+              <input value={handleInput} onChange={e => setHandleInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} maxLength={20} placeholder="ton_pseudo" style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--line-strong)', borderRadius: 8, padding: '8px 12px', color: 'var(--ink)', fontSize: 14 }} />
+              <button onClick={saveHandle} disabled={savingHandle || handleInput.trim().length < 3} style={{ background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#150c00', fontWeight: 800, border: 'none', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', opacity: savingHandle || handleInput.trim().length < 3 ? 0.6 : 1 }}>Enregistrer</button>
+            </div>
+            {handleMsg && <div style={{ fontSize: 12, color: 'var(--or)', marginTop: 6 }}>{handleMsg}</div>}
+            <div style={{ fontSize: 11, color: 'var(--ink-dim)', marginTop: 4 }}>3 à 20 caractères : lettres minuscules, chiffres, _</div>
+          </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--ink)', cursor: 'pointer' }}>
             <input type="checkbox" checked={enabled} onChange={e => saveEnabled(e.target.checked)} />
             Autoriser les autres à m'envoyer des messages
@@ -118,6 +149,20 @@ export default function MessagerieSection() {
       {info && <div style={{ ...card, padding: '10px 12px', borderColor: 'rgba(255,170,0,0.4)', fontSize: 13, color: 'var(--or)' }}>{info}</div>}
 
       {!active && (
+        <>
+        <div style={{ ...card, padding: 10 }}>
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="🔍 Rechercher un utilisateur (@pseudo ou nom)…" style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg)', border: '1px solid var(--line-strong)', borderRadius: 50, padding: '10px 14px', color: 'var(--ink)', fontSize: 14 }} />
+          {results.map(u => (
+            <button key={u.id} onClick={() => openUser(u.id)} style={{ display: 'flex', width: '100%', textAlign: 'left', gap: 10, alignItems: 'center', padding: '8px 6px', background: 'transparent', border: 'none', borderTop: '1px solid var(--line)', cursor: 'pointer', color: 'var(--ink)', marginTop: 4 }}>
+              <div style={{ flexShrink: 0, width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#150c00', fontSize: 13 }}>{(u.name || '?').charAt(0).toUpperCase()}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>{u.name}{u.username ? <span style={{ color: 'var(--ink-soft)', fontWeight: 400 }}> · @{u.username}</span> : null}</div>
+                <div style={{ fontSize: 11, color: u.candidate ? '#4ade80' : 'var(--ink-soft)' }}>{u.candidate ? 'Candidat — tu peux lui écrire' : "N'est pas candidat"}</div>
+              </div>
+            </button>
+          ))}
+          {q.trim().length >= 2 && results.length === 0 && <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 8, textAlign: 'center' }}>Aucun utilisateur trouvé.</div>}
+        </div>
         <div style={{ ...card, overflow: 'hidden' }}>
           {convos.length === 0 && (
             <div style={{ padding: 28, textAlign: 'center', color: 'var(--ink-soft)', fontSize: 14 }}>Aucun message pour l'instant.<br />Ouvre une vidéo et clique sur « ✉️ Message » sous le candidat pour lui écrire.</div>
@@ -127,7 +172,7 @@ export default function MessagerieSection() {
               <div style={{ flexShrink: 0, width: 42, height: 42, borderRadius: '50%', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#150c00' }}>{(c.name || '?').charAt(0).toUpperCase()}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                  <span style={{ fontWeight: 700, fontSize: 14 }}>{c.name}</span>
+                  <span style={{ fontWeight: 700, fontSize: 14 }}>{c.name}{c.username ? <span style={{ color: 'var(--ink-soft)', fontWeight: 400, fontSize: 12 }}> @{c.username}</span> : null}</span>
                   <span style={{ fontSize: 11, color: 'var(--ink-soft)' }}>{timeAgo(c.last_at)}</span>
                 </div>
                 <div style={{ fontSize: 13, color: c.unread > 0 ? 'var(--ink)' : 'var(--ink-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.last_body}</div>
@@ -136,13 +181,14 @@ export default function MessagerieSection() {
             </button>
           ))}
         </div>
+        </>
       )}
 
       {active && (
         <div style={{ ...card, display: 'flex', flexDirection: 'column', height: '64vh', overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: '1px solid var(--line)' }}>
             <button onClick={back} style={{ background: 'transparent', border: 'none', color: 'var(--or)', fontSize: 20, cursor: 'pointer' }}>←</button>
-            <div style={{ flex: 1, fontWeight: 700, color: 'var(--ink)' }}>{other?.name || 'Conversation'}</div>
+            <div style={{ flex: 1, fontWeight: 700, color: 'var(--ink)' }}>{other?.name || 'Conversation'}{other?.username ? <span style={{ color: 'var(--ink-soft)', fontWeight: 400, fontSize: 12 }}> @{other.username}</span> : null}</div>
             <button onClick={toggleBlock} style={{ background: 'transparent', border: '1px solid var(--line-strong)', color: blocked ? '#4ade80' : '#f87171', borderRadius: 50, padding: '4px 12px', fontSize: 12, cursor: 'pointer' }}>{blocked ? 'Débloquer' : 'Bloquer'}</button>
           </div>
 
