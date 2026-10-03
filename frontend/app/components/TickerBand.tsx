@@ -88,7 +88,7 @@ export default function TickerBand() {
       <div style={{ flex:1, overflow:'hidden' }}>
         <div
           ref={trackRef}
-          style={{ display:'inline-block', whiteSpace:'nowrap', fontSize:18, fontWeight:800, color:'#fff', fontFamily:'DM Sans, sans-serif', willChange:'transform' }}
+          style={{ display:'inline-block', whiteSpace:'nowrap', fontSize:18, fontWeight:800, color:'#000', fontFamily:'DM Sans, sans-serif', willChange:'transform' }}
         >
           {`${text}   ●   ${text}   ●   `}
         </div>
@@ -97,7 +97,7 @@ export default function TickerBand() {
         onClick={toggle}
         aria-label={paused ? 'Reprendre le défilement' : 'Mettre en pause le défilement'}
         title={paused ? 'Reprendre' : 'Pause'}
-        style={{ flexShrink:0, height:'100%', padding:'0 12px', background:'rgba(0,0,0,0.2)', border:'none', borderLeft:'1px solid rgba(0,0,0,0.15)', color:'#fff', fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}
+        style={{ flexShrink:0, height:'100%', padding:'0 12px', background:'rgba(0,0,0,0.2)', border:'none', borderLeft:'1px solid rgba(0,0,0,0.15)', color:'#000', fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}
       >
         {paused ? '▶' : '⏸'}
       </button>

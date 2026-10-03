@@ -129,7 +129,7 @@ function TickerBand() {
         <span style={{ fontSize:15 }}>📢</span>
       </div>
       <div style={{ flex:1, overflow:'hidden' }}>
-        <div ref={trackRef} style={{ display:'inline-block', whiteSpace:'nowrap', fontSize:13, fontWeight:700, color:'#fff', fontFamily:'DM Sans, sans-serif', willChange:'transform' }}>
+        <div ref={trackRef} style={{ display:'inline-block', whiteSpace:'nowrap', fontSize:13, fontWeight:700, color:'#000', fontFamily:'DM Sans, sans-serif', willChange:'transform' }}>
           {`${text}   ●   ${text}   ●   `}
         </div>
       </div>
@@ -137,7 +137,7 @@ function TickerBand() {
         onClick={()=>{ setPaused(p=>{ const n=!p; manualRef.current=n; return n; }); }}
         aria-label={paused ? 'Reprendre le défilement' : 'Mettre en pause le défilement'}
         title={paused ? 'Reprendre' : 'Pause'}
-        style={{ flexShrink:0, height:'100%', padding:'0 12px', background:'rgba(0,0,0,0.2)', border:'none', borderLeft:'1px solid rgba(0,0,0,0.15)', color:'#fff', fontSize:13, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}
+        style={{ flexShrink:0, height:'100%', padding:'0 12px', background:'rgba(0,0,0,0.2)', border:'none', borderLeft:'1px solid rgba(0,0,0,0.15)', color:'#000', fontSize:13, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}
       >
         {paused ? '▶' : '⏸'}
       </button>
