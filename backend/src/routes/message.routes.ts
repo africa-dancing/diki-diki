@@ -235,11 +235,39 @@ messageRouter.post('/:id/report', requireAuth, async (req: any, res) => {
 messageRouter.get('/admin/reported', requireAuth, requireAdmin, async (_req: any, res) => {
   try {
     const { data } = await supabase.from('messages')
-      .select('id, sender_id, recipient_id, body, created_at, flagged, flag_reason, reported, reported_reason')
+      .select('id, sender_id, recipient_id, body, created_at, flagged, flag_reason, reported, reported_reason, reporter_id')
       .or('flagged.eq.true,reported.eq.true')
       .order('created_at', { ascending: false }).limit(200);
-    return res.json({ success: true, data: data || [] });
+    const rows = (data || []) as any[];
+    // Enrichissement noms + @pseudos (expediteur / destinataire) pour l'ecran admin.
+    const ids = Array.from(new Set(rows.flatMap((m: any) => [m.sender_id, m.recipient_id]).filter(Boolean)));
+    const byId: Record<string, any> = {};
+    if (ids.length) {
+      const { data: us } = await supabase.from('users').select('id, name, username').in('id', ids as string[]);
+      for (const u of (us || []) as any[]) byId[u.id] = u;
+    }
+    const enriched = rows.map((m: any) => ({
+      ...m,
+      sender_name:        byId[m.sender_id]?.name || 'Utilisateur',
+      sender_username:    byId[m.sender_id]?.username || null,
+      recipient_name:     byId[m.recipient_id]?.name || 'Utilisateur',
+      recipient_username: byId[m.recipient_id]?.username || null,
+    }));
+    return res.json({ success: true, data: enriched });
   } catch { return res.status(500).json({ error: 'MOD_FAILED' }); }
+});
+
+// Marquer un message signale/flagge comme TRAITE : on LEVE les drapeaux (reported/flagged),
+// on ne supprime rien (le message reste dans la conversation des utilisateurs). Aucun argent.
+messageRouter.post('/admin/reported/:id/resolve', requireAuth, requireAdmin, async (req: any, res) => {
+  try {
+    const id = String(req.params.id || '');
+    if (!UUID.test(id)) return res.status(400).json({ error: 'BAD_ID' });
+    const { error } = await supabase.from('messages')
+      .update({ reported: false, flagged: false }).eq('id', id);
+    if (error) return res.status(500).json({ error: 'RESOLVE_FAILED' });
+    return res.json({ success: true });
+  } catch { return res.status(500).json({ error: 'RESOLVE_FAILED' }); }
 });
 
 export default messageRouter;
