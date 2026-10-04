@@ -2,7 +2,7 @@
 // DKDK_GAMIFICATION — Réglages Gamification (source de vérité). ADMIN only. PHASE 1.
 import { Router } from 'express';
 import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
-import { getGamificationSettings, updateGamificationSettings } from '../services/gamification.service';
+import { getGamificationSettings, updateGamificationSettings, getMyGamification } from '../services/gamification.service';
 
 const gamificationRouter = Router();
 
@@ -21,6 +21,16 @@ gamificationRouter.put('/settings', requireAuth, requireAdmin, async (req, res) 
     return res.json({ success: true, data });
   } catch {
     return res.status(500).json({ success: false, error: 'GAMIF_WRITE_FAILED' });
+  }
+});
+
+// Vue fidélité du votant connecté (statut + solde d'Échos + badges). Lecture seule.
+gamificationRouter.get('/me', requireAuth, async (req: any, res) => {
+  try {
+    const data = await getMyGamification(req.user.userId);
+    return res.json({ success: true, data });
+  } catch {
+    return res.status(500).json({ success: false, error: 'GAMIF_ME_FAILED' });
   }
 });
 
