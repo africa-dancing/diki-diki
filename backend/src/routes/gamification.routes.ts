@@ -2,7 +2,7 @@
 // DKDK_GAMIFICATION — Réglages Gamification (source de vérité). ADMIN only. PHASE 1.
 import { Router } from 'express';
 import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
-import { getGamificationSettings, updateGamificationSettings, getMyGamification } from '../services/gamification.service';
+import { getGamificationSettings, updateGamificationSettings, getMyGamification, getPublicGamification } from '../services/gamification.service';
 
 const gamificationRouter = Router();
 
@@ -31,6 +31,16 @@ gamificationRouter.get('/me', requireAuth, async (req: any, res) => {
     return res.json({ success: true, data });
   } catch {
     return res.status(500).json({ success: false, error: 'GAMIF_ME_FAILED' });
+  }
+});
+
+// Barème public (lecture seule, non sensible) — alimente la page /les-echos.
+gamificationRouter.get('/public', async (_req, res) => {
+  try {
+    const data = await getPublicGamification();
+    return res.json({ success: true, data });
+  } catch {
+    return res.json({ success: true, data: null }); // la page tombe sur ses valeurs par défaut
   }
 });
 
