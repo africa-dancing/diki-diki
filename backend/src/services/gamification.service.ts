@@ -36,6 +36,7 @@ export async function awardEchos(params: { userId: string; action: string; echos
       echos:   params.echos,
       ref:     params.ref ?? null,
     });
+    ensureTierStatus(params.userId).catch(() => {}); /*DKDK_P2 — crée/rafraîchit le statut (best-effort)*/
   } catch {
     // best-effort : jamais bloquant
   }
@@ -68,4 +69,48 @@ export async function updateGamificationSettings(patch: any): Promise<any> {
   if (error) throw error;
   _cache = null; // invalide le cache de l'interrupteur
   return data;
+}
+
+
+// ───────────────────────── PHASE 2 : statuts & badges ─────────────────────────
+// Crée la ligne de statut au niveau « Le Messager » à la 1re activité, rafraîchit
+// la dernière activité. Best-effort ; n'écrit que si le module est actif (appelé via awardEchos).
+export async function ensureTierStatus(userId: string): Promise<void> {
+  try {
+    if (!userId) return;
+    await supabase.from('user_tier_status').upsert(
+      { user_id: userId, derniere_activite: new Date().toISOString() },
+      { onConflict: 'user_id' }
+    );
+  } catch {
+    // best-effort
+  }
+}
+
+// Vue « fidélité » d'un votant (lecture seule). Renvoie { actif:false } si l'interrupteur est OFF.
+export async function getMyGamification(userId: string): Promise<any> {
+  const s = await _settings();
+  if (!s.actif) return { actif: false };
+  let echos = 0;
+  try {
+    const { data: b } = await supabase.from('engagement_balance').select('echos').eq('user_id', userId).maybeSingle();
+    echos = Number((b as any)?.echos ?? 0);
+  } catch { /* noop */ }
+  let statut = { code: 'messager', nom: 'Le Messager' };
+  try {
+    const { data: st } = await supabase.from('user_tier_status').select('tier_code').eq('user_id', userId).maybeSingle();
+    const code = (st as any)?.tier_code || 'messager';
+    const { data: t } = await supabase.from('tiers').select('code, nom').eq('code', code).maybeSingle();
+    if (t) statut = { code: (t as any).code, nom: (t as any).nom };
+  } catch { /* noop */ }
+  let badges: any[] = [];
+  try {
+    const { data: ub } = await supabase.from('user_badges').select('badge_code').eq('user_id', userId);
+    const codes = (ub || []).map((x: any) => x.badge_code);
+    if (codes.length) {
+      const { data: bd } = await supabase.from('badges').select('code, nom, icone').in('code', codes as string[]);
+      badges = bd || [];
+    }
+  } catch { /* noop */ }
+  return { actif: true, echos, statut, badges };
 }
