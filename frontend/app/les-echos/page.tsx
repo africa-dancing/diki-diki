@@ -1,7 +1,10 @@
 'use client';
+import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import EchoIcon, { StatutEcho } from '../components/EchoIcon';
 import Link from 'next/link';
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 
 const OR = 'var(--or)';
 const OR2 = 'var(--or2)';
@@ -29,20 +32,15 @@ const s: Record<string, React.CSSProperties> = {
   note:    { color: 'var(--ink-soft)', fontSize: 13, marginTop: 10 },
 };
 
-type Statut = { emoji: string; nom: string; statut: StatutEcho; saison: string; seuil: string };
+type Statut = { emoji: string; nom: string; statut: StatutEcho; saison: string; defiDefaut: number };
 
+// Les statuts et leurs défis par défaut (repli si l'API ne répond pas).
+// Le défi mensuel réel est lu depuis la table `tiers` (clé = code du statut).
 const STATUTS: Statut[] = [
-  { emoji: '✉️', nom: 'Le Messager',     statut: 'messager',    saison: 'Saison 1', seuil: '15 Échos / mois' },
-  { emoji: '🗣️', nom: 'Le Porte-parole', statut: 'porteparole', saison: 'Saison 2', seuil: '30 Échos / mois' },
-  { emoji: '🎖️', nom: "L'Ambassadeur",   statut: 'ambassadeur', saison: 'Saison 3', seuil: '45 Échos / mois' },
-  { emoji: '📯', nom: 'Le Héraut',       statut: 'heraut',      saison: 'Saison 4', seuil: '60 Échos / mois' },
-];
-
-const GAINS = [
-  { e: '🗳️', t: 'Voter', v: '+1 Écho par vote payant' },
-  { e: '🤝', t: 'Parrainer un ami', v: '+3 Échos — une fois l’ami inscrit et votant' },
-  { e: '📣', t: 'Partager (vérifié)', v: '+2 Échos' },
-  { e: '💬', t: 'Commenter', v: '+1 Écho' },
+  { emoji: '✉️', nom: 'Le Messager',     statut: 'messager',    saison: 'Saison 1', defiDefaut: 15 },
+  { emoji: '🗣️', nom: 'Le Porte-parole', statut: 'porteparole', saison: 'Saison 2', defiDefaut: 30 },
+  { emoji: '🎖️', nom: "L'Ambassadeur",   statut: 'ambassadeur', saison: 'Saison 3', defiDefaut: 45 },
+  { emoji: '📯', nom: 'Le Héraut',       statut: 'heraut',      saison: 'Saison 4', defiDefaut: 60 },
 ];
 
 const AVANTAGES: { statut: StatutEcho; s: string; v: string }[] = [
@@ -52,7 +50,52 @@ const AVANTAGES: { statut: StatutEcho; s: string; v: string }[] = [
   { statut: 'heraut',      s: 'Le Héraut',           v: 'Titre honorifique + couleur de pseudo' },
 ];
 
+interface Bareme {
+  echo_par_vote: number;
+  echo_parrainage: number;
+  echo_partage: number;
+  echo_commentaire: number;
+  plafond_coup_pouce_pct: number;
+}
+const DEFAUT: Bareme = { echo_par_vote: 1, echo_parrainage: 3, echo_partage: 2, echo_commentaire: 1, plafond_coup_pouce_pct: 20 };
+const mot = (n: number) => (Math.abs(n) > 1 ? 'Échos' : 'Écho');
+
 export default function LesEchosPage() {
+  // Barème + défis lus en direct depuis l'admin (endpoint public). Repli sur les valeurs par défaut.
+  const [bareme, setBareme] = useState<Bareme>(DEFAUT);
+  const [defis, setDefis] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    fetch(`${API}/gamification/public`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const b = d?.data?.bareme;
+        if (b) {
+          setBareme({
+            echo_par_vote: Number(b.echo_par_vote ?? 1),
+            echo_parrainage: Number(b.echo_parrainage ?? 3),
+            echo_partage: Number(b.echo_partage ?? 2),
+            echo_commentaire: Number(b.echo_commentaire ?? 1),
+            plafond_coup_pouce_pct: Number(b.plafond_coup_pouce_pct ?? 20),
+          });
+        }
+        const t = d?.data?.tiers;
+        if (Array.isArray(t)) {
+          const map: Record<string, number> = {};
+          t.forEach((x: any) => { if (x?.code) map[x.code] = Number(x.defi_mensuel); });
+          setDefis(map);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const GAINS = [
+    { e: '🗳️', t: 'Voter', v: `+${bareme.echo_par_vote} ${mot(bareme.echo_par_vote)} par vote payant` },
+    { e: '🤝', t: 'Parrainer un ami', v: `+${bareme.echo_parrainage} ${mot(bareme.echo_parrainage)} — une fois l’ami inscrit et votant` },
+    { e: '📣', t: 'Partager (vérifié)', v: `+${bareme.echo_partage} ${mot(bareme.echo_partage)}` },
+    { e: '💬', t: 'Commenter', v: `+${bareme.echo_commentaire} ${mot(bareme.echo_commentaire)}` },
+  ];
+
   return (
     <div style={s.page}>
       <Navbar />
@@ -76,7 +119,7 @@ export default function LesEchosPage() {
         {/* C'EST QUOI */}
         <h2 style={s.h2}>C'est quoi, les Échos ?</h2>
         <p style={s.p}>
-          <strong style={s.liStrong}>1 vote = 1 Écho.</strong> Les Échos font grandir ton statut et débloquent des avantages.
+          <strong style={s.liStrong}>1 vote = {bareme.echo_par_vote} {mot(bareme.echo_par_vote)}.</strong> Les Échos font grandir ton statut et débloquent des avantages.
           Ce ne sont <strong style={s.liStrong}>ni de l'argent ni des votes en plus</strong> : c'est ta réputation de soutien dans l'Arène.
         </p>
 
@@ -91,7 +134,7 @@ export default function LesEchosPage() {
               </div>
               <div style={s.stName}>{st.emoji} {st.nom}</div>
               <div style={s.stMeta}>{st.saison}</div>
-              <div style={s.stMeta}>{st.seuil}</div>
+              <div style={s.stMeta}>{defis[st.statut] ?? st.defiDefaut} Échos / mois</div>
             </div>
           ))}
         </div>
@@ -115,7 +158,7 @@ export default function LesEchosPage() {
             </div>
           ))}
         </div>
-        <p style={s.note}>Un coup de pouce gratuit est possible (jusqu'à 20 % du défi), mais l'essentiel reste les votes. Il n'y a jamais de « vote gratuit ».</p>
+        <p style={s.note}>Un coup de pouce gratuit est possible (jusqu'à {bareme.plafond_coup_pouce_pct} % du défi), mais l'essentiel reste les votes. Il n'y a jamais de « vote gratuit ».</p>
 
         {/* AVANTAGES */}
         <h2 style={s.h2}>Tes avantages, statut par statut</h2>
