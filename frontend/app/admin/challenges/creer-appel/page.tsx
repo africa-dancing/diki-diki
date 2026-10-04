@@ -163,7 +163,12 @@ function CreerAppelInner() {
       const j = await r.json();
       if (!r.ok || !j.success) { setMsg(j?.error || 'Erreur lors de l’enregistrement.'); }
       else if (editId) { setOk('✅ Appel mis à jour !'); }
-      else if (j.data?.created === false) { setOk('Un appel identique est déjà ouvert (id ' + String(j.data.bracket_id || '').slice(0, 8) + ').'); }
+      else if (j.data?.created === false) {
+        const st = j.data.existing_status;
+        const stFr = st === 'appel' ? 'appel ouvert (déjà sur le Mur des appels)' : st === 'waiting_candidates' ? 'en attente de candidats' : st === 'open' ? 'inscriptions ouvertes' : st === 'in_progress' ? 'en cours' : (st || 'actif');
+        const titre = j.data.existing_title ? ' « ' + j.data.existing_title + ' »' : '';
+        setMsg('Un challenge identique existe déjà' + titre + ' — statut : ' + stFr + ' (id ' + String(j.data.bracket_id || '').slice(0, 8) + '). Pour en créer un distinct, change la FORMATION (solo/groupe), la DISCIPLINE, le MODÈLE ou le FORMAT. Un même morceau peut être réutilisé.');
+      }
       else {
         setOk('✅ Appel ouvert ! (id ' + String(j.data?.bracket_id || '').slice(0, 8) + ') — il apparaît sur le Mur des appels.');
         // Reset du formulaire après création réussie : on repart d'une page vierge

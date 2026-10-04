@@ -454,13 +454,21 @@ export async function createAppelAsModerator(params: {
     ? ['sport', fmt.code, sport.art_slug, sport.epreuve_slug, sport.difficulte_slug].filter(Boolean).join('|')
     : computeBracketKey(discFinal, modeFinal, trackFinal, fmt.code, [], modeleFinal, niveauFinal);
 
-  // Anti-doublon : un appel/challenge deja ouvert pour cette combinaison ?
-  const { data: dup } = await supabase
-    .from('brackets').select('id')
-    .eq('bracket_key', bracketKey)
-    .in('status', ['appel', 'waiting_candidates', 'open'])
-    .limit(1).maybeSingle();
-  if (dup) return { created: false, bracket_id: dup.id };
+  // Anti-doublon — regle Ifede (04/10) : deux challenges ne sont "identiques" que s'ils
+  // partagent A LA FOIS la meme FORMATION (allow_groups : solo/groupe), la meme DISCIPLINE,
+  // le meme MODELE (parcours/bloc) ET le meme FORMAT (max_participants). Le MORCEAU n'entre
+  // PLUS dans l'unicite : un meme morceau peut servir a plusieurs challenges tant qu'ils
+  // different par l'un de ces axes. (Le style/epreuve differencie aussi, surtout pour le sport.)
+  // On ne bloque que contre un challenge ACTIF (appel / inscriptions / ouvert).
+  let dupQ = supabase.from('brackets')
+    .select('id, status, title')
+    .eq('discipline', discFinal)
+    .eq('modele', modeleFinal)
+    .eq('max_participants', maxParticipants)
+    .eq('allow_groups', _allowGroups)
+    .in('status', ['appel', 'waiting_candidates', 'open']);
+  const { data: dup } = await dupQ.limit(1).maybeSingle();
+  if (dup) return { created: false, bracket_id: (dup as any).id, existing_status: (dup as any).status, existing_title: (dup as any).title };
 
   // AUCUN delai impose : pas de date-limite (l'appel reste ouvert). /*DKDK_MODERATEUR_APPEL — no deadline*/
   const now = new Date();
