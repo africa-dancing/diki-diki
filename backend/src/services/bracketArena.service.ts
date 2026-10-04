@@ -564,13 +564,23 @@ export async function updateAppelAsModerator(bracket_id: string, params: {
     ? ['sport', fmt.code, sport.art_slug, sport.epreuve_slug, sport.difficulte_slug].filter(Boolean).join('|')
     : computeBracketKey(discFinal, modeFinal, trackFinal, fmt.code, [], modeleFinal, niveauFinal);
 
-  // Anti-doublon : un AUTRE appel ouvert avec la meme cle ?
+  // Anti-doublon — MEME regle qu'a la creation (Ifede, 04/10) : un AUTRE challenge actif
+  // partageant A LA FOIS formation (allow_groups) + discipline + modele + format
+  // (max_participants). Le morceau n'entre PAS dans l'unicite. On s'exclut (neq id).
   const { data: dup } = await supabase
-    .from('brackets').select('id')
-    .eq('bracket_key', bracketKey).neq('id', bracket_id)
+    .from('brackets')
+    .select('id, status, title')
+    .eq('discipline', discFinal)
+    .eq('modele', modeleFinal)
+    .eq('max_participants', maxParticipants)
+    .eq('allow_groups', _allowGroups)
+    .neq('id', bracket_id)
     .in('status', ['appel', 'waiting_candidates', 'open'])
     .limit(1).maybeSingle();
-  if (dup) throw new Error('Un autre appel identique est deja ouvert.');
+  if (dup) {
+    const _ti = (dup as any).title ? ' \u00ab ' + (dup as any).title + ' \u00bb' : '';
+    throw new Error('Un autre challenge identique existe deja' + _ti + ' (statut: ' + (dup as any).status + '). Change la formation (solo/groupe), la discipline, le modele ou le format.');
+  }
 
   // Mise a jour du bracket (statut, createur, deadline inchanges)
   const { error: uErr } = await supabase.from('brackets').update({
