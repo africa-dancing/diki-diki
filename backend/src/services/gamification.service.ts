@@ -114,3 +114,25 @@ export async function getMyGamification(userId: string): Promise<any> {
   } catch { /* noop */ }
   return { actif: true, echos, statut, badges };
 }
+
+
+// Vue PUBLIQUE (non sensible) pour la page /les-echos : barème + statuts (tiers).
+// Lecture seule, best-effort. Ne renvoie jamais de données sensibles.
+export async function getPublicGamification(): Promise<any> {
+  let s: any = null;
+  try { s = await getGamificationSettings(); } catch { /* noop */ }
+  const bareme = {
+    module_actif: !!(s && s.module_actif),
+    echo_par_vote: Number(s?.echo_par_vote ?? 1),
+    echo_parrainage: Number(s?.echo_parrainage ?? 3),
+    echo_partage: Number(s?.echo_partage ?? 2),
+    echo_commentaire: Number(s?.echo_commentaire ?? 1),
+    plafond_coup_pouce_pct: Number(s?.plafond_coup_pouce_pct ?? 20),
+  };
+  let tiers: any[] = [];
+  try {
+    const { data } = await supabase.from('tiers').select('code, nom, ordre, defi_mensuel').order('ordre');
+    tiers = data || [];
+  } catch { /* table absente -> la page garde ses valeurs par défaut */ }
+  return { bareme, tiers };
+}
