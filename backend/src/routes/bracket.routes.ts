@@ -11,6 +11,7 @@ const bracketRouter = Router();
 
 // Validation d'entree (zod) — presence + types ; aucune logique (argent, tournoi) modifiee.
 const _uuidLike = z.string().min(1).max(64);
+import { awardVote } from '../services/gamification.service'; /*DKDK_GAMIFICATION_HOOK*/
 const votePoolSchema = z.object({ participant_id: _uuidLike, qty: z.coerce.number().int().positive().nullish(), type: z.enum(['star','heart']).nullish() });
 const inscribeSchema = z.object({ bracket_id: _uuidLike, video_id: _uuidLike, formation: z.enum(['solo','group']).nullish(), group_name: z.string().max(120).nullish(), group_size: z.coerce.number().int().positive().max(100).nullish() });
 const participantVideoSchema = z.object({ video_id: _uuidLike });
@@ -899,6 +900,10 @@ bracketRouter.post('/arena/vote-pool', requireAuth, requireVerified, async (req:
     /*DKDK_CLOSE_INSTANT — des que ce vote est passe, on verifie si l'objectif de l'etape est atteint
       et on ferme dans la foulee (sans attendre le cron). Le verrou interne empeche tout double-versement.*/
     checkAndAdvanceRounds().catch(() => {});
+    /*DKDK_ECHOS — Fidélité Phase 1 : +Échos si le module est actif. Fire-and-forget, best-effort,
+      JAMAIS bloquant pour le vote ; inactif par défaut (interrupteur maître OFF).*/
+    try { const _u = (type === 'heart' ? 2 : 1) * (Number.isFinite(q) && q > 0 ? q : 1);
+          awardVote(req.user!.userId, _u, 'vote:' + participant_id).catch(() => {}); } catch { /* best-effort */ }
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -38,6 +38,7 @@ import { paysMonnaiesRouter } from './routes/paysMonnaies.routes'; /*DKDK_PAYS_M
 import { contactRouter } from './routes/contact.routes'; /*DKDK_CONTACT_IMPORT*/
 import annonceRouter from './routes/annonce.routes'; /*DKDK_ANNONCE_IMPORT — regie publicitaire*/
 import messageRouter from './routes/message.routes'; /*DKDK_MESSAGERIE_IMPORT*/
+import gamificationRouter from './routes/gamification.routes'; /*DKDK_GAMIFICATION_IMPORT*/
 import { startBracketCron }                             from './cron/bracket.cron';        // ✅ déplacé ici
 import { startAnalyticsCron }                           from './cron/analytics.cron';    /*DKDK_ANALYTICS_CRON*/
 import { errorHandler }                                 from './middleware/error.middleware';
@@ -102,6 +103,7 @@ app.use('/v1/pays-monnaies', paysMonnaiesRouter); /*DKDK_PAYS_MONNAIES_MOUNT*/
 app.use('/v1/contact',      contactRouter); /*DKDK_CONTACT_MOUNT*/
 app.use('/v1/annonces',     annonceRouter); /*DKDK_ANNONCE_MOUNT — regie publicitaire*/
 app.use('/v1/messages',     messageRouter); /*DKDK_MESSAGERIE_MOUNT*/
+app.use('/v1/gamification', gamificationRouter); /*DKDK_GAMIFICATION_MOUNT*/
 // SÉCURITÉ (B3) : porte fermée pour le lancement. Décommenter (ici + l'import en haut) une fois le module sécurisé.
 // app.use('/v1/education',     educationRouter);
 

@@ -10,6 +10,7 @@ const MENU = [
   { href: '/admin/activite',   icon: '🧭', label: 'Qui fait quoi' }, /*DKDK_ACTIVITE_NAV*/
   { href: '/admin/moderation', icon: '🎬', label: 'Moderation videos' },
   { href: '/admin/messages-signales', icon: '🚩', label: 'Messages signalés' }, /*DKDK_MSG_SIGNALES_NAV*/
+  { href: '/admin/gamification', icon: '🎖️', label: 'Fidélité (Échos)' }, /*DKDK_GAMIFICATION_NAV*/
   { href: '/admin/mediatheque', icon: '🎵', label: 'Médiathèque' },
   { href: '/admin/reglages',   icon: '⚙️', label: 'Réglages Challenge' },
   { href: '/admin/formats',    icon: '🏆', label: 'Formats de challenge' }, /*DKDK_FORMATS_NAV*/
