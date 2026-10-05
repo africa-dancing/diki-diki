@@ -28,6 +28,7 @@ export default function Navbar() {
   const [token,      setToken]      = useState<string | null>(null);
   const [isAdmin,    setIsAdmin]    = useState(false);
   const [echo,       setEcho]       = useState<{ echos: number; statut: StatutEcho } | null>(null); /*DKDK_NAV_ECHO*/
+  const [avatarUrl,  setAvatarUrl]  = useState<string | null>(null); /*DKDK_NAV_AVATAR*/
   const [theme,      setTheme]      = useState<'dark' | 'light'>('dark'); /*DKDK_THEME*/
 
   useEffect(() => {
@@ -69,6 +70,20 @@ export default function Navbar() {
         if (m && m.actif) setEcho({ echos: Number(m.echos || 0), statut: (m.statut?.code || 'messager') as StatutEcho });
         else setEcho(null);
       })
+      .catch(() => {});
+  }, [token]);
+
+  // Photo de profil pour la navbar : localStorage d'abord (instantané), repli /users/me/full
+  useEffect(() => {
+    let got = false;
+    try {
+      const u = JSON.parse(localStorage.getItem('dkdk_user') || '{}');
+      if (u && u.avatar_url) { setAvatarUrl(u.avatar_url); got = true; }
+    } catch {}
+    if (!token || got) return;
+    fetch(`${NAV_API}/users/me/full`, { headers: { Authorization: 'Bearer ' + token } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { const a = d?.data?.avatar_url; if (a) setAvatarUrl(a); })
       .catch(() => {});
   }, [token]);
 
@@ -150,9 +165,19 @@ export default function Navbar() {
           {token ? (
             <button /*DKDK_NAV_SIGNUP*/
               onClick={() => router.push('/compte')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--nav-or)', fontSize: 20 }}
+              aria-label="Mon compte"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              👤
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Mon profil"
+                  onError={() => setAvatarUrl(null)}
+                  style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--nav-or)', display: 'block' }}
+                />
+              ) : (
+                <span style={{ color: 'var(--nav-or)', fontSize: 20 }}>👤</span>
+              )}
             </button>
           ) : (
             <button /*DKDK_NAV_SIGNUP*/
