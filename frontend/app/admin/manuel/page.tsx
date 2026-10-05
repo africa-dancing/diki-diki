@@ -1,18 +1,24 @@
 'use client';
 // frontend/app/admin/manuel/page.tsx
 // DKDK_MANUEL — Manuel de gestion du poste Admin (guide des 19 menus).
-// Rendu en ISOLATION via Shadow DOM : aucun iframe, aucune collision de styles.
-// Theme via :host(...) (forme fonctionnelle, obligatoire en Shadow DOM).
+// Rendu via iframe srcDoc : document autonome complet (thème + sommaire inclus),
+// aucune dependance externe, aucune collision avec l'app. Version fiable.
 import { AdminGuard }   from '../../components/admin/AdminGuard';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
-import { useEffect, useRef } from 'react';
 
-const MANUEL_INNER = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap">
+const MANUEL_HTML = `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Manuel Admin Diki-Diki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap">
 <style>
-
 /* Layout : TOC collant à gauche + colonne de lecture à droite ; empilé sous 900px.
    Palette : neutres chauds + accent OR Diki-Diki, magenta secondaire, sémantiques ok/alerte. */
-:host{
+:root{
   --bg:#f7f2ea; --surface:#ffffff; --surface-2:#fbf7f0;
   --fg:#211b15; --muted:#726757; --line:#e7dccb;
   --accent:#FFAA00; --accent-ink:#9a5d00; --accent-soft:rgba(255,170,0,.14);
@@ -24,7 +30,7 @@ const MANUEL_INNER = `<link rel="stylesheet" href="https://fonts.googleapis.com/
   --maxw:70ch;
   color-scheme:light;
 }
-@media (prefers-color-scheme:dark){:host(:not([data-theme="light"])){
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0d0d12; --surface:#16161d; --surface-2:#1b1b23;
   --fg:#ece6da; --muted:#9a9183; --line:#2a2a34;
   --accent:#FFAA00; --accent-ink:#ffbf3d; --accent-soft:rgba(255,170,0,.13);
@@ -33,7 +39,7 @@ const MANUEL_INNER = `<link rel="stylesheet" href="https://fonts.googleapis.com/
   --ok:#4ade80; --ok-soft:rgba(74,222,128,.12);
   color-scheme:dark;
 }}
-:host([data-theme="dark"]){
+:root[data-theme="dark"]{
   --bg:#0d0d12; --surface:#16161d; --surface-2:#1b1b23;
   --fg:#ece6da; --muted:#9a9183; --line:#2a2a34;
   --accent:#FFAA00; --accent-ink:#ffbf3d; --accent-soft:rgba(255,170,0,.13);
@@ -43,8 +49,8 @@ const MANUEL_INNER = `<link rel="stylesheet" href="https://fonts.googleapis.com/
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-:host{margin:0}
-:host{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:var(--accent-ink)}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
 code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:var(--accent-soft);color:var(--accent-ink);padding:.08em .4em;border-radius:5px;word-break:break-word}
@@ -118,9 +124,11 @@ section.menu:first-of-type{border-top:0}
 .foot{max-width:var(--maxw);color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:34px;padding-top:18px}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
-:host{scroll-behavior:smooth}
-
+html{scroll-behavior:smooth}
 </style>
+</head>
+<body>
+
 <header class="topbar">
   <div class="topbar-in">
     <div class="brand">
@@ -468,54 +476,54 @@ section.menu:first-of-type{border-top:0}
     </div>
 
   </main>
-</div>`;
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeBtn'),
+      ico=document.getElementById('themeIco'), txt=document.getElementById('themeTxt');
+  function systemDark(){return window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;}
+  function current(){var t=root.getAttribute('data-theme'); if(t)return t; return systemDark()?'dark':'light';}
+  function paint(){var dark=current()==='dark'; ico.textContent=dark?'☀️':'🌙'; txt.textContent=dark?'Clair':'Sombre';}
+  try{var saved=localStorage.getItem('dkdk_manuel_theme'); if(saved)root.setAttribute('data-theme',saved);}catch(e){}
+  paint();
+  btn.addEventListener('click',function(){
+    var next=current()==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('dkdk_manuel_theme',next);}catch(e){}
+    paint();
+  });
+
+  // Surlignage de la section active dans le sommaire
+  var links=[].slice.call(document.querySelectorAll('.toc a'));
+  var map={}; links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a;});
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){
+        links.forEach(function(a){a.classList.remove('on');});
+        var a=map[en.target.id]; if(a)a.classList.add('on');
+      }
+    });
+  },{rootMargin:'-20% 0px -70% 0px',threshold:0});
+  document.querySelectorAll('section.menu, #intro').forEach(function(s){obs.observe(s);});
+})();
+</script>
+</body>
+</html>
+`;
 
 export default function AdminManuelPage() {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const host = ref.current as any;
-    if (!host || host.shadowRoot) return;
-    const sr = host.attachShadow({ mode: 'open' });
-    sr.innerHTML = MANUEL_INNER;
-
-    const systemDark = () => !!(window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)').matches);
-    const current = () => { const t = host.getAttribute('data-theme'); return t ? t : (systemDark() ? 'dark' : 'light'); };
-    const btn = sr.getElementById('themeBtn');
-    const ico = sr.getElementById('themeIco');
-    const txt = sr.getElementById('themeTxt');
-    const paint = () => { const dark = current() === 'dark'; if (ico) ico.textContent = dark ? '\u2600\uFE0F' : '\uD83C\uDF19'; if (txt) txt.textContent = dark ? 'Clair' : 'Sombre'; };
-    try { const saved = localStorage.getItem('dkdk_manuel_theme'); if (saved) host.setAttribute('data-theme', saved); } catch (e) {}
-    paint();
-    if (btn) btn.addEventListener('click', () => {
-      const next = current() === 'dark' ? 'light' : 'dark';
-      host.setAttribute('data-theme', next);
-      try { localStorage.setItem('dkdk_manuel_theme', next); } catch (e) {}
-      paint();
-    });
-
-    const links = Array.prototype.slice.call(sr.querySelectorAll('.toc a'));
-    links.forEach((a: any) => {
-      a.addEventListener('click', (ev: Event) => {
-        ev.preventDefault();
-        const id = (a.getAttribute('href') || '').slice(1);
-        const tgt = sr.getElementById(id);
-        if (tgt) tgt.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    });
-    const map: any = {}; links.forEach((a: any) => { map[(a.getAttribute('href') || '').slice(1)] = a; });
-    try {
-      const obs = new IntersectionObserver((entries) => {
-        entries.forEach((en) => { if (en.isIntersecting) { links.forEach((a: any) => a.classList.remove('on')); const a = map[(en.target as any).id]; if (a) a.classList.add('on'); } });
-      }, { root: host, rootMargin: '-15% 0px -75% 0px', threshold: 0 });
-      sr.querySelectorAll('section.menu, #intro').forEach((s: any) => obs.observe(s));
-    } catch (e) {}
-  }, []);
-
   return (
     <AdminGuard>
       <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0a0f' }}>
         <AdminSidebar />
-        <div ref={ref} style={{ flex: 1, minWidth: 0, height: '100vh', overflow: 'auto' }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <iframe
+            srcDoc={MANUEL_HTML}
+            title="Manuel administrateur Diki-Diki"
+            style={{ width: '100%', height: '100vh', border: 'none', display: 'block' }}
+          />
+        </div>
       </div>
     </AdminGuard>
   );
