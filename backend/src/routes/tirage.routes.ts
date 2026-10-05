@@ -5,7 +5,7 @@ import { Router } from 'express';
 import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
 import {
   getFondsPots, listGiftCatalog, upsertGiftCatalog, deleteGiftCatalog,
-  prepareTirage, executeTirage, listTirages, getTirageDetail, setRemiseStatus,
+  prepareTirage, executeTirage, runDrawAllStatuts, listTirages, getTirageDetail, setRemiseStatus,
 } from '../services/gamification.service';
 
 const tirageRouter = Router();
@@ -33,6 +33,13 @@ tirageRouter.delete('/catalog/:id', async (req, res) => {
 tirageRouter.post('/prepare', async (req: any, res) => {
   try { const data = await prepareTirage({ ...(req.body || {}), adminId: req.user?.userId }); return res.json({ success: true, data }); }
   catch (e: any) { return res.status(400).json({ success: false, error: e?.message || 'PREPARE_FAILED' }); }
+});
+
+// Tirage SIMULTANE sur tous les statuts, en une seule action (une seule graine).
+// Chaque statut recoit les cadeaux locaux qui lui sont rattaches. Provably-fair.
+tirageRouter.post('/run-all-statuts', async (req: any, res) => {
+  try { const data = await runDrawAllStatuts({ saison: String(req.body?.saison || ''), adminId: req.user?.userId, note: req.body?.note, mode: req.body?.mode, lettre: req.body?.lettre }); return res.json({ success: true, data }); }
+  catch (e: any) { return res.status(400).json({ success: false, error: e?.message || 'DRAW_ALL_FAILED' }); }
 });
 
 // Executer un tirage (reveal : revele la graine + designe les gagnants de façon verifiable).

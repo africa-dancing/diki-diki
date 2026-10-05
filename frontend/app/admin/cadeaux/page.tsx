@@ -26,10 +26,10 @@ function seasonPrecedente(): string {
   return y + '-S' + q;
 }
 
-interface Lot { id?: string; type: string; mois: number | null; libelle: string; valeur: number; actif: boolean; ordre: number; statut_min?: string | null; }
+interface Lot { id?: string; type: string; mois: number | null; libelle: string; valeur: number; actif: boolean; ordre: number; statut_min?: string | null; lettre?: string | null; }
 interface Tirage { id: string; type: string; saison: string; statut: string; graine_hash: string; graine?: string; pool_taille: number; pot_disponible: number; pot_utilise: number; nb_gagnants: number; executed_at?: string; }
 
-const LOT_VIDE: Lot = { type: 'local', mois: 1, libelle: '', valeur: 0, actif: true, ordre: 0, statut_min: null };
+const LOT_VIDE: Lot = { type: 'local', mois: 1, libelle: '', valeur: 0, actif: true, ordre: 0, statut_min: null, lettre: null };
 const STATUTS: { code: string; nom: string }[] = [
   { code: '', nom: 'Tous statuts' },
   { code: 'messager', nom: 'Le Messager' },
@@ -47,7 +47,7 @@ export default function AdminCadeauxPage() {
   const [loading, setLoading] = useState(true);
   const [info, setInfo] = useState(''); const [err, setErr] = useState('');
   const [form, setForm] = useState<Lot>(LOT_VIDE);
-  const [prep, setPrep] = useState<{ type: string; saison: string }>({ type: 'local', saison: seasonPrecedente() });
+  const [prep, setPrep] = useState<{ type: string; saison: string; mode: string; lettre: string }>({ type: 'local', saison: seasonPrecedente(), mode: 'saison', lettre: 'A' });
   const [detail, setDetail] = useState<any>(null);
   const [lotsChoisis, setLotsChoisis] = useState<Record<string, boolean>>({});
 
@@ -84,6 +84,16 @@ export default function AdminCadeauxPage() {
     fetch(`${API}/tirages/prepare`, { method: 'POST', headers: H(), body: JSON.stringify(prep) })
       .then(r => r.json())
       .then(d => { if (d?.success) { setInfo(`✅ Tirage préparé — ${d.data.pool_taille} participant(s) éligible(s). Empreinte publiée.`); charger(); } else setErr('Échec : ' + (d?.error || '')); })
+      .catch(() => setErr('Erreur réseau.'));
+  };
+
+  const tousStatuts = () => {
+    if (!prep.saison.trim()) { setErr('Indique la saison.'); return; }
+    if (!window.confirm('Lancer un tirage SIMULTANÉ sur TOUS les statuts ? Une seule graine, chaque statut reçoit ses cadeaux. La graine sera révélée et les gagnants désignés (irréversible).')) return;
+    setInfo(''); setErr('');
+    fetch(`${API}/tirages/run-all-statuts`, { method: 'POST', headers: H(), body: JSON.stringify({ saison: prep.saison, mode: prep.mode, lettre: prep.mode === 'lettre' ? prep.lettre : undefined }) })
+      .then(r => r.json())
+      .then(d => { if (d?.success) { const b = (d.data.breakdown || []).map((x: any) => `${x.statut} ${x.gagnants}/${x.pool}`).join(' · '); setInfo(`🎁 Tirage simultané exécuté — ${d.data.nb_gagnants} gagnant(s). ${b}`); if (d.data.id) voirDetail(d.data.id); charger(); } else setErr('Échec : ' + (d?.error || '')); })
       .catch(() => setErr('Erreur réseau.'));
   };
 
@@ -160,6 +170,14 @@ export default function AdminCadeauxPage() {
                 <select value={form.statut_min || ''} onChange={e => setForm({ ...form, statut_min: e.target.value || null })} style={inp} title="Statut qui peut recevoir ce cadeau">
                   {STATUTS.map(sx => <option key={sx.code} value={sx.code}>{sx.nom}</option>)}
                 </select>
+                {form.type === 'local' && (
+                  <select value={form.lettre || ''} onChange={e => setForm({ ...form, lettre: e.target.value || null })} style={inp} title="Lettre de la saison (C = 1er mois, B = 2e, A = 3e)">
+                    <option value="">Lettre —</option>
+                    <option value="C">C (mois 1)</option>
+                    <option value="B">B (mois 2)</option>
+                    <option value="A">A (mois 3)</option>
+                  </select>
+                )}
                 <input placeholder="Libellé (ex. Smartphone, Moto…)" value={form.libelle} onChange={e => setForm({ ...form, libelle: e.target.value })} style={{ ...inp, flex: 1, minWidth: 180 }} />
                 <input type="number" placeholder="Valeur cible (F)" value={form.valeur || ''} onChange={e => setForm({ ...form, valeur: parseInt(e.target.value || '0', 10) })} style={{ ...inp, width: 140, textAlign: 'right' }} />
                 <button onClick={sauverLot} style={btn(OR)}>{form.id ? 'Modifier' : 'Ajouter'}</button>
@@ -171,6 +189,7 @@ export default function AdminCadeauxPage() {
                     <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
                       <span style={{ width: 52, fontSize: 11, color: l.type === 'grand' ? OR : '#4ade80', fontWeight: 700 }}>{l.type === 'grand' ? 'GRAND' : 'M' + (l.mois || '?')}</span>
                       <span style={{ fontSize: 10.5, padding: '1px 7px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', border: `1px solid ${LINE}`, color: l.statut_min ? OR : 'rgba(232,224,208,0.5)', whiteSpace: 'nowrap' }}>{statutCourt(l.statut_min)}</span>
+                      {l.type === 'local' && l.lettre && <span style={{ fontSize: 10.5, padding: '1px 6px', borderRadius: 999, background: 'rgba(124,58,237,0.18)', border: '1px solid rgba(124,58,237,0.5)', color: '#c4b5fd', fontWeight: 700, whiteSpace: 'nowrap' }}>{l.lettre}</span>}
                       <span style={{ flex: 1 }}>{l.libelle}{!l.actif && <em style={{ opacity: 0.5 }}> (inactif)</em>}</span>
                       <span style={{ fontWeight: 700, color: OR }}>{F(l.valeur)}</span>
                       <button onClick={() => setForm(l)} style={{ ...btn('#2a2a3a'), color: INK, padding: '4px 10px' }}>✎</button>
@@ -192,6 +211,21 @@ export default function AdminCadeauxPage() {
                 <input placeholder="Saison (ex. 2026-S3)" value={prep.saison} onChange={e => setPrep({ ...prep, saison: e.target.value })} style={{ ...inp, width: 150 }} />
                 <button onClick={preparer} style={btn(OR)}>Préparer (publier l'empreinte)</button>
                 <span style={{ fontSize: 12, opacity: 0.5 }}>éligibles : votants ayant validé la saison{prep.type === 'grand' ? ' (statut élevé)' : ' (dès Le Messager)'}</span>
+              </div>
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${LINE}`, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                <select value={prep.mode} onChange={e => setPrep({ ...prep, mode: e.target.value })} style={inp} title="Mode du tirage simultané">
+                  <option value="saison">Saison entière (C + B + A)</option>
+                  <option value="lettre">Par lettre</option>
+                </select>
+                {prep.mode === 'lettre' && (
+                  <select value={prep.lettre} onChange={e => setPrep({ ...prep, lettre: e.target.value })} style={inp} title="Lettre à tirer">
+                    <option value="C">Lettre C (mois 1)</option>
+                    <option value="B">Lettre B (mois 2)</option>
+                    <option value="A">Lettre A (mois 3)</option>
+                  </select>
+                )}
+                <button onClick={tousStatuts} style={btn('#7c3aed')}>🎲 Tous les statuts (simultané)</button>
+                <span style={{ fontSize: 12, opacity: 0.5 }}>une seule graine · chaque statut reçoit ses cadeaux (champ « Statut »). Mode « saison » = C + B + A ensemble ; « par lettre » = seulement la lettre choisie · utilise la saison ci-dessus</span>
               </div>
             </div>
 

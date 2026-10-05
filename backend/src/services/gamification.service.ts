@@ -446,6 +446,7 @@ export async function upsertGiftCatalog(row: any): Promise<any> {
     libelle: String(row.libelle || '').slice(0, 200),
     valeur: Math.max(0, Math.floor(Number(row.valeur || 0))),
     statut_min: row.statut_min || null,
+    lettre: (row.lettre === 'C' || row.lettre === 'B' || row.lettre === 'A') ? row.lettre : null,
     actif: row.actif !== false,
     ordre: Number(row.ordre || 0),
   };
@@ -556,4 +557,107 @@ export async function getTirageDetail(tirageId: string): Promise<any> {
 export async function setRemiseStatus(gagnantId: string, statut: string): Promise<void> {
   const ok = ['a_remettre', 'remis', 'annule'].includes(statut) ? statut : 'a_remettre';
   try { await supabase.from('tirage_gagnants').update({ statut_remise: ok }).eq('id', gagnantId); } catch { /* noop */ }
+}
+
+
+// Pool eligible detaille : votants ayant valide la saison (>=3 mois), AVEC leur statut courant.
+// Sert au tirage simultane multi-statuts (chaque statut -> ses propres cadeaux).
+async function _eligibleRows(saison: string): Promise<{ user_id: string; statut: string }[]> {
+  const plafondPct = await _plafondPct();
+  const { data: sts } = await supabase.from('user_tier_status').select('user_id, tier_code').limit(100000);
+  const candidats = ((sts || []) as any[]);
+  const ids = candidats.map((r) => r.user_id);
+  const nonActifs = new Set<string>();
+  if (ids.length) {
+    const { data: us } = await supabase.from('users').select('id, status').in('id', ids);
+    for (const u of (us || [])) { const st = (u as any).status; if (st && st !== 'actif') nonActifs.add((u as any).id); }
+  }
+  const out: { user_id: string; statut: string }[] = [];
+  for (const r of candidats) {
+    if (nonActifs.has(r.user_id)) continue;
+    const statut = r.tier_code || 'messager';
+    const defi = await _defiFor(statut);
+    const mv = await _moisValidesSaison(r.user_id, saison, defi, plafondPct);
+    if (mv >= 3) out.push({ user_id: r.user_id, statut });
+  }
+  return out.sort((a, b) => (a.user_id < b.user_id ? -1 : (a.user_id > b.user_id ? 1 : 0)));
+}
+
+// Tirage SIMULTANE sur tous les statuts, en une seule action et une seule graine.
+// Pour chaque statut (messager -> heraut), on tire parmi les votants actuellement a
+// ce statut qui ont valide la saison, et on leur attribue les cadeaux LOCAUX dont
+// statut_min == ce statut. Provably-fair (commit/reveal), invariant du pot local global.
+export async function runDrawAllStatuts(params: { saison: string; adminId?: string; note?: string; mode?: string; lettre?: string }): Promise<any> {
+  const saison = String(params.saison || '').trim();
+  if (!saison) throw new Error('SAISON_REQUISE');
+  const lettre = (params.lettre === 'C' || params.lettre === 'B' || params.lettre === 'A') ? params.lettre : null;
+  const parLettre = params.mode === 'lettre';
+  if (parLettre && !lettre) throw new Error('LETTRE_REQUISE');
+  const rows = await _eligibleRows(saison);
+  if (!rows.length) throw new Error('POOL_VIDE');
+
+  // Cadeaux locaux actifs, regroupes par statut exact (on n'utilise QUE ceux rattaches a un statut).
+  let giftQuery = supabase.from('gift_catalog').select('*').eq('type', 'local').eq('actif', true);
+  if (parLettre && lettre) { giftQuery = giftQuery.eq('lettre', lettre); }
+  const { data: gifts } = await giftQuery;
+  const giftsByStatut: Record<string, any[]> = {};
+  for (const g of ((gifts || []) as any[])) {
+    const code = g.statut_min || '';
+    if (!code) continue;
+    (giftsByStatut[code] = giftsByStatut[code] || []).push(g);
+  }
+  for (const code of Object.keys(giftsByStatut)) {
+    giftsByStatut[code].sort((a, b) => Number(a.ordre || 0) - Number(b.ordre || 0));
+  }
+
+  const pots = await getFondsPots();
+  const potDispo = pots.local.disponible;
+
+  // Une seule graine pour tout le tirage.
+  const graine = randomBytes(32).toString('hex');
+  const graineHash = createHash('sha256').update(graine).digest('hex');
+
+  // Calcul des gagnants par statut (rien n'est ecrit tant que l'invariant n'est pas verifie).
+  const gagnants: Array<{ user_id: string; catalog_id: string; lot_libelle: string; lot_valeur: number; statut: string }> = [];
+  const breakdown: Array<{ statut: string; pool: number; lots: number; gagnants: number }> = [];
+  for (const code of TIER_ORDER) {
+    const giftsS = (giftsByStatut[code] || []);
+    const poolS = rows.filter((r) => r.statut === code).map((r) => r.user_id);
+    if (!giftsS.length || !poolS.length) { breakdown.push({ statut: code, pool: poolS.length, lots: giftsS.length, gagnants: 0 }); continue; }
+    const classed = poolS.map((uid) => ({ uid, h: createHmac('sha256', graine).update(String(uid)).digest('hex') }))
+      .sort((a, b) => (a.h < b.h ? -1 : (a.h > b.h ? 1 : 0)));
+    const nb = Math.min(giftsS.length, classed.length);
+    for (let i = 0; i < nb; i++) {
+      const lot = giftsS[i];
+      gagnants.push({ user_id: classed[i].uid, catalog_id: lot.id, lot_libelle: lot.libelle, lot_valeur: Number(lot.valeur || 0), statut: code });
+    }
+    breakdown.push({ statut: code, pool: poolS.length, lots: giftsS.length, gagnants: nb });
+  }
+  if (!gagnants.length) throw new Error('AUCUN_GAGNANT');
+  const totalLots = gagnants.reduce((acc, g) => acc + Number(g.lot_valeur || 0), 0);
+  // INVARIANT : ne jamais attribuer plus que le pot local disponible.
+  if (totalLots > potDispo) throw new Error('POT_INSUFFISANT');
+
+  // Ecriture : tirage execute en un bloc.
+  const { data: t } = await supabase.from('tirages').insert({
+    type: 'local', saison, statut: 'execute', graine, graine_hash: graineHash,
+    pool_taille: rows.length, pot_disponible: potDispo, pot_utilise: totalLots,
+    nb_gagnants: gagnants.length, created_by: params.adminId || null,
+    lettre: parLettre ? lettre : null,
+    note: params.note || (parLettre ? ('Tirage simultane tous statuts - lettre ' + lettre) : 'Tirage simultane tous statuts - saison (3 lettres)'), executed_at: new Date().toISOString(),
+  }).select('*').maybeSingle();
+  const tirageId = (t as any)?.id;
+  if (!tirageId) throw new Error('TIRAGE_CREATION_ECHEC');
+
+  // Snapshot du pool (avec statut) pour l'audit.
+  const prows = rows.map((r, i) => ({ tirage_id: tirageId, user_id: r.user_id, rang_tri: i, statut: r.statut }));
+  for (let i = 0; i < prows.length; i += 500) { await supabase.from('tirage_participants').insert(prows.slice(i, i + 500)); }
+
+  // Gagnants (avec statut).
+  const grows = gagnants.map((g) => ({ tirage_id: tirageId, user_id: g.user_id, catalog_id: g.catalog_id, lot_libelle: g.lot_libelle, lot_valeur: g.lot_valeur, statut: g.statut, statut_remise: 'a_remettre' }));
+  await supabase.from('tirage_gagnants').insert(grows);
+
+  for (const g of gagnants) { await _notify(g.user_id, 'Tu as gagne un cadeau !', 'Felicitations ! Tu remportes : ' + g.lot_libelle + '. L equipe Diki-Diki te contactera pour la remise (cadeau, pas du cash).'); }
+
+  return { id: tirageId, saison, mode: parLettre ? 'lettre' : 'saison', lettre: parLettre ? lettre : null, nb_gagnants: gagnants.length, pot_disponible: potDispo, pot_utilise: totalLots, graine_hash: graineHash, breakdown };
 }
