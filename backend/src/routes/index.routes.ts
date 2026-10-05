@@ -357,6 +357,7 @@ activiteRouter.post('/message', requireAuth, requireAdmin, async (req: any, res)
 // ─── Affiches (generateur /mon-affiche) ───────────────────────────────
 // Tracabilite + rattachement a un vrai challenge (detection des fausses affiches).
 // AUCUNE logique d'argent : simple journal, pont vers le futur module fidelite.
+import { awardAfficheValide } from '../services/gamification.service'; /*DKDK_AFFICHE_ECHOS*/
 import { Router as AfficheRouter } from 'express';
 const afficheRouter = AfficheRouter();
 
@@ -423,6 +424,11 @@ afficheRouter.post('/', requireAuth, async (req: any, res) => {
     if (error) {
       // Table pas encore creee : ne pas casser l'experience de generation cote candidat.
       return res.json({ success: true, statut_lien: statut, logged: false });
+    }
+    // Pont fidélité : une affiche rattachée à un vrai challenge = « partage vérifié ».
+    // +Échos une seule fois par (user × challenge), best-effort (ne bloque jamais).
+    if (statut === 'valide' && bracketId) {
+      awardAfficheValide(me, bracketId).catch(() => {});
     }
     return res.json({ success: true, statut_lien: statut, logged: true });
   } catch {
