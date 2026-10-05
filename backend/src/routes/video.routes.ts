@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { awardComment } from '../services/gamification.service'; /*DKDK_COMMENT_ECHOS*/
 import { z } from 'zod';
 import { requireAuth, requireAdmin, AuthRequest, requireVerified } from '../middleware/auth.middleware';
 import {
@@ -163,6 +164,8 @@ videoRouter.post('/:id/comments', requireAuth, async (req: AuthRequest, res: Res
   if (!contenu?.trim()) return res.status(400).json({ error: 'CONTENT_REQUIRED' });
   try {
     const comment = await addComment(req.params.id, req.user!.userId, contenu);
+    // Fidélité : commentaire vérifié -> +Échos (1x/vidéo, best-effort, gated)
+    awardComment(req.user!.userId, req.params.id).catch(() => {});
     res.status(201).json({ success: true, comment });
   } catch (e: unknown) {
     const msg = (e as Error).message;
