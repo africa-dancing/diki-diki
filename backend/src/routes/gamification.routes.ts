@@ -2,7 +2,7 @@
 // DKDK_GAMIFICATION — Réglages Gamification (source de vérité). ADMIN only. PHASE 1.
 import { Router } from 'express';
 import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
-import { getGamificationSettings, updateGamificationSettings, getMyGamification, getPublicGamification } from '../services/gamification.service';
+import { getGamificationSettings, updateGamificationSettings, getMyGamification, getPublicGamification, getLeaderboard } from '../services/gamification.service';
 
 const gamificationRouter = Router();
 
@@ -41,6 +41,18 @@ gamificationRouter.get('/public', async (_req, res) => {
     return res.json({ success: true, data });
   } catch {
     return res.json({ success: true, data: null }); // la page tombe sur ses valeurs par défaut
+  }
+});
+
+// Classement AU PSEUDO (public, lecture seule). ?window=semaine|mois|saison|all
+gamificationRouter.get('/leaderboard', async (req, res) => {
+  try {
+    const w = String((req.query.window as string) || 'mois');
+    const windowKey = ['semaine', 'mois', 'saison', 'all'].indexOf(w) >= 0 ? w : 'mois';
+    const data = await getLeaderboard(windowKey, 50);
+    return res.json({ success: true, data });
+  } catch {
+    return res.json({ success: true, data: { actif: true, rows: [] } });
   }
 });
 
