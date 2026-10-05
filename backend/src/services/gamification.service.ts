@@ -136,3 +136,25 @@ export async function getPublicGamification(): Promise<any> {
   } catch { /* table absente -> la page garde ses valeurs par défaut */ }
   return { bareme, tiers };
 }
+
+
+// Crédite les Échos « partage vérifié » (barème `echo_partage`) pour une affiche VALIDE,
+// UNE SEULE FOIS par (utilisateur × challenge) — déduplication sur le ledger (anti-farm).
+// Best-effort, gated par l'interrupteur. Ne jette jamais.
+export async function awardAfficheValide(userId: string, bracketId: string): Promise<void> {
+  try {
+    if (!userId || !bracketId) return;
+    const s: any = await getGamificationSettings();
+    if (!s || !s.module_actif) return; // interrupteur maître OFF -> rien
+    const n = Math.max(0, Math.floor(Number(s.echo_partage ?? 2)));
+    if (n <= 0) return;
+    const ref = 'affiche:' + bracketId;
+    const { data: existing } = await supabase.from('engagement_ledger')
+      .select('id').eq('user_id', userId).eq('action', 'affiche').eq('ref', ref).limit(1).maybeSingle();
+    if (existing) return; // déjà crédité pour ce challenge -> idempotent
+    await supabase.from('engagement_ledger').insert({ user_id: userId, action: 'affiche', echos: n, ref });
+    ensureTierStatus(userId).catch(() => {});
+  } catch {
+    // best-effort : jamais bloquant pour la génération d'affiche
+  }
+}
