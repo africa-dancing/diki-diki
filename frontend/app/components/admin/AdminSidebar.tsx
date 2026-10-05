@@ -24,7 +24,7 @@ const MENU = [
   { href: '/admin/contact',    icon: '✉️', label: 'Messages' }, /*DKDK_CONTACT_NAV*/
   { href: '/admin/stats',      icon: '📊', label: 'Statistiques'      },
   { href: '/admin/monitoring', icon: '📈', label: 'Monitoring' }, /*DKDK_MONITORING_NAV*/
-  { href: '/admin/manuel', icon: '📘', label: 'Manuel admin' }, /*DKDK_MANUEL_NAV*/
+  { href: '/manuel-admin.html', icon: '📘', label: 'Manuel admin', external: true }, /*DKDK_MANUEL_NAV*/
 ];
 
 export function AdminSidebar() {
@@ -56,11 +56,15 @@ export function AdminSidebar() {
         <div style={{ fontSize: 9, fontWeight: 700, color: '#2a2a4a', letterSpacing: '1px', padding: '8px 16px 4px', textTransform: 'uppercase' }}>Navigation</div>
         {MENU.map(item => {
           const active = pathname === item.href;
+          const navStyle: any = { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', textDecoration: 'none', fontSize: 12, fontWeight: 500, transition: 'all .15s', borderLeft: `2px solid ${active ? '#FFAA00' : 'transparent'}`, background: active ? 'rgba(255,170,0,0.06)' : 'transparent', color: active ? '#FFAA00' : '#6a6a8a' };
+          const inner = (<><span style={{ fontSize: 15, width: 18, textAlign: 'center' }}>{item.icon}</span>{item.label}</>);
+          if ((item as any).external) {
+            return (
+              <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" style={navStyle}>{inner}</a>
+            );
+          }
           return (
-            <Link key={item.href} href={item.href} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', textDecoration: 'none', fontSize: 12, fontWeight: 500, transition: 'all .15s', borderLeft: `2px solid ${active ? '#FFAA00' : 'transparent'}`, background: active ? 'rgba(255,170,0,0.06)' : 'transparent', color: active ? '#FFAA00' : '#6a6a8a' }}>
-              <span style={{ fontSize: 15, width: 18, textAlign: 'center' }}>{item.icon}</span>
-              {item.label}
-            </Link>
+            <Link key={item.href} href={item.href} style={navStyle}>{inner}</Link>
           );
         })}
       </nav>
