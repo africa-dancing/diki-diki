@@ -265,7 +265,7 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
   /*DKDK_DISTRIB_BYTYPE*/
   // Lire tous les pourcentages depuis settings (modifiables sans toucher au code)
   const { data: rows } = await supabase.from('settings').select('key, value')
-    .in('key', ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct', 'bracket_troisieme_pct', 'bracket_c8_champion_pct', 'bracket_c8_second_pct', 'bracket_c4_champion_pct', 'bracket_vote_amount', 'bracket_heart_amount', 'bracket_elimine_pct']);
+    .in('key', ['bracket_commission_pct', 'bracket_champion_pct', 'bracket_second_pct', 'bracket_troisieme_pct', 'bracket_c8_champion_pct', 'bracket_c8_second_pct', 'bracket_c4_champion_pct', 'bracket_vote_amount', 'bracket_heart_amount', 'bracket_elimine_pct', 'bracket_prime_plafond_pct', 'bracket_fonds_cadeaux_pct']);
   const cfg: Record<string, number> = {};
   (rows || []).forEach((r: any) => { cfg[r.key] = parseInt(r.value, 10); });
   const commissionPct = (cfg.bracket_commission_pct ?? 50) / 100;
@@ -339,12 +339,46 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
     .select('id, stars_count, hearts_count')
     .eq('bracket_id', bracketId)
     .not('eliminated_at', 'is', null);
-  let totalPrimes = 0;
+  // DKDK_DISTRIB_V36 — plafond global des primes (prorata) + Fonds Cadeaux earmarke
+  const primePlafondPct = (cfg.bracket_prime_plafond_pct ?? 10) / 100;
+  const fondsCadeauxPct = (cfg.bracket_fonds_cadeaux_pct ?? 10) / 100;
+  const plafondPrimes   = Math.floor(totalCag * primePlafondPct);
+
+  // 1) primes brutes : 20% de ce que chaque elimine a capte
+  const primesBrutes: { id: string; brut: number }[] = [];
+  let sommeBrute = 0;
   for (const e of (elimines || [])) {
     if (podiumIds.has(e.id)) continue;
     const capte = (e.stars_count ?? 0) * voteAmount + (e.hearts_count ?? 0) * heartAmount;
-    const prime = Math.floor(capte * elimPct);
-    if (prime > 0) { await payer(e.id, prime, 'Prime de participation'); totalPrimes += prime; }
+    const brut = Math.floor(capte * elimPct);
+    if (brut > 0) { primesBrutes.push({ id: e.id, brut }); sommeBrute += brut; }
+  }
+  // 2) plafond global (V3.6) : si la somme depasse 10% de la cagnotte, reduire au prorata
+  const facteurPrime = (sommeBrute > plafondPrimes && sommeBrute > 0) ? (plafondPrimes / sommeBrute) : 1;
+  let totalPrimes = 0;
+  for (const pb of primesBrutes) {
+    const prime = Math.floor(pb.brut * facteurPrime);
+    if (prime > 0) { await payer(pb.id, prime, 'Prime de participation'); totalPrimes += prime; }
+  }
+
+  // 3) Fonds Cadeaux : part fixe (10%) mise de cote, earmarkee (jamais versee a un candidat),
+  //    prelevee sur la part plateforme. Tracee dans fonds_cadeaux_ledger (1 ligne / challenge).
+  const fondsCadeaux = Math.floor(totalCag * fondsCadeauxPct);
+  if (fondsCadeaux > 0) {
+    const { error: fcErr } = await supabase.from('fonds_cadeaux_ledger').insert({
+      bracket_id: bracketId,
+      montant: fondsCadeaux,
+      cagnotte: totalCag,
+      created_at: new Date().toISOString(),
+    });
+    if (fcErr) console.error('[DISTRIB] Echec earmark Fonds Cadeaux bracket', bracketId, ':', fcErr.message);
+  }
+
+  // 4) INVARIANT SACRE : ne jamais verser/reserver plus que collecte
+  const totalPodium = gainChampion + gainSecond + gainTroisieme;
+  const partPlateforme = totalCag - totalPodium - totalPrimes - fondsCadeaux;
+  if (totalPodium + totalPrimes + fondsCadeaux > totalCag) {
+    console.error('[DISTRIB] INVARIANT ROMPU bracket', bracketId, { totalPodium, totalPrimes, fondsCadeaux, totalCag });
   }
 
   console.log(`[DISTRIB] Bracket ${bracketId} : net=${net}, champ=${gainChampion}, 2e=${gainSecond}, 3e=${gainTroisieme}, primes=${totalPrimes}`);
@@ -363,13 +397,12 @@ async function distributeCagnotte(bracket: any, championId: string, secondId: st
     let recap = 'Champion : ' + nom(championId) + ' (' + F(gainChampion) + ')';
     if (secondId && gainSecond > 0)     recap += ' | 2e : ' + nom(secondId) + ' (' + F(gainSecond) + ')';
     if (thirdId && gainTroisieme > 0)   recap += ' | 3e : ' + nom(thirdId) + ' (' + F(gainTroisieme) + ')';
-    const commPct = Math.round(commissionPct * 100);
     const message =
       'Le challenge est termine ! ' + recap +
-      '. Cagnotte totale : ' + F(totalCag) +
-      ' (commission plateforme ' + commPct + '% = ' + F(totalCag * commissionPct) +
-      ', a partager : ' + F(net) + ').' +
-      (totalPrimes > 0 ? ' Primes de participation reversees aux elimines : ' + F(totalPrimes) + '.' : '') +
+      '. Cagnotte totale : ' + F(totalCag) + '. Repartition : podium ' + F(totalPodium) +
+      (totalPrimes  > 0 ? ', primes aux elimines ' + F(totalPrimes) : '') +
+      (fondsCadeaux > 0 ? ', Fonds Cadeaux ' + F(fondsCadeaux) : '') +
+      ', part plateforme ' + F(partPlateforme) + '.' +
       ' Merci d avoir participe !';
     for (const p of (partsAll || [])) {
       await supabase.from('notifications').insert({
