@@ -1,0 +1,56 @@
+// backend/src/routes/tirage.routes.ts
+// DKDK_TIRAGE — Fidélité « Les Échos » PHASE 5 : tirages (cadeaux). ADMIN only.
+// Cadeaux MATERIELS, JAMAIS du cash. Tirage provably-fair (commit/reveal).
+import { Router } from 'express';
+import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
+import {
+  getFondsPots, listGiftCatalog, upsertGiftCatalog, deleteGiftCatalog,
+  prepareTirage, executeTirage, listTirages, getTirageDetail, setRemiseStatus,
+} from '../services/gamification.service';
+
+const tirageRouter = Router();
+tirageRouter.use(requireAuth, requireAdmin);
+
+// Tableau de bord : pots Fonds Cadeaux + catalogue + liste des tirages.
+tirageRouter.get('/dashboard', async (_req, res) => {
+  try {
+    const [pots, catalogue, tirages] = await Promise.all([getFondsPots(), listGiftCatalog(), listTirages()]);
+    return res.json({ success: true, data: { pots, catalogue, tirages } });
+  } catch { return res.status(500).json({ success: false, error: 'TIRAGE_DASHBOARD_FAILED' }); }
+});
+
+// Catalogue des cadeaux (create/update)
+tirageRouter.post('/catalog', async (req, res) => {
+  try { const data = await upsertGiftCatalog(req.body || {}); return res.json({ success: true, data }); }
+  catch { return res.status(500).json({ success: false, error: 'CATALOG_WRITE_FAILED' }); }
+});
+tirageRouter.delete('/catalog/:id', async (req, res) => {
+  try { await deleteGiftCatalog(req.params.id); return res.json({ success: true }); }
+  catch { return res.status(500).json({ success: false, error: 'CATALOG_DELETE_FAILED' }); }
+});
+
+// Preparer un tirage (commit : publie graine_hash + fige le pool). Ne tire RIEN encore.
+tirageRouter.post('/prepare', async (req: any, res) => {
+  try { const data = await prepareTirage({ ...(req.body || {}), adminId: req.user?.userId }); return res.json({ success: true, data }); }
+  catch (e: any) { return res.status(400).json({ success: false, error: e?.message || 'PREPARE_FAILED' }); }
+});
+
+// Executer un tirage (reveal : revele la graine + designe les gagnants de façon verifiable).
+tirageRouter.post('/:id/execute', async (req, res) => {
+  try { const data = await executeTirage(req.params.id, Array.isArray(req.body?.catalogIds) ? req.body.catalogIds : []); return res.json({ success: true, data }); }
+  catch (e: any) { return res.status(400).json({ success: false, error: e?.message || 'EXECUTE_FAILED' }); }
+});
+
+// Detail d'un tirage (+ gagnants)
+tirageRouter.get('/:id', async (req, res) => {
+  try { const data = await getTirageDetail(req.params.id); return res.json({ success: true, data }); }
+  catch { return res.status(500).json({ success: false, error: 'TIRAGE_DETAIL_FAILED' }); }
+});
+
+// Statut de remise d'un cadeau (a_remettre | remis | annule) — JAMAIS du cash.
+tirageRouter.post('/gagnant/:id/remise', async (req, res) => {
+  try { await setRemiseStatus(req.params.id, String(req.body?.statut || '')); return res.json({ success: true }); }
+  catch { return res.status(500).json({ success: false, error: 'REMISE_FAILED' }); }
+});
+
+export default tirageRouter;

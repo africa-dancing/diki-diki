@@ -4,6 +4,7 @@
 // Interrupteur maître (gamification_settings.module_actif) : si OFF -> on n'attribue RIEN.
 // Toutes les attributions sont BEST-EFFORT : elles ne doivent JAMAIS casser un vote.
 import { supabase } from '../../config/supabase';
+import { createHash, createHmac, randomBytes } from 'crypto';
 
 let _cache: { actif: boolean; echoParVote: number; at: number } | null = null;
 const TTL_MS = 30_000;
@@ -389,4 +390,170 @@ export async function awardComment(userId: string, videoId: string): Promise<voi
     await supabase.from('engagement_ledger').insert({ user_id: userId, action: 'commentaire', echos: n, ref });
     ensureTierStatus(userId).catch(() => {});
   } catch { /* best-effort */ }
+}
+
+
+// ─────────────────────────────────────────────────────────────────
+// PHASE 5 — Tirages (cadeaux). Provably-fair. Cadeaux MATERIELS, JAMAIS du cash.
+// Reutilise les helpers saison (_moisValidesSaison, _defiFor, _plafondPct, TIER_ORDER).
+// Gated ADMIN cote routes ; aucune attribution d'argent ici.
+// ─────────────────────────────────────────────────────────────────
+
+async function _splitLocalPct(): Promise<number> {
+  try {
+    const { data } = await supabase.from('settings').select('value').eq('key', 'fonds_split_local_pct').maybeSingle();
+    const n = parseInt((data as any)?.value ?? '60', 10);
+    return isNaN(n) ? 60 : Math.min(100, Math.max(0, n));
+  } catch { return 60; }
+}
+async function _settingStr(key: string, def: string): Promise<string> {
+  try {
+    const { data } = await supabase.from('settings').select('value').eq('key', key).maybeSingle();
+    const v = (data as any)?.value;
+    return (v === null || v === undefined || v === '') ? def : String(v);
+  } catch { return def; }
+}
+
+// Pots disponibles : reserve Fonds Cadeaux repartie local/grand, moins deja utilise.
+export async function getFondsPots(): Promise<any> {
+  let total = 0;
+  try { const { data } = await supabase.from('fonds_cadeaux_ledger').select('montant'); total = (data || []).reduce((acc: number, r: any) => acc + Number(r.montant || 0), 0); } catch { /* noop */ }
+  let usedLocal = 0, usedGrand = 0;
+  try {
+    const { data } = await supabase.from('tirages').select('type, pot_utilise, statut').eq('statut', 'execute');
+    for (const r of (data || [])) { const v = Number((r as any).pot_utilise || 0); if ((r as any).type === 'grand') usedGrand += v; else usedLocal += v; }
+  } catch { /* noop */ }
+  const splitLocal = await _splitLocalPct();
+  const potLocalTot = Math.floor(total * splitLocal / 100);
+  const potGrandTot = total - potLocalTot;
+  return {
+    reserve_totale: total,
+    local: { alloue: potLocalTot, utilise: usedLocal, disponible: Math.max(0, potLocalTot - usedLocal) },
+    grand: { alloue: potGrandTot, utilise: usedGrand, disponible: Math.max(0, potGrandTot - usedGrand) },
+    split_local_pct: splitLocal,
+  };
+}
+
+// Catalogue des cadeaux
+export async function listGiftCatalog(): Promise<any[]> {
+  try { const { data } = await supabase.from('gift_catalog').select('*').order('type').order('mois', { nullsFirst: true }).order('ordre'); return data || []; } catch { return []; }
+}
+export async function upsertGiftCatalog(row: any): Promise<any> {
+  const type = row.type === 'grand' ? 'grand' : 'local';
+  const clean: any = {
+    type,
+    mois: type === 'grand' ? null : (row.mois ? Number(row.mois) : null),
+    libelle: String(row.libelle || '').slice(0, 200),
+    valeur: Math.max(0, Math.floor(Number(row.valeur || 0))),
+    statut_min: row.statut_min || null,
+    actif: row.actif !== false,
+    ordre: Number(row.ordre || 0),
+  };
+  if (row.id) { const { data } = await supabase.from('gift_catalog').update(clean).eq('id', row.id).select('*').maybeSingle(); return data; }
+  const { data } = await supabase.from('gift_catalog').insert(clean).select('*').maybeSingle(); return data;
+}
+export async function deleteGiftCatalog(id: string): Promise<void> {
+  try { await supabase.from('gift_catalog').delete().eq('id', id); } catch { /* noop */ }
+}
+
+// Pool eligible : votants ayant valide la saison (>=3 mois). 'des Le Messager'.
+// statutMin optionnel (grand tirage). Exclut les comptes non actifs (bannis/suspendus).
+async function _poolEligible(saison: string, statutMin?: string): Promise<string[]> {
+  const plafondPct = await _plafondPct();
+  const { data: sts } = await supabase.from('user_tier_status').select('user_id, tier_code').limit(100000);
+  let candidats = ((sts || []) as any[]);
+  if (statutMin) {
+    const minIdx = TIER_ORDER.indexOf(statutMin);
+    candidats = candidats.filter((r) => TIER_ORDER.indexOf(r.tier_code || 'messager') >= (minIdx < 0 ? 0 : minIdx));
+  }
+  const ids = candidats.map((r) => r.user_id);
+  const nonActifs = new Set<string>();
+  if (ids.length) {
+    const { data: us } = await supabase.from('users').select('id, status').in('id', ids);
+    for (const u of (us || [])) { const st = (u as any).status; if (st && st !== 'actif') nonActifs.add((u as any).id); }
+  }
+  const eligibles: string[] = [];
+  for (const r of candidats) {
+    if (nonActifs.has(r.user_id)) continue;
+    const defi = await _defiFor(r.tier_code || 'messager');
+    const mv = await _moisValidesSaison(r.user_id, saison, defi, plafondPct);
+    if (mv >= 3) eligibles.push(r.user_id);
+  }
+  return eligibles.sort();
+}
+
+// Preparer un tirage : commit (publie graine_hash), snapshot du pool. Ne tire RIEN.
+export async function prepareTirage(params: { type: string; saison: string; adminId?: string; note?: string }): Promise<any> {
+  const type = params.type === 'grand' ? 'grand' : 'local';
+  const saison = String(params.saison || '').trim();
+  if (!saison) throw new Error('SAISON_REQUISE');
+  const statutMin = type === 'grand' ? await _settingStr('tirage_grand_statut_min', 'ambassadeur') : undefined;
+  const pool = await _poolEligible(saison, statutMin);
+  const pots = await getFondsPots();
+  const potDispo = type === 'grand' ? pots.grand.disponible : pots.local.disponible;
+  const graine = randomBytes(32).toString('hex');
+  const graineHash = createHash('sha256').update(graine).digest('hex');
+  const { data: t } = await supabase.from('tirages').insert({
+    type, saison, statut: 'prepare', graine, graine_hash: graineHash,
+    pool_taille: pool.length, pot_disponible: potDispo, created_by: params.adminId || null, note: params.note || null,
+  }).select('*').maybeSingle();
+  const tirageId = (t as any)?.id;
+  if (tirageId && pool.length) {
+    const rows = pool.map((uid, i) => ({ tirage_id: tirageId, user_id: uid, rang_tri: i }));
+    for (let i = 0; i < rows.length; i += 500) { await supabase.from('tirage_participants').insert(rows.slice(i, i + 500)); }
+  }
+  return { id: tirageId, type, saison, pool_taille: pool.length, graine_hash: graineHash, pot_disponible: potDispo };
+}
+
+// Executer un tirage : reveal graine, selection deterministe HMAC (verifiable), attribue les lots.
+export async function executeTirage(tirageId: string, catalogIds: string[]): Promise<any> {
+  const { data: t } = await supabase.from('tirages').select('*').eq('id', tirageId).maybeSingle();
+  if (!t) throw new Error('TIRAGE_INCONNU');
+  if ((t as any).statut !== 'prepare') throw new Error('TIRAGE_DEJA_TRAITE');
+  const type = (t as any).type;
+  const graine = (t as any).graine as string;
+  const { data: lots } = await supabase.from('gift_catalog').select('*').in('id', (catalogIds && catalogIds.length) ? catalogIds : ['00000000-0000-0000-0000-000000000000']);
+  const lotList = ((lots || []) as any[]);
+  if (!lotList.length) throw new Error('AUCUN_LOT');
+  const totalLots = lotList.reduce((acc, l) => acc + Number(l.valeur || 0), 0);
+  // INVARIANT : ne jamais attribuer plus que le pot disponible du type
+  const pots = await getFondsPots();
+  const potDispo = type === 'grand' ? pots.grand.disponible : pots.local.disponible;
+  if (totalLots > potDispo) throw new Error('POT_INSUFFISANT');
+  const { data: parts } = await supabase.from('tirage_participants').select('user_id').eq('tirage_id', tirageId).order('rang_tri');
+  const pool = (parts || []).map((r: any) => r.user_id);
+  if (!pool.length) throw new Error('POOL_VIDE');
+  // Selection verifiable : score = HMAC_SHA256(graine, user_id) ; tri ascendant ; top N.
+  const classes = pool.map((uid) => ({ uid, h: createHmac('sha256', graine).update(String(uid)).digest('hex') }))
+    .sort((a, b) => (a.h < b.h ? -1 : (a.h > b.h ? 1 : 0)));
+  const nb = Math.min(lotList.length, classes.length);
+  const gagnants: any[] = [];
+  for (let i = 0; i < nb; i++) {
+    const lot = lotList[i];
+    gagnants.push({ tirage_id: tirageId, user_id: classes[i].uid, catalog_id: lot.id, lot_libelle: lot.libelle, lot_valeur: Number(lot.valeur || 0), statut_remise: 'a_remettre' });
+  }
+  const potUtilise = gagnants.reduce((acc, g) => acc + Number(g.lot_valeur || 0), 0);
+  await supabase.from('tirage_gagnants').insert(gagnants);
+  await supabase.from('tirages').update({ statut: 'execute', pot_utilise: potUtilise, nb_gagnants: gagnants.length, executed_at: new Date().toISOString() }).eq('id', tirageId);
+  for (const g of gagnants) { await _notify(g.user_id, 'Tu as gagne un cadeau !', 'Felicitations ! Tu remportes : ' + g.lot_libelle + '. L equipe Diki-Diki te contactera pour la remise (cadeau, pas du cash).'); }
+  return { id: tirageId, type, nb_gagnants: gagnants.length, pot_utilise: potUtilise, graine, graine_hash: (t as any).graine_hash, gagnants };
+}
+
+export async function listTirages(): Promise<any[]> {
+  try { const { data } = await supabase.from('tirages').select('*').order('created_at', { ascending: false }).limit(100); return data || []; } catch { return []; }
+}
+export async function getTirageDetail(tirageId: string): Promise<any> {
+  const { data: t } = await supabase.from('tirages').select('*').eq('id', tirageId).maybeSingle();
+  const { data: g } = await supabase.from('tirage_gagnants').select('*').eq('tirage_id', tirageId);
+  const ids = (g || []).map((x: any) => x.user_id);
+  const nameMap: Record<string, string> = {};
+  if (ids.length) {
+    const { data: us } = await supabase.from('users').select('id, name, username').in('id', ids);
+    for (const u of (us || [])) { nameMap[(u as any).id] = (u as any).username ? '@' + (u as any).username : ((u as any).name || 'Utilisateur'); }
+  }
+  return { tirage: t, gagnants: (g || []).map((x: any) => ({ ...x, pseudo: nameMap[x.user_id] || 'Utilisateur' })) };
+}
+export async function setRemiseStatus(gagnantId: string, statut: string): Promise<void> {
+  const ok = ['a_remettre', 'remis', 'annule'].includes(statut) ? statut : 'a_remettre';
+  try { await supabase.from('tirage_gagnants').update({ statut_remise: ok }).eq('id', gagnantId); } catch { /* noop */ }
 }

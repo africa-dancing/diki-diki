@@ -1,0 +1,262 @@
+'use client';
+// frontend/app/admin/cadeaux/page.tsx
+// DKDK_TIRAGE — Fidélité « Les Échos » PHASE 5 : Cadeaux & tirages (ADMIN).
+// Cadeaux MATÉRIELS, JAMAIS du cash. Tirage provably-fair (préparer = commit, exécuter = reveal).
+import { AdminGuard }   from '../../components/admin/AdminGuard';
+import { AdminSidebar } from '../../components/admin/AdminSidebar';
+import { useAdminAuth } from '../../components/admin/AdminAuthContext';
+import { useEffect, useState, useCallback } from 'react';
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
+const OR  = '#FFAA00';
+const INK = '#e8e0d0';
+const LINE = 'rgba(255,255,255,0.1)';
+const F = (n: number) => Math.round(Number(n || 0)).toLocaleString('fr-FR') + ' F';
+
+function seasonActuelle(): string {
+  const d = new Date();
+  const q = Math.floor(d.getMonth() / 3) + 1;
+  return d.getFullYear() + '-S' + q;
+}
+function seasonPrecedente(): string {
+  const d = new Date();
+  let y = d.getFullYear();
+  let q = Math.floor(d.getMonth() / 3) + 1;
+  q -= 1; if (q === 0) { q = 4; y -= 1; }
+  return y + '-S' + q;
+}
+
+interface Lot { id?: string; type: string; mois: number | null; libelle: string; valeur: number; actif: boolean; ordre: number; }
+interface Tirage { id: string; type: string; saison: string; statut: string; graine_hash: string; graine?: string; pool_taille: number; pot_disponible: number; pot_utilise: number; nb_gagnants: number; executed_at?: string; }
+
+const LOT_VIDE: Lot = { type: 'local', mois: 1, libelle: '', valeur: 0, actif: true, ordre: 0 };
+
+export default function AdminCadeauxPage() {
+  const { admin } = useAdminAuth();
+  const [pots, setPots] = useState<any>(null);
+  const [catalogue, setCatalogue] = useState<Lot[]>([]);
+  const [tirages, setTirages] = useState<Tirage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [info, setInfo] = useState(''); const [err, setErr] = useState('');
+  const [form, setForm] = useState<Lot>(LOT_VIDE);
+  const [prep, setPrep] = useState<{ type: string; saison: string }>({ type: 'local', saison: seasonPrecedente() });
+  const [detail, setDetail] = useState<any>(null);
+  const [lotsChoisis, setLotsChoisis] = useState<Record<string, boolean>>({});
+
+  const H = useCallback(() => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${admin?.token}` }), [admin?.token]);
+
+  const charger = useCallback(() => {
+    if (!admin?.token) return;
+    setLoading(true); setErr('');
+    fetch(`${API}/tirages/dashboard`, { cache: 'no-store', headers: H() })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.data) { setPots(d.data.pots); setCatalogue(d.data.catalogue || []); setTirages(d.data.tirages || []); } })
+      .catch(() => setErr('Erreur de chargement.'))
+      .finally(() => setLoading(false));
+  }, [admin?.token, H]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { charger(); }, [admin?.token]);
+
+  const sauverLot = () => {
+    if (!form.libelle.trim()) { setErr('Libellé requis.'); return; }
+    setInfo(''); setErr('');
+    fetch(`${API}/tirages/catalog`, { method: 'POST', headers: H(), body: JSON.stringify(form) })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.success) { setInfo('✅ Cadeau enregistré.'); setForm({ ...LOT_VIDE, type: form.type }); charger(); } else setErr('Échec.'); })
+      .catch(() => setErr('Erreur réseau.'));
+  };
+  const supprimerLot = (id?: string) => {
+    if (!id) return;
+    fetch(`${API}/tirages/catalog/${id}`, { method: 'DELETE', headers: H() })
+      .then(() => charger()).catch(() => setErr('Erreur réseau.'));
+  };
+
+  const preparer = () => {
+    setInfo(''); setErr('');
+    fetch(`${API}/tirages/prepare`, { method: 'POST', headers: H(), body: JSON.stringify(prep) })
+      .then(r => r.json())
+      .then(d => { if (d?.success) { setInfo(`✅ Tirage préparé — ${d.data.pool_taille} participant(s) éligible(s). Empreinte publiée.`); charger(); } else setErr('Échec : ' + (d?.error || '')); })
+      .catch(() => setErr('Erreur réseau.'));
+  };
+
+  const voirDetail = (id: string) => {
+    setLotsChoisis({});
+    fetch(`${API}/tirages/${id}`, { cache: 'no-store', headers: H() })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.data) setDetail(d.data); })
+      .catch(() => setErr('Erreur réseau.'));
+  };
+
+  const executer = (t: Tirage) => {
+    const ids = Object.keys(lotsChoisis).filter(k => lotsChoisis[k]);
+    if (!ids.length) { setErr('Choisis au moins un lot.'); return; }
+    if (!window.confirm('Lancer le tirage ? La graine sera révélée et les gagnants désignés (irréversible).')) return;
+    setInfo(''); setErr('');
+    fetch(`${API}/tirages/${t.id}/execute`, { method: 'POST', headers: H(), body: JSON.stringify({ catalogIds: ids }) })
+      .then(r => r.json())
+      .then(d => { if (d?.success) { setInfo(`🎁 Tirage exécuté — ${d.data.nb_gagnants} gagnant(s).`); voirDetail(t.id); charger(); } else setErr('Échec : ' + (d?.error || '')); })
+      .catch(() => setErr('Erreur réseau.'));
+  };
+
+  const majRemise = (gid: string, statut: string) => {
+    fetch(`${API}/tirages/gagnant/${gid}/remise`, { method: 'POST', headers: H(), body: JSON.stringify({ statut }) })
+      .then(() => { if (detail?.tirage?.id) voirDetail(detail.tirage.id); }).catch(() => setErr('Erreur réseau.'));
+  };
+
+  const card: React.CSSProperties = { background: '#15151c', border: `1px solid ${LINE}`, borderRadius: 14, padding: 18, marginBottom: 18 };
+  const inp: React.CSSProperties = { background: '#0f0f16', color: INK, border: '1px solid rgba(255,255,255,0.18)', borderRadius: 8, padding: '7px 10px', fontSize: 14 };
+  const btn = (bg: string): React.CSSProperties => ({ background: bg, color: '#120b00', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer' });
+
+  const lotsDuType = catalogue.filter(l => l.type === (detail?.tirage?.type || 'local') && l.actif);
+
+  return (
+    <AdminGuard>
+      <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0a0f', color: INK }}>
+        <AdminSidebar />
+        <div style={{ flex: 1, padding: '24px 28px', maxWidth: 1000 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 4px' }}>🎁 Cadeaux &amp; tirages</h1>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: '0 0 18px' }}>
+            Fonds Cadeaux → cadeaux <b>matériels</b> (jamais du cash). Tirage vérifiable : « Préparer » publie une empreinte, « Exécuter » révèle la graine et désigne les gagnants.
+          </p>
+
+          {info && <div style={{ ...card, borderColor: 'rgba(74,222,128,0.4)', color: '#4ade80', padding: '10px 14px' }}>{info}</div>}
+          {err &&  <div style={{ ...card, borderColor: 'rgba(248,113,113,0.4)', color: '#f87171', padding: '10px 14px' }}>{err}</div>}
+
+          {loading ? <p style={{ opacity: 0.6 }}>Chargement…</p> : (
+          <>
+            {/* POTS */}
+            <div style={card}>
+              <div style={{ fontSize: 12, letterSpacing: 0.5, opacity: 0.6, marginBottom: 10 }}>RÉSERVE FONDS CADEAUX</div>
+              {pots ? (
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                  <Pot titre="Réserve totale" val={pots.reserve_totale} sub={`split local ${pots.split_local_pct}%`} />
+                  <Pot titre="Pot LOCAL (saison)" val={pots.local.disponible} sub={`alloué ${F(pots.local.alloue)} · utilisé ${F(pots.local.utilise)}`} color="#4ade80" />
+                  <Pot titre="Pot GRAND (gros lots)" val={pots.grand.disponible} sub={`alloué ${F(pots.grand.alloue)} · utilisé ${F(pots.grand.utilise)}`} color={OR} />
+                </div>
+              ) : <p style={{ opacity: 0.6 }}>Aucune donnée.</p>}
+            </div>
+
+            {/* CATALOGUE */}
+            <div style={card}>
+              <div style={{ fontSize: 12, letterSpacing: 0.5, opacity: 0.6, marginBottom: 10 }}>CATALOGUE DES CADEAUX (12 listes mensuelles + grands lots)</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14 }}>
+                <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value, mois: e.target.value === 'grand' ? null : (form.mois || 1) })} style={inp}>
+                  <option value="local">Mensuel (local)</option>
+                  <option value="grand">Grand lot</option>
+                </select>
+                {form.type === 'local' && (
+                  <select value={form.mois || 1} onChange={e => setForm({ ...form, mois: parseInt(e.target.value, 10) })} style={inp}>
+                    {['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'].map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                  </select>
+                )}
+                <input placeholder="Libellé (ex. Smartphone, Moto…)" value={form.libelle} onChange={e => setForm({ ...form, libelle: e.target.value })} style={{ ...inp, flex: 1, minWidth: 180 }} />
+                <input type="number" placeholder="Valeur cible (F)" value={form.valeur || ''} onChange={e => setForm({ ...form, valeur: parseInt(e.target.value || '0', 10) })} style={{ ...inp, width: 140, textAlign: 'right' }} />
+                <button onClick={sauverLot} style={btn(OR)}>{form.id ? 'Modifier' : 'Ajouter'}</button>
+                {form.id && <button onClick={() => setForm({ ...LOT_VIDE, type: form.type })} style={{ ...btn('#2a2a3a'), color: INK }}>Annuler</button>}
+              </div>
+              {catalogue.length === 0 ? <p style={{ opacity: 0.6, fontSize: 13 }}>Aucun cadeau — commence par en ajouter un (gabarit à remplir).</p> : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {catalogue.map(l => (
+                    <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
+                      <span style={{ width: 70, fontSize: 11, color: l.type === 'grand' ? OR : '#4ade80', fontWeight: 700 }}>{l.type === 'grand' ? 'GRAND' : 'M' + (l.mois || '?')}</span>
+                      <span style={{ flex: 1 }}>{l.libelle}{!l.actif && <em style={{ opacity: 0.5 }}> (inactif)</em>}</span>
+                      <span style={{ fontWeight: 700, color: OR }}>{F(l.valeur)}</span>
+                      <button onClick={() => setForm(l)} style={{ ...btn('#2a2a3a'), color: INK, padding: '4px 10px' }}>✎</button>
+                      <button onClick={() => supprimerLot(l.id)} style={{ ...btn('rgba(248,113,113,0.15)'), color: '#f87171', padding: '4px 10px' }}>🗑</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* PRÉPARER UN TIRAGE */}
+            <div style={card}>
+              <div style={{ fontSize: 12, letterSpacing: 0.5, opacity: 0.6, marginBottom: 10 }}>PRÉPARER UN TIRAGE</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                <select value={prep.type} onChange={e => setPrep({ ...prep, type: e.target.value })} style={inp}>
+                  <option value="local">Tirage local de saison</option>
+                  <option value="grand">Grand tirage (gros lots)</option>
+                </select>
+                <input placeholder="Saison (ex. 2026-S3)" value={prep.saison} onChange={e => setPrep({ ...prep, saison: e.target.value })} style={{ ...inp, width: 150 }} />
+                <button onClick={preparer} style={btn(OR)}>Préparer (publier l'empreinte)</button>
+                <span style={{ fontSize: 12, opacity: 0.5 }}>éligibles : votants ayant validé la saison{prep.type === 'grand' ? ' (statut élevé)' : ' (dès Le Messager)'}</span>
+              </div>
+            </div>
+
+            {/* LISTE DES TIRAGES */}
+            <div style={card}>
+              <div style={{ fontSize: 12, letterSpacing: 0.5, opacity: 0.6, marginBottom: 10 }}>TIRAGES</div>
+              {tirages.length === 0 ? <p style={{ opacity: 0.6, fontSize: 13 }}>Aucun tirage pour le moment.</p> : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {tirages.map(t => (
+                    <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
+                      <span style={{ width: 60, fontWeight: 700, color: t.type === 'grand' ? OR : '#4ade80' }}>{t.type === 'grand' ? 'GRAND' : 'LOCAL'}</span>
+                      <span style={{ width: 80 }}>{t.saison}</span>
+                      <span style={{ flex: 1, opacity: 0.7 }}>{t.pool_taille} éligibles · {t.statut === 'execute' ? `${t.nb_gagnants} gagnant(s) · ${F(t.pot_utilise)}` : 'empreinte publiée'}</span>
+                      <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 999, background: t.statut === 'execute' ? 'rgba(74,222,128,0.15)' : 'rgba(255,170,0,0.15)', color: t.statut === 'execute' ? '#4ade80' : OR }}>{t.statut}</span>
+                      <button onClick={() => voirDetail(t.id)} style={{ ...btn('#2a2a3a'), color: INK, padding: '4px 10px' }}>Détail</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* DÉTAIL TIRAGE */}
+            {detail?.tirage && (
+              <div style={{ ...card, borderColor: 'rgba(255,170,0,0.3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>Tirage {detail.tirage.type === 'grand' ? 'GRAND' : 'LOCAL'} · {detail.tirage.saison}</div>
+                  <button onClick={() => setDetail(null)} style={{ ...btn('#2a2a3a'), color: INK, padding: '4px 10px' }}>Fermer</button>
+                </div>
+                <div style={{ fontSize: 11.5, opacity: 0.6, wordBreak: 'break-all', marginBottom: 10 }}>
+                  Empreinte (commit) : {detail.tirage.graine_hash}
+                  {detail.tirage.graine && <><br />Graine révélée : {detail.tirage.graine}</>}
+                </div>
+
+                {detail.tirage.statut === 'prepare' && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Choisis les lots à attribuer (1 lot = 1 gagnant) :</div>
+                    {lotsDuType.length === 0 ? <p style={{ fontSize: 13, color: '#f87171' }}>Aucun cadeau actif de ce type dans le catalogue.</p> : lotsDuType.map(l => (
+                      <label key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, padding: '4px 0' }}>
+                        <input type="checkbox" checked={!!lotsChoisis[l.id!]} onChange={e => setLotsChoisis({ ...lotsChoisis, [l.id!]: e.target.checked })} />
+                        {l.libelle} <span style={{ color: OR, fontWeight: 700 }}>{F(l.valeur)}</span>
+                      </label>
+                    ))}
+                    <button onClick={() => executer(detail.tirage)} style={{ ...btn(OR), marginTop: 10 }}>🎲 Exécuter le tirage</button>
+                  </div>
+                )}
+
+                {detail.gagnants && detail.gagnants.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 12, opacity: 0.7, margin: '10px 0 6px' }}>GAGNANTS</div>
+                    {detail.gagnants.map((g: any) => (
+                      <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, padding: '6px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, marginBottom: 4 }}>
+                        <span style={{ flex: 1 }}>{g.pseudo} — <b>{g.lot_libelle}</b> <span style={{ color: OR }}>{F(g.lot_valeur)}</span></span>
+                        <select value={g.statut_remise} onChange={e => majRemise(g.id, e.target.value)} style={{ ...inp, padding: '4px 8px' }}>
+                          <option value="a_remettre">À remettre</option>
+                          <option value="remis">Remis</option>
+                          <option value="annule">Annulé</option>
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+          )}
+        </div>
+      </div>
+    </AdminGuard>
+  );
+}
+
+function Pot({ titre, val, sub, color }: { titre: string; val: number; sub?: string; color?: string }) {
+  return (
+    <div style={{ flex: 1, minWidth: 180, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 14px' }}>
+      <div style={{ fontSize: 11.5, opacity: 0.6 }}>{titre}</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: color || '#e8e0d0', margin: '2px 0' }}>{F(val)}</div>
+      {sub && <div style={{ fontSize: 11, opacity: 0.45 }}>{sub}</div>}
+    </div>
+  );
+}
