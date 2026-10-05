@@ -91,15 +91,19 @@ export async function ensureTierStatus(userId: string): Promise<void> {
 export async function getMyGamification(userId: string): Promise<any> {
   const s = await _settings();
   if (!s.actif) return { actif: false };
+  try { await rolloverUser(userId); } catch { /* best-effort */ }
+  try { await evaluateBadges(userId); } catch { /* best-effort */ }
   let echos = 0;
   try {
     const { data: b } = await supabase.from('engagement_balance').select('echos').eq('user_id', userId).maybeSingle();
     echos = Number((b as any)?.echos ?? 0);
   } catch { /* noop */ }
   let statut = { code: 'messager', nom: 'Le Messager' };
+  let consecutives = 0;
   try {
-    const { data: st } = await supabase.from('user_tier_status').select('tier_code').eq('user_id', userId).maybeSingle();
+    const { data: st } = await supabase.from('user_tier_status').select('tier_code, saisons_validees_consecutives').eq('user_id', userId).maybeSingle();
     const code = (st as any)?.tier_code || 'messager';
+    consecutives = Number((st as any)?.saisons_validees_consecutives || 0);
     const { data: t } = await supabase.from('tiers').select('code, nom').eq('code', code).maybeSingle();
     if (t) statut = { code: (t as any).code, nom: (t as any).nom };
   } catch { /* noop */ }
@@ -120,7 +124,9 @@ export async function getMyGamification(userId: string): Promise<any> {
       .filter((x: any) => x.echos > 0)
       .sort((a: any, b: any) => b.echos - a.echos);
   } catch { /* vue absente -> pas d'historique, non bloquant */ }
-  return { actif: true, echos, statut, badges, sources };
+  let progression: any = null;
+  try { const plaf = await _plafondPct(); progression = await getProgression(userId, statut.code, plaf); } catch { /* noop */ }
+  return { actif: true, echos, statut, badges, sources, progression, consecutives };
 }
 
 
@@ -165,4 +171,222 @@ export async function awardAfficheValide(userId: string, bracketId: string): Pro
   } catch {
     // best-effort : jamais bloquant pour la génération d'affiche
   }
+}
+
+
+// ═══════════════════════ PHASE 3 : saisons, lettres, classement, badges ═══════════════════════
+// Fuseau WAT (UTC+1), trimestres calendaires. Rattrapage SOUPLE (3 mois validés / saison).
+// AUCUN argent. Tout best-effort, gated par module_actif.
+
+const WAT_OFFSET_MS = 60 * 60 * 1000;
+const TIER_ORDER = ['messager', 'porteparole', 'ambassadeur', 'heraut'];
+
+function _watParts(d: Date) {
+  const w = new Date(d.getTime() + WAT_OFFSET_MS);
+  return { y: w.getUTCFullYear(), m: w.getUTCMonth() + 1 };
+}
+function _monthRangeUTC(y: number, m: number) {
+  const start = Date.UTC(y, m - 1, 1) - WAT_OFFSET_MS;
+  const end = Date.UTC(y, m, 1) - WAT_OFFSET_MS;
+  return { startISO: new Date(start).toISOString(), endISO: new Date(end).toISOString() };
+}
+function _seasonOf(y: number, m: number) {
+  const q = Math.floor((m - 1) / 3);
+  return { key: y + '-S' + (q + 1), q, firstMonth: q * 3 + 1, idx: (m - 1) % 3 };
+}
+function _seasonMonths(key: string): { y: number; m: number }[] {
+  const parts = key.split('-S');
+  const y = Number(parts[0]);
+  const q = Number(parts[1]) - 1;
+  return [0, 1, 2].map((i) => ({ y, m: q * 3 + 1 + i }));
+}
+function _prevSeasonKey(key: string): string {
+  const parts = key.split('-S');
+  let y = Number(parts[0]);
+  let s = Number(parts[1]) - 1;
+  if (s === 0) { y -= 1; s = 3; } else { s -= 1; }
+  return y + '-S' + (s + 1);
+}
+function _tierNom(code: string): string {
+  const map: any = { messager: 'Le Messager', porteparole: 'Le Porte-parole', ambassadeur: "L'Ambassadeur", heraut: 'Le Héraut' };
+  return map[code] || code;
+}
+
+async function _plafondPct(): Promise<number> {
+  try { const g: any = await getGamificationSettings(); return Number(g?.plafond_coup_pouce_pct ?? 20); } catch { return 20; }
+}
+async function _defiFor(tierCode: string): Promise<number> {
+  try { const { data } = await supabase.from('tiers').select('defi_mensuel').eq('code', tierCode).maybeSingle(); return Number((data as any)?.defi_mensuel ?? 15); } catch { return 15; }
+}
+async function _firstActivity(userId: string): Promise<number | null> {
+  try { const { data } = await supabase.from('engagement_ledger').select('created_at').eq('user_id', userId).order('created_at', { ascending: true }).limit(1).maybeSingle(); const t = (data as any)?.created_at; return t ? new Date(t).getTime() : null; } catch { return null; }
+}
+async function _awardBadge(userId: string, code: string): Promise<void> {
+  try { await supabase.from('user_badges').upsert({ user_id: userId, badge_code: code }, { onConflict: 'user_id,badge_code', ignoreDuplicates: true }); } catch { /* noop */ }
+}
+async function _notify(userId: string, title: string, body: string): Promise<void> {
+  try { await supabase.from('notifications').insert({ user_id: userId, type: 'fidelite', title, body }); } catch { /* table/colonnes variables -> non bloquant */ }
+}
+async function _sumKind(userId: string, startISO: string, endISO: string): Promise<{ payant: number; gratuit: number }> {
+  try {
+    const { data } = await supabase.from('engagement_ledger').select('action, echos').eq('user_id', userId).gte('created_at', startISO).lt('created_at', endISO);
+    let payant = 0, gratuit = 0;
+    for (const r of (data || [])) { const e = Number((r as any).echos || 0); if ((r as any).action === 'vote') payant += e; else gratuit += e; }
+    return { payant, gratuit };
+  } catch { return { payant: 0, gratuit: 0 }; }
+}
+function _progMois(payant: number, gratuit: number, defi: number, plafondPct: number) {
+  const capG = Math.floor((plafondPct / 100) * defi);
+  const total = payant + Math.min(gratuit, capG);
+  return { total, valide: total >= defi, capG };
+}
+async function _moisValidesSaison(userId: string, seasonKey: string, defi: number, plafondPct: number, upTo?: { y: number; m: number }): Promise<number> {
+  let n = 0;
+  for (const mm of _seasonMonths(seasonKey)) {
+    if (upTo && (mm.y > upTo.y || (mm.y === upTo.y && mm.m > upTo.m))) continue;
+    const { startISO, endISO } = _monthRangeUTC(mm.y, mm.m);
+    const { payant, gratuit } = await _sumKind(userId, startISO, endISO);
+    if (_progMois(payant, gratuit, defi, plafondPct).valide) n++;
+  }
+  return n;
+}
+
+// Progression du mois + saison en cours (lecture seule).
+export async function getProgression(userId: string, tierCode: string, plafondPct: number): Promise<any> {
+  const now = _watParts(new Date());
+  const season = _seasonOf(now.y, now.m);
+  const defi = await _defiFor(tierCode);
+  const { startISO, endISO } = _monthRangeUTC(now.y, now.m);
+  const { payant, gratuit } = await _sumKind(userId, startISO, endISO);
+  const pm = _progMois(payant, gratuit, defi, plafondPct);
+  const moisValides = await _moisValidesSaison(userId, season.key, defi, plafondPct, { y: now.y, m: now.m });
+  const lettre = ['—', 'C', 'B', 'A'][Math.min(3, moisValides)];
+  return {
+    saison: season.key,
+    defi,
+    mois: {
+      payant,
+      gratuit: Math.min(gratuit, pm.capG),
+      total: pm.total,
+      valide: pm.valide,
+      manque: Math.max(0, defi - pm.total),
+      plafondGratuit: pm.capG,
+    },
+    moisValidesSaison: moisValides,
+    lettre,
+  };
+}
+
+// Montée / régression aux frontières de saison. Idempotent (last_season_processed).
+export async function rolloverUser(userId: string): Promise<void> {
+  try {
+    const set = await _settings();
+    if (!set.actif) return;
+    const plafondPct = await _plafondPct();
+    const { data: st } = await supabase.from('user_tier_status').select('tier_code, last_season_processed, saisons_validees_consecutives').eq('user_id', userId).maybeSingle();
+    if (!st) return;
+    let tier = (st as any).tier_code || 'messager';
+    let processed = (st as any).last_season_processed || null;
+    let consec = Number((st as any).saisons_validees_consecutives || 0);
+    const now = _watParts(new Date());
+    const curSeason = _seasonOf(now.y, now.m).key;
+    // Saisons terminées non encore traitées (du plus ancien au plus récent), bornées.
+    const stack: string[] = [];
+    let k = _prevSeasonKey(curSeason);
+    let guard = 0;
+    while (k && k !== processed && guard < 8) { stack.push(k); k = _prevSeasonKey(k); guard++; }
+    const seasons = stack.reverse();
+    if (seasons.length === 0) return;
+    const premiere = await _firstActivity(userId);
+    for (const S of seasons) {
+      const defi = await _defiFor(tier);
+      const mv = await _moisValidesSaison(userId, S, defi, plafondPct);
+      if (mv >= 3) {
+        const i = TIER_ORDER.indexOf(tier);
+        const next = i >= 0 && i < TIER_ORDER.length - 1 ? TIER_ORDER[i + 1] : tier;
+        consec += 1;
+        if (next !== tier) {
+          tier = next;
+          await _notify(userId, 'Montée de statut', 'Bravo, saison validée : tu passes ' + _tierNom(tier) + '. Continue de porter les talents de l Arène.');
+          if (tier === 'ambassadeur' && premiere && (Date.now() - premiere) <= 365 * 24 * 3600 * 1000) { await _awardBadge(userId, 'ascension'); }
+        }
+        if (consec >= 4) { await _awardBadge(userId, 'fidele'); }
+      } else if (mv === 0) {
+        const i = TIER_ORDER.indexOf(tier);
+        const prev = i > 0 ? TIER_ORDER[i - 1] : tier;
+        consec = 0;
+        if (prev !== tier) { tier = prev; await _notify(userId, 'Statut ajuste', 'Ta saison est passee : ton statut redescend d un cran, en douceur. Rien n est perdu, tu remontes des que tu reatteins l objectif.'); }
+      } else {
+        consec = 0;
+      }
+      processed = S;
+    }
+    await supabase.from('user_tier_status').update({ tier_code: tier, last_season_processed: processed, saisons_validees_consecutives: consec, updated_at: new Date().toISOString() }).eq('user_id', userId);
+  } catch { /* best-effort */ }
+}
+
+// Badges automatiques réalisables aujourd'hui (Porte-voix, Explorateur ; Fidèle/Ascension via rollover).
+export async function evaluateBadges(userId: string): Promise<void> {
+  try {
+    const { data: ea } = await supabase.from('engagement_by_action').select('n').eq('user_id', userId).eq('action', 'affiche').maybeSingle();
+    if (Number((ea as any)?.n || 0) >= 10) { await _awardBadge(userId, 'portevoix'); }
+  } catch { /* noop */ }
+  try {
+    const { data: votes } = await supabase.from('engagement_ledger').select('ref').eq('user_id', userId).eq('action', 'vote').limit(2000);
+    const pids = Array.from(new Set((votes || []).map((r: any) => (typeof r.ref === 'string' && r.ref.indexOf('vote:') === 0) ? r.ref.slice(5) : null).filter(Boolean)));
+    if (pids.length) {
+      const { data: parts } = await supabase.from('bracket_participants').select('bracket_id').in('id', pids as string[]);
+      const bids = Array.from(new Set((parts || []).map((x: any) => x.bracket_id).filter(Boolean)));
+      if (bids.length) {
+        const { data: brs } = await supabase.from('brackets').select('discipline').in('id', bids as string[]);
+        const disc = new Set((brs || []).map((b: any) => b.discipline).filter(Boolean));
+        if (disc.size >= 3) { await _awardBadge(userId, 'explorateur'); }
+      }
+    }
+  } catch { /* noop */ }
+}
+
+// Classement (leaderboard) AU PSEUDO uniquement (jamais le vrai nom). window: semaine|mois|saison|all.
+export async function getLeaderboard(windowKey: string, limit = 50): Promise<any> {
+  const set = await _settings();
+  if (!set.actif) return { actif: false, rows: [] };
+  try {
+    let rows: { user_id: string; echos: number }[] = [];
+    if (windowKey === 'all') {
+      const { data } = await supabase.from('engagement_balance').select('user_id, echos').order('echos', { ascending: false }).limit(limit);
+      rows = (data || []).map((r: any) => ({ user_id: r.user_id, echos: Number(r.echos || 0) }));
+    } else {
+      const now = _watParts(new Date());
+      let startISO: string;
+      if (windowKey === 'mois') { startISO = _monthRangeUTC(now.y, now.m).startISO; }
+      else if (windowKey === 'saison') { const sea = _seasonOf(now.y, now.m); startISO = _monthRangeUTC(now.y, sea.firstMonth).startISO; }
+      else { startISO = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString(); }
+      const { data } = await supabase.from('engagement_ledger').select('user_id, echos').gte('created_at', startISO).limit(20000);
+      const agg: Record<string, number> = {};
+      for (const r of (data || [])) { const u = (r as any).user_id; if (!u) continue; agg[u] = (agg[u] || 0) + Number((r as any).echos || 0); }
+      rows = Object.entries(agg).map(([user_id, e]) => ({ user_id, echos: e as number })).sort((a, b) => b.echos - a.echos).slice(0, limit);
+    }
+    const ids = rows.map((r) => r.user_id);
+    const nameMap: Record<string, string> = {};
+    if (ids.length) {
+      const { data: us } = await supabase.from('users').select('id, username').in('id', ids);
+      for (const u of (us || [])) { nameMap[(u as any).id] = (u as any).username ? '@' + (u as any).username : 'Anonyme'; }
+    }
+    return { actif: true, window: windowKey, rows: rows.filter((r) => r.echos > 0).map((r, i) => ({ rang: i + 1, pseudo: nameMap[r.user_id] || 'Anonyme', echos: r.echos })) };
+  } catch { return { actif: true, window: windowKey, rows: [] }; }
+}
+
+// Crédit « commentaire vérifié » : 1 fois par vidéo distincte (dédup ledger). Best-effort, gated.
+export async function awardComment(userId: string, videoId: string): Promise<void> {
+  try {
+    const g: any = await getGamificationSettings();
+    if (!g || !g.module_actif) return;
+    const n = Math.max(0, Math.floor(Number(g.echo_commentaire ?? 1)));
+    if (n <= 0 || !userId || !videoId) return;
+    const ref = 'comment:' + videoId;
+    const { data: ex } = await supabase.from('engagement_ledger').select('id').eq('user_id', userId).eq('action', 'commentaire').eq('ref', ref).limit(1).maybeSingle();
+    if (ex) return;
+    await supabase.from('engagement_ledger').insert({ user_id: userId, action: 'commentaire', echos: n, ref });
+    ensureTierStatus(userId).catch(() => {});
+  } catch { /* best-effort */ }
 }
