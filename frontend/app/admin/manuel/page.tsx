@@ -1,8 +1,8 @@
 'use client';
 // frontend/app/admin/manuel/page.tsx
 // DKDK_MANUEL — Manuel de gestion du poste Admin (guide des 19 menus).
-// Rendu en ISOLATION via Shadow DOM : aucun iframe (donc aucun blocage de mise en cadre),
-// aucune collision de styles avec l'app admin. Le document est encapsule dans un shadow root.
+// Rendu en ISOLATION via Shadow DOM : aucun iframe, aucune collision de styles.
+// Theme via :host(...) (forme fonctionnelle, obligatoire en Shadow DOM).
 import { AdminGuard }   from '../../components/admin/AdminGuard';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import { useEffect, useRef } from 'react';
@@ -24,7 +24,7 @@ const MANUEL_INNER = `<link rel="stylesheet" href="https://fonts.googleapis.com/
   --maxw:70ch;
   color-scheme:light;
 }
-@media (prefers-color-scheme:dark){:host:not([data-theme="light"]){
+@media (prefers-color-scheme:dark){:host(:not([data-theme="light"])){
   --bg:#0d0d12; --surface:#16161d; --surface-2:#1b1b23;
   --fg:#ece6da; --muted:#9a9183; --line:#2a2a34;
   --accent:#FFAA00; --accent-ink:#ffbf3d; --accent-soft:rgba(255,170,0,.13);
@@ -33,7 +33,7 @@ const MANUEL_INNER = `<link rel="stylesheet" href="https://fonts.googleapis.com/
   --ok:#4ade80; --ok-soft:rgba(74,222,128,.12);
   color-scheme:dark;
 }}
-:host[data-theme="dark"]{
+:host([data-theme="dark"]){
   --bg:#0d0d12; --surface:#16161d; --surface-2:#1b1b23;
   --fg:#ece6da; --muted:#9a9183; --line:#2a2a34;
   --accent:#FFAA00; --accent-ink:#ffbf3d; --accent-soft:rgba(255,170,0,.13);
