@@ -3,7 +3,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import LogoDikiDiki from './LogoDikiDiki';
+import EchoIcon, { StatutEcho } from './EchoIcon';
 import TranslateWidget from './TranslateWidget';
+
+const NAV_API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 
 const DISCIPLINES = [
   { label: 'Danse',      emoji: '💃', value: 'danse' },
@@ -24,6 +27,7 @@ export default function Navbar() {
   const [search,     setSearch]     = useState('');
   const [token,      setToken]      = useState<string | null>(null);
   const [isAdmin,    setIsAdmin]    = useState(false);
+  const [echo,       setEcho]       = useState<{ echos: number; statut: StatutEcho } | null>(null); /*DKDK_NAV_ECHO*/
   const [theme,      setTheme]      = useState<'dark' | 'light'>('dark'); /*DKDK_THEME*/
 
   useEffect(() => {
@@ -54,6 +58,19 @@ export default function Navbar() {
       } catch {}
     }
   }, []);
+
+  // Compteur d'Échos (fidélité) — visible seulement si connecté ET module actif
+  useEffect(() => {
+    if (!token) { setEcho(null); return; }
+    fetch(`${NAV_API}/gamification/me`, { headers: { Authorization: 'Bearer ' + token } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const m = d?.data;
+        if (m && m.actif) setEcho({ echos: Number(m.echos || 0), statut: (m.statut?.code || 'messager') as StatutEcho });
+        else setEcho(null);
+      })
+      .catch(() => {});
+  }, [token]);
 
   // Bloquer le scroll du body quand le menu est ouvert
   useEffect(() => {
@@ -119,6 +136,17 @@ export default function Navbar() {
             🔍
           </button>
 
+          {token && echo && (
+            <button
+              onClick={() => router.push('/compte?tab=dashboard')}
+              title={'Mes Échos — ' + echo.statut}
+              aria-label="Mes Échos"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--nav-surface, rgba(255,255,255,0.06))', border: '1px solid var(--nav-line)', borderRadius: 999, padding: '3px 9px 3px 6px', cursor: 'pointer', color: 'var(--nav-or)', fontWeight: 800, fontSize: 13, lineHeight: 1 }}
+            >
+              <EchoIcon statut={echo.statut} size={16} />
+              {echo.echos}
+            </button>
+          )}
           {token ? (
             <button /*DKDK_NAV_SIGNUP*/
               onClick={() => router.push('/compte')}
