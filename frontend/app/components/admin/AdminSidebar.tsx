@@ -24,6 +24,7 @@ const MENU = [
   { href: '/admin/contact',    icon: '✉️', label: 'Messages' }, /*DKDK_CONTACT_NAV*/
   { href: '/admin/stats',      icon: '📊', label: 'Statistiques'      },
   { href: '/admin/monitoring', icon: '📈', label: 'Monitoring' }, /*DKDK_MONITORING_NAV*/
+  { href: '/admin/manuel', icon: '📘', label: 'Manuel admin' }, /*DKDK_MANUEL_NAV*/
 ];
 
 export function AdminSidebar() {
