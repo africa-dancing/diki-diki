@@ -112,7 +112,15 @@ export async function getMyGamification(userId: string): Promise<any> {
       badges = bd || [];
     }
   } catch { /* noop */ }
-  return { actif: true, echos, statut, badges };
+  let sources: any[] = [];
+  try {
+    const { data: src } = await supabase.from('engagement_by_action').select('action, echos, n').eq('user_id', userId);
+    sources = (src || [])
+      .map((x: any) => ({ action: x.action as string, echos: Number(x.echos || 0), n: Number(x.n || 0) }))
+      .filter((x: any) => x.echos > 0)
+      .sort((a: any, b: any) => b.echos - a.echos);
+  } catch { /* vue absente -> pas d'historique, non bloquant */ }
+  return { actif: true, echos, statut, badges, sources };
 }
 
 
