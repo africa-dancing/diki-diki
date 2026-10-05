@@ -26,10 +26,18 @@ function seasonPrecedente(): string {
   return y + '-S' + q;
 }
 
-interface Lot { id?: string; type: string; mois: number | null; libelle: string; valeur: number; actif: boolean; ordre: number; }
+interface Lot { id?: string; type: string; mois: number | null; libelle: string; valeur: number; actif: boolean; ordre: number; statut_min?: string | null; }
 interface Tirage { id: string; type: string; saison: string; statut: string; graine_hash: string; graine?: string; pool_taille: number; pot_disponible: number; pot_utilise: number; nb_gagnants: number; executed_at?: string; }
 
-const LOT_VIDE: Lot = { type: 'local', mois: 1, libelle: '', valeur: 0, actif: true, ordre: 0 };
+const LOT_VIDE: Lot = { type: 'local', mois: 1, libelle: '', valeur: 0, actif: true, ordre: 0, statut_min: null };
+const STATUTS: { code: string; nom: string }[] = [
+  { code: '', nom: 'Tous statuts' },
+  { code: 'messager', nom: 'Le Messager' },
+  { code: 'porteparole', nom: 'Le Porte-parole' },
+  { code: 'ambassadeur', nom: "L'Ambassadeur" },
+  { code: 'heraut', nom: 'Le Héraut' },
+];
+const statutCourt = (c?: string | null) => (({ messager: 'Messager', porteparole: 'Porte-parole', ambassadeur: 'Ambassadeur', heraut: 'Héraut' } as Record<string, string>)[c || ''] || 'Tous');
 
 export default function AdminCadeauxPage() {
   const { admin } = useAdminAuth();
@@ -149,6 +157,9 @@ export default function AdminCadeauxPage() {
                     {['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'].map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
                   </select>
                 )}
+                <select value={form.statut_min || ''} onChange={e => setForm({ ...form, statut_min: e.target.value || null })} style={inp} title="Statut qui peut recevoir ce cadeau">
+                  {STATUTS.map(sx => <option key={sx.code} value={sx.code}>{sx.nom}</option>)}
+                </select>
                 <input placeholder="Libellé (ex. Smartphone, Moto…)" value={form.libelle} onChange={e => setForm({ ...form, libelle: e.target.value })} style={{ ...inp, flex: 1, minWidth: 180 }} />
                 <input type="number" placeholder="Valeur cible (F)" value={form.valeur || ''} onChange={e => setForm({ ...form, valeur: parseInt(e.target.value || '0', 10) })} style={{ ...inp, width: 140, textAlign: 'right' }} />
                 <button onClick={sauverLot} style={btn(OR)}>{form.id ? 'Modifier' : 'Ajouter'}</button>
@@ -158,7 +169,8 @@ export default function AdminCadeauxPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {catalogue.map(l => (
                     <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
-                      <span style={{ width: 70, fontSize: 11, color: l.type === 'grand' ? OR : '#4ade80', fontWeight: 700 }}>{l.type === 'grand' ? 'GRAND' : 'M' + (l.mois || '?')}</span>
+                      <span style={{ width: 52, fontSize: 11, color: l.type === 'grand' ? OR : '#4ade80', fontWeight: 700 }}>{l.type === 'grand' ? 'GRAND' : 'M' + (l.mois || '?')}</span>
+                      <span style={{ fontSize: 10.5, padding: '1px 7px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', border: `1px solid ${LINE}`, color: l.statut_min ? OR : 'rgba(232,224,208,0.5)', whiteSpace: 'nowrap' }}>{statutCourt(l.statut_min)}</span>
                       <span style={{ flex: 1 }}>{l.libelle}{!l.actif && <em style={{ opacity: 0.5 }}> (inactif)</em>}</span>
                       <span style={{ fontWeight: 700, color: OR }}>{F(l.valeur)}</span>
                       <button onClick={() => setForm(l)} style={{ ...btn('#2a2a3a'), color: INK, padding: '4px 10px' }}>✎</button>
