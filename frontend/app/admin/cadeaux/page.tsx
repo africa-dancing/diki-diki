@@ -124,6 +124,7 @@ export default function AdminCadeauxPage() {
   const card: React.CSSProperties = { background: '#15151c', border: `1px solid ${LINE}`, borderRadius: 14, padding: 18, marginBottom: 18 };
   const inp: React.CSSProperties = { background: '#0f0f16', color: INK, border: '1px solid rgba(255,255,255,0.18)', borderRadius: 8, padding: '7px 10px', fontSize: 14 };
   const btn = (bg: string): React.CSSProperties => ({ background: bg, color: '#120b00', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer' });
+  const gTit: React.CSSProperties = { fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: OR, marginBottom: 3 };
 
   const lotsDuType = catalogue.filter(l => l.type === (detail?.tirage?.type || 'local') && l.actif);
 
@@ -136,6 +137,57 @@ export default function AdminCadeauxPage() {
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: '0 0 18px' }}>
             Fonds Cadeaux → cadeaux <b>matériels</b> (jamais du cash). Tirage vérifiable : « Préparer » publie une empreinte, « Exécuter » révèle la graine et désigne les gagnants.
           </p>
+
+          {/*DKDK_GUIDE — guide intégré « Ton guide Diki-Diki » (Cadeaux & tirages)*/}
+          <details style={{ background: '#15151c', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 14, padding: '14px 16px', marginBottom: 18 }}>
+            <summary style={{ cursor: 'pointer', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 14, color: OR }}>🧭 Ton guide Diki-Diki — comment utiliser cette page</summary>
+            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13.5, lineHeight: 1.6, color: INK }}>
+
+              <div>
+                <div style={gTit}>🎁 À quoi sert cette page</div>
+                Le <b>Fonds Cadeaux</b> finance des cadeaux <b>matériels</b> (tech, expériences, parcelle) — <b>jamais du cash</b>. Règle d&apos;or&nbsp;: on ne distribue <b>jamais plus que ce qui a été collecté</b>.
+              </div>
+
+              <div>
+                <div style={gTit}>💰 Les 3 pots (tout en haut)</div>
+                <b>Réserve totale</b> = tout le Fonds accumulé. <b>Pot LOCAL</b> = enveloppe des tirages de saison. <b>Pot GRAND</b> = gros lots accumulés. Le montant affiché est le <b>disponible</b>&nbsp;: un tirage est <b>refusé</b> s&apos;il dépasse ce disponible.
+              </div>
+
+              <div>
+                <div style={gTit}>➕ Créer un cadeau</div>
+                <b>Type</b>&nbsp;: Mensuel (local) ou Grand lot. <b>Mois</b>&nbsp;: le mois du calendrier. <b>Statut</b>&nbsp;: qui peut le recevoir (Le Messager → Le Héraut, ou «&nbsp;Tous&nbsp;»). <b>Lettre C/B/A</b>&nbsp;: le mois <i>dans la saison</i> (C = 1er, B = 2e, A = 3e). Puis <b>Libellé</b> + <b>Valeur cible (F)</b>, et <b>Ajouter</b>. Dans la liste&nbsp;: ✎ pour modifier, 🗑 pour supprimer. Les badges montrent le mois (ou GRAND), le <b>statut</b>, et la <b>lettre</b> en violet.
+              </div>
+
+              <div>
+                <div style={gTit}>🎯 Statut + Lettre = la précision</div>
+                Les deux ensemble rangent tes <b>listes mensuelles par statut</b>. Exemple&nbsp;: un cadeau «&nbsp;<b>Ambassadeur / B</b>&nbsp;» = le lot du <b>2e mois</b> de la saison de L&apos;Ambassadeur. Tu construis ainsi 3 listes (C, B, A) par statut.
+              </div>
+
+              <div>
+                <div style={gTit}>🎲 Tirage classique (un statut / un type)</div>
+                <b>Préparer</b> publie une <b>empreinte</b> (preuve scellée) et fige la liste des participants. <b>Exécuter</b> révèle la <b>graine</b> et désigne les gagnants de façon <b>vérifiable</b>. Tu choisis les lots avant d&apos;exécuter. (Irréversible.)
+              </div>
+
+              <div>
+                <div style={gTit}>⚡ Tirage simultané « Tous les statuts » (bouton violet)</div>
+                Une <b>seule graine</b> pour tout&nbsp;: chaque statut reçoit <b>ses</b> cadeaux (ceux dont le champ «&nbsp;Statut&nbsp;» correspond). Deux modes&nbsp;:<br />
+                • <b>Saison entière (C + B + A)</b>&nbsp;: tire dans les 3 mois à la fois (le tirage unique de fin de saison).<br />
+                • <b>Par lettre</b>&nbsp;: tire seulement dans la lettre choisie (C, B ou A).<br />
+                <b>Éligibles</b>&nbsp;: les votants qui ont <b>validé la saison</b> (≥ 3 mois) — la lettre ne change que les cadeaux, pas qui a droit de gagner.
+              </div>
+
+              <div>
+                <div style={gTit}>📦 Remise des cadeaux</div>
+                Après un tirage, chaque gagnant passe par&nbsp;: <b>à remettre</b> → <b>remis</b> (ou <b>annulé</b>). C&apos;est le suivi de livraison du cadeau — <b>jamais</b> un versement d&apos;argent.
+              </div>
+
+              <div style={{ background: 'rgba(248,113,113,0.10)', border: '1px solid rgba(248,113,113,0.35)', borderRadius: 10, padding: '10px 12px' }}>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: '#f87171', marginBottom: 3 }}>🔒 Règles d&apos;or</div>
+                Jamais plus que collecté&nbsp;· cadeaux <b>matériels</b> uniquement (jamais de cash)&nbsp;· aucun tirage réel avant la <b>validation juridique</b>.
+              </div>
+
+            </div>
+          </details>
 
           {info && <div style={{ ...card, borderColor: 'rgba(74,222,128,0.4)', color: '#4ade80', padding: '10px 14px' }}>{info}</div>}
           {err &&  <div style={{ ...card, borderColor: 'rgba(248,113,113,0.4)', color: '#f87171', padding: '10px 14px' }}>{err}</div>}
