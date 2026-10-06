@@ -7,7 +7,7 @@ import { useId } from 'react';
  *   messager    -> vert
  *   porteparole -> jaune
  *   ambassadeur -> rouge
- *   heraut      -> arc-en-ciel (dégradé)
+ *   heraut      -> bleu (dégradé)
  *
  * Géométrie figée le 28/09/2026 : viewBox 64×64 · point r=5.5 · anneau r=14 (op .82) · anneau r=23 (op .45) · trait 4.5.
  */
@@ -54,12 +54,9 @@ export default function EchoIcon({
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width={size} height={size} role="img" aria-label={title} className={className} style={style}>
         <defs>
           <linearGradient id={gid} x1="0" y1="1" x2="1" y2="0">
-            <stop offset="0" stopColor="#FF3B23" />
-            <stop offset="0.22" stopColor="#FF9F1C" />
-            <stop offset="0.42" stopColor="#FFD21E" />
-            <stop offset="0.6" stopColor="#1FB673" />
-            <stop offset="0.8" stopColor="#2B8CFF" />
-            <stop offset="1" stopColor="#A24BFF" />
+            <stop offset="0" stopColor="#5AB0FF" />
+            <stop offset="0.5" stopColor="#2B8CFF" />
+            <stop offset="1" stopColor="#1557C8" />
           </linearGradient>
         </defs>
         <circle cx="32" cy="32" r="5.5" fill={`url(#${gid})`} />

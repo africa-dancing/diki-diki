@@ -38,18 +38,18 @@ const STATUTS: { code: string; nom: string }[] = [
   { code: 'heraut', nom: 'Le Héraut' },
 ];
 const statutCourt = (c?: string | null) => (({ messager: 'Messager', porteparole: 'Porte-parole', ambassadeur: 'Ambassadeur', heraut: 'Héraut' } as Record<string, string>)[c || ''] || 'Tous');
-// Dégradés couleurs (vraies teintes Diki : vert #1FB673, jaune #FFC233, rouge logo #FE0000 ; Héraut = arc-en-ciel)
+// Dégradés couleurs (vraies teintes Diki : vert #1FB673, jaune #FFC233, rouge logo #FE0000 ; Héraut = bleu)
 const GRAD = {
   vert: 'linear-gradient(135deg,#1FB673,#12935C)',
   jaune: 'linear-gradient(135deg,#FFC233,#E6A200)',
   rouge: 'linear-gradient(135deg,#FE0000,#C80000)',
-  heraut: 'linear-gradient(to top right,#FF3B23,#FF9F1C,#FFD21E,#1FB673,#2B8CFF,#A24BFF)',
+  heraut: 'linear-gradient(135deg,#3B9BFF,#1557C8)',
   grand: 'linear-gradient(135deg,#FFC24D,#E08A00)',
 } as const;
 const STATUT_GRAD: Record<string, string> = { messager: GRAD.vert, porteparole: GRAD.jaune, ambassadeur: GRAD.rouge, heraut: GRAD.heraut };
 const LETTRE_GRAD: Record<string, string> = { C: GRAD.vert, B: GRAD.jaune, A: GRAD.rouge };
 const BADGE_SHADOW = '0 1px 3px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25)';
-const encreStatut = (c?: string | null) => (c === 'ambassadeur' ? '#fff' : '#140a02');
+const encreStatut = (c?: string | null) => (c === 'ambassadeur' || c === 'heraut' ? '#fff' : '#140a02');
 const encreLettre = (l?: string | null) => (l === 'A' ? '#fff' : '#140a02');
 
 export default function AdminCadeauxPage() {

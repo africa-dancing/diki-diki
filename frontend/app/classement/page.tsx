@@ -24,11 +24,11 @@ const GRAD = {
   vert: 'linear-gradient(135deg,#1FB673,#12935C)',
   jaune: 'linear-gradient(135deg,#FFC233,#E6A200)',
   rouge: 'linear-gradient(135deg,#FE0000,#C80000)',
-  heraut: 'linear-gradient(to top right,#FF3B23,#FF9F1C,#FFD21E,#1FB673,#2B8CFF,#A24BFF)',
+  heraut: 'linear-gradient(135deg,#3B9BFF,#1557C8)',
 };
 const STATUT_GRAD: Record<string, string> = { messager: GRAD.vert, porteparole: GRAD.jaune, ambassadeur: GRAD.rouge, heraut: GRAD.heraut };
 const STATUT_NOM: Record<string, string> = { messager: 'Messager', porteparole: 'Porte-parole', ambassadeur: 'Ambassadeur', heraut: 'Héraut' };
-const encreStatut = (c?: string) => (c === 'ambassadeur' ? '#fff' : '#140a02');
+const encreStatut = (c?: string) => (c === 'ambassadeur' || c === 'heraut' ? '#fff' : '#140a02');
 
 export default function ClassementPage() {
   const [fenetre, setFenetre] = useState<Fenetre>('mois');
@@ -86,7 +86,7 @@ export default function ClassementPage() {
           <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, lineHeight: 1.6, color: INK }}>
             <div><b>📊 C’est quoi ?</b> Les votants classés par <b>Échos</b> — 1 vote payant = 1 Écho. Plus tu soutiens de talents, plus tu montes.</div>
             <div><b>⏱️ Les périodes :</b> Semaine · Mois · Saison · Depuis le début. Change d’onglet pour voir chaque classement.</div>
-            <div><b>🏅 Les couleurs :</b> le badge coloré indique le <b>statut</b> du votant — <span style={{ color: '#4bd99a' }}>Le Messager</span> → <span style={{ color: '#ffd266' }}>Le Porte-parole</span> → <span style={{ color: '#ff7a6a' }}>L’Ambassadeur</span> → <b>Le Héraut</b> (arc-en-ciel).</div>
+            <div><b>🏅 Les couleurs :</b> le badge coloré indique le <b>statut</b> du votant — <span style={{ color: '#4bd99a' }}>Le Messager</span> → <span style={{ color: '#ffd266' }}>Le Porte-parole</span> → <span style={{ color: '#ff7a6a' }}>L’Ambassadeur</span> → <span style={{ color: '#5AB0FF' }}>Le Héraut</span> (bleu).</div>
             <div><b>🔒 Vie privée :</b> au <b>pseudo uniquement</b> — jamais ton vrai nom ni les montants dépensés.</div>
             <div><b>💡 Monter :</b> vote, valide ton défi mensuel et grimpe les statuts, saison après saison. 💫</div>
           </div>
