@@ -31,10 +31,15 @@ const STATUTS: { code: string; nom: string }[] = [
   { code: 'heraut', nom: 'Le Héraut' },
   { code: '', nom: 'Tous les membres' },
 ];
-const fcfa = (n: number) => (n || 0).toLocaleString('fr-FR') + ' F';
 
-type Lot = { statut: string | null; lettre: string | null; mois: number | null; libelle: string; valeur: number };
-type Grand = { statut: string | null; libelle: string; valeur: number };
+const NIVEAUX: { code: string; label: string }[] = [
+  { code: 'C', label: 'Niveau C (1er mois)' },
+  { code: 'B', label: 'Niveau B (2e mois)' },
+  { code: 'A', label: 'Niveau A (3e mois)' },
+  { code: '', label: 'Autres cadeaux' },
+];
+type Lot = { statut: string | null; lettre: string | null; mois: number | null; libelle: string };
+type Grand = { statut: string | null; libelle: string };
 
 export default function CadeauxPage() {
   const [loading, setLoading] = useState(true);
@@ -90,26 +95,36 @@ export default function CadeauxPage() {
           <>
             {/* Bandeau prudence */}
             <div style={{ ...card, background: 'rgba(255,170,0,0.08)', borderColor: 'rgba(255,170,0,0.3)', fontSize: 13, color: SOFT }}>
-              Ces cadeaux sont <b>indicatifs</b> et peuvent évoluer. Rien n&apos;est garanti ni promis : les lots réels dépendent du programme et sont attribués par <b>tirage au sort parmi les membres méritants</b>. Diki-Diki ne verse jamais d&apos;argent — uniquement des cadeaux.
+              Liste donnée à titre indicatif, <b>sans les montants</b> ; elle peut évoluer. Rien n&apos;est garanti ni promis : les cadeaux sont attribués par <b>tirage au sort parmi les membres méritants</b>. Diki-Diki ne verse jamais d&apos;argent — uniquement des cadeaux.
             </div>
 
-            {groupes.map(({ st, items }) => (
-              <div key={st.code || 'tous'} style={card}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                  {st.code ? <EchoIcon statut={st.code as StatutEcho} size={22} /> : <span style={{ fontSize: 20 }}>⭐</span>}
-                  <span style={chip(st.code ? STATUT_GRAD[st.code] : 'rgba(255,255,255,0.1)', st.code ? encreStatut(st.code) : INK)}>{st.nom}</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {items.map((l, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5 }}>
-                      {l.lettre && <span style={chip(LETTRE_GRAD[l.lettre], encreLettre(l.lettre))}>{l.lettre}</span>}
-                      <span style={{ flex: 1 }}>{l.libelle}</span>
-                      <span style={{ fontSize: 12, color: SOFT, whiteSpace: 'nowrap' }}>≈ {fcfa(l.valeur)} <em>(indicatif)</em></span>
+            {groupes.map(({ st, items }) => {
+              const parNiveau = NIVEAUX.map(n => ({ n, lots: items.filter(l => (l.lettre || '') === n.code) })).filter(g => g.lots.length > 0);
+              return (
+                <div key={st.code || 'tous'} style={card}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                    {st.code ? <EchoIcon statut={st.code as StatutEcho} size={22} /> : <span style={{ fontSize: 20 }}>⭐</span>}
+                    <span style={chip(st.code ? STATUT_GRAD[st.code] : 'rgba(255,255,255,0.1)', st.code ? encreStatut(st.code) : INK)}>{st.nom}</span>
+                  </div>
+                  {parNiveau.map(({ n, lots }) => (
+                    <div key={n.code || 'autres'} style={{ marginTop: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                        {n.code && <span style={chip(LETTRE_GRAD[n.code], encreLettre(n.code))}>{n.code}</span>}
+                        <span style={{ fontSize: 12, fontWeight: 700, color: SOFT, letterSpacing: 0.3 }}>{n.label}</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {lots.map((l, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5 }}>
+                            <span style={{ color: OR, fontWeight: 800 }}>•</span>
+                            <span style={{ flex: 1 }}>{l.libelle}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {grands.length > 0 && (
               <div style={{ ...card, borderColor: 'rgba(255,194,51,0.4)' }}>
@@ -121,8 +136,8 @@ export default function CadeauxPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {grands.map((g, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5 }}>
+                      <span style={{ color: OR, fontWeight: 800 }}>•</span>
                       <span style={{ flex: 1 }}>{g.libelle}</span>
-                      <span style={{ fontSize: 12, color: SOFT, whiteSpace: 'nowrap' }}>≈ {fcfa(g.valeur)} <em>(indicatif)</em></span>
                     </div>
                   ))}
                 </div>

@@ -684,12 +684,12 @@ export async function getVitrine(): Promise<any> {
   const { data } = await supabase.from('gift_catalog').select('*').eq('actif', true)
     .order('type').order('mois', { nullsFirst: true }).order('ordre');
   const rows = ((data || []) as any[]);
+  // Aucun montant exposé publiquement (sans les montants réels).
   const locaux = rows.filter((g) => g.type !== 'grand').map((g) => ({
-    statut: g.statut_min || null, lettre: g.lettre || null, mois: g.mois || null,
-    libelle: g.libelle, valeur: Number(g.valeur || 0),
+    statut: g.statut_min || null, lettre: g.lettre || null, mois: g.mois || null, libelle: g.libelle,
   }));
   const grands = rows.filter((g) => g.type === 'grand').map((g) => ({
-    statut: g.statut_min || null, libelle: g.libelle, valeur: Number(g.valeur || 0),
+    statut: g.statut_min || null, libelle: g.libelle,
   }));
   return { active: true, locaux, grands };
 }
