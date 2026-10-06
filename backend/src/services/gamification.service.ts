@@ -661,3 +661,32 @@ export async function runDrawAllStatuts(params: { saison: string; adminId?: stri
 
   return { id: tirageId, saison, mode: parLettre ? 'lettre' : 'saison', lettre: parLettre ? lettre : null, nb_gagnants: gagnants.length, pot_disponible: potDispo, pot_utilise: totalLots, graine_hash: graineHash, breakdown };
 }
+
+
+// ===== Vitrine publique des cadeaux (lecture seule, pilotee par interrupteur) =====
+export async function isVitrineActive(): Promise<boolean> {
+  return (await _settingStr('cadeaux_vitrine_active', '0')) === '1';
+}
+export async function setVitrineActive(on: boolean): Promise<boolean> {
+  const value = on ? '1' : '0';
+  try {
+    const { data } = await supabase.from('settings').update({ value }).eq('key', 'cadeaux_vitrine_active').select('key').maybeSingle();
+    if (!data) { await supabase.from('settings').insert({ key: 'cadeaux_vitrine_active', value, description: 'Vitrine publique des cadeaux (0/1).' }); }
+  } catch { /* noop */ }
+  return on;
+}
+// Catalogue public : seulement si la vitrine est active. Jamais de promesse — valeurs indicatives.
+export async function getVitrine(): Promise<any> {
+  if (!(await isVitrineActive())) return { active: false };
+  const { data } = await supabase.from('gift_catalog').select('*').eq('actif', true)
+    .order('type').order('mois', { nullsFirst: true }).order('ordre');
+  const rows = ((data || []) as any[]);
+  const locaux = rows.filter((g) => g.type !== 'grand').map((g) => ({
+    statut: g.statut_min || null, lettre: g.lettre || null, mois: g.mois || null,
+    libelle: g.libelle, valeur: Number(g.valeur || 0),
+  }));
+  const grands = rows.filter((g) => g.type === 'grand').map((g) => ({
+    statut: g.statut_min || null, libelle: g.libelle, valeur: Number(g.valeur || 0),
+  }));
+  return { active: true, locaux, grands };
+}

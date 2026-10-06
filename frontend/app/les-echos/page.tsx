@@ -181,6 +181,7 @@ export default function LesEchosPage() {
             Un programme de récompenses pour les membres les plus fidèles est <strong style={s.liStrong}>en préparation</strong>.
             Il sera dévoilé dès qu'il sera prêt — reste actif pour en faire partie ! <em>(Aucun cadeau garanti ni promis à ce stade.)</em>
           </p>
+          <Link href="/cadeaux" style={{ display: 'inline-block', marginTop: 4, background: `linear-gradient(90deg,${OR},${OR2})`, color: 'var(--on-accent)', fontWeight: 700, fontSize: 13, padding: '8px 16px', borderRadius: 8, textDecoration: 'none' }}>🎁 Voir les cadeaux à gagner</Link>
         </div>
 
         {/* JEU RESPONSABLE */}

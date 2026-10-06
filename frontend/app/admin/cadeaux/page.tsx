@@ -63,6 +63,7 @@ export default function AdminCadeauxPage() {
   const [prep, setPrep] = useState<{ type: string; saison: string; mode: string; lettre: string }>({ type: 'local', saison: seasonPrecedente(), mode: 'saison', lettre: 'A' });
   const [detail, setDetail] = useState<any>(null);
   const [lotsChoisis, setLotsChoisis] = useState<Record<string, boolean>>({});
+  const [vitrine, setVitrine] = useState(false);
 
   const H = useCallback(() => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${admin?.token}` }), [admin?.token]);
 
@@ -71,7 +72,7 @@ export default function AdminCadeauxPage() {
     setLoading(true); setErr('');
     fetch(`${API}/tirages/dashboard`, { cache: 'no-store', headers: H() })
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.data) { setPots(d.data.pots); setCatalogue(d.data.catalogue || []); setTirages(d.data.tirages || []); } })
+      .then(d => { if (d?.data) { setPots(d.data.pots); setCatalogue(d.data.catalogue || []); setTirages(d.data.tirages || []); setVitrine(!!d.data.vitrineActive); } })
       .catch(() => setErr('Erreur de chargement.'))
       .finally(() => setLoading(false));
   }, [admin?.token, H]);
@@ -90,6 +91,15 @@ export default function AdminCadeauxPage() {
     if (!id) return;
     fetch(`${API}/tirages/catalog/${id}`, { method: 'DELETE', headers: H() })
       .then(() => charger()).catch(() => setErr('Erreur réseau.'));
+  };
+
+  const toggleVitrine = () => {
+    const next = !vitrine;
+    setVitrine(next);
+    fetch(`${API}/tirages/vitrine`, { method: 'POST', headers: H(), body: JSON.stringify({ active: next }) })
+      .then(r => r.json())
+      .then(d => { if (d?.success) { setVitrine(!!d.data.vitrineActive); setInfo(next ? '\u2705 Vitrine publique ACTIV\u00c9E : les utilisateurs voient les cadeaux.' : '\uD83D\uDD12 Vitrine publique D\u00c9SACTIV\u00c9E (cach\u00e9e).'); } else { setVitrine(!next); setErr('\u00c9chec du changement.'); } })
+      .catch(() => { setVitrine(!next); setErr('Erreur r\u00e9seau.'); });
   };
 
   const preparer = () => {
@@ -207,6 +217,15 @@ export default function AdminCadeauxPage() {
 
           {loading ? <p style={{ opacity: 0.6 }}>Chargement…</p> : (
           <>
+            {/* VITRINE PUBLIQUE */}
+            <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', borderColor: vitrine ? 'rgba(74,222,128,0.45)' : LINE }}>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ fontSize: 12, letterSpacing: 0.5, opacity: 0.6 }}>VITRINE PUBLIQUE DES CADEAUX</div>
+                <div style={{ fontSize: 13, opacity: 0.8, marginTop: 3 }}>{vitrine ? 'Visible par les utilisateurs (page « Cadeaux à gagner »). Valeurs affichées comme indicatives.' : 'Cachée — mode aperçu. Les utilisateurs ne voient aucun cadeau (recommandé tant que le juridique n\u2019a pas validé).'}</div>
+              </div>
+              <button onClick={toggleVitrine} style={vitrine ? btn('#4ade80') : { ...btn('#2a2a3a'), color: INK }}>{vitrine ? '🟢 Activée — cacher' : '🔒 Désactivée — activer'}</button>
+            </div>
+
             {/* POTS */}
             <div style={card}>
               <div style={{ fontSize: 12, letterSpacing: 0.5, opacity: 0.6, marginBottom: 10 }}>RÉSERVE FONDS CADEAUX</div>
