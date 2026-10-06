@@ -369,11 +369,14 @@ export async function getLeaderboard(windowKey: string, limit = 50): Promise<any
     }
     const ids = rows.map((r) => r.user_id);
     const nameMap: Record<string, string> = {};
+    const statutMap: Record<string, string> = {};
     if (ids.length) {
       const { data: us } = await supabase.from('users').select('id, username').in('id', ids);
       for (const u of (us || [])) { nameMap[(u as any).id] = (u as any).username ? '@' + (u as any).username : 'Anonyme'; }
+      const { data: sts } = await supabase.from('user_tier_status').select('user_id, tier_code').in('user_id', ids);
+      for (const r of (sts || [])) { statutMap[(r as any).user_id] = (r as any).tier_code || 'messager'; }
     }
-    return { actif: true, window: windowKey, rows: rows.filter((r) => r.echos > 0).map((r, i) => ({ rang: i + 1, pseudo: nameMap[r.user_id] || 'Anonyme', echos: r.echos })) };
+    return { actif: true, window: windowKey, rows: rows.filter((r) => r.echos > 0).map((r, i) => ({ rang: i + 1, pseudo: nameMap[r.user_id] || 'Anonyme', statut: statutMap[r.user_id] || 'messager', echos: r.echos })) };
   } catch { return { actif: true, window: windowKey, rows: [] }; }
 }
 
