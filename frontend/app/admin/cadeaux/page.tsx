@@ -38,6 +38,19 @@ const STATUTS: { code: string; nom: string }[] = [
   { code: 'heraut', nom: 'Le Héraut' },
 ];
 const statutCourt = (c?: string | null) => (({ messager: 'Messager', porteparole: 'Porte-parole', ambassadeur: 'Ambassadeur', heraut: 'Héraut' } as Record<string, string>)[c || ''] || 'Tous');
+// Dégradés couleurs (vraies teintes Diki : vert #1FB673, jaune #FFC233, rouge logo #FE0000 ; Héraut = arc-en-ciel)
+const GRAD = {
+  vert: 'linear-gradient(135deg,#1FB673,#12935C)',
+  jaune: 'linear-gradient(135deg,#FFC233,#E6A200)',
+  rouge: 'linear-gradient(135deg,#FE0000,#C80000)',
+  heraut: 'linear-gradient(to top right,#FF3B23,#FF9F1C,#FFD21E,#1FB673,#2B8CFF,#A24BFF)',
+  grand: 'linear-gradient(135deg,#FFC24D,#E08A00)',
+} as const;
+const STATUT_GRAD: Record<string, string> = { messager: GRAD.vert, porteparole: GRAD.jaune, ambassadeur: GRAD.rouge, heraut: GRAD.heraut };
+const LETTRE_GRAD: Record<string, string> = { C: GRAD.vert, B: GRAD.jaune, A: GRAD.rouge };
+const BADGE_SHADOW = '0 1px 3px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25)';
+const encreStatut = (c?: string | null) => (c === 'ambassadeur' ? '#fff' : '#140a02');
+const encreLettre = (l?: string | null) => (l === 'A' ? '#fff' : '#140a02');
 
 export default function AdminCadeauxPage() {
   const { admin } = useAdminAuth();
@@ -239,9 +252,17 @@ export default function AdminCadeauxPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {catalogue.map(l => (
                     <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
-                      <span style={{ width: 52, fontSize: 11, color: l.type === 'grand' ? OR : '#4ade80', fontWeight: 700 }}>{l.type === 'grand' ? 'GRAND' : 'M' + (l.mois || '?')}</span>
-                      <span style={{ fontSize: 10.5, padding: '1px 7px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', border: `1px solid ${LINE}`, color: l.statut_min ? OR : 'rgba(232,224,208,0.5)', whiteSpace: 'nowrap' }}>{statutCourt(l.statut_min)}</span>
-                      {l.type === 'local' && l.lettre && <span style={{ fontSize: 10.5, padding: '1px 6px', borderRadius: 999, background: 'rgba(124,58,237,0.18)', border: '1px solid rgba(124,58,237,0.5)', color: '#c4b5fd', fontWeight: 700, whiteSpace: 'nowrap' }}>{l.lettre}</span>}
+                      <span style={{ minWidth: 46, textAlign: 'center', fontSize: 11, fontWeight: 800, padding: '2px 7px', borderRadius: 7,
+                        background: l.type === 'grand' ? GRAD.grand : (l.lettre ? LETTRE_GRAD[l.lettre] : 'rgba(74,222,128,0.14)'),
+                        color: l.type === 'grand' ? '#140a02' : (l.lettre ? encreLettre(l.lettre) : '#4ade80'),
+                        boxShadow: (l.type === 'grand' || l.lettre) ? BADGE_SHADOW : 'none' }}>{l.type === 'grand' ? 'GRAND' : 'M' + (l.mois || '?')}</span>
+                      <span style={{ fontSize: 10.5, padding: '2px 9px', borderRadius: 999, fontWeight: 800, whiteSpace: 'nowrap',
+                        background: l.statut_min ? STATUT_GRAD[l.statut_min] : 'rgba(255,255,255,0.06)',
+                        color: l.statut_min ? encreStatut(l.statut_min) : 'rgba(232,224,208,0.5)',
+                        border: l.statut_min ? 'none' : `1px solid ${LINE}`,
+                        boxShadow: l.statut_min ? BADGE_SHADOW : 'none' }}>{statutCourt(l.statut_min)}</span>
+                      {l.type === 'local' && l.lettre && <span style={{ fontSize: 10.5, padding: '2px 8px', borderRadius: 999, fontWeight: 800, whiteSpace: 'nowrap',
+                        background: LETTRE_GRAD[l.lettre] || 'rgba(255,255,255,0.08)', color: encreLettre(l.lettre), boxShadow: BADGE_SHADOW }}>{l.lettre}</span>}
                       <span style={{ flex: 1 }}>{l.libelle}{!l.actif && <em style={{ opacity: 0.5 }}> (inactif)</em>}</span>
                       <span style={{ fontWeight: 700, color: OR }}>{F(l.valeur)}</span>
                       <button onClick={() => setForm(l)} style={{ ...btn('#2a2a3a'), color: INK, padding: '4px 10px' }}>✎</button>
