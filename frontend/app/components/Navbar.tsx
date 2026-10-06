@@ -249,6 +249,7 @@ export default function Navbar() {
                 { href: '/faq',               label: 'Comment ça marche' },
                 { href: '/les-echos',         label: 'Programme de Fidélité des Échos' },
                 { href: '/classement',        label: 'Classement des votants' },
+                { href: '/cadeaux',           label: 'Cadeaux à gagner' },
                 { href: '/challenges/appels', label: 'Mur des appels' },
                 { href: '/mediatheque',       label: 'Médiathèque' },
                 { href: '/challenges',        label: 'Challenge' },
