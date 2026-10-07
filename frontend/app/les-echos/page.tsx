@@ -49,6 +49,8 @@ const AVANTAGES: { statut: StatutEcho; s: string; v: string }[] = [
   { statut: 'ambassadeur', s: "Dès L'Ambassadeur",   v: 'Commentaires mis en avant + accès anticipé' },
   { statut: 'heraut',      s: 'Le Héraut',           v: 'Titre honorifique + couleur de pseudo' },
 ];
+const LETTRE_GRAD: Record<string, string> = { C: 'linear-gradient(135deg,#1FB673,#12935C)', B: 'linear-gradient(135deg,#FFC233,#E6A200)', A: 'linear-gradient(135deg,#FE0000,#C80000)' };
+const NIV_ORDRE: { code: string; label: string }[] = [ { code: 'C', label: 'Niveau C' }, { code: 'B', label: 'Niveau B' }, { code: 'A', label: 'Niveau A' }, { code: 'autres', label: 'Autres' } ];
 
 interface Bareme {
   echo_par_vote: number;
@@ -64,6 +66,21 @@ export default function LesEchosPage() {
   // Barème + défis lus en direct depuis l'admin (endpoint public). Repli sur les valeurs par défaut.
   const [bareme, setBareme] = useState<Bareme>(DEFAUT);
   const [defis, setDefis] = useState<Record<string, number>>({});
+  const [openAv, setOpenAv] = useState<string | null>(null);
+  const [cadeaux, setCadeaux] = useState<Record<string, { C: string[]; B: string[]; A: string[]; autres: string[]; grand: string[] }>>({});
+  useEffect(() => {
+    fetch(`${API}/vitrine`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d?.data?.active) return;
+        const by: Record<string, any> = {};
+        const ens = (st: string) => (by[st] = by[st] || { C: [], B: [], A: [], autres: [], grand: [] });
+        (d.data.locaux || []).forEach((l: any) => { if (!l.statut) return; const g = ens(l.statut); const k = (l.lettre === 'C' || l.lettre === 'B' || l.lettre === 'A') ? l.lettre : 'autres'; g[k].push(l.libelle); });
+        (d.data.grands || []).forEach((g: any) => { if (!g.statut) return; ens(g.statut).grand.push(g.libelle); });
+        setCadeaux(by);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch(`${API}/gamification/public`)
@@ -163,15 +180,47 @@ export default function LesEchosPage() {
         {/* AVANTAGES */}
         <h2 style={s.h2}>Tes avantages, statut par statut</h2>
         <div style={s.grid4} className="dkdk-echo-grid4">
-          {AVANTAGES.map((a) => (
-            <div key={a.s} style={s.stCard}>
+          {AVANTAGES.map((a) => {
+            const c = cadeaux[a.statut];
+            const open = openAv === a.statut;
+            return (
+            <div key={a.s} style={{ ...s.stCard, position: 'relative', cursor: 'pointer' }}
+              onMouseEnter={() => setOpenAv(a.statut)} onMouseLeave={() => setOpenAv((v) => (v === a.statut ? null : v))}
+              onClick={() => setOpenAv((v) => (v === a.statut ? null : a.statut))}>
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <EchoIcon statut={a.statut} size={42} />
               </div>
               <div style={s.stName}>{a.s}</div>
               <div style={s.stMeta}>{a.v}</div>
+              <div style={{ fontSize: 10.5, marginTop: 6, color: 'var(--or)', fontWeight: 700 }}>🎁 Cadeaux de ce niveau</div>
+              {open && (
+                <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: 8, width: 240, maxWidth: '86vw', background: 'var(--nav-panel,#15151c)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px', textAlign: 'left', zIndex: 50, boxShadow: '0 12px 30px rgba(0,0,0,0.5)' }}>
+                  {(() => {
+                    const blocs = NIV_ORDRE.map((n) => ({ n, items: (c?.[n.code as 'C'] || []) as string[] })).filter((b) => b.items.length > 0);
+                    const grand = (c?.grand || []) as string[];
+                    if (!blocs.length && !grand.length) return <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>🎁 Cadeaux bientôt dévoilés.</div>;
+                    return (<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {blocs.map((b) => (
+                        <div key={b.n.code}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                            {b.n.code !== 'autres' && <span style={{ fontSize: 10, fontWeight: 800, color: b.n.code === 'A' ? '#fff' : '#140a02', background: LETTRE_GRAD[b.n.code], padding: '1px 7px', borderRadius: 999 }}>{b.n.code}</span>}
+                            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)' }}>{b.n.label}</span>
+                          </div>
+                          {b.items.map((it, i) => <div key={i} style={{ fontSize: 12.5, padding: '2px 0 2px 8px' }}>• {it}</div>)}
+                        </div>
+                      ))}
+                      {grand.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--or)', marginBottom: 4 }}>🏆 Grands lots</div>
+                          {grand.map((it, i) => <div key={i} style={{ fontSize: 12.5, padding: '2px 0 2px 8px' }}>• {it}</div>)}
+                        </div>
+                      )}
+                    </div>);
+                  })()}
+                </div>
+              )}
             </div>
-          ))}
+          );})}
         </div>
 
         {/* RÉCOMPENSES — PRUDENT */}
