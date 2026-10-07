@@ -7,6 +7,7 @@ import SessionGuard from './components/SessionGuard'; /*DKDK_SESSION_GUARD*/
 import type { Metadata } from 'next';
 import { Inter, DM_Sans } from 'next/font/google'; /*DKDK_POLICE_INTER*/
 import { Analytics } from '@vercel/analytics/next';
+import AnalyticsTracker from './components/AnalyticsTracker'; /*DKDK_ANALYTICS_GLOBAL*/
 
 const syne = Inter({
   subsets: ['latin'],
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: "(function(){try{if(localStorage.getItem('dkdk-theme')==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();" }} />
         <SplashScreen />{children}<BackgroundMusic />
         <Analytics />
+        <AnalyticsTracker />{/*DKDK_ANALYTICS_GLOBAL*/}
         <ConsentPixels />{/*DKDK_PIXELS*/}
         <StarEffect />{/*DKDK_STAR*/}
         <SessionGuard />{/*DKDK_SESSION_GUARD*/}

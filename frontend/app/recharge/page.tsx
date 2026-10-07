@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LogoDikiDiki from '../components/LogoDikiDiki';
-import { useAnalytics } from '../hooks/useAnalytics'; /*DKDK_HEARTBEAT*/
 import { COUNTRIES, BRANDS } from '../retrait/operators'; /*DKDK_RECHARGE_MULTIPAYS*/
 
 // ✅ Étoile rouge — identique au logo
@@ -75,7 +74,6 @@ const METHODS = [
 function fmt(n: number) { return n.toLocaleString('fr-FR'); }
 
 export default function RechargePage() {
-  useAnalytics(); /*DKDK_HEARTBEAT*/
   const router = useRouter();
   /*DKDK_RETOUR_URL*/ const [retourUrl, setRetourUrl] = useState('');
   const [initialBalance, setInitialBalance] = useState(0);
