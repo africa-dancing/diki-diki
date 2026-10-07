@@ -167,7 +167,7 @@ function CreerAppelInner() {
         const st = j.data.existing_status;
         const stFr = st === 'appel' ? 'appel ouvert (déjà sur le Mur des appels)' : st === 'waiting_candidates' ? 'en attente de candidats' : st === 'open' ? 'inscriptions ouvertes' : st === 'in_progress' ? 'en cours' : (st || 'actif');
         const titre = j.data.existing_title ? ' « ' + j.data.existing_title + ' »' : '';
-        setMsg('Un challenge identique existe déjà' + titre + ' — statut : ' + stFr + ' (id ' + String(j.data.bracket_id || '').slice(0, 8) + '). Pour en créer un distinct, change la FORMATION (solo/groupe), la DISCIPLINE, le MODÈLE ou le FORMAT. Un même morceau peut être réutilisé.');
+        setMsg('Un challenge identique existe déjà' + titre + ' — statut : ' + stFr + ' (id ' + String(j.data.bracket_id || '').slice(0, 8) + '). Pour en créer un distinct, change la FORMATION (solo/groupe), la DISCIPLINE, le MODÈLE, le FORMAT — ou le MORCEAU imposé.');
       }
       else {
         setOk('✅ Appel ouvert ! (id ' + String(j.data?.bracket_id || '').slice(0, 8) + ') — il apparaît sur le Mur des appels.');

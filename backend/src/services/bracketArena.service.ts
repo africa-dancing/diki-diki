@@ -406,6 +406,17 @@ export async function createArenaChallenge(params: {
 }
 
 // 4. Creation d'un APPEL par le MODERATEUR (mode "Mur des appels") /*DKDK_MODERATEUR_APPEL*/
+// DKDK_UNICITE_MORCEAU — empreinte des morceaux imposes (libelles normalises, ordonnes par etape).
+function _sujetsFingerprint(list: { round_number?: number; libelle?: string }[]): string {
+  const norm = (x: string) => (x || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  return (list || [])
+    .filter((r) => r && (r.libelle || '').trim())
+    .slice()
+    .sort((a, b) => (a.round_number || 0) - (b.round_number || 0))
+    .map((r) => norm(r.libelle || ''))
+    .join(' | ');
+}
+
 // Cree un bracket en statut 'appel' AVEC ses sujets par etape, SANS candidat ni video.
 // 100% ADDITIF : ne touche a AUCUNE logique d'argent (pas de wallet, pas de cagnotte, pas d'inscription).
 // Les candidats rejoindront ensuite (route "accepter"), et le depart reutilisera le moteur existant.
@@ -460,14 +471,23 @@ export async function createAppelAsModerator(params: {
   // PLUS dans l'unicite : un meme morceau peut servir a plusieurs challenges tant qu'ils
   // different par l'un de ces axes. (Le style/epreuve differencie aussi, surtout pour le sport.)
   // On ne bloque que contre un challenge ACTIF (appel / inscriptions / ouvert).
-  let dupQ = supabase.from('brackets')
+  const newFp = _sujetsFingerprint(Array.isArray(params.sujets) ? params.sujets : []);
+  const { data: dupCands } = await supabase.from('brackets')
     .select('id, status, title')
     .eq('discipline', discFinal)
     .eq('modele', modeleFinal)
     .eq('max_participants', maxParticipants)
     .eq('allow_groups', _allowGroups)
-    .in('status', ['appel', 'waiting_candidates', 'open']);
-  const { data: dup } = await dupQ.limit(1).maybeSingle();
+    .in('status', ['appel', 'waiting_candidates', 'open'])
+    .limit(50);
+  let dup: any = null;
+  const _ids = (dupCands || []).map((d: any) => d.id);
+  if (_ids.length) {
+    const { data: _allSu } = await supabase.from('bracket_round_sujets').select('bracket_id, round_number, libelle').in('bracket_id', _ids);
+    const _byB: Record<string, any[]> = {};
+    for (const r of (_allSu || [])) { (_byB[(r as any).bracket_id] = _byB[(r as any).bracket_id] || []).push(r); }
+    for (const d of (dupCands || [])) { if (_sujetsFingerprint(_byB[(d as any).id] || []) === newFp) { dup = d; break; } }
+  }
   if (dup) return { created: false, bracket_id: (dup as any).id, existing_status: (dup as any).status, existing_title: (dup as any).title };
 
   // AUCUN delai impose : pas de date-limite (l'appel reste ouvert). /*DKDK_MODERATEUR_APPEL — no deadline*/
@@ -567,7 +587,8 @@ export async function updateAppelAsModerator(bracket_id: string, params: {
   // Anti-doublon — MEME regle qu'a la creation (Ifede, 04/10) : un AUTRE challenge actif
   // partageant A LA FOIS formation (allow_groups) + discipline + modele + format
   // (max_participants). Le morceau n'entre PAS dans l'unicite. On s'exclut (neq id).
-  const { data: dup } = await supabase
+  const newFp = _sujetsFingerprint(Array.isArray(params.sujets) ? params.sujets : []);
+  const { data: dupCands } = await supabase
     .from('brackets')
     .select('id, status, title')
     .eq('discipline', discFinal)
@@ -576,10 +597,18 @@ export async function updateAppelAsModerator(bracket_id: string, params: {
     .eq('allow_groups', _allowGroups)
     .neq('id', bracket_id)
     .in('status', ['appel', 'waiting_candidates', 'open'])
-    .limit(1).maybeSingle();
+    .limit(50);
+  let dup: any = null;
+  const _ids = (dupCands || []).map((d: any) => d.id);
+  if (_ids.length) {
+    const { data: _allSu } = await supabase.from('bracket_round_sujets').select('bracket_id, round_number, libelle').in('bracket_id', _ids);
+    const _byB: Record<string, any[]> = {};
+    for (const r of (_allSu || [])) { (_byB[(r as any).bracket_id] = _byB[(r as any).bracket_id] || []).push(r); }
+    for (const d of (dupCands || [])) { if (_sujetsFingerprint(_byB[(d as any).id] || []) === newFp) { dup = d; break; } }
+  }
   if (dup) {
     const _ti = (dup as any).title ? ' \u00ab ' + (dup as any).title + ' \u00bb' : '';
-    throw new Error('Un autre challenge identique existe deja' + _ti + ' (statut: ' + (dup as any).status + '). Change la formation (solo/groupe), la discipline, le modele ou le format.');
+    throw new Error('Un autre challenge identique existe deja' + _ti + ' (statut: ' + (dup as any).status + '). Change la formation, la discipline, le modele, le format \u2014 ou le morceau impose.');
   }
 
   // Mise a jour du bracket (statut, createur, deadline inchanges)
