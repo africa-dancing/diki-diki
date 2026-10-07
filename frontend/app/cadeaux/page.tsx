@@ -73,10 +73,15 @@ export default function CadeauxPage() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh', color: INK, fontFamily: "'DM Sans', sans-serif", paddingBottom: 80 }}>
       <Navbar />
 
-      <div style={{ padding: '36px 24px 20px', textAlign: 'center' }}>
-        <div style={{ display: 'inline-block', background: `linear-gradient(90deg, var(--or), var(--or2))`, color: 'var(--on-accent)', fontSize: 11, fontWeight: 700, letterSpacing: 2, padding: '4px 12px', borderRadius: 4, marginBottom: 14, textTransform: 'uppercase' }}>Les Échos</div>
-        <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 28, color: 'var(--red)', margin: '6px 0 8px', textTransform: 'uppercase' }}>🎁 Cadeaux à gagner</h1>
-        <p style={{ color: SOFT, fontSize: 15, maxWidth: 620, margin: '0 auto' }}>Les membres fidèles peuvent être tirés au sort pour recevoir des cadeaux <b>matériels</b> — jamais de l&apos;argent.</p>
+      {/* HERO — halo + banniere magenta/rouge (style Classement) */}
+      <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 4px' }}>
+          <section style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '22px 20px', textAlign: 'center', color: '#fff' }}>
+            <div style={{ display: 'inline-block', background: `linear-gradient(90deg, var(--or), var(--or2))`, color: 'var(--on-accent)', fontSize: 11, fontWeight: 800, letterSpacing: 2, padding: '4px 12px', borderRadius: 4, marginBottom: 12, textTransform: 'uppercase' }}>Les Échos</div>
+            <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, margin: '2px 0 8px', textTransform: 'uppercase' }}>🎁 Cadeaux à gagner</h1>
+            <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13.5, maxWidth: '48ch', margin: '0 auto' }}>Les membres fidèles peuvent être tirés au sort pour recevoir des cadeaux <b>matériels</b> — jamais de l&apos;argent.</p>
+          </section>
+        </div>
       </div>
 
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '0 20px' }}>
