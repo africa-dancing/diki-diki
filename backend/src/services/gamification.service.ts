@@ -678,18 +678,32 @@ export async function setVitrineActive(on: boolean): Promise<boolean> {
   } catch { /* noop */ }
   return on;
 }
+export async function isVitrineMontants(): Promise<boolean> {
+  return (await _settingStr('cadeaux_vitrine_montants', '0')) === '1';
+}
+export async function setVitrineMontants(on: boolean): Promise<boolean> {
+  const value = on ? '1' : '0';
+  try {
+    const { data } = await supabase.from('settings').update({ value }).eq('key', 'cadeaux_vitrine_montants').select('key').maybeSingle();
+    if (!data) { await supabase.from('settings').insert({ key: 'cadeaux_vitrine_montants', value, description: 'Afficher les montants sur la vitrine (0/1).' }); }
+  } catch { /* noop */ }
+  return on;
+}
 // Catalogue public : seulement si la vitrine est active. Jamais de promesse — valeurs indicatives.
 export async function getVitrine(): Promise<any> {
   if (!(await isVitrineActive())) return { active: false };
+  const montants = await isVitrineMontants();
   const { data } = await supabase.from('gift_catalog').select('*').eq('actif', true)
     .order('type').order('mois', { nullsFirst: true }).order('ordre');
   const rows = ((data || []) as any[]);
-  // Aucun montant exposé publiquement (sans les montants réels).
+  // Montants exposés UNIQUEMENT si l'interrupteur `cadeaux_vitrine_montants` est ON.
   const locaux = rows.filter((g) => g.type !== 'grand').map((g) => ({
     statut: g.statut_min || null, lettre: g.lettre || null, mois: g.mois || null, libelle: g.libelle,
+    ...(montants ? { valeur: Number(g.valeur || 0) } : {}),
   }));
   const grands = rows.filter((g) => g.type === 'grand').map((g) => ({
     statut: g.statut_min || null, libelle: g.libelle,
+    ...(montants ? { valeur: Number(g.valeur || 0) } : {}),
   }));
-  return { active: true, locaux, grands };
+  return { active: true, montants, locaux, grands };
 }

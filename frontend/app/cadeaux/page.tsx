@@ -32,14 +32,15 @@ const STATUTS: { code: string; nom: string }[] = [
   { code: '', nom: 'Tous les membres' },
 ];
 
+const fcfa = (n: number) => (n || 0).toLocaleString('fr-FR') + ' F';
 const NIVEAUX: { code: string; label: string }[] = [
   { code: 'C', label: 'Niveau C (1er mois)' },
   { code: 'B', label: 'Niveau B (2e mois)' },
   { code: 'A', label: 'Niveau A (3e mois)' },
   { code: '', label: 'Autres cadeaux' },
 ];
-type Lot = { statut: string | null; lettre: string | null; mois: number | null; libelle: string };
-type Grand = { statut: string | null; libelle: string };
+type Lot = { statut: string | null; lettre: string | null; mois: number | null; libelle: string; valeur?: number };
+type Grand = { statut: string | null; libelle: string; valeur?: number };
 
 export default function CadeauxPage() {
   const [loading, setLoading] = useState(true);
@@ -117,6 +118,7 @@ export default function CadeauxPage() {
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5 }}>
                             <span style={{ color: OR, fontWeight: 800 }}>•</span>
                             <span style={{ flex: 1 }}>{l.libelle}</span>
+                            {typeof l.valeur === 'number' && <span style={{ fontSize: 12, color: SOFT, whiteSpace: 'nowrap' }}>{fcfa(l.valeur)}</span>}
                           </div>
                         ))}
                       </div>
@@ -138,6 +140,7 @@ export default function CadeauxPage() {
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5 }}>
                       <span style={{ color: OR, fontWeight: 800 }}>•</span>
                       <span style={{ flex: 1 }}>{g.libelle}</span>
+                      {typeof g.valeur === 'number' && <span style={{ fontSize: 12, color: SOFT, whiteSpace: 'nowrap' }}>{fcfa(g.valeur)}</span>}
                     </div>
                   ))}
                 </div>

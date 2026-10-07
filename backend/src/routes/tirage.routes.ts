@@ -6,7 +6,7 @@ import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
 import {
   getFondsPots, listGiftCatalog, upsertGiftCatalog, deleteGiftCatalog,
   prepareTirage, executeTirage, runDrawAllStatuts, listTirages, getTirageDetail, setRemiseStatus,
-  isVitrineActive, setVitrineActive,
+  isVitrineActive, setVitrineActive, isVitrineMontants, setVitrineMontants,
 } from '../services/gamification.service';
 
 const tirageRouter = Router();
@@ -15,8 +15,8 @@ tirageRouter.use(requireAuth, requireAdmin);
 // Tableau de bord : pots Fonds Cadeaux + catalogue + liste des tirages.
 tirageRouter.get('/dashboard', async (_req, res) => {
   try {
-    const [pots, catalogue, tirages, vitrineActive] = await Promise.all([getFondsPots(), listGiftCatalog(), listTirages(), isVitrineActive()]);
-    return res.json({ success: true, data: { pots, catalogue, tirages, vitrineActive } });
+    const [pots, catalogue, tirages, vitrineActive, vitrineMontants] = await Promise.all([getFondsPots(), listGiftCatalog(), listTirages(), isVitrineActive(), isVitrineMontants()]);
+    return res.json({ success: true, data: { pots, catalogue, tirages, vitrineActive, vitrineMontants } });
   } catch { return res.status(500).json({ success: false, error: 'TIRAGE_DASHBOARD_FAILED' }); }
 });
 
@@ -65,6 +65,10 @@ tirageRouter.post('/gagnant/:id/remise', async (req, res) => {
 tirageRouter.post('/vitrine', async (req, res) => {
   try { const active = await setVitrineActive(req.body?.active === true || req.body?.active === '1'); return res.json({ success: true, data: { vitrineActive: active } }); }
   catch { return res.status(500).json({ success: false, error: 'VITRINE_TOGGLE_FAILED' }); }
+});
+tirageRouter.post('/vitrine-montants', async (req, res) => {
+  try { const on = await setVitrineMontants(req.body?.active === true || req.body?.active === '1'); return res.json({ success: true, data: { vitrineMontants: on } }); }
+  catch { return res.status(500).json({ success: false, error: 'VITRINE_MONTANTS_FAILED' }); }
 });
 
 export default tirageRouter;

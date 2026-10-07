@@ -64,6 +64,7 @@ export default function AdminCadeauxPage() {
   const [detail, setDetail] = useState<any>(null);
   const [lotsChoisis, setLotsChoisis] = useState<Record<string, boolean>>({});
   const [vitrine, setVitrine] = useState(false);
+  const [montants, setMontants] = useState(false);
 
   const H = useCallback(() => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${admin?.token}` }), [admin?.token]);
 
@@ -72,7 +73,7 @@ export default function AdminCadeauxPage() {
     setLoading(true); setErr('');
     fetch(`${API}/tirages/dashboard`, { cache: 'no-store', headers: H() })
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.data) { setPots(d.data.pots); setCatalogue(d.data.catalogue || []); setTirages(d.data.tirages || []); setVitrine(!!d.data.vitrineActive); } })
+      .then(d => { if (d?.data) { setPots(d.data.pots); setCatalogue(d.data.catalogue || []); setTirages(d.data.tirages || []); setVitrine(!!d.data.vitrineActive); setMontants(!!d.data.vitrineMontants); } })
       .catch(() => setErr('Erreur de chargement.'))
       .finally(() => setLoading(false));
   }, [admin?.token, H]);
@@ -100,6 +101,15 @@ export default function AdminCadeauxPage() {
       .then(r => r.json())
       .then(d => { if (d?.success) { setVitrine(!!d.data.vitrineActive); setInfo(next ? '\u2705 Vitrine publique ACTIV\u00c9E : les utilisateurs voient les cadeaux.' : '\uD83D\uDD12 Vitrine publique D\u00c9SACTIV\u00c9E (cach\u00e9e).'); } else { setVitrine(!next); setErr('\u00c9chec du changement.'); } })
       .catch(() => { setVitrine(!next); setErr('Erreur r\u00e9seau.'); });
+  };
+
+  const toggleMontants = () => {
+    const next = !montants;
+    setMontants(next);
+    fetch(`${API}/tirages/vitrine-montants`, { method: 'POST', headers: H(), body: JSON.stringify({ active: next }) })
+      .then(r => r.json())
+      .then(d => { if (d?.success) { setMontants(!!d.data.vitrineMontants); setInfo(next ? '\uD83D\uDCB0 Montants AFFICH\u00c9S sur la vitrine.' : '\uD83D\uDE48 Montants CACH\u00c9S sur la vitrine.'); } else { setMontants(!next); setErr('\u00c9chec.'); } })
+      .catch(() => { setMontants(!next); setErr('Erreur r\u00e9seau.'); });
   };
 
   const preparer = () => {
@@ -224,6 +234,7 @@ export default function AdminCadeauxPage() {
                 <div style={{ fontSize: 13, opacity: 0.8, marginTop: 3 }}>{vitrine ? 'Visible par les utilisateurs (page « Cadeaux à gagner »). Valeurs affichées comme indicatives.' : 'Cachée — mode aperçu. Les utilisateurs ne voient aucun cadeau (recommandé tant que le juridique n\u2019a pas validé).'}</div>
               </div>
               <button onClick={toggleVitrine} style={vitrine ? btn('#4ade80') : { ...btn('#2a2a3a'), color: INK }}>{vitrine ? '🟢 Activée — cacher' : '🔒 Désactivée — activer'}</button>
+              <button onClick={toggleMontants} disabled={!vitrine} style={{ ...(montants ? btn('#FFC233') : { ...btn('#2a2a3a'), color: INK }), opacity: vitrine ? 1 : 0.4, cursor: vitrine ? 'pointer' : 'not-allowed' }} title={vitrine ? '' : 'Active d’abord la vitrine'}>{montants ? '💰 Montants affichés — cacher' : '🙈 Montants cachés — afficher'}</button>
             </div>
 
             {/* POTS */}
