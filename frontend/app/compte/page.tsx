@@ -11,6 +11,7 @@ import TranslateWidget from '../components/TranslateWidget';
 import ParcoursSection from './ParcoursSection';/*DKDK_IMPORT_PARCOURS*/
 import MessagerieSection from './MessagerieSection';/*DKDK_IMPORT_MESSAGERIE*/
 import CompteTabs from './CompteTabs';/*DKDK_IMPORT_COMPTETABS*/
+import MonLienVote from './MonLienVote';/*DKDK_IMPORT_MONLIEN*/
 
 // ✅ Étoile rouge — identique au logo
 const StarRed = () => <span style={{ color: '#FF0000' }}>★</span>;
@@ -367,7 +368,7 @@ export default function ComptePage() {
         {activeTab==='dashboard'&&<EchosStatutCard/>}
           {activeTab==='dashboard'&&<DashboardSection profile={profile} balance={balance} votesEmis={votesEmis} totalEarned={totalEarned} videoCount={userVideos.length} onEditProfile={()=>setShowEdit(true)}/>}
         {activeTab==='videos'&&<MesVideosSection videos={userVideos} loading={videosLoading} router={router} onRefresh={()=>{const t=getToken();const d=t?decodeToken(t):null;if(d?.userId)fetchVideos(d.userId);}}/>}
-        {activeTab==='competitions'&&(loading?<div style={{textAlign:'center',padding:'40px',color:'var(--ink-soft)'}}>⏳ Chargement…</div>:<ParcoursSection/>/*DKDK_USE_PARCOURS*/)}
+        {activeTab==='competitions'&&(loading?<div style={{textAlign:'center',padding:'40px',color:'var(--ink-soft)'}}>⏳ Chargement…</div>:<><MonLienVote/><ParcoursSection/></>/*DKDK_USE_PARCOURS*/)}
         {activeTab==='education'&&<EducationSection router={router}/>}
         {activeTab==='finances'&&<FinancesSection balance={balance} totalEarned={totalEarned} router={router}/>}
         {activeTab==='messagerie'&&<MessagerieSection/>}
