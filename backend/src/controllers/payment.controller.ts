@@ -4,6 +4,7 @@ import geoip from 'geoip-lite'; /*DKDK_GEO_VOTE — géoloc pays du votant (addi
 import { initiatePayment, verifyPayment, withdrawPayment, paymentProvider, retraitRule, retraitFee } from '../services/payment.service';
 import { pawaProvider, pawapayPayout, pawapayStatus, pawapayDeposit, pawapayDepositStatus } from '../services/pawapay.service';
 import { sendServerPurchase } from '../services/marketing.service'; /*DKDK_PIXEL_PURCHASE — conversion serveur (additif, non-bloquant)*/
+import { awardVote } from '../services/gamification.service'; /*DKDK_VOTE_ECHOS — fidélité, additif best-effort*/
 import { supabase } from '../../config/supabase';
 
 const MIN_RETRAIT = 500; /*DKDK_MIN_RETRAIT_500*/
@@ -101,7 +102,7 @@ export async function initiateVotePayment(req: Request, res: Response) {
   try {
     const userId = (req as any).user.userId;
     /*DKDK_VOTE_QTY*/
-    const { participant_id, vote_type, phone, qty } = req.body;
+    const { participant_id, vote_type, phone, qty, ambassadeur_code, canal } = req.body; /*DKDK_VOTE_ATTRIB*/
     if (!participant_id || !vote_type || !phone) {
       return res.status(400).json({ error: 'MISSING_FIELDS' });
     }
@@ -160,7 +161,9 @@ export async function initiateVotePayment(req: Request, res: Response) {
         ref:        String(result.transactionId),
         status:     'pending',
         /*DKDK_VOTE_META*/
-        metadata:   { participant_id, p_type: vote_type, qty: voteQty, pays: _votePays },
+        metadata:   { participant_id, p_type: vote_type, qty: voteQty, pays: _votePays,
+                      ambassadeur_code: (ambassadeur_code ? String(ambassadeur_code).slice(0, 64) : null),
+                      canal: (canal ? String(canal).slice(0, 32) : null) }, /*DKDK_VOTE_ATTRIB*/
       });
     if (txErr) return res.status(500).json({ error: 'TX_INSERT_FAILED', detail: txErr.message });
     return res.status(200).json({ success: true, paymentUrl: result.paymentUrl });
@@ -310,6 +313,14 @@ export async function webhook(req: Request, res: Response) { /*DKDK_WEBHOOK_VOTE
               p_qty:            tx.metadata.qty ?? 1,
               p_type:           tx.metadata.p_type,
             });
+            /*DKDK_ECHOS — Fidélité : +Échos sur le vote DIRECT (paiement->vote), comme
+              /arena/vote-pool le fait pour le vote au solde. Fire-and-forget, best-effort,
+              JAMAIS bloquant pour le webhook ; inactif par défaut (interrupteur maître OFF). */
+            try {
+              const _q  = tx.metadata.qty ?? 1;
+              const _un = (tx.metadata.p_type === 'heart' ? 2 : 1) * (Number.isFinite(_q) && _q > 0 ? _q : 1);
+              awardVote(tx.user_id, _un, 'vote:' + tx.metadata.participant_id).catch(() => {});
+            } catch { /* best-effort */ }
           }
           /*DKDK_PIXEL_PURCHASE — argent réellement entré : Purchase serveur (fire-and-forget, ne bloque jamais le webhook)*/
           if (_crediteMaintenant) {
