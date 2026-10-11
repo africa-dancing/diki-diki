@@ -1,8 +1,8 @@
 /* app/components/EchosAvantagesBlock.tsx
-   DKDK_FAQ — Reproduit à l'identique le bloc « Tes avantages, statut par statut »
-   de la page Les Échos (4 cartes de statut colorées + cadeaux par niveau au survol
-   + panneau récompenses). Utilisé dans la FAQ pour les items de type « avantages ».
-   Les cadeaux viennent en direct de la vitrine (/vitrine). Aucun montant promis. */
+   DKDK_FAQ — Bloc « Tes avantages, statut par statut » (4 cartes de statut + cadeaux
+   par niveau C/B/A + grands lots). Cadeaux lus en direct de la vitrine (/vitrine).
+   Dans la FAQ, les cadeaux sont affichés DIRECTEMENT sous chaque carte (pas de panneau
+   flottant qui déborde). Aucun montant promis. */
 'use client';
 import { useEffect, useState } from 'react';
 import EchoIcon, { StatutEcho } from './EchoIcon';
@@ -24,16 +24,20 @@ const NIV_ORDRE: { code: string; label: string }[] = [ { code: 'C', label: 'Nive
 const st: Record<string, React.CSSProperties> = {
   h2:       { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18, color: OR, marginTop: 8, marginBottom: 10 },
   p:        { fontSize: 14.5, lineHeight: 1.8, color: 'var(--ink-soft)', margin: '0 0 8px' },
-  grid4:    { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginTop: 4 },
+  grid4:    { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginTop: 4, alignItems: 'start' },
   stCard:   { background: 'var(--nav-surface, rgba(255,255,255,0.03))', border: '1px solid var(--line)', borderRadius: 14, padding: '16px 10px', textAlign: 'center' as const },
   stName:   { fontWeight: 800, fontSize: 13.5, marginTop: 10 },
   stMeta:   { color: 'var(--ink-soft)', fontSize: 11.5, marginTop: 2 },
+  giftHead: { fontSize: 10.5, marginTop: 10, color: 'var(--or)', fontWeight: 700 },
+  giftWrap: { textAlign: 'left' as const, marginTop: 6, display: 'flex', flexDirection: 'column' as const, gap: 8 },
+  lettre:   { fontSize: 9.5, fontWeight: 800, padding: '1px 7px', borderRadius: 999, display: 'inline-block' },
+  nivLabel: { fontSize: 10.5, fontWeight: 700, color: 'var(--ink-soft)' },
+  gItem:    { fontSize: 11.5, padding: '1px 0 1px 8px', color: 'var(--ink)', lineHeight: 1.45 },
   recomp:   { background: 'linear-gradient(135deg, rgba(126, 3, 128, 0.30), rgba(237,7,15,0.28))', border: '1px solid var(--line)', borderRadius: 12, padding: '20px 22px', marginTop: 20 },
   liStrong: { fontWeight: 700, color: 'var(--ink)' },
 };
 
 export default function EchosAvantagesBlock() {
-  const [openAv, setOpenAv] = useState<string | null>(null);
   const [cadeaux, setCadeaux] = useState<Record<string, { C: string[]; B: string[]; A: string[]; autres: string[]; grand: string[] }>>({});
 
   useEffect(() => {
@@ -56,43 +60,42 @@ export default function EchosAvantagesBlock() {
       <div style={st.grid4} className="dkdk-echo-grid4">
         {AVANTAGES.map((a) => {
           const c = cadeaux[a.statut];
-          const open = openAv === a.statut;
+          const blocs = NIV_ORDRE.map((n) => ({ n, items: (c?.[n.code as 'C'] || []) as string[] })).filter((b) => b.items.length > 0);
+          const grand = (c?.grand || []) as string[];
+          const vide = blocs.length === 0 && grand.length === 0;
           return (
-            <div key={a.s} style={{ ...st.stCard, position: 'relative', cursor: 'pointer' }}
-              onMouseEnter={() => setOpenAv(a.statut)} onMouseLeave={() => setOpenAv((v) => (v === a.statut ? null : v))}
-              onClick={() => setOpenAv((v) => (v === a.statut ? null : a.statut))}>
+            <div key={a.s} style={st.stCard}>
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <EchoIcon statut={a.statut} size={42} />
               </div>
               <div style={st.stName}>{a.s}</div>
               <div style={st.stMeta}>{a.v}</div>
-              <div style={{ fontSize: 10.5, marginTop: 6, color: 'var(--or)', fontWeight: 700 }}>🎁 Cadeaux de ce niveau</div>
-              {open && (
-                <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: 8, width: 240, maxWidth: '86vw', background: 'var(--nav-panel,#15151c)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px', textAlign: 'left', zIndex: 50, boxShadow: '0 12px 30px rgba(0,0,0,0.5)' }}>
-                  {(() => {
-                    const blocs = NIV_ORDRE.map((n) => ({ n, items: (c?.[n.code as 'C'] || []) as string[] })).filter((b) => b.items.length > 0);
-                    const grand = (c?.grand || []) as string[];
-                    if (!blocs.length && !grand.length) return <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>🎁 Cadeaux bientôt dévoilés.</div>;
-                    return (<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      {blocs.map((b) => (
-                        <div key={b.n.code}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                            {b.n.code !== 'autres' && <span style={{ fontSize: 10, fontWeight: 800, color: b.n.code === 'A' ? '#fff' : '#140a02', background: LETTRE_GRAD[b.n.code], padding: '1px 7px', borderRadius: 999 }}>{b.n.code}</span>}
-                            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)' }}>{b.n.label}</span>
-                          </div>
-                          {b.items.map((it, i) => <div key={i} style={{ fontSize: 12.5, padding: '2px 0 2px 8px' }}>• {it}</div>)}
+              <div style={st.giftHead}>🎁 Cadeaux de ce niveau</div>
+              <div style={st.giftWrap}>
+                {vide ? (
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>Bientôt dévoilés.</div>
+                ) : (
+                  <>
+                    {blocs.map((b) => (
+                      <div key={b.n.code}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
+                          {b.n.code !== 'autres' && (
+                            <span style={{ ...st.lettre, color: b.n.code === 'A' ? '#fff' : '#140a02', background: LETTRE_GRAD[b.n.code] }}>{b.n.code}</span>
+                          )}
+                          <span style={st.nivLabel}>{b.n.label}</span>
                         </div>
-                      ))}
-                      {grand.length > 0 && (
-                        <div>
-                          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--or)', marginBottom: 4 }}>🏆 Grands lots</div>
-                          {grand.map((it, i) => <div key={i} style={{ fontSize: 12.5, padding: '2px 0 2px 8px' }}>• {it}</div>)}
-                        </div>
-                      )}
-                    </div>);
-                  })()}
-                </div>
-              )}
+                        {b.items.map((it, i) => <div key={i} style={st.gItem}>• {it}</div>)}
+                      </div>
+                    ))}
+                    {grand.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--or)', marginBottom: 3 }}>🏆 Grands lots</div>
+                        {grand.map((it, i) => <div key={i} style={st.gItem}>• {it}</div>)}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           );
         })}
