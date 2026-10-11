@@ -1,23 +1,19 @@
+/* app/faq/page.tsx
+   DKDK_FAQ — FAQ pilotable depuis l'Admin. Le contenu vient de la base
+   (GET /v1/faq) au lieu d'être écrit en dur. Même rendu qu'avant.
+   L'item de type 'formats' affiche le tableau des formats EN DIRECT (inchangé).
+   Les réponses acceptent : sauts de ligne, **gras**, puces (•) et liens [texte](url). */
 'use client';
-import LogoDikiDiki from '../components/LogoDikiDiki';
 import Navbar from '../components/Navbar';/*DKDK_FAQ_NAVBAR_IMPORT*/
-import TranslateWidget from '../components/TranslateWidget';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 
 const OR = 'var(--or)';
 const OR2 = 'var(--or2)';
 const BG = 'var(--bg)';
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 
 const s: Record<string, React.CSSProperties> = {
-  page:    { background: BG, minHeight: '100vh', color: 'var(--ink)', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },/*DKDK_FAQ_PADTOP*/
-  header:  { borderBottom: `1px solid var(--line)`, padding: '20px 12px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  logo:    { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 20, color: OR, textDecoration: 'none', letterSpacing: 1 },
-  back:    { color: 'rgb(26, 255, 0)', fontSize: 13, textDecoration: 'none' },
-  hero:    { padding: '40px 24px 36px', background: 'radial-gradient(ellipse 55% 42px at 50% 16px,hsl(339, 98%, 49%) 0%,transparent 72%)', textAlign: 'center' as const },/*DKDK_FAQ_HALO*/
-  badge:   { display: 'inline-block', background: `linear-gradient(90deg,${OR},${OR2})`, color: 'var(--on-accent)', fontSize: 11, fontWeight: 700, letterSpacing: 2, padding: '4px 12px', borderRadius: 4, marginBottom: 16, textTransform: 'uppercase' as const },
-  h1:      { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 32, color: 'var(--red)', margin: '0 0 8px', lineHeight: 1.2, textTransform: 'uppercase' as const, textAlign: 'center' as const },
-  sub:     { color: 'var(--ink-soft)', fontSize: 15, marginBottom: 0, textAlign: 'center' as const },
+  page:    { background: BG, minHeight: '100vh', color: 'var(--ink)', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },
   divider: { height: 1, background: 'var(--line)', margin: '32px 0' },
   body:    { maxWidth: 760, margin: '0 auto', padding: '0 24px' },
   catTitle:{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 14, color: OR, letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 12, marginTop: 32 },
@@ -26,109 +22,12 @@ const s: Record<string, React.CSSProperties> = {
   a:       { fontSize: 14, lineHeight: 1.8, color: 'var(--ink-soft)', padding: '0 0 16px' },
   contact: { background: 'linear-gradient(135deg, rgba(126, 3, 128, 0.52), rgba(237,7,15))', border: '1px solid rgb(10, 0, 0)', borderRadius: 12, padding: '24px', marginTop: 48, textAlign: 'center' as const, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center' },
   ctaBtn:  { display: 'block', width: 'fit-content', marginTop: 12, marginLeft: 'auto', marginRight: 'auto', background: `linear-gradient(90deg,${OR},${OR2})`, color: 'var(--on-accent)', fontWeight: 700, fontSize: 14, padding: '10px 24px', borderRadius: 8, textDecoration: 'none' },
+  state:   { fontSize: 14, color: 'var(--ink-soft)', padding: '12px 0', textAlign: 'center' as const },
 };
 
-const faqs = [
-  {
-    cat: '🌍 Diki-Diki — La plateforme',
-    items: [
-      {
-        q: "C'est quoi Diki-Diki ?",
-        a: `Diki-Diki, c'est un acte employé pour arracher le sourire à quelqu'un — un geste cher au peuple du Congo. Et c'est exactement ce que tu viens vivre ici : une Arène où les talents d'Afrique t'émerveillent, où le public les porte, et d'où chacun repart le sourire aux lèvres. Voilà pourquoi nous l'avons nommée DIKI-DIKI, la scène des talents africains.\n\nUne plateforme culturelle et panafricaine de challenges artistiques et sportifs, où c'est le public qui départage les candidats par des votes payants.\n\nLes candidats soumettent des vidéos de leur prestation et s'affrontent dans un challenge. Le public les soutient en envoyant des étoiles ★ ou des cœurs ❤️. Ces votes forment une cagnotte commune, partagée à la fin entre les gagnants ; les candidats éliminés reçoivent une prime de participation.\n\nLe vote payant est à la fois le jury (seul le public tranche, jamais une note technique) et le moteur : c'est lui qui constitue le prix à gagner.\n\nDisciplines : danse, chant, instrument, humour, poésie, conte, théâtre, basket, foot, taekwondo, karaté, shotokan, kung-fu, wushu, taï-chi.\n🌍 Ouverte à toute l'Afrique et à la diaspora.`,
-      },
-      {
-        q: "Qui peut utiliser Diki-Diki ?",
-        a: `Trois profils, non figés — on passe volontiers de l'un à l'autre :\n\n• Le visiteur regarde les vidéos, librement et gratuitement.\n• Le candidat s'inscrit, téléverse au moins une vidéo et concourt ; il dispose d'un compte pour recevoir ses gains.\n• Le votant soutient les candidats par des votes payants — c'est de lui que dépend tout : il départage les candidats et constitue la cagnotte.\n\nRegarder, commenter et partager est entièrement gratuit. Seul le vote est payant.`,
-      },
-      {
-        q: "Quels sont les avantages d'être sur Diki-Diki ?",
-        a: `Deux familles d'avantages, selon que tu participes ou que tu soutiens.\n\n🎤 Pour les candidats participants :\n• Une scène monétisée et équitable — c'est le public qui vote, jamais un jury technique.\n• Des gains réels : le podium se partage la cagnotte, et même éliminé tu reçois une prime de participation — ici, on ne repart jamais les mains vides.\n• Inscription 100 % gratuite.\n• Une vraie visibilité auprès d'une audience africaine et de la diaspora, et ton lien de vote personnel à partager (TikTok, WhatsApp, lives…).\n• Et si tu votes aussi pour d'autres talents, tu profites en plus du programme de fidélité ci-dessous.\n\n🗳️ Pour le public, dès ton inscription et ton 1er vote — le programme de fidélité « Les Échos » :\nÀ chaque vote, tu gagnes 1 Écho (1 vote = 1 Écho). Les Échos ne sont ni de l'argent ni des votes en plus : ils font grandir ton statut et débloquent des avantages. Tu montes en relevant un petit défi chaque mois (une saison = 3 mois), sans aucune pression.\n\nTes avantages, statut par statut (comme affichés sur la page « Les Échos ») :\n• ✉️ Dès Le Messager : badge sur ton profil.\n• 🗣️ Dès Le Porte-parole : badge à côté de tes soutiens.\n• 🎖️ Dès L'Ambassadeur : commentaires mis en avant + accès anticipé.\n• 📯 Le Héraut : titre honorifique + couleur de pseudo.\n\n🎁 Et les cadeaux ? Chaque statut a ses « cadeaux de ce niveau », affichés sur la page « Les Échos » et détaillés sur la page « Cadeaux à gagner ». Ils sont indicatifs, jamais promis : ce que tu peux réellement recevoir dépend des règles du programme et de ce qui est collecté, et les Échos ne se convertissent jamais en argent.`,
-      },
-    ],
-  },
-  {
-    cat: '🏆 Comprendre le Challenge',
-    items: [
-      {
-        q: "C'est quoi un challenge ?",
-        a: `Un challenge est une compétition entre candidats sur une même discipline. Le public vote en envoyant des étoiles ★ (100 F CFA, poids 1) ou des cœurs ❤️ (200 F CFA, poids 2), ce qui fait monter le score des candidats.\n\nChaque étape se ferme lorsqu'elle atteint son objectif de cagnotte (défini par le format). À la fin, les gagnants se partagent la cagnotte et les éliminés reçoivent une prime.`,
-      },
-      {
-        q: "Quels sont les formats de challenge ?",
-        a: "Voici les formats proposés, tenus à jour automatiquement d'après l'Admin. ⚠️ L'objectif indiqué est le montant de cagnotte à réunir par étape (le seuil qui ferme l'étape) — ce n'est PAS un gain de candidat ; le gain réel dépend de la cagnotte réellement collectée, moins la commission, partagée selon le podium (voir « Comment la cagnotte est-elle partagée ? »).",
-      },
-      {
-        q: "Parcours ou Bloc groupé : quelle différence ?",
-        a: `Un challenge suit l'un de deux modèles :\n\n• **Parcours** (élimination progressive) — étape par étape : à chaque étape le candidat fournit une vidéo, le public vote, et les moins votés sont éliminés. La dernière étape est un « match de classement » : les finalistes s'affrontent une dernière fois, sans élimination. L'ordre du podium (1er, 2e, 3e) tient compte du total des votes cumulés sur l'ensemble des étapes du parcours, pas seulement de ceux de cette dernière étape.\n\n• **Bloc groupé** (classement final) — le candidat fournit toutes ses vidéos d'emblée ; il n'y a qu'un seul décompte à la fin, un seul classement.`,
-      },
-      {
-        q: "Un challenge en solo ou en groupe ?",
-        a: `Chaque challenge est d'un seul type : Solo ou Groupes — jamais les deux mélangés. On oppose donc solo contre solo, ou groupe contre groupe (il serait injuste d'opposer une personne seule à une troupe).\n\nC'est le créateur du challenge qui choisit librement ce type au moment de la création (Solo par défaut). Tous ceux qui rejoignent le challenge suivent ce type : dans un challenge Groupes, chacun s'inscrit avec son groupe et son nom de groupe ; dans un challenge Solo, chacun concourt individuellement.\n\nSelon la discipline, le mode « Groupes » s'affiche avec le bon mot : Multi-voix au chant, Troupe en danse, Ensemble aux instruments, Équipe au sport.\n\nCôté cagnotte, rien ne change : un groupe compte comme une seule inscription — une place, une vidéo par étape, un seul gain s'il gagne ou une seule prime s'il est éliminé. Le partage éventuel entre les membres du groupe se fait entre eux, en dehors de la plateforme.`,
-      },
-      {
-        q: "Comment les gagnants et les éliminés sont-ils désignés ?",
-        a: `Uniquement par les votes du public. À chaque étape, les candidats sont classés par score ; les mieux classés continuent, les moins votés sont éliminés. Les scores qui déterminent les éliminations repartent de zéro à chaque nouvelle étape.\n\nLa dernière étape est un match de classement : plus personne n'est éliminé. L'ordre du podium (1er, 2e, 3e) est établi sur le total des votes cumulés par chaque finaliste sur l'ensemble des étapes — les votes des étapes précédentes comptent aussi, pas seulement ceux de la dernière.\n\nEn cas d'égalité à une place décisive, un court délai supplémentaire laisse les votes départager. Si l'égalité persiste, un classement de départage s'applique : le plus d'étoiles, puis le plus de cœurs, puis l'ordre d'inscription.`,
-      },
-      {
-        q: "Qui peut créer un challenge ?",
-        a: `Pour créer ou rejoindre un challenge, il faut :\n• être majeur (18 ans et plus) ;\n• avoir un compte vérifié à votre nom réel (nécessaire pour être payé) ;\n• disposer d'au moins une vidéo approuvée dont vous êtes l'auteur ;\n• accepter le règlement du concours.\n\nLe créateur devient le 1er candidat, et le challenge démarre automatiquement dès que le nombre de candidats du format est atteint.`,
-      },
-    ],
-  },
-  {
-    cat: '🎤 Participation',
-    items: [
-      { q: 'Comment participer à un challenge, étape par étape ?', a: "1. Créez un compte et vérifiez-le à votre vrai nom (indispensable pour recevoir vos gains).\n2. Déposez une vidéo de votre prestation depuis « Ajouter une vidéo » : elle passe en modération, puis, une fois approuvée, devient utilisable dans un challenge.\n3. Choisissez votre voie : rejoignez un appel ouvert depuis le Mur des appels, ou créez votre propre challenge (discipline, format, modèle).\n4. Le challenge démarre automatiquement dès que le nombre de candidats du format est atteint (par exemple 8 pour un C8). Les étapes s'ouvrent, et le public vote.\n\nRappel : ce n'est pas un jury technique qui décide — seuls les votes payants du public départagent les candidats." },
-      { q: 'De quoi ai-je besoin pour participer ?', a: "Quatre conditions pour concourir :\n• être majeur (18 ans et plus) ;\n• avoir un compte vérifié à votre vrai nom (nécessaire pour être payé) ;\n• disposer d'au moins une vidéo approuvée dont vous êtes l'auteur ;\n• accepter le Règlement du concours.\n\nRegarder les vidéos et voter ne demandent rien de tout cela : seule la participation en tant que candidat l'exige." },
-      { q: 'Quel type de vidéo puis-je soumettre ?', a: "Une prestation artistique ou sportive dont vous êtes l'auteur : danse, chant, instrument, humour, poésie, conte… ou une discipline sportive.\n\n• Format : vidéo standard MP4 ou MOV, jusqu'à 500 Mo.\n• Une seule prestation identifiable par vidéo, filmée correctement (image et son clairs).\n• Si l'appel impose un morceau précis (parfois avec une vidéo de référence à écouter), votre prestation doit s'y conformer.\n• Reprises : vous devez assumer les droits de la chanson reprise ; pour le chant, privilégiez l'instrumental « sans les paroles » (voir la question suivante).\n\nTout contenu offensant, volé ou hors sujet est refusé en modération." },
-      { q: "Reprise sans paroles : comment chanter sans la voix d'origine ?", a: "Pour une reprise en chant, tu chantes sur la musique de la chanson, sans la voix d'origine. Voici comment obtenir l'instrumental (le « karaoké »), gratuitement, même depuis ton téléphone :\n\n1. Prépare ta chanson : aie sous la main le fichier audio (MP3) ou son lien.\n2. Passe-la dans un outil gratuit qui sépare la voix et l'instrumental : moises.ai, vocalremover.org ou lalal.ai.\n3. Télécharge la piste « instrumental », lance-la et chante par-dessus en te filmant.\n\nAstuces : écoute la musique au casque et filme dans un endroit calme ; si le morceau est trop haut ou trop bas pour toi, Moises permet de changer la tonalité et le tempo. Un guide pas à pas est aussi disponible sur la page « Reprise sans paroles » (menu Comment ça marche)." },
-      { q: 'Comment rejoindre un appel sur le Mur des appels ?', a: "Le Mur des appels liste les challenges ouverts. Ouvrez celui qui vous inspire : vous y voyez la discipline, le format, les morceaux imposés (souvent avec une vidéo de référence à écouter) et l'objectif à collecter.\n\nPour rejoindre : touchez le panneau, choisissez une de vos vidéos approuvées, puis validez « Rejoindre l'appel ». Dès que toutes les places sont prises, le challenge démarre automatiquement." },
-      { q: "Combien coûte l'inscription à un challenge ?", a: "Pour les candidats, l'inscription à un challenge est 100 % gratuite.\n\nLes votes du public n'ont rien à voir avec l'inscription : voter n'est pas un « droit d'entrée ». Les votes servent à soutenir les candidats et à constituer la cagnotte du challenge — ils ne sont en aucun cas reliés à l'inscription d'un candidat.\n\nSeule exception : réutiliser une même vidéo déjà engagée dans un autre challenge peut entraîner des frais d'inscription, fixés par l'administration et affichés avant de confirmer." },
-      { q: 'Puis-je participer à plusieurs challenges en même temps ?', a: "Oui, vous pouvez rejoindre plusieurs challenges. Chaque challenge est prévu pour sa propre vidéo ; réutiliser une même vidéo dans un autre challenge reste possible mais est encadré par la plateforme (des frais d'inscription, fixés par l'administration, peuvent s'appliquer)." },
-      { q: 'Puis-je changer ma vidéo entre deux étapes ?', a: "Oui — c'est le principe du modèle **Parcours** : vous soumettez une nouvelle vidéo avant chaque nouvelle étape, depuis Mes vidéos. Les scores qui déterminent les éliminations repartent de zéro à chaque étape, mais le classement final du podium tient compte du total des votes cumulés sur toutes les étapes (voir « Comment les gagnants et les éliminés sont-ils désignés ? »).\n\nEn modèle **Bloc groupé**, à l'inverse, vous fournissez toutes vos vidéos dès le départ, pour un seul classement final." },
-    ],
-  },
-  {
-    cat: '🗳️ Votes & Cagnotte',
-    items: [
-      { q: "📌 Ce qu'il faut retenir", a: "1. Voter, c'est envoyer des réactions (étoiles ★ et cœurs/likes ❤️) à un candidat.\n2. Ces réactions ont une valeur financière : elles sont monétisables — chaque vote alimente la cagnotte du challenge.\n3. Le vote du public a donc un double rôle : soutenir un candidat ET générer de l'argent (le prix à partager à la fin)." },
-      { q: 'Comment fonctionne le vote ?', a: "Deux façons de soutenir :\n• ★ Étoile = 100 F CFA (poids +1 au classement)\n• ❤️ Cœur = 200 F CFA (poids +2 au classement)\n\nVous pouvez voter par paliers (100, 200, 500, 1 000 F) ou saisir une quantité libre. Chaque vote fait monter le score du candidat et alimente la cagnotte du challenge." },
-      { q: "Peut-on voter sans créer de compte ?", a: "Oui. Quand tu arrives sur la page d'un candidat (par exemple via son lien de vote personnel), tu le soutiens en 2 temps : tu choisis ★ ou ❤️ et la quantité, puis tu valides avec ton numéro Mobile Money et un code reçu par SMS — sans créer de compte au préalable. Le vote n'est compté qu'une fois le paiement confirmé par l'opérateur. Juste après, un écran te remercie, te montre que ta voix a fait monter le candidat, et te propose de faire voter un ami. En votant, tu peux aussi cumuler des Échos, le programme de fidélité « Les Échos » de Diki-Diki." },
-      { q: "C'est quoi mon lien de vote personnel ? (candidats)", a: "Chaque candidat a un lien court et personnel, de la forme diki-diki.com/v/… , qui mène droit sur sa page de vote. Tu le retrouves dans ton espace Compte → Mes challenges, dans le bloc « Mes liens de vote » : tu peux le copier, le partager (TikTok, WhatsApp, tes lives…) ou afficher son QR code. Plus tu le partages, plus le public te trouve en un clic et te soutient, sans avoir à chercher ton nom. La plateforme mesure les clics et les votes venus de ton lien, pour que tu voies ce que ton partage rapporte." },
-      { q: "Comment la cagnotte est-elle partagée ?", a: "La cagnotte, c'est l'ensemble des votes d'un challenge. La plateforme prélève une commission (50 %) ; le reste — le net — revient au podium, selon le format :\n\n• C2 (1 gagnant) : 100 %\n• C4 (2 gagnants) : 65 % / 35 %\n• C6, C8, C12, C16 (3 gagnants) : 60 % / 25 % / 15 %\n\nSur sa commission, la plateforme finance aussi les primes de participation des éliminés et réserve une part au programme de fidélité (« Les Échos »), qui récompense les membres les plus actifs. Aucun cadeau n'est garanti ni promis, et les Échos ne se convertissent jamais en argent.\n\nRègle intangible : on ne distribue jamais plus que ce qui a été collecté." },
-      { q: "Que gagne un candidat éliminé ?", a: "Toute participation est récompensée : chaque éliminé reçoit une prime de participation, égale à 20 % de ce que ses propres votes ont rapporté. Ces primes sont financées par la commission de la plateforme, pas par la part du podium." },
-      { q: "L'objectif d'une étape, est-ce mon gain ?", a: "Non — c'est une confusion fréquente. L'objectif d'une étape est le montant à collecter pour qu'elle se ferme, pas un gain de candidat. Votre gain réel dépend de la cagnotte réellement collectée, moins la commission, partagée selon le podium." },
-      { q: "Qu'est-ce que « Soutenir » un artiste ?", a: "En dehors des périodes de vote d'un challenge (entre deux étapes, ou pour une vidéo hors challenge), vous pouvez Soutenir directement un artiste. Le montant est fixé par la plateforme et affiché au moment de soutenir ; une part revient directement à l'artiste soutenu." },
-      { q: 'Puis-je voter plusieurs fois pour le même candidat ?', a: "Oui, autant de fois que vous le souhaitez, tant que l'étape est active et que votre solde le permet. Un même envoi est limité à 1 000 unités au maximum — au-delà, il suffit de renvoyer un vote." },
-    ],
-  },
-  {
-    cat: '💳 Paiement & Retrait',
-    items: [
-      { q: 'Comment retirer mes gains ?', a: "Allez dans votre Compte → Retrait, saisissez le montant, choisissez votre pays et votre opérateur Mobile Money, puis votre numéro de réception. Le virement est en général reçu en quelques minutes.\n\nSeuls les gains (podium ou prime de participation) sont retirables. L'argent chargé pour voter, lui, ne se retire pas." },
-      { q: 'Dans quels pays puis-je retirer mes gains ?', a: "Le retrait Mobile Money s'ouvre progressivement à travers l'Afrique :\n\n✅ Disponible : 🇧🇯 Bénin\n\n🔓 En cours d'ouverture (Afrique de l'Ouest francophone) : 🇨🇮 Côte d'Ivoire, 🇸🇳 Sénégal, 🇹🇬 Togo, 🇧🇫 Burkina Faso, 🇳🇪 Niger\n\n🌍 Bientôt (reste de l'Afrique) : Ghana, Nigeria, Kenya, Tanzanie, Ouganda, Rwanda, Cameroun, RD Congo, Gabon, Congo-Brazzaville, Zambie, Malawi, Mozambique, Éthiopie, Sierra Leone, Lesotho\n\n💳 À venir : Afrique du Nord et australe (paiement par carte)\n\nSi ton pays n'est pas encore ouvert, tes gains restent en sécurité sur ton Compte de Retrait en attendant." },
-      { q: 'Quels moyens de paiement sont acceptés ?', a: "Le Mobile Money, selon ton pays : MTN, Moov, Orange, Wave, Celtiis… traités par notre partenaire FedaPay (et bientôt PawaPay pour élargir la couverture à toute l'Afrique)." },
-      { q: 'Y a-t-il des frais sur les retraits ?', a: "Oui : des frais fixes de 150 F CFA par retrait s'appliquent. Ce sont les frais de notre partenaire de paiement, répercutés à l'identique — Diki-Diki ne prend aucune marge dessus. Ils sont affichés clairement dans le récapitulatif avant de confirmer (« Vous recevrez : montant − 150 F »)." },
-      { q: 'Mon retrait a échoué, que faire ?', a: "Pas d'inquiétude : en cas d'échec, tes gains restent disponibles sur ton Compte de Retrait — rien n'est perdu. Réessaie un peu plus tard, et si le problème persiste, contacte-nous via la page Contact → raccourci « Retrait & paiement »." },
-    ],
-  },
-  {
-    cat: '🔒 Compte & Sécurité',
-    items: [
-      { q: 'Comment réinitialiser mon mot de passe ?', a: "Sur la page de connexion, cliquez sur « Mot de passe oublié ». Un lien de réinitialisation vous sera envoyé." },
-      { q: 'Comment supprimer mon compte ?', a: "Allez dans Paramètres → Mon compte → Supprimer mon compte. L'action est irréversible ; vos données sont supprimées dans un délai de 30 jours." },
-      { q: 'Mon compte a été suspendu, que faire ?', a: "Contactez-nous via la page Contact en précisant votre nom d'utilisateur et la raison supposée. Nous étudions chaque cas sous 48 h." },
-    ],
-  },
-];
-
-/*DKDK_FORMATS_GRID — grille dynamique des formats, lue en direct depuis l'Admin
-  (GET public /challenge-formats + /bloc-objectifs). Toute modif admin s'y reflète.*/
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
-
+/*DKDK_FORMATS_GRID — grille dynamique des formats, lue en direct depuis l'Admin.*/
 interface FmtRow { id: string; code: string; libelle: string; nb_candidats: number; nb_etapes: number; nb_videos: number; objectif_etape: number; actif: boolean; ordre?: number; }
 interface BlocRow { id: string; format_code: string; niveau: number; objectif: number; nb_gagnants: number; }
-
 const fmtF = (n: number): string => (n ?? 0).toLocaleString('fr-FR') + ' F';
 
 function FormatsGrid() {
@@ -165,23 +64,15 @@ function FormatsGrid() {
   const th: React.CSSProperties = { textAlign: 'left', fontFamily: "'Syne', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: '.03em', textTransform: 'uppercase', color: 'var(--or)', padding: '9px 10px', borderBottom: '1px solid var(--line)', whiteSpace: 'nowrap' };
   const td: React.CSSProperties = { fontSize: 13, color: 'var(--ink)', padding: '9px 10px', borderBottom: '1px solid var(--line)', whiteSpace: 'nowrap' };
   const tdMut: React.CSSProperties = { ...td, color: 'var(--ink-soft)' };
-
   const blocsActifs = blocs.filter(b => fmts.some(f => f.code === b.format_code));
 
   return (
     <div style={{ margin: '4px 0 2px' }}>
-      {/* Résumé par format */}
       <div style={{ overflowX: 'auto', border: '1px solid var(--line)', borderRadius: 12, marginBottom: 14 }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
           <thead>
             <tr>
-              <th style={th}>Format</th>
-              <th style={th}>Candidats</th>
-              <th style={th}>Étapes</th>
-              <th style={th}>Vidéos</th>
-              <th style={th}>Objectif/étape</th>
-              <th style={th}>Gagnants</th>
-              <th style={th}>Éliminés</th>
+              <th style={th}>Format</th><th style={th}>Candidats</th><th style={th}>Étapes</th><th style={th}>Vidéos</th><th style={th}>Objectif/étape</th><th style={th}>Gagnants</th><th style={th}>Éliminés</th>
             </tr>
           </thead>
           <tbody>
@@ -203,24 +94,14 @@ function FormatsGrid() {
           </tbody>
         </table>
       </div>
-
-      {/* Détail par niveau (dépliable) */}
       <button onClick={() => setDetail(v => !v)} style={{ background: 'none', border: '1px solid var(--line)', color: 'var(--or)', fontSize: 12.5, fontWeight: 700, borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}>
         {detail ? '▾ Masquer le détail par niveau' : '▸ Voir le détail par niveau (bloc groupé)'}
       </button>
-
       {detail && (
         <div style={{ overflowX: 'auto', border: '1px solid var(--line)', borderRadius: 12, marginTop: 12 }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
             <thead>
-              <tr>
-                <th style={th}>Format</th>
-                <th style={th}>Niveau</th>
-                <th style={th}>Vidéos</th>
-                <th style={th}>Objectif</th>
-                <th style={th}>Gagnants</th>
-                <th style={th}>Éliminés</th>
-              </tr>
+              <tr><th style={th}>Format</th><th style={th}>Niveau</th><th style={th}>Vidéos</th><th style={th}>Objectif</th><th style={th}>Gagnants</th><th style={th}>Éliminés</th></tr>
             </thead>
             <tbody>
               {blocsActifs.map(b => (
@@ -241,16 +122,30 @@ function FormatsGrid() {
   );
 }
 
+// Rendu d'une ligne : liens [texte](url) + **gras**.
 function renderRich(line: string) {
-  // **terme** -> mis en evidence, plus grand et colore (DKDK_FAQ_EMPH)
-  const parts = line.split(/\*\*(.+?)\*\*/g);
-  return parts.map((seg, j) => (j % 2 === 1)
-    ? <strong key={j} style={{ fontSize: 17, fontWeight: 800, color: OR }}>{seg}</strong>
-    : <span key={j}>{seg}</span>);
+  const nodes: React.ReactNode[] = [];
+  const linkRe = /\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)/g;
+  let last = 0; let m: RegExpExecArray | null; let key = 0;
+  const pushText = (txt: string) => {
+    const parts = txt.split(/\*\*(.+?)\*\*/g);
+    parts.forEach((seg, j) => nodes.push(j % 2 === 1
+      ? <strong key={'b' + (key++)} style={{ fontSize: 17, fontWeight: 800, color: OR }}>{seg}</strong>
+      : <span key={'s' + (key++)}>{seg}</span>));
+  };
+  while ((m = linkRe.exec(line)) !== null) {
+    if (m.index > last) pushText(line.slice(last, m.index));
+    const url = m[2];
+    nodes.push(<a key={'l' + (key++)} href={url} target={url.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ color: OR, textDecoration: 'underline', fontWeight: 700 }}>{m[1]}</a>);
+    last = m.index + m[0].length;
+  }
+  if (last < line.length) pushText(line.slice(last));
+  return nodes;
 }
 
 function FaqItem({ q, a, node }: { q: string; a: string; node?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const lines = (a || '').split('\n');
   return (
     <div style={s.item}>
       <button style={s.q} onClick={() => setOpen(!open)}>
@@ -259,8 +154,8 @@ function FaqItem({ q, a, node }: { q: string; a: string; node?: React.ReactNode 
       </button>
       {open && (
         <div style={s.a}>
-          {a.split('\n').map((line, i) => (
-            <span key={i}>{renderRich(line)}{i < a.split('\n').length - 1 && <br />}</span>
+          {lines.map((line, i) => (
+            <span key={i}>{renderRich(line)}{i < lines.length - 1 && <br />}</span>
           ))}
           {node ? <div style={{ marginTop: 12 }}>{node}</div> : null}
         </div>
@@ -269,12 +164,29 @@ function FaqItem({ q, a, node }: { q: string; a: string; node?: React.ReactNode 
   );
 }
 
+type FaqCat = { id: string; libelle: string; items: { id: string; type: string; question: string; reponse: string }[] };
+
 export default function FAQPage() {
+  const [cats, setCats] = useState<FaqCat[]>([]);
+  const [state, setState] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
+
+  useEffect(() => {
+    let annule = false;
+    (async () => {
+      try {
+        const r = await fetch(`${API}/faq`, { cache: 'no-store' });
+        const j = await r.json();
+        if (!r.ok || !j.success) { if (!annule) setState('error'); return; }
+        const d = (j.data || []) as FaqCat[];
+        if (!annule) { setCats(d); setState(d.length ? 'ready' : 'empty'); }
+      } catch { if (!annule) setState('error'); }
+    })();
+    return () => { annule = true; };
+  }, []);
+
   return (
     <div style={s.page}>
       <Navbar />{/*DKDK_FAQ_NAVBAR_USE*/}
-      {/*DKDK_FAQ_HERO*/}
-
       <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
         <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 4px' }}>
           <section style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '24px 20px', textAlign: 'center', color: '#fff', boxShadow: '0 8px 40px rgba(225,29,143,0.35)' }}>
@@ -288,10 +200,15 @@ export default function FAQPage() {
       <div style={s.divider} />
 
       <div style={s.body}>
-        {faqs.map(({ cat, items }) => (
-          <div key={cat}>
-            <p style={s.catTitle}>{cat}</p>
-            {items.map(({ q, a }) => <FaqItem key={q} q={q} a={a} node={q === "Quels sont les formats de challenge ?" ? <FormatsGrid /> : undefined} />)}
+        {state === 'loading' && <p style={s.state}>Chargement de la FAQ…</p>}
+        {state === 'error' && <p style={s.state}>Impossible de charger la FAQ pour le moment. Réessaie un peu plus tard.</p>}
+        {state === 'empty' && <p style={s.state}>La FAQ sera bientôt disponible.</p>}
+        {state === 'ready' && cats.map((c) => (
+          <div key={c.id}>
+            <p style={s.catTitle}>{c.libelle}</p>
+            {c.items.map((it) => (
+              <FaqItem key={it.id} q={it.question} a={it.reponse} node={it.type === 'formats' ? <FormatsGrid /> : undefined} />
+            ))}
           </div>
         ))}
 

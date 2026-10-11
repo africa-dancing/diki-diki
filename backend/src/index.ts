@@ -42,6 +42,7 @@ import gamificationRouter from './routes/gamification.routes'; /*DKDK_GAMIFICATI
 import tirageRouter from './routes/tirage.routes'; /*DKDK_TIRAGE_IMPORT*/
 import vitrineRouter from './routes/vitrine.routes'; /*DKDK_VITRINE_IMPORT*/
 import votelinkRouter from './routes/votelink.routes'; /*DKDK_VOTE_LINK_IMPORT*/
+import faqRouter from './routes/faq.routes'; /*DKDK_FAQ_IMPORT*/
 import { startBracketCron }                             from './cron/bracket.cron';        // ✅ déplacé ici
 import { startAnalyticsCron }                           from './cron/analytics.cron';    /*DKDK_ANALYTICS_CRON*/
 import { errorHandler }                                 from './middleware/error.middleware';
@@ -110,6 +111,7 @@ app.use('/v1/gamification', gamificationRouter); /*DKDK_GAMIFICATION_MOUNT*/
 app.use('/v1/tirages', tirageRouter); /*DKDK_TIRAGE_MOUNT*/
 app.use('/v1/vitrine', vitrineRouter); /*DKDK_VITRINE_MOUNT — catalogue public lecture seule*/
 app.use('/v1/vote-link', votelinkRouter); /*DKDK_VOTE_LINK_MOUNT — resolution des liens de vote (lecture seule)*/
+app.use('/v1/faq', faqRouter); /*DKDK_FAQ_MOUNT — FAQ editable depuis l'Admin*/
 // SÉCURITÉ (B3) : porte fermée pour le lancement. Décommenter (ici + l'import en haut) une fois le module sécurisé.
 // app.use('/v1/education',     educationRouter);
 

@@ -22,6 +22,7 @@ const MENU = [
   { href: '/admin/taxonomie',  icon: '🗂', label: 'Taxonomie' }, /*DKDK_TAXO_NAV*/
   { href: '/admin/ticker',     icon: '📢', label: 'Communiquer'   },
   { href: '/admin/contact',    icon: '✉️', label: 'Messages' }, /*DKDK_CONTACT_NAV*/
+  { href: '/admin/faq',        icon: '❓', label: 'FAQ' }, /*DKDK_FAQ_NAV*/
   { href: '/admin/stats',      icon: '📊', label: 'Statistiques'      },
   { href: '/admin/monitoring', icon: '📈', label: 'Monitoring' }, /*DKDK_MONITORING_NAV*/
   { href: '/manuel-admin.html', icon: '📘', label: 'Manuel admin', external: true }, /*DKDK_MANUEL_NAV*/
