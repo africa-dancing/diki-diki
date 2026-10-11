@@ -114,6 +114,17 @@ export default function ChallengeDetailPage() {
               ))}
             </div>
 
+            <Link href={`/challenges/${d.id}/classement`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, textDecoration: 'none', background: 'linear-gradient(135deg,#FFAA00,#FF6B00)', color: '#140a02', borderRadius: 14, padding: '14px 18px', margin: '0 0 16px', fontWeight: 800 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 20 }}>🏆</span>
+                <span>
+                  <span style={{ display: 'block', fontSize: 15 }}>Podium &middot; Classement des votes</span>
+                  <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, opacity: .82 }}>Vois qui m&egrave;ne, en direct &mdash; et soutiens ton talent</span>
+                </span>
+              </span>
+              <span style={{ fontSize: 18 }}>&rarr;</span>
+            </Link>
+
             {(() => {
               const regles = Array.from(new Set((d.etapes || []).flatMap(e => (e.regle || '').split('\n')).map(x => x.trim()).filter(Boolean)));
               if (regles.length === 0) return null;
