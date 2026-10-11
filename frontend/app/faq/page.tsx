@@ -5,6 +5,7 @@
    Les réponses acceptent : sauts de ligne, **gras**, puces (•) et liens [texte](url). */
 'use client';
 import Navbar from '../components/Navbar';/*DKDK_FAQ_NAVBAR_IMPORT*/
+import EchosAvantagesBlock from '../components/EchosAvantagesBlock';/*DKDK_FAQ_AVANTAGES_IMPORT*/
 import { useState, useEffect } from 'react';
 
 const OR = 'var(--or)';
@@ -206,9 +207,11 @@ export default function FAQPage() {
         {state === 'ready' && cats.map((c) => (
           <div key={c.id}>
             <p style={s.catTitle}>{c.libelle}</p>
-            {c.items.map((it) => (
-              <FaqItem key={it.id} q={it.question} a={it.reponse} node={it.type === 'formats' ? <FormatsGrid /> : undefined} />
-            ))}
+            {c.items.map((it) => {
+              const node = it.type === 'formats' ? <FormatsGrid /> : it.type === 'avantages' ? <EchosAvantagesBlock /> : undefined;
+              const a = it.type === 'avantages' ? '' : it.reponse;
+              return <FaqItem key={it.id} q={it.question} a={a} node={node} />;
+            })}
           </div>
         ))}
 

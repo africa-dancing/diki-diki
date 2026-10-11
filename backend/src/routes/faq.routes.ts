@@ -76,7 +76,7 @@ faqRouter.post('/admin/items', requireAuth, requireAdmin, async (req: AuthReques
   try {
     const { categorie_id, type, question, reponse, ordre } = req.body || {};
     if (!categorie_id || !question || !String(question).trim()) return res.status(400).json({ success: false, error: 'CHAMPS_REQUIS' });
-    const t = type === 'formats' ? 'formats' : 'texte';
+    const t = ['texte', 'formats', 'avantages'].includes(type) ? type : 'texte';
     const { data, error } = await sb().from('faq_items')
       .insert({ categorie_id, type: t, question: String(question), reponse: reponse != null ? String(reponse) : '', ordre: Number.isFinite(ordre) ? ordre : 999 })
       .select().single();
@@ -89,7 +89,7 @@ faqRouter.put('/admin/items/:id', requireAuth, requireAdmin, async (req: AuthReq
   try {
     const patch: any = { updated_at: new Date().toISOString() };
     for (const k of ['categorie_id', 'type', 'question', 'reponse', 'ordre', 'actif']) if (k in (req.body || {})) patch[k] = req.body[k];
-    if ('type' in patch && patch.type !== 'formats') patch.type = 'texte';
+    if ('type' in patch && !['texte', 'formats', 'avantages'].includes(patch.type)) patch.type = 'texte';
     const { data, error } = await sb().from('faq_items').update(patch).eq('id', req.params.id).select().single();
     if (error) throw error;
     return res.json({ success: true, data });

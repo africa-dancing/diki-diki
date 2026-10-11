@@ -131,6 +131,7 @@ export default function AdminFaqPage() {
                       <select style={inp} value={it.type} onChange={e => patchItem(it.id, { type: e.target.value })}>
                         <option value="texte">texte</option>
                         <option value="formats">formats</option>
+                        <option value="avantages">avantages (bloc Échos)</option>
                       </select>
                     </div>
                     <div style={{ width: 70 }}>
