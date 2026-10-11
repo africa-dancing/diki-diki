@@ -792,6 +792,70 @@ bracketRouter.get('/by-video/:videoId', async (req: Request, res: Response) => {
   }
 });
 
+// ===== CLASSEMENT PUBLIC D'UN CHALLENGE (podium + liste) =====
+// Étape en cours (scores courants) + Cumul du parcours (somme des voix de bracket_votes).
+// Lecture seule. N'entre dans AUCUN calcul d'argent.
+bracketRouter.get('/:bracket_id/classement', async (req: Request, res: Response) => {
+  try {
+    const supabase = getSupabase();
+    const bracketId = req.params.bracket_id;
+
+    const { data: bracket } = await supabase
+      .from('brackets')
+      .select('id, title, discipline, status, type, mode, current_round, max_participants')
+      .eq('id', bracketId)
+      .maybeSingle();
+    if (!bracket) return res.status(404).json({ success: false, error: 'BRACKET_NOT_FOUND' });
+
+    const { data: parts } = await supabase
+      .from('bracket_participants')
+      .select('id, public_code, user_id, video_id, score, stars_count, hearts_count, eliminated_at, suspended_at, users(name, avatar_url)')
+      .eq('bracket_id', bracketId);
+
+    // Cumul du parcours : somme des montants de bracket_votes / 100 = voix (unites), par candidat.
+    const { data: votes } = await supabase
+      .from('bracket_votes')
+      .select('participant_vote, montant')
+      .eq('bracket_id', bracketId);
+    const cumul: Record<string, number> = {};
+    for (const v of (votes || []) as any[]) {
+      const pid = v.participant_vote; if (!pid) continue;
+      cumul[pid] = (cumul[pid] || 0) + Number(v.montant || 0);
+    }
+
+    const candidats = (parts || []).map((p: any) => {
+      const u = p.users || null;
+      return {
+        participant_id: p.id,
+        public_code: p.public_code || null,
+        nom: u ? u.name : null,
+        avatar_url: u ? u.avatar_url : null,
+        video_id: p.video_id,
+        etoiles: Number(p.stars_count || 0),
+        coeurs: Number(p.hearts_count || 0),
+        voix_etape: Number(p.score || 0),
+        voix_cumul: Math.round((cumul[p.id] || 0) / 100),
+        eliminated: !!p.eliminated_at,
+        suspended: !!p.suspended_at,
+      };
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        bracket: {
+          id: (bracket as any).id, title: (bracket as any).title, discipline: (bracket as any).discipline,
+          status: (bracket as any).status, type: (bracket as any).type, mode: (bracket as any).mode || null,
+          current_round: (bracket as any).current_round, max_participants: (bracket as any).max_participants,
+        },
+        candidats,
+      },
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ===== ROUTES VIDEOS PAR ROUND (modele une video par etape) =====
 /*DKDK_VIDEO_ROUND*/
 
