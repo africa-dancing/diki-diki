@@ -51,7 +51,7 @@ export default function ChallengesListPage() {
             Les Challenges
           </h1>
           <div style={{ fontSize:12, color:'#fff', lineHeight:1.6 }}>
-            {/*DKDK_BANDEAU*/}Bienvenue dans l{'\u2019'}Arène Diki-Diki. Il y a deux façons d{'\u2019'}entrer dans la compétition, juste en dessous {'\u2014'} et dans les deux cas, c{'\u2019'}est le public qui vote, jamais un jury. Toute participation est encouragée.
+            {/*DKDK_BANDEAU*/}Bienvenue dans l{'\u2019'}Arène Diki-Diki. Il y a deux façons d{'\u2019'}entrer dans la compétition, juste en dessous.
           </div>
         </div>
         </div>
