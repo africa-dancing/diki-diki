@@ -51,7 +51,7 @@ export default function ChallengesListPage() {
             Les Challenges
           </h1>
           <div style={{ fontSize:12, color:'#fff', lineHeight:1.6 }}>
-            {/*DKDK_BANDEAU*/}Podium Challenges {'\u00B7'} Parcours d{'\u2019'}{'\u00E9'}tapes ({'\u00E9'}limination progressive) ou Bloc group{'\u00E9'} (classement final) {'\u00B7'} 6 formats et 4 niveaux de difficult{'\u00E9'} {'\u00B7'} Toute participation m{'\u00E9'}rite un encouragement
+            {/*DKDK_BANDEAU*/}Bienvenue dans l{'\u2019'}Arène Diki-Diki. Il y a deux façons d{'\u2019'}entrer dans la compétition, juste en dessous {'\u2014'} et dans les deux cas, c{'\u2019'}est le public qui vote, jamais un jury. Toute participation est encouragée.
           </div>
         </div>
         </div>
@@ -62,11 +62,17 @@ export default function ChallengesListPage() {
         <Link href="/challenges/appels" style={{ display:'block', textAlign:'center' as const, background:'var(--surface2)', border:'1px solid var(--or)', color:'var(--or)', fontWeight:800, fontFamily:'Syne,sans-serif', fontSize:15, padding:'13px', borderRadius:14, textDecoration:'none', marginBottom:10 }}>
           {'\u{1F3A7}'} Rejoindre un appel
         </Link>
+        <p style={{ margin:'-4px 0 12px', fontSize:11.5, color:'var(--ink-soft)', textAlign:'center' as const, lineHeight:1.5 }}>
+          Une place t{'\u2019'}attend dans un challenge déjà lancé : choisis-en un, dépose ta vidéo, et le public fait le reste.
+        </p>
 
         {/* Bouton creer un challenge */}
         <Link href="/challenges/creer" style={{ display:'block', textAlign:'center' as const, background:'linear-gradient(135deg,#FF6B00,#FFD700)', color:'#000', fontWeight:800, fontFamily:'Syne,sans-serif', fontSize:15, padding:'14px', borderRadius:14, textDecoration:'none', marginBottom:20 }}>
           {'\u{1F3A4}'} Créer un challenge
         </Link>
+        <p style={{ margin:'-14px 0 20px', fontSize:11.5, color:'var(--ink-soft)', textAlign:'center' as const, lineHeight:1.5 }}>
+          Lance ton propre défi : tu choisis le format (C2 à C16), la discipline et le mode (Parcours ou Bloc groupé). Tu ouvres l{'\u2019'}Arène, les autres te rejoignent.
+        </p>
 
         {loading && (
           <div style={{ textAlign:'center' as const, padding:'60px 0', color:'var(--ink-dim)' }}>{'\u23F3'} Chargement{'\u2026'}</div>
