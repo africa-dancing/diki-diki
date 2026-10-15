@@ -18,6 +18,7 @@ export default function PubAccueil() {
   const [ann, setAnn]   = useState<Annonce[]>([]);
   const [on, setOn]     = useState(false);
   const [bandeau, setBandeau] = useState('');           // texte de la bande-annonce (vide = masquee)
+  const [vitesse, setVitesse] = useState(20);           // duree d'un passage en secondes (plus bas = plus rapide)
   const [sel, setSel]   = useState<Annonce | null>(null);   // clic (verrouille, interactif)
   const [hover, setHov] = useState<Annonce | null>(null);   // survol (apercu, non bloquant)
 
@@ -33,6 +34,8 @@ export default function PubAccueil() {
       setOn(String(actif).trim() === '1' || String(actif).trim() === 'true');
       const bText = data.find((x: any) => x.key === 'pub_accueil_bandeau')?.value;
       setBandeau(typeof bText === 'string' ? bText.trim() : '');
+      const vit = parseFloat(data.find((x: any) => x.key === 'pub_accueil_vitesse')?.value);
+      if (!isNaN(vit) && vit >= 3 && vit <= 120) setVitesse(vit);
       setAnn(a?.data || []);
     });
     return () => { alive = false; };
@@ -70,7 +73,7 @@ export default function PubAccueil() {
             <style>{`@keyframes dkdk-marq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}`}</style>
             <a href="/challenges/appels" aria-label={bandeau} style={{ textDecoration: 'none', display: 'block', marginBottom: hasAds ? 10 : 2 }}>
               <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 10, border: '1px solid rgba(0,0,0,0.12)', background: '#ffffff', padding: '12px 0' }}>
-                <div style={{ display: 'inline-flex', whiteSpace: 'nowrap', animation: 'dkdk-marq 20s linear infinite', willChange: 'transform' }}>
+                <div style={{ display: 'inline-flex', whiteSpace: 'nowrap', animation: `dkdk-marq ${vitesse}s linear infinite`, willChange: 'transform' }}>
                   {[0, 1].map(k => (
                     <span key={k} aria-hidden={k === 1} style={{ display: 'inline-flex', alignItems: 'center', paddingRight: 48, fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 18.5, color: '#111' }}>
                       <span style={{ marginRight: 14, fontSize: 21 }}>📣</span>

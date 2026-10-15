@@ -214,6 +214,29 @@ export default function AdminReglagesPage() {
                     Vider / désactiver
                   </button>
                 </div>
+                {/* Vitesse de defilement — reglage dynamique */}
+                <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div style={{ fontSize: 13, color: '#e8e0d0', marginBottom: 2 }}>Vitesse de défilement de la bande-annonce</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 12 }}>pub_accueil_vitesse — durée d&apos;un passage, en secondes. Plus la valeur est basse, plus ça défile vite.</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>⏩ Rapide</span>
+                    <input type="range" min={6} max={50} step={1}
+                      value={Number(valeurs['pub_accueil_vitesse'] ?? '20')}
+                      onChange={e => setValeurs({ ...valeurs, pub_accueil_vitesse: e.target.value })}
+                      style={{ flex: 1, accentColor: OR, cursor: 'pointer' }} />
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>Lente 🐢</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#4ade80', margin: '10px 0 12px' }}>
+                    La bande défile en {valeurs['pub_accueil_vitesse'] ?? '20'} s par passage.
+                  </div>
+                  <button
+                    onClick={() => enregistrer('pub_accueil_vitesse', 'Duree d un passage de la bande-annonce de l accueil, en secondes (plus bas = plus rapide)')}
+                    disabled={busyKey === 'pub_accueil_vitesse'}
+                    style={{ background: OR, color: '#000', fontWeight: 700, fontSize: 13, padding: '9px 18px', borderRadius: 8, border: 'none', cursor: busyKey === 'pub_accueil_vitesse' ? 'default' : 'pointer', opacity: busyKey === 'pub_accueil_vitesse' ? 0.6 : 1 }}
+                  >
+                    Enregistrer la vitesse
+                  </button>
+                </div>
               </div>
             </div>
           )}
