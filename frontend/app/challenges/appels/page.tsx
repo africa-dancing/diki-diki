@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
+import EcouterPage from '../../components/EcouterPage';
 import TickerBand from '../../components/TickerBand'; /*DKDK_TICKER_TOP*/
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
@@ -199,6 +200,7 @@ export default function MurDesAppelsPage() {
       fontFamily: 'DM Sans, sans-serif', paddingBottom: 80,
     }}>
       <Navbar />
+      <EcouterPage />
       <TickerBand /> {/*DKDK_TICKER_TOP — bandeau en haut du Mur des appels*/}
 
       {/* HERO — halo magenta collé à la barre + panneau compact (aligné sur /challenges) */}

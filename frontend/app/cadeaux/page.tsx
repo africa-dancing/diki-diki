@@ -6,6 +6,7 @@
 // jamais promises (verrou juridique §7.8).
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
+import EcouterPage from '../components/EcouterPage';
 import EchoIcon, { StatutEcho } from '../components/EchoIcon';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
@@ -13,7 +14,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 // Degrades — memes vraies teintes que l'admin (vert #1FB673, jaune #FFC233, rouge logo #FE0000)
 const GRAD = {
   vert: 'linear-gradient(135deg,#1FB673,#12935C)',
-  jaune: 'linear-gradient(135deg,#FFD84D,#FFC233)',
+  jaune: 'linear-gradient(135deg,#FFEB4D,#FFDE00)',
   rouge: 'linear-gradient(135deg,#FE0000,#C80000)',
   heraut: 'linear-gradient(135deg,#3B9BFF,#1557C8)',
   grand: 'linear-gradient(135deg,#FFC24D,#E08A00)',
@@ -77,6 +78,7 @@ export default function CadeauxPage() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', color: INK, fontFamily: "'DM Sans', sans-serif", paddingBottom: 80 }}>
       <Navbar />
+      <EcouterPage />
 
       {/* HERO — halo + banniere magenta/rouge (style Classement) */}
       <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>

@@ -4,7 +4,8 @@
    L'item de type 'formats' affiche le tableau des formats EN DIRECT (inchangé).
    Les réponses acceptent : sauts de ligne, **gras**, puces (•) et liens [texte](url). */
 'use client';
-import Navbar from '../components/Navbar';/*DKDK_FAQ_NAVBAR_IMPORT*/
+import Navbar from '../components/Navbar';
+import EcouterPage from '../components/EcouterPage';/*DKDK_FAQ_NAVBAR_IMPORT*/
 import EchosAvantagesBlock from '../components/EchosAvantagesBlock';/*DKDK_FAQ_AVANTAGES_IMPORT*/
 import { useState, useEffect } from 'react';
 
@@ -187,7 +188,8 @@ export default function FAQPage() {
 
   return (
     <div style={s.page}>
-      <Navbar />{/*DKDK_FAQ_NAVBAR_USE*/}
+      <Navbar />
+      <EcouterPage />{/*DKDK_FAQ_NAVBAR_USE*/}
       <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
         <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 4px' }}>
           <section style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '24px 20px', textAlign: 'center', color: '#fff', boxShadow: '0 8px 40px rgba(225,29,143,0.35)' }}>

@@ -1,5 +1,6 @@
 'use client';
 import Navbar from '../components/Navbar';
+import EcouterPage from '../components/EcouterPage';
 
 const OR = 'var(--or)';
 const OR2 = 'var(--or2)';
@@ -276,6 +277,7 @@ export default function CGUPage() {
   return (
     <div style={s.page}>
       <Navbar />
+      <EcouterPage />
 
       <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
         <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px 4px' }}>
