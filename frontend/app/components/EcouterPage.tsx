@@ -5,6 +5,42 @@ import { useEffect, useRef, useState } from 'react';
    Aucune clé API, aucun serveur, fonctionne hors-ligne. Lit le contenu principal de la page
    (le menu <nav>, le pied de page et le bouton lui-même sont exclus). Voix française si dispo.
    Play / Pause / Reprendre / Arrêter. Si le navigateur ne sait pas lire, le bouton ne s'affiche pas. */
+/* Helpers vocaux reutilisables (meme voix FR, meme decoupage en phrases).
+   Utilises par le bouton global ET par le bouton « Ecouter la reponse » de la FAQ. */
+function choisirVoixFr(): SpeechSynthesisVoice | null {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+  const voix = window.speechSynthesis.getVoices();
+  return (
+    voix.find(v => /^fr/i.test(v.lang) && /google|natural|enhanced|premium/i.test(v.name)) ||
+    voix.find(v => /^fr/i.test(v.lang)) || null
+  );
+}
+
+export function arreterLecture() {
+  try { if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel(); } catch {}
+}
+
+/** Lit un texte a voix haute (FR). Rappelle onFin a la fin. Retourne une fonction d'arret. */
+export function lireTexte(texte: string, onFin?: () => void): () => void {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) { onFin?.(); return () => {}; }
+  const synth = window.speechSynthesis;
+  const voix = choisirVoixFr();
+  const propre = (texte || '').replace(/\u00a0/g, ' ').replace(/[ \t]{2,}/g, ' ').replace(/\n{2,}/g, '\n').trim();
+  const morceaux = (propre.match(/[^.!?\n]+[.!?]*/g) || [propre]).map(m => m.trim()).filter(Boolean);
+  synth.cancel();
+  let i = 0, stoppe = false;
+  const suivant = () => {
+    if (stoppe) return;
+    if (i >= morceaux.length) { onFin?.(); return; }
+    const u = new SpeechSynthesisUtterance(morceaux[i++]);
+    u.lang = 'fr-FR'; if (voix) u.voice = voix; u.rate = 1; u.pitch = 1;
+    u.onend = suivant; u.onerror = () => { onFin?.(); };
+    synth.speak(u);
+  };
+  suivant();
+  return () => { stoppe = true; try { synth.cancel(); } catch {} };
+}
+
 export default function EcouterPage() {
   const [etat, setEtat] = useState<'idle' | 'playing' | 'paused'>('idle');
   const [dispo, setDispo] = useState(true);

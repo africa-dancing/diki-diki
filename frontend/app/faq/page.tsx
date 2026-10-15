@@ -5,9 +5,9 @@
    Les réponses acceptent : sauts de ligne, **gras**, puces (•) et liens [texte](url). */
 'use client';
 import Navbar from '../components/Navbar';
-import EcouterPage from '../components/EcouterPage';/*DKDK_FAQ_NAVBAR_IMPORT*/
+import EcouterPage, { lireTexte } from '../components/EcouterPage';/*DKDK_FAQ_NAVBAR_IMPORT*/
 import EchosAvantagesBlock from '../components/EchosAvantagesBlock';/*DKDK_FAQ_AVANTAGES_IMPORT*/
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const OR = 'var(--or)';
 const OR2 = 'var(--or2)';
@@ -147,19 +147,42 @@ function renderRich(line: string) {
 
 function FaqItem({ q, a, node }: { q: string; a: string; node?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [lecture, setLecture] = useState(false);
+  const refContenu = useRef<HTMLDivElement>(null);
+  const stopRef = useRef<(() => void) | null>(null);
   const lines = (a || '').split('\n');
+
+  useEffect(() => () => { stopRef.current?.(); }, []);
+
+  const ecouter = () => {
+    if (lecture) { stopRef.current?.(); setLecture(false); return; }
+    const txt = q + '. ' + (refContenu.current?.innerText || a || '');
+    setLecture(true);
+    stopRef.current = lireTexte(txt, () => setLecture(false));
+  };
+  const basculer = () => {
+    if (open) { stopRef.current?.(); setLecture(false); setOpen(false); }
+    else setOpen(true);
+  };
+
   return (
     <div style={s.item}>
-      <button style={s.q} onClick={() => setOpen(!open)}>
+      <button style={s.q} onClick={basculer}>
         <span>{q}</span>
         <span style={{ color: OR, fontSize: 18, transition: 'transform 0.2s', transform: open ? 'rotate(45deg)' : 'none', display: 'inline-block' }}>+</span>
       </button>
       {open && (
         <div style={s.a}>
-          {lines.map((line, i) => (
-            <span key={i}>{renderRich(line)}{i < lines.length - 1 && <br />}</span>
-          ))}
-          {node ? <div style={{ marginTop: 12 }}>{node}</div> : null}
+          <div ref={refContenu}>
+            {lines.map((line, i) => (
+              <span key={i}>{renderRich(line)}{i < lines.length - 1 && <br />}</span>
+            ))}
+            {node ? <div style={{ marginTop: 12 }}>{node}</div> : null}
+          </div>
+          <button onClick={ecouter} data-noread="true"
+            style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 7, background: 'transparent', border: `1px solid ${OR}`, color: OR, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 12.5, padding: '7px 14px', borderRadius: 999, cursor: 'pointer' }}>
+            {lecture ? '\u23f9\ufe0f Arr\u00eater' : '\ud83d\udd0a \u00c9couter la r\u00e9ponse'}
+          </button>
         </div>
       )}
     </div>
