@@ -69,6 +69,11 @@ export default function CadeauxPage() {
     .map(st => ({ st, items: locaux.filter(l => (l.statut || '') === st.code) }))
     .filter(g => g.items.length > 0);
 
+  const ORDRE_STATUT = STATUTS.reduce((m, st, i) => { m[st.code] = i; return m; }, {} as Record<string, number>);
+  const grandsTries = [...grands].sort((a, b) =>
+    (ORDRE_STATUT[a.statut || ''] ?? 99) - (ORDRE_STATUT[b.statut || ''] ?? 99)
+  );
+
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', color: INK, fontFamily: "'DM Sans', sans-serif", paddingBottom: 80 }}>
       <Navbar />
@@ -140,11 +145,11 @@ export default function CadeauxPage() {
               <div style={{ ...card, borderColor: 'rgba(255,194,51,0.4)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                   <span style={{ fontSize: 20 }}>🏆</span>
-                  <span style={chip(GRAD.grand, '#140a02')}>Grands lots</span>
+                  <span style={chip(GRAD.grand, '#140a02')}>Grands lots annuels</span>
                   <span style={{ fontSize: 12, color: SOFT }}>pour les plus hauts statuts</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {grands.map((g, i) => (
+                  {grandsTries.map((g, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5 }}>
                       <span style={{ color: OR, fontWeight: 800 }}>•</span>
                       <span style={{ flex: 1 }}>{g.libelle}</span>
