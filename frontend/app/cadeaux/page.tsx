@@ -13,7 +13,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 // Degrades — memes vraies teintes que l'admin (vert #1FB673, jaune #FFC233, rouge logo #FE0000)
 const GRAD = {
   vert: 'linear-gradient(135deg,#1FB673,#12935C)',
-  jaune: 'linear-gradient(135deg,#FFC233,#E6A200)',
+  jaune: 'linear-gradient(135deg,#FFD84D,#FFC233)',
   rouge: 'linear-gradient(135deg,#FE0000,#C80000)',
   heraut: 'linear-gradient(135deg,#3B9BFF,#1557C8)',
   grand: 'linear-gradient(135deg,#FFC24D,#E08A00)',

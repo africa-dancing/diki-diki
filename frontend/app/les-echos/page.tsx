@@ -49,7 +49,7 @@ const AVANTAGES: { statut: StatutEcho; s: string; v: string }[] = [
   { statut: 'ambassadeur', s: "Dès L'Ambassadeur",   v: 'Commentaires mis en avant + accès anticipé' },
   { statut: 'heraut',      s: 'Le Héraut',           v: 'Titre honorifique + couleur de pseudo' },
 ];
-const LETTRE_GRAD: Record<string, string> = { C: 'linear-gradient(135deg,#1FB673,#12935C)', B: 'linear-gradient(135deg,#FFC233,#E6A200)', A: 'linear-gradient(135deg,#FE0000,#C80000)' };
+const LETTRE_GRAD: Record<string, string> = { C: 'linear-gradient(135deg,#1FB673,#12935C)', B: 'linear-gradient(135deg,#FFD84D,#FFC233)', A: 'linear-gradient(135deg,#FE0000,#C80000)' };
 const NIV_ORDRE: { code: string; label: string }[] = [ { code: 'C', label: 'Niveau C' }, { code: 'B', label: 'Niveau B' }, { code: 'A', label: 'Niveau A' }, { code: 'autres', label: 'Autres' } ];
 
 interface Bareme {

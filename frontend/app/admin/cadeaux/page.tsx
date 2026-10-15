@@ -41,7 +41,7 @@ const statutCourt = (c?: string | null) => (({ messager: 'Messager', porteparole
 // Dégradés couleurs (vraies teintes Diki : vert #1FB673, jaune #FFC233, rouge logo #FE0000 ; Héraut = bleu)
 const GRAD = {
   vert: 'linear-gradient(135deg,#1FB673,#12935C)',
-  jaune: 'linear-gradient(135deg,#FFC233,#E6A200)',
+  jaune: 'linear-gradient(135deg,#FFD84D,#FFC233)',
   rouge: 'linear-gradient(135deg,#FE0000,#C80000)',
   heraut: 'linear-gradient(135deg,#3B9BFF,#1557C8)',
   grand: 'linear-gradient(135deg,#FFC24D,#E08A00)',

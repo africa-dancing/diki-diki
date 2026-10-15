@@ -22,7 +22,7 @@ const LINE = 'var(--line, #26262f)';
 // Degrades statuts (memes vraies teintes Diki)
 const GRAD = {
   vert: 'linear-gradient(135deg,#1FB673,#12935C)',
-  jaune: 'linear-gradient(135deg,#FFC233,#E6A200)',
+  jaune: 'linear-gradient(135deg,#FFD84D,#FFC233)',
   rouge: 'linear-gradient(135deg,#FE0000,#C80000)',
   heraut: 'linear-gradient(135deg,#3B9BFF,#1557C8)',
 };
