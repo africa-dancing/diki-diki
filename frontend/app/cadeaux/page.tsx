@@ -104,6 +104,7 @@ export default function CadeauxPage() {
               Liste donnée à titre indicatif, <b>sans les montants</b> ; elle peut évoluer. Rien n&apos;est garanti ni promis : les cadeaux sont attribués par <b>tirage au sort parmi les membres méritants</b>. Diki-Diki ne verse jamais d&apos;argent — uniquement des cadeaux.
             </div>
 
+            <style>{`.dkdk-cadeaux-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;align-items:start}.dkdk-cadeaux-col{min-width:0}@media(max-width:720px){.dkdk-cadeaux-grid{grid-template-columns:1fr}}`}</style>
             {groupes.map(({ st, items }) => {
               const parNiveau = NIVEAUX.map(n => ({ n, lots: items.filter(l => (l.lettre || '') === n.code) })).filter(g => g.lots.length > 0);
               return (
@@ -112,8 +113,9 @@ export default function CadeauxPage() {
                     {st.code ? <EchoIcon statut={st.code as StatutEcho} size={22} /> : <span style={{ fontSize: 20 }}>⭐</span>}
                     <span style={chip(st.code ? STATUT_GRAD[st.code] : 'rgba(255,255,255,0.1)', st.code ? encreStatut(st.code) : INK)}>{st.nom}</span>
                   </div>
+                  <div className="dkdk-cadeaux-grid">
                   {parNiveau.map(({ n, lots }) => (
-                    <div key={n.code || 'autres'} style={{ marginTop: 12 }}>
+                    <div key={n.code || 'autres'} className="dkdk-cadeaux-col">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                         {n.code && <span style={chip(LETTRE_GRAD[n.code], encreLettre(n.code))}>{n.code}</span>}
                         <span style={{ fontSize: 12, fontWeight: 700, color: SOFT, letterSpacing: 0.3 }}>{n.label}</span>
@@ -129,6 +131,7 @@ export default function CadeauxPage() {
                       </div>
                     </div>
                   ))}
+                  </div>
                 </div>
               );
             })}
