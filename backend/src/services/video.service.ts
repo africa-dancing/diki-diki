@@ -1,10 +1,10 @@
 ﻿import { supabase } from '../../config/supabase';
 /*DKDK_R2*/
 import { r2, R2_BUCKET } from '../../config/r2';
-import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 // const BUCKET = 'pac-videos';  /*DKDK_R2*/ ancien bucket Supabase, conserve pour memoire
-const MAX_SIZE_MB = 100;
+const MAX_SIZE_MB = 1024; /*DKDK_R2_DIRECT — 1 Go (upload direct vers R2)*/
 const MAX_DURATION = 600;
 const ALLOWED_TYPES = ['video/mp4', 'video/quicktime'];
 export type Discipline = 'danse' | 'chant' | 'instrument' | 'acapella' | 'humour' | 'poesie' | 'conte' | 'sport'; /*DKDK_DISC_TYPE*/
@@ -37,6 +37,58 @@ export async function uploadVideo(params: UploadVideoParams) {
   );
   const signedUrl = { signedUrl: urlSignee };
   const { data: video, error: dbErr } = await supabase.from('videos').insert({ user_id: userId, discipline, track_title: trackTitle, track_artist: trackArtist, track_genre: trackGenre, title, description, storage_path: storagePath, storage_url: signedUrl?.signedUrl, file_size_mb: fileSizeMb, format: ext, status: 'pending', challenge_type: challengeType || 'C16', bracket_key: bracketKey || null /*DKDK_BRACKET_KEY*/ }).select().single();
+  if (dbErr) throw dbErr;
+  await notifyModerators(video.id, userId, discipline);
+  return video;
+}
+
+/*DKDK_R2_DIRECT — Upload DIRECT vers R2 (le gros fichier ne transite plus par le serveur).
+   1) presignUpload : renvoie une URL signee PUT ; le navigateur envoie le fichier droit sur R2.
+   2) confirmUpload : le fichier etant deja sur R2, on VERIFIE sa taille reelle (HEAD) puis on cree la video. */
+export async function presignUpload(p: { userId: string; mimeType: string; fileName: string; sizeMb: number }) {
+  if (!ALLOWED_TYPES.includes(p.mimeType)) throw new Error('INVALID_FORMAT');
+  if (p.sizeMb > MAX_SIZE_MB) throw new Error('FILE_TOO_LARGE');
+  const ext = (p.fileName.split('.').pop() || 'mp4').toLowerCase();
+  const storagePath = `${p.userId}/${Date.now()}_prestation.${ext}`;
+  const uploadUrl = await getSignedUrl(
+    r2,
+    new PutObjectCommand({ Bucket: R2_BUCKET, Key: storagePath, ContentType: p.mimeType }),
+    { expiresIn: 3600 }
+  );
+  return { uploadUrl, storagePath, ext };
+}
+
+export interface ConfirmVideoParams { userId: string; discipline: Discipline; trackTitle?: string; trackArtist?: string; trackGenre?: string; title?: string; description?: string; storagePath: string; fileName: string; mimeType: string; challengeType?: string; bracketKey?: string; }
+export async function confirmUpload(params: ConfirmVideoParams) {
+  const { userId, discipline, trackTitle, trackArtist, trackGenre, title, description, storagePath, fileName, mimeType, challengeType, bracketKey } = params;
+  if (!ALLOWED_TYPES.includes(mimeType)) throw new Error('INVALID_FORMAT');
+  // Securite : un candidat ne confirme QUE son propre upload (prefixe = son userId).
+  if (!storagePath.startsWith(userId + '/')) throw new Error('INVALID_PATH');
+  // Taille REELLE lue sur R2 (le client ne peut pas mentir).
+  let sizeBytes = 0;
+  try {
+    const head = await r2.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: storagePath }));
+    sizeBytes = head.ContentLength ?? 0;
+  } catch {
+    throw new Error('UPLOAD_NOT_FOUND');
+  }
+  const fileSizeMb = sizeBytes / (1024 * 1024);
+  if (fileSizeMb > MAX_SIZE_MB) {
+    try { await r2.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: storagePath })); } catch {}
+    throw new Error('FILE_TOO_LARGE');
+  }
+  const ext = (fileName.split('.').pop() || 'mp4').toLowerCase();
+  const urlSignee = await getSignedUrl(
+    r2,
+    new GetObjectCommand({ Bucket: R2_BUCKET, Key: storagePath }),
+    { expiresIn: 604800 }
+  );
+  const { data: video, error: dbErr } = await supabase.from('videos').insert({
+    user_id: userId, discipline, track_title: trackTitle, track_artist: trackArtist, track_genre: trackGenre,
+    title, description, storage_path: storagePath, storage_url: urlSignee,
+    file_size_mb: Math.round(fileSizeMb * 10) / 10, format: ext, status: 'pending',
+    challenge_type: challengeType || 'C16', bracket_key: bracketKey || null,
+  }).select().single();
   if (dbErr) throw dbErr;
   await notifyModerators(video.id, userId, discipline);
   return video;

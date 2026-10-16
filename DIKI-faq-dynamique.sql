@@ -118,7 +118,7 @@ Rappel : ce n'est pas un jury technique qui décide — seuls les votes payants 
 Regarder les vidéos et voter ne demandent rien de tout cela : seule la participation en tant que candidat l'exige.$dkdk$,2,true),
     (cid,$dkdk$texte$dkdk$,$dkdk$Quel type de vidéo puis-je soumettre ?$dkdk$,$dkdk$Une prestation artistique ou sportive dont vous êtes l'auteur : danse, chant, instrument, humour, poésie, conte… ou une discipline sportive.
 
-• Format : vidéo standard MP4 ou MOV, jusqu'à 500 Mo.
+• Format : vidéo standard MP4 ou MOV, jusqu'à 1 Go (pas de limite de durée).
 • Une seule prestation identifiable par vidéo, filmée correctement (image et son clairs).
 • Si l'appel impose un morceau précis (parfois avec une vidéo de référence à écouter), votre prestation doit s'y conformer.
 • Reprises : vous devez assumer les droits de la chanson reprise ; pour le chant, privilégiez l'instrumental « sans les paroles » (voir la question suivante).

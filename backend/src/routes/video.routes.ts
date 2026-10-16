@@ -10,6 +10,7 @@ import {
   getCandidatesByVideoId,
   preMarquerVideo,
   getVideoStats,
+  presignUpload, confirmUpload, /*DKDK_R2_DIRECT*/
 } from '../services/video.service';
 
 export const videoRouter = Router();
@@ -22,7 +23,9 @@ const optStr = (max: number) => z.string().max(max).nullish();
 
 const uploadVideoSchema = z.object({
   discipline:     z.enum(DISCIPLINES),
-  file_base64:    z.string().min(1),
+  file_base64:    z.string().min(1).nullish(), /*DKDK_R2_DIRECT — optionnel : upload direct via storage_path*/
+  storage_path:   optStr(512),
+  size_mb:        z.number().positive().nullish(),
   mime_type:      z.enum(MIME_TYPES).nullish(),
   file_name:      optStr(255),
   title:          optStr(200),
@@ -66,6 +69,26 @@ videoRouter.get('/constraints', (_req: Request, res: Response) => {
   res.json(VIDEO_CONSTRAINTS);
 });
 
+/*DKDK_R2_DIRECT — 1) obtenir une URL signee pour envoyer le fichier DIRECTEMENT sur R2*/
+const presignSchema = z.object({
+  file_name: z.string().min(1).max(255),
+  mime_type: z.enum(MIME_TYPES),
+  size_mb:   z.number().positive(),
+});
+videoRouter.post('/presign', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
+  const parsed = presignSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'VALIDATION_ERROR', details: parsed.error.issues.map(i => ({ champ: i.path.join('.'), message: i.message })) });
+  }
+  try {
+    const { uploadUrl, storagePath } = await presignUpload({ userId: req.user!.userId, mimeType: parsed.data.mime_type, fileName: parsed.data.file_name, sizeMb: parsed.data.size_mb });
+    return res.json({ success: true, uploadUrl, storagePath });
+  } catch (e: any) {
+    const msg = e?.message || 'PRESIGN_FAILED';
+    return res.status(msg === 'FILE_TOO_LARGE' ? 413 : 400).json({ error: msg });
+  }
+});
+
 videoRouter.post('/', requireAuth, requireVerified, async (req: AuthRequest, res: Response) => {
   const parsed = uploadVideoSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -77,6 +100,16 @@ videoRouter.post('/', requireAuth, requireVerified, async (req: AuthRequest, res
   try {
     const { discipline, track_title, track_artist, track_genre, title, description, bracket_key } = req.body;
     if (!discipline) return res.status(400).json({ error: 'DISCIPLINE_REQUIRED' });
+    if (req.body.storage_path) { /*DKDK_R2_DIRECT — 2) fichier deja sur R2 : on verifie et on cree*/
+      const video = await confirmUpload({
+        userId: req.user!.userId, discipline,
+        trackTitle: track_title, trackArtist: track_artist, trackGenre: track_genre,
+        title, description,
+        storagePath: req.body.storage_path, fileName: req.body.file_name || 'prestation.mp4', mimeType: req.body.mime_type || 'video/mp4',
+        challengeType: req.body.challenge_type || 'C16', bracketKey: bracket_key,
+      });
+      return res.status(201).json({ success: true, video, message: 'Video soumise avec succes. Validation sous 24-48h.' });
+    }
     if (req.body.file_base64) {
       const fileBuffer = Buffer.from(req.body.file_base64, 'base64');
       const fileSizeMb = fileBuffer.length / (1024 * 1024);

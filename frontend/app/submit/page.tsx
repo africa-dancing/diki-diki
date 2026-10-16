@@ -263,8 +263,8 @@ export default function SubmitPage() {
     if (!['video/mp4', 'video/quicktime'].includes(f.type)) {
       setError('Format non supporté. Utilisez MP4 ou MOV.'); return;
     }
-    if (f.size / (1024 * 1024) > 100) {
-      setError('Fichier trop lourd. Maximum 100 Mo.'); return;
+    if (f.size / (1024 * 1024) > 1024) {
+      setError('Fichier trop lourd. Maximum 1 Go.'); return;
     }
     setFile(f);
     setPreview(URL.createObjectURL(f));
@@ -298,7 +298,7 @@ export default function SubmitPage() {
     if (!token) { router.push('/auth/login'); return; }
     setUploading(true); setProgress(0); setError('');
     try {
-      const interval = setInterval(() => setProgress(p => Math.min(p + 8, 90)), 400);
+      setProgress(3);
 
       const champSubject = champs
         .filter((c: any) => c.type === 'liste' || c.type === 'musique')
@@ -345,23 +345,45 @@ export default function SubmitPage() {
 
       if (uploadMode === 'url') {
         payload.video_url = videoUrl.trim();
+        const res = await fetch(`${API_DIRECT}/videos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message ?? data.error ?? 'Erreur lors de l\'enregistrement');
       } else if (file) {
-        const buffer = await file.arrayBuffer();
-        payload.file_base64 = Buffer.from(buffer).toString('base64');
-        payload.file_name   = file.name;
-        payload.mime_type   = file.type;
+        /*DKDK_R2_DIRECT — 1) URL signee  2) envoi direct sur R2 (progression reelle)  3) confirmation*/
+        const pre = await fetch(`${API_DIRECT}/videos/presign`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ file_name: file.name, mime_type: file.type, size_mb: file.size / (1024 * 1024) }),
+        });
+        const preData = await pre.json();
+        if (!pre.ok) throw new Error(preData.error === 'FILE_TOO_LARGE' ? 'Fichier trop lourd. Maximum 1 Go.' : (preData.error || 'Preparation de l\'envoi echouee'));
+
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', preData.uploadUrl, true);
+          xhr.setRequestHeader('Content-Type', file.type);
+          xhr.upload.onprogress = (ev) => { if (ev.lengthComputable) setProgress(Math.min(95, Math.round((ev.loaded / ev.total) * 95))); };
+          xhr.onload = () => { (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error('Envoi vers le stockage echoue (' + xhr.status + ')')); };
+          xhr.onerror = () => reject(new Error('Connexion interrompue pendant l\'envoi. Reessayez.'));
+          xhr.send(file);
+        });
+
+        payload.storage_path = preData.storagePath;
+        payload.file_name    = file.name;
+        payload.mime_type    = file.type;
+        const res = await fetch(`${API_DIRECT}/videos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message ?? data.error ?? 'Erreur lors de l\'enregistrement');
       }
 
-      // Upload en DIRECT vers Railway (hors proxy /api, cf. plafond 4,5 Mo de Vercel).
-      const res = await fetch(`${API_DIRECT}/videos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? data.error ?? 'Erreur lors de l\'enregistrement');
-
-      clearInterval(interval);
       setProgress(100);
       setStep(5);
     } catch (err: any) {
@@ -836,7 +858,7 @@ export default function SubmitPage() {
                 <div onClick={() => fileRef.current?.click()} style={{ border: '1.5px dashed var(--line-strong)', borderRadius: 14, padding: '2.5rem 1rem', textAlign: 'center', cursor: 'pointer', background: 'var(--surface)', marginBottom: 16 }}>
                   <div style={{ fontSize: 36, marginBottom: 10 }}>🎬</div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>Cliquez pour choisir votre vidéo</div>
-                  <div style={{ fontSize: 12, color: 'var(--ink-dim)' }}>MP4 ou MOV · jusqu'à 100 Mo · pas de limite de durée</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-dim)' }}>MP4 ou MOV · jusqu'à 1 Go · pas de limite de durée</div>
                   <input ref={fileRef} type="file" accept="video/mp4,video/quicktime" onChange={handleFileChange} style={{ display: 'none' }} />
                 </div>
               ) : (
