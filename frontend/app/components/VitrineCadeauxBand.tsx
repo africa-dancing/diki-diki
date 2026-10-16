@@ -90,24 +90,21 @@ export default function VitrineCadeauxBand() {
           borderRadius: 14, overflow: 'hidden', display: 'block',
         }}
       >
-        <div style={{ position: 'relative', width: '100%', height: 110, background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '100%', height: 110, background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {img
             ? <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <span style={{ fontSize: 34, opacity: 0.8 }}>{c.annuel ? '🏆' : '🎁'}</span>}
-          <span style={{ position: 'absolute', top: 7, left: 7 }}>
-            {c.annuel
-              ? <span style={chip(GRAD.grand, '#140a02')}>🏆 Toute l&apos;année</span>
-              : (c.lettre ? <span style={chip(LETTRE_GRAD[c.lettre], encreLettre(c.lettre))}>{c.lettre}</span> : null)}
-          </span>
         </div>
         <div style={{ padding: '9px 10px 11px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
             {c.statutCode && <EchoIcon statut={c.statutCode as StatutEcho} size={16} />}
             {c.statutCode
               ? <span style={chip(STATUT_GRAD[c.statutCode], encreStatut(c.statutCode))}>{c.nom}</span>
               : <span style={chip('rgba(255,255,255,0.1)', 'var(--ink)')}>Tous</span>}
+            {!c.annuel && c.lettre && <span style={chip(LETTRE_GRAD[c.lettre], encreLettre(c.lettre))}>{c.lettre}</span>}
           </div>
           <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.25, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{c.libelle}</div>
+          {c.annuel && <div style={{ marginTop: 8 }}><span style={chip(GRAD.grand, '#140a02')}>🏆 Grand Prix Annuel</span></div>}
         </div>
       </Link>
     );
