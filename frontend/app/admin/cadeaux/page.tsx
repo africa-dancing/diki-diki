@@ -5,7 +5,7 @@
 import { AdminGuard }   from '../../components/admin/AdminGuard';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR  = '#FFAA00';
@@ -66,6 +66,9 @@ export default function AdminCadeauxPage() {
   const [vitrine, setVitrine] = useState(false);
   const [montants, setMontants] = useState(false);
   const [imgBusy, setImgBusy] = useState(false); /*DKDK_CADEAUX_IMG*/
+  const formRef = useRef<HTMLDivElement>(null); /*DKDK_EDIT_SCROLL*/
+  const [flash, setFlash] = useState(false);
+  function editer(l: Lot) { setForm(l); setFlash(true); setTimeout(() => setFlash(false), 1400); setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0); }
 
   const H = useCallback(() => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${admin?.token}` }), [admin?.token]);
 
@@ -270,7 +273,8 @@ export default function AdminCadeauxPage() {
             {/* CATALOGUE */}
             <div style={card}>
               <div style={{ fontSize: 12, letterSpacing: 0.5, opacity: 0.6, marginBottom: 10 }}>CATALOGUE DES CADEAUX (12 listes mensuelles + grands lots)</div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14 }}>
+              {form.id && <div style={{ fontSize: 12.5, fontWeight: 700, color: OR, marginBottom: 8 }}>✏️ Tu modifies : {form.libelle || 'ce cadeau'} — change les champs puis « Modifier » (ou « Annuler »).</div>}
+              <div ref={formRef} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14, padding: form.id ? 10 : 0, borderRadius: 10, border: form.id ? ('1px solid ' + OR) : '1px solid transparent', boxShadow: flash ? '0 0 0 3px rgba(255,170,0,0.45)' : 'none', transition: 'box-shadow .3s, border-color .3s' }}>
                 <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value, mois: e.target.value === 'grand' ? null : (form.mois || 1) })} style={inp}>
                   <option value="local">Mensuel (local)</option>
                   <option value="grand">Grand lot</option>
@@ -320,7 +324,7 @@ export default function AdminCadeauxPage() {
                       {l.image_url && <img src={l.image_url} alt="" style={{ width: 30, height: 30, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />}
                       <span style={{ flex: 1 }}>{l.libelle}{!l.actif && <em style={{ opacity: 0.5 }}> (inactif)</em>}</span>
                       <span style={{ fontWeight: 700, color: OR }}>{F(l.valeur)}</span>
-                      <button onClick={() => setForm(l)} style={{ ...btn('#2a2a3a'), color: INK, padding: '4px 10px' }}>✎</button>
+                      <button onClick={() => editer(l)} style={{ ...btn('#2a2a3a'), color: INK, padding: '4px 10px' }}>✎</button>
                       <button onClick={() => supprimerLot(l.id)} style={{ ...btn('rgba(248,113,113,0.15)'), color: '#f87171', padding: '4px 10px' }}>🗑</button>
                     </div>
                   ))}
