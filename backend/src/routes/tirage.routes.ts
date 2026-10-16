@@ -7,6 +7,7 @@ import {
   getFondsPots, listGiftCatalog, upsertGiftCatalog, deleteGiftCatalog,
   prepareTirage, executeTirage, runDrawAllStatuts, listTirages, getTirageDetail, setRemiseStatus,
   isVitrineActive, setVitrineActive, isVitrineMontants, setVitrineMontants,
+  uploadGiftImage, /*DKDK_CADEAUX_IMG*/
 } from '../services/gamification.service';
 
 const tirageRouter = Router();
@@ -24,6 +25,12 @@ tirageRouter.get('/dashboard', async (_req, res) => {
 tirageRouter.post('/catalog', async (req, res) => {
   try { const data = await upsertGiftCatalog(req.body || {}); return res.json({ success: true, data }); }
   catch { return res.status(500).json({ success: false, error: 'CATALOG_WRITE_FAILED' }); }
+});
+
+// DKDK_CADEAUX_IMG — upload d'une photo de cadeau (admin) vers R2 ; renvoie la cle + une URL d'apercu.
+tirageRouter.post('/catalog/image', async (req, res) => {
+  try { const data = await uploadGiftImage(req.body || {}); return res.json({ success: true, data }); }
+  catch (e: any) { return res.status(400).json({ success: false, error: e?.message || 'IMAGE_UPLOAD_FAILED' }); }
 });
 tirageRouter.delete('/catalog/:id', async (req, res) => {
   try { await deleteGiftCatalog(req.params.id); return res.json({ success: true }); }

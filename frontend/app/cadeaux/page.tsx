@@ -40,14 +40,15 @@ const NIVEAUX: { code: string; label: string }[] = [
   { code: 'A', label: 'Niveau A (3e mois)' },
   { code: '', label: 'Autres cadeaux' },
 ];
-type Lot = { statut: string | null; lettre: string | null; mois: number | null; libelle: string; valeur?: number };
-type Grand = { statut: string | null; libelle: string; valeur?: number };
+type Lot = { statut: string | null; lettre: string | null; mois: number | null; libelle: string; valeur?: number; image_url?: string | null };
+type Grand = { statut: string | null; libelle: string; valeur?: number; image_url?: string | null };
 
 export default function CadeauxPage() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(false);
   const [locaux, setLocaux] = useState<Lot[]>([]);
   const [grands, setGrands] = useState<Grand[]>([]);
+  const [apercu, setApercu] = useState<{ url: string; libelle: string } | null>(null); /*DKDK_APERCU*/
 
   useEffect(() => {
     fetch(`${API}/vitrine`, { cache: 'no-store' })
@@ -74,6 +75,7 @@ export default function CadeauxPage() {
   const grandsTries = [...grands].sort((a, b) =>
     (ORDRE_STATUT[a.statut || ''] ?? 99) - (ORDRE_STATUT[b.statut || ''] ?? 99)
   );
+  const aDesPhotos = locaux.some(l => l.image_url) || grands.some(g => g.image_url);
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', color: INK, fontFamily: "'DM Sans', sans-serif", paddingBottom: 80 }}>
@@ -111,6 +113,8 @@ export default function CadeauxPage() {
               Liste donnée à titre indicatif, <b>sans les montants</b> ; elle peut évoluer. Rien n&apos;est garanti ni promis : les cadeaux sont attribués par <b>tirage au sort parmi les membres méritants</b>. Diki-Diki ne verse jamais d&apos;argent — uniquement des cadeaux.
             </div>
 
+            {aDesPhotos && <p style={{ fontSize: 12, color: SOFT, textAlign: 'center', margin: '0 0 4px' }}>📷 Survole (ou touche) un cadeau avec une photo pour le voir en vrai.</p>}
+
             <style>{`.dkdk-cadeaux-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;align-items:start}.dkdk-cadeaux-col{min-width:0}@media(max-width:720px){.dkdk-cadeaux-grid{grid-template-columns:1fr}}`}</style>
             {groupes.map(({ st, items }) => {
               const parNiveau = NIVEAUX.map(n => ({ n, lots: items.filter(l => (l.lettre || '') === n.code) })).filter(g => g.lots.length > 0);
@@ -128,13 +132,20 @@ export default function CadeauxPage() {
                         <span style={{ fontSize: 12, fontWeight: 700, color: SOFT, letterSpacing: 0.3 }}>{n.label}</span>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        {lots.map((l, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5 }}>
-                            <span style={{ color: OR, fontWeight: 800 }}>•</span>
+                        {lots.map((l, i) => {
+                          const img = l.image_url || '';
+                          return (
+                          <div key={i}
+                            onMouseEnter={img ? () => setApercu({ url: img, libelle: l.libelle }) : undefined}
+                            onMouseLeave={img ? () => setApercu(null) : undefined}
+                            onClick={img ? () => setApercu(a => (a && a.url === img) ? null : { url: img, libelle: l.libelle }) : undefined}
+                            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5, cursor: img ? 'pointer' : 'default' }}>
+                            {img ? <img src={img} alt="" style={{ width: 34, height: 34, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} /> : <span style={{ color: OR, fontWeight: 800 }}>•</span>}
                             <span style={{ flex: 1 }}>{l.libelle}</span>
                             {typeof l.valeur === 'number' && <span style={{ fontSize: 12, color: SOFT, whiteSpace: 'nowrap' }}>{fcfa(l.valeur)}</span>}
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -151,13 +162,20 @@ export default function CadeauxPage() {
                   <span style={{ fontSize: 12, color: SOFT }}>pour les plus hauts statuts</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {grandsTries.map((g, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5 }}>
-                      <span style={{ color: OR, fontWeight: 800 }}>•</span>
+                  {grandsTries.map((g, i) => {
+                    const img = g.image_url || '';
+                    return (
+                    <div key={i}
+                      onMouseEnter={img ? () => setApercu({ url: img, libelle: g.libelle }) : undefined}
+                      onMouseLeave={img ? () => setApercu(null) : undefined}
+                      onClick={img ? () => setApercu(a => (a && a.url === img) ? null : { url: img, libelle: g.libelle }) : undefined}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5, cursor: img ? 'pointer' : 'default' }}>
+                      {img ? <img src={img} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} /> : <span style={{ color: OR, fontWeight: 800 }}>•</span>}
                       <span style={{ flex: 1 }}>{g.libelle}</span>
                       {typeof g.valeur === 'number' && <span style={{ fontSize: 12, color: SOFT, whiteSpace: 'nowrap' }}>{fcfa(g.valeur)}</span>}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -172,6 +190,13 @@ export default function CadeauxPage() {
           </>
         )}
       </div>
+
+      {apercu && (
+        <div style={{ position: 'fixed', left: '50%', bottom: 24, transform: 'translateX(-50%)', zIndex: 9999, pointerEvents: 'none', background: 'var(--surface,#15151c)', border: '1px solid var(--or)', borderRadius: 14, padding: 10, boxShadow: '0 12px 40px rgba(0,0,0,0.55)', maxWidth: 'min(300px,90vw)', textAlign: 'center' }}>
+          <img src={apercu.url} alt={apercu.libelle} style={{ width: '100%', maxWidth: 280, maxHeight: 280, objectFit: 'contain', borderRadius: 8, display: 'block' }} />
+          <div style={{ marginTop: 6, fontSize: 12.5, color: INK, fontWeight: 700 }}>{apercu.libelle}</div>
+        </div>
+      )}
     </div>
   );
 }

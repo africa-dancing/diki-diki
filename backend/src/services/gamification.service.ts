@@ -5,6 +5,10 @@
 // Toutes les attributions sont BEST-EFFORT : elles ne doivent JAMAIS casser un vote.
 import { supabase } from '../../config/supabase';
 import { createHash, createHmac, randomBytes } from 'crypto';
+/*DKDK_CADEAUX_IMG — photos des cadeaux stockees sur R2, servies par URL signee (1h), regenerees a chaque requete.*/
+import { r2, R2_BUCKET } from '../../config/r2';
+import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 let _cache: { actif: boolean; echoParVote: number; at: number } | null = null;
 const TTL_MS = 30_000;
@@ -437,9 +441,34 @@ export async function getFondsPots(): Promise<any> {
   };
 }
 
+/*DKDK_CADEAUX_IMG — URL signee (1h) pour afficher une photo de cadeau ; best-effort (null si absente/erreur).*/
+async function signGiftImage(imagePath?: string | null): Promise<string | null> {
+  if (!imagePath) return null;
+  try { return await getSignedUrl(r2, new GetObjectCommand({ Bucket: R2_BUCKET, Key: imagePath }), { expiresIn: 3600 }); }
+  catch { return null; }
+}
+
+const _GIFT_IMG_MIME: Record<string, string> = { 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+/*DKDK_CADEAUX_IMG — upload ADMIN d'une photo de cadeau vers R2 (petites images). Renvoie la cle + une URL signee d'apercu.*/
+export async function uploadGiftImage(p: { image_base64?: string; mime_type?: string; file_name?: string }): Promise<{ image_path: string; image_url: string | null }> {
+  const mime = String(p.mime_type || '').toLowerCase();
+  const ext = _GIFT_IMG_MIME[mime];
+  if (!ext) throw new Error('INVALID_IMAGE_FORMAT');
+  if (!p.image_base64) throw new Error('IMAGE_REQUISE');
+  const buf = Buffer.from(p.image_base64, 'base64');
+  if (buf.length > 5 * 1024 * 1024) throw new Error('IMAGE_TROP_LOURDE');
+  const key = `cadeaux/${randomBytes(12).toString('hex')}.${ext}`;
+  await r2.send(new PutObjectCommand({ Bucket: R2_BUCKET, Key: key, Body: buf, ContentType: mime }));
+  return { image_path: key, image_url: await signGiftImage(key) };
+}
+
 // Catalogue des cadeaux
 export async function listGiftCatalog(): Promise<any[]> {
-  try { const { data } = await supabase.from('gift_catalog').select('*').order('type').order('mois', { nullsFirst: true }).order('ordre'); return data || []; } catch { return []; }
+  try {
+    const { data } = await supabase.from('gift_catalog').select('*').order('type').order('mois', { nullsFirst: true }).order('ordre');
+    const rows = (data || []) as any[];
+    return await Promise.all(rows.map(async (r) => ({ ...r, image_url: await signGiftImage(r.image_path) })));
+  } catch { return []; }
 }
 export async function upsertGiftCatalog(row: any): Promise<any> {
   const type = row.type === 'grand' ? 'grand' : 'local';
@@ -452,6 +481,7 @@ export async function upsertGiftCatalog(row: any): Promise<any> {
     lettre: (row.lettre === 'C' || row.lettre === 'B' || row.lettre === 'A') ? row.lettre : null,
     actif: row.actif !== false,
     ordre: Number(row.ordre || 0),
+    image_path: (row.image_path === '' || row.image_path == null) ? null : String(row.image_path).slice(0, 300),
   };
   if (row.id) { const { data } = await supabase.from('gift_catalog').update(clean).eq('id', row.id).select('*').maybeSingle(); return data; }
   const { data } = await supabase.from('gift_catalog').insert(clean).select('*').maybeSingle(); return data;
@@ -697,13 +727,15 @@ export async function getVitrine(): Promise<any> {
     .order('type').order('mois', { nullsFirst: true }).order('ordre');
   const rows = ((data || []) as any[]);
   // Montants exposés UNIQUEMENT si l'interrupteur `cadeaux_vitrine_montants` est ON.
-  const locaux = rows.filter((g) => g.type !== 'grand').map((g) => ({
+  const locaux = await Promise.all(rows.filter((g) => g.type !== 'grand').map(async (g) => ({
     statut: g.statut_min || null, lettre: g.lettre || null, mois: g.mois || null, libelle: g.libelle,
+    image_url: await signGiftImage(g.image_path),
     ...(montants ? { valeur: Number(g.valeur || 0) } : {}),
-  }));
-  const grands = rows.filter((g) => g.type === 'grand').map((g) => ({
+  })));
+  const grands = await Promise.all(rows.filter((g) => g.type === 'grand').map(async (g) => ({
     statut: g.statut_min || null, libelle: g.libelle,
+    image_url: await signGiftImage(g.image_path),
     ...(montants ? { valeur: Number(g.valeur || 0) } : {}),
-  }));
+  })));
   return { active: true, montants, locaux, grands };
 }

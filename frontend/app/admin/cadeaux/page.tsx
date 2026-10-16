@@ -26,10 +26,10 @@ function seasonPrecedente(): string {
   return y + '-S' + q;
 }
 
-interface Lot { id?: string; type: string; mois: number | null; libelle: string; valeur: number; actif: boolean; ordre: number; statut_min?: string | null; lettre?: string | null; }
+interface Lot { id?: string; type: string; mois: number | null; libelle: string; valeur: number; actif: boolean; ordre: number; statut_min?: string | null; lettre?: string | null; image_path?: string | null; image_url?: string | null; }
 interface Tirage { id: string; type: string; saison: string; statut: string; graine_hash: string; graine?: string; pool_taille: number; pot_disponible: number; pot_utilise: number; nb_gagnants: number; executed_at?: string; }
 
-const LOT_VIDE: Lot = { type: 'local', mois: 1, libelle: '', valeur: 0, actif: true, ordre: 0, statut_min: null, lettre: null };
+const LOT_VIDE: Lot = { type: 'local', mois: 1, libelle: '', valeur: 0, actif: true, ordre: 0, statut_min: null, lettre: null, image_path: null, image_url: null };
 const STATUTS: { code: string; nom: string }[] = [
   { code: '', nom: 'Tous statuts' },
   { code: 'messager', nom: 'Le Messager' },
@@ -41,7 +41,7 @@ const statutCourt = (c?: string | null) => (({ messager: 'Messager', porteparole
 // Dégradés couleurs (vraies teintes Diki : vert #1FB673, jaune #FFC233, rouge logo #FE0000 ; Héraut = bleu)
 const GRAD = {
   vert: 'linear-gradient(135deg,#1FB673,#12935C)',
-  jaune: 'linear-gradient(135deg,#FFD84D,#FFC233)',
+  jaune: 'linear-gradient(135deg,#FFEB4D,#FFDE00)',
   rouge: 'linear-gradient(135deg,#FE0000,#C80000)',
   heraut: 'linear-gradient(135deg,#3B9BFF,#1557C8)',
   grand: 'linear-gradient(135deg,#FFC24D,#E08A00)',
@@ -65,6 +65,7 @@ export default function AdminCadeauxPage() {
   const [lotsChoisis, setLotsChoisis] = useState<Record<string, boolean>>({});
   const [vitrine, setVitrine] = useState(false);
   const [montants, setMontants] = useState(false);
+  const [imgBusy, setImgBusy] = useState(false); /*DKDK_CADEAUX_IMG*/
 
   const H = useCallback(() => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${admin?.token}` }), [admin?.token]);
 
@@ -93,6 +94,23 @@ export default function AdminCadeauxPage() {
     fetch(`${API}/tirages/catalog/${id}`, { method: 'DELETE', headers: H() })
       .then(() => charger()).catch(() => setErr('Erreur réseau.'));
   };
+
+  /*DKDK_CADEAUX_IMG — upload d'une photo reelle du cadeau vers R2 ; la photo suit le cadeau (pas le statut).*/
+  async function choisirImage(e: any) {
+    const file = e?.target?.files?.[0]; if (!file) return;
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) { setErr('Photo au format JPG, PNG ou WebP.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setErr('Photo trop lourde (max 5 Mo).'); return; }
+    setImgBusy(true); setErr('');
+    try {
+      const b64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = rej; r.readAsDataURL(file); });
+      const rp = await fetch(`${API}/tirages/catalog/image`, { method: 'POST', headers: H(), body: JSON.stringify({ image_base64: b64, mime_type: file.type, file_name: file.name }) });
+      const d = await rp.json();
+      if (!rp.ok || !d?.data?.image_path) throw new Error(d?.error === 'IMAGE_TROP_LOURDE' ? 'Photo trop lourde (max 5 Mo).' : (d?.error || 'Échec de l\'envoi.'));
+      setForm(fm => ({ ...fm, image_path: d.data.image_path, image_url: d.data.image_url }));
+      setInfo('✅ Photo ajoutée — pense à « Enregistrer » le cadeau.');
+    } catch (er: any) { setErr(er.message || 'Échec de l\'envoi de la photo.'); }
+    finally { setImgBusy(false); }
+  }
 
   const toggleVitrine = () => {
     const next = !vitrine;
@@ -275,6 +293,12 @@ export default function AdminCadeauxPage() {
                 )}
                 <input placeholder="Libellé (ex. Smartphone, Moto…)" value={form.libelle} onChange={e => setForm({ ...form, libelle: e.target.value })} style={{ ...inp, flex: 1, minWidth: 180 }} />
                 <input type="number" placeholder="Valeur cible (F)" value={form.valeur || ''} onChange={e => setForm({ ...form, valeur: parseInt(e.target.value || '0', 10) })} style={{ ...inp, width: 140, textAlign: 'right' }} />
+                <label style={{ ...inp, display: 'inline-flex', alignItems: 'center', gap: 8, cursor: imgBusy ? 'default' : 'pointer', padding: '7px 12px' }} title="Photo réelle du cadeau (JPG/PNG/WebP, max 5 Mo) — elle suit le cadeau même s'il change de statut">
+                  {form.image_url ? <img src={form.image_url} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover' }} /> : <span style={{ fontSize: 16 }}>📷</span>}
+                  <span style={{ fontSize: 12.5 }}>{imgBusy ? 'Envoi…' : (form.image_url ? 'Changer la photo' : 'Ajouter une photo')}</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={choisirImage} disabled={imgBusy} style={{ display: 'none' }} />
+                </label>
+                {form.image_url && <button onClick={() => setForm(fm => ({ ...fm, image_path: null, image_url: null }))} style={{ ...btn('rgba(248,113,113,0.15)'), color: '#f87171', padding: '7px 10px' }} title="Retirer la photo">✕ photo</button>}
                 <button onClick={sauverLot} style={btn(OR)}>{form.id ? 'Modifier' : 'Ajouter'}</button>
                 {form.id && <button onClick={() => setForm({ ...LOT_VIDE, type: form.type })} style={{ ...btn('#2a2a3a'), color: INK }}>Annuler</button>}
               </div>
@@ -293,6 +317,7 @@ export default function AdminCadeauxPage() {
                         boxShadow: l.statut_min ? BADGE_SHADOW : 'none' }}>{statutCourt(l.statut_min)}</span>
                       {l.type === 'local' && l.lettre && <span style={{ fontSize: 10.5, padding: '2px 8px', borderRadius: 999, fontWeight: 800, whiteSpace: 'nowrap',
                         background: LETTRE_GRAD[l.lettre] || 'rgba(255,255,255,0.08)', color: encreLettre(l.lettre), boxShadow: BADGE_SHADOW }}>{l.lettre}</span>}
+                      {l.image_url && <img src={l.image_url} alt="" style={{ width: 30, height: 30, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />}
                       <span style={{ flex: 1 }}>{l.libelle}{!l.actif && <em style={{ opacity: 0.5 }}> (inactif)</em>}</span>
                       <span style={{ fontWeight: 700, color: OR }}>{F(l.valeur)}</span>
                       <button onClick={() => setForm(l)} style={{ ...btn('#2a2a3a'), color: INK, padding: '4px 10px' }}>✎</button>
