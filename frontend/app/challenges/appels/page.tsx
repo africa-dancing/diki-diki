@@ -219,14 +219,13 @@ export default function MurDesAppelsPage() {
               margin: '12px 0 8px', color: '#fff',
             }}>Le Mur des appels</h1>
             <p style={{
-              color: 'rgba(255,255,255,0.9)', fontSize: 13, maxWidth: '46ch',
+              color: 'rgba(255,255,255,0.9)', fontSize: 13, maxWidth: 620,
               margin: '0 auto', lineHeight: 1.5,
             }}>
-              Un artiste lance son challenge et fixe les morceaux, étape par étape.
-              À toi d&apos;accepter… ou de proposer mieux.
+              Un artiste lance son challenge et fixe les morceaux, étape par étape. À toi d&apos;accepter le défi pour que le challenge commence… ou d&apos;en créer le tien librement.
             </p>
-            <p style={{ color: '#ffeef0', fontSize: 13, maxWidth: '48ch', margin: '10px auto 0', lineHeight: 1.5 }}>
-              Danse, chant, humour, sport… dépose ta vidéo, le public te soutient par ses votes, et la cagnotte récompense les meilleurs. <b>Le continent t&apos;attend.</b>
+            <p style={{ color: '#ffeef0', fontSize: 13, maxWidth: 620, margin: '10px auto 0', lineHeight: 1.5 }}>
+              Danse, Chant, Musique, Humour, Poésie, Conte, Football, Basket, Les Arts Martiaux… Envoie ta vidéo, le public te soutient par ses votes, et la cagnotte récompense les meilleurs.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 16 }}>
               <Link href="/submit" style={{ background: SOLID, color: '#000', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 15, padding: '12px 20px', borderRadius: 12, textDecoration: 'none' }}>🎬 Je dépose ma vidéo</Link>
