@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 import EcouterPage from '../../components/EcouterPage';
 import TickerBand from '../../components/TickerBand'; /*DKDK_TICKER_TOP*/
+import VitrineCadeauxBand from '../../components/VitrineCadeauxBand'; /*DKDK_VITRINE_BAND*/
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 
@@ -237,6 +238,7 @@ export default function MurDesAppelsPage() {
         </div>
       </div>
 
+      <VitrineCadeauxBand /> {/*DKDK_VITRINE_BAND — bande defilante des cadeaux du mois + grands lots toute l'annee*/}
 
       <div className="dkdk-appels-main" style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px' }}>
 
