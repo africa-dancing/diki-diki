@@ -16,6 +16,19 @@ function choisirVoixFr(): SpeechSynthesisVoice | null {
   );
 }
 
+/** Nettoie un texte pour la lecture : vire les pictos/toggles seuls (+, ×, •, ▸…). */
+function nettoyerTexte(t: string): string {
+  return (t || '')
+    .replace(/\u00a0/g, ' ')
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l && !/^[+\-\u00d7\u2715\u2716\u2022\u25cf\u25b8\u2794\u27a4\u2605\u2b50\ud83d\udd0a]+$/.test(l))
+    .join('. ')
+    .replace(/\s*\.\s*\./g, '.')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
 export function arreterLecture() {
   try { if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel(); } catch {}
 }
@@ -25,7 +38,7 @@ export function lireTexte(texte: string, onFin?: () => void): () => void {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) { onFin?.(); return () => {}; }
   const synth = window.speechSynthesis;
   const voix = choisirVoixFr();
-  const propre = (texte || '').replace(/\u00a0/g, ' ').replace(/[ \t]{2,}/g, ' ').replace(/\n{2,}/g, '\n').trim();
+  const propre = nettoyerTexte(texte);
   const morceaux = (propre.match(/[^.!?\n]+[.!?]*/g) || [propre]).map(m => m.trim()).filter(Boolean);
   synth.cancel();
   let i = 0, stoppe = false;
@@ -61,6 +74,8 @@ export default function EcouterPage() {
 
   // Récupère le texte visible de la page, sans le menu / pied de page / lecteur.
   const collecterTexte = (): string => {
+    const complet = document.querySelector('[data-lire-complet]') as HTMLElement | null;
+    if (complet && (complet.innerText || '').trim()) return nettoyerTexte(complet.innerText);
     const clone = document.body.cloneNode(true) as HTMLElement;
     clone.querySelectorAll('nav, header, footer, script, style, noscript, svg, .dkdk-ecouter, [data-noread]')
       .forEach(e => e.remove());
@@ -69,7 +84,7 @@ export default function EcouterPage() {
     document.body.appendChild(clone);
     const t = clone.innerText || '';
     document.body.removeChild(clone);
-    return t.replace(/ /g, ' ').replace(/[ \t]{2,}/g, ' ').replace(/\n{2,}/g, '\n').trim();
+    return nettoyerTexte(t);
   };
 
   const lire = () => {
