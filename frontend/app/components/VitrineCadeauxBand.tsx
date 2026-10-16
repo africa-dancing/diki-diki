@@ -25,7 +25,6 @@ const encreStatut = (c?: string | null) => (c === 'ambassadeur' || c === 'heraut
 const encreLettre = (l?: string | null) => (l === 'A' ? '#fff' : '#140a02');
 const SHADOW = '0 1px 3px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25)';
 const ORDRE_STATUT: Record<string, number> = { messager: 0, porteparole: 1, ambassadeur: 2, heraut: 3, '': 9 };
-const MOIS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
 type Lot = { statut: string | null; lettre: string | null; mois: number | null; libelle: string; image_url?: string | null };
 type Grand = { statut: string | null; libelle: string; image_url?: string | null };
@@ -113,7 +112,7 @@ export default function VitrineCadeauxBand() {
   return (
     <div style={{ background: 'radial-gradient(ellipse 90% 70% at 50% 120%,rgba(255,194,51,0.10) 0%,transparent 70%)' }}>
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '14px 16px 4px', textAlign: 'center' }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16 }}>🎁 Cadeaux du mois — <span style={{ color: 'var(--or)', textTransform: 'capitalize' }}>{MOIS_FR[moisEnCours - 1]}</span></div>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16 }}>🎁 Cadeaux</div>
         <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 2 }}>Les grands lots annuels sont attribués en fin d&apos;année par tirage au sort dans chaque catégorie.</div>
         <div style={{ marginTop: 6 }}>
           <Link href="/cadeaux" style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--or)', textDecoration: 'none', whiteSpace: 'nowrap' }}>Tout voir →</Link>
