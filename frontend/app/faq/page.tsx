@@ -18,7 +18,7 @@ const s: Record<string, React.CSSProperties> = {
   page:    { background: BG, minHeight: '100vh', color: 'var(--ink)', fontFamily: "'DM Sans', sans-serif", padding: '0 0 80px' },
   divider: { height: 1, background: 'var(--line)', margin: '32px 0' },
   body:    { maxWidth: 760, margin: '0 auto', padding: '0 24px' },
-  catTitle:{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 14, color: OR, letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 12, marginTop: 32 },
+  catTitle:{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 15, color: OR, letterSpacing: 0.3, marginBottom: 12, marginTop: 32 },
   item:    { borderBottom: '1px solid var(--line)', overflow: 'hidden' },
   q:       { width: '100%', background: 'none', border: 'none', color: 'var(--ink)', fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, textAlign: 'left' as const, padding: '16px 0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   a:       { fontSize: 14, lineHeight: 1.8, color: 'var(--ink-soft)', padding: '0 0 16px' },
