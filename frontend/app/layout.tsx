@@ -44,6 +44,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`${syne.variable} ${dmSans.variable}`} suppressHydrationWarning>
+      <head>
+        {/* DKDK_PERF — preconnexion au serveur d'images R2 (les photos de cadeaux de la bande) : gagne la mise en place de connexion sur le LCP mobile. */}
+        <link rel="preconnect" href="https://diki-diki-videos.3b0ae31f4f99903facbc796ad305d415.r2.cloudflarestorage.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://diki-diki-videos.3b0ae31f4f99903facbc796ad305d415.r2.cloudflarestorage.com" />
+      </head>
       <body>
         {/* Applique le thème Jour/Nuit avant le rendu pour éviter tout clignotement */}
         <script dangerouslySetInnerHTML={{ __html: "(function(){try{if(localStorage.getItem('dkdk-theme')==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();" }} />

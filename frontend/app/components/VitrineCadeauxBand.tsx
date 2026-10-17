@@ -80,7 +80,7 @@ export default function VitrineCadeauxBand() {
   const duree = Math.max(22, cartes.length * 7);
   const chip = (bg: string, ink: string): React.CSSProperties => ({ fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 999, background: bg, color: ink, boxShadow: SHADOW, whiteSpace: 'nowrap' });
 
-  const carte = (c: Carte, dup: string) => {
+  const carte = (c: Carte, dup: string, eager = false) => {
     const img = c.img;
     return (
       <Link
@@ -96,7 +96,7 @@ export default function VitrineCadeauxBand() {
       >
         <div style={{ width: '100%', height: 110, background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {img
-            ? <img src={img} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ? <img src={img} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" {...(eager ? { fetchPriority: 'high' } : {}) as any} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <span style={{ fontSize: 34, opacity: 0.8 }}>{c.annuel ? '🏆' : '🎁'}</span>}
         </div>
         <div style={{ padding: '9px 10px 11px' }}>
@@ -137,7 +137,7 @@ export default function VitrineCadeauxBand() {
 
       <div className="dkdk-vcb-mask" style={{ minHeight: 232 }}>
         <div className="dkdk-vcb-track" style={{ ['--dkdk-vcb-dur' as any]: `${duree}s` }}>
-          {piste.map((c, i) => carte(c, i < cartes.length ? 'a' : 'b'))}
+          {piste.map((c, i) => carte(c, i < cartes.length ? 'a' : 'b', i === 0))}
         </div>
       </div>
 
