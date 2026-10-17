@@ -32,6 +32,7 @@ type Carte = { key: string; img: string; nom: string; statutCode: string; lettre
 
 export default function VitrineCadeauxBand() {
   const [active, setActive] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [locaux, setLocaux] = useState<Lot[]>([]);
   const [grands, setGrands] = useState<Grand[]>([]);
   const [apercu, setApercu] = useState<{ url: string; libelle: string } | null>(null);
@@ -43,7 +44,8 @@ export default function VitrineCadeauxBand() {
         if (d?.data?.active) { setActive(true); setLocaux(d.data.locaux || []); setGrands(d.data.grands || []); }
         else setActive(false);
       })
-      .catch(() => setActive(false));
+      .catch(() => setActive(false))
+      .finally(() => setLoading(false));
   }, []);
 
   const moisEnCours = new Date().getMonth() + 1;
@@ -68,10 +70,13 @@ export default function VitrineCadeauxBand() {
     }));
 
   const cartes = [...cartesMois, ...cartesGrands];
-  if (!active || cartes.length === 0) return null;
+  const show = active && cartes.length > 0;
+  // CLS : tant que la vitrine n'a pas repondu, on garde l'espace reserve (pas de saut de page) ;
+  // une fois la reponse connue et vide, on replie proprement.
+  if (!loading && !show) return null;
 
-  // Boucle fluide : on duplique la piste ; durée proportionnelle au nombre de cartes.
-  const piste = [...cartes, ...cartes];
+  // Boucle fluide : on duplique la piste ; duree proportionnelle au nombre de cartes.
+  const piste = show ? [...cartes, ...cartes] : [];
   const duree = Math.max(22, cartes.length * 7);
   const chip = (bg: string, ink: string): React.CSSProperties => ({ fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 999, background: bg, color: ink, boxShadow: SHADOW, whiteSpace: 'nowrap' });
 
@@ -130,7 +135,7 @@ export default function VitrineCadeauxBand() {
         @media (prefers-reduced-motion: reduce) { .dkdk-vcb-track { animation: none; } .dkdk-vcb-mask { overflow-x: auto; } }
       `}</style>
 
-      <div className="dkdk-vcb-mask">
+      <div className="dkdk-vcb-mask" style={{ minHeight: 232 }}>
         <div className="dkdk-vcb-track" style={{ ['--dkdk-vcb-dur' as any]: `${duree}s` }}>
           {piste.map((c, i) => carte(c, i < cartes.length ? 'a' : 'b'))}
         </div>
