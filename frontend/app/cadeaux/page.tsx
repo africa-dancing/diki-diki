@@ -140,7 +140,7 @@ export default function CadeauxPage() {
                             onMouseLeave={img ? () => setApercu(null) : undefined}
                             onClick={img ? () => setApercu(a => (a && a.url === img) ? null : { url: img, libelle: l.libelle }) : undefined}
                             style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5, cursor: img ? 'pointer' : 'default' }}>
-                            {img ? <img src={img} alt="" style={{ width: 34, height: 34, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} /> : <span style={{ color: OR, fontWeight: 800 }}>•</span>}
+                            {img ? <img src={img} alt="" loading="lazy" decoding="async" style={{ width: 34, height: 34, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} /> : <span style={{ color: OR, fontWeight: 800 }}>•</span>}
                             <span style={{ flex: 1 }}>{l.libelle}</span>
                             {typeof l.valeur === 'number' && <span style={{ fontSize: 12, color: SOFT, whiteSpace: 'nowrap' }}>{fcfa(l.valeur)}</span>}
                           </div>
@@ -170,7 +170,7 @@ export default function CadeauxPage() {
                       onMouseLeave={img ? () => setApercu(null) : undefined}
                       onClick={img ? () => setApercu(a => (a && a.url === img) ? null : { url: img, libelle: g.libelle }) : undefined}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, fontSize: 13.5, cursor: img ? 'pointer' : 'default' }}>
-                      {img ? <img src={img} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} /> : <span style={{ color: OR, fontWeight: 800 }}>•</span>}
+                      {img ? <img src={img} alt="" loading="lazy" decoding="async" style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} /> : <span style={{ color: OR, fontWeight: 800 }}>•</span>}
                       <span style={{ flex: 1 }}>{g.libelle}</span>
                       {typeof g.valeur === 'number' && <span style={{ fontSize: 12, color: SOFT, whiteSpace: 'nowrap' }}>{fcfa(g.valeur)}</span>}
                     </div>

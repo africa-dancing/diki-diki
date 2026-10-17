@@ -458,7 +458,7 @@ export async function uploadGiftImage(p: { image_base64?: string; mime_type?: st
   const buf = Buffer.from(p.image_base64, 'base64');
   if (buf.length > 5 * 1024 * 1024) throw new Error('IMAGE_TROP_LOURDE');
   const key = `cadeaux/${randomBytes(12).toString('hex')}.${ext}`;
-  await r2.send(new PutObjectCommand({ Bucket: R2_BUCKET, Key: key, Body: buf, ContentType: mime }));
+  await r2.send(new PutObjectCommand({ Bucket: R2_BUCKET, Key: key, Body: buf, ContentType: mime, CacheControl: 'public, max-age=31536000, immutable' }));
   return { image_path: key, image_url: await signGiftImage(key) };
 }
 

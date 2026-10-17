@@ -99,18 +99,37 @@ export default function AdminCadeauxPage() {
   };
 
   /*DKDK_CADEAUX_IMG — upload d'une photo reelle du cadeau vers R2 ; la photo suit le cadeau (pas le statut).*/
+  // Compresse la photo DANS le navigateur (redimension <=1000px + WebP, qualite 0.78)
+  // avant l'envoi : la page publique devient beaucoup plus legere (gros gain PageSpeed).
+  async function _compresserImageCadeau(file: File): Promise<{ b64: string; mime: string }> {
+    const dataUrl = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = rej; r.readAsDataURL(file); });
+    const img = await new Promise<HTMLImageElement>((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('IMG')); im.src = dataUrl; });
+    const MAX = 1000;
+    let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+    if (w > MAX || h > MAX) { const sc = Math.min(MAX / w, MAX / h); w = Math.round(w * sc); h = Math.round(h * sc); }
+    const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d'); if (!ctx) throw new Error('CANVAS');
+    ctx.drawImage(img, 0, 0, w, h);
+    const blob: Blob = await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error('BLOB')), 'image/webp', 0.78));
+    const mime = blob.type || 'image/webp';
+    const b64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = rej; r.readAsDataURL(blob); });
+    return { b64, mime };
+  }
+
   async function choisirImage(e: any) {
     const file = e?.target?.files?.[0]; if (!file) return;
     if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) { setErr('Photo au format JPG, PNG ou WebP.'); return; }
-    if (file.size > 5 * 1024 * 1024) { setErr('Photo trop lourde (max 5 Mo).'); return; }
+    if (file.size > 12 * 1024 * 1024) { setErr('Photo trop lourde (max 12 Mo).'); return; }
     setImgBusy(true); setErr('');
     try {
-      const b64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = rej; r.readAsDataURL(file); });
-      const rp = await fetch(`${API}/tirages/catalog/image`, { method: 'POST', headers: H(), body: JSON.stringify({ image_base64: b64, mime_type: file.type, file_name: file.name }) });
+      let payload: { b64: string; mime: string };
+      try { payload = await _compresserImageCadeau(file); }
+      catch { const raw = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = rej; r.readAsDataURL(file); }); payload = { b64: raw, mime: file.type }; }
+      const rp = await fetch(`${API}/tirages/catalog/image`, { method: 'POST', headers: H(), body: JSON.stringify({ image_base64: payload.b64, mime_type: payload.mime, file_name: 'cadeau' }) });
       const d = await rp.json();
-      if (!rp.ok || !d?.data?.image_path) throw new Error(d?.error === 'IMAGE_TROP_LOURDE' ? 'Photo trop lourde (max 5 Mo).' : (d?.error || 'Échec de l\'envoi.'));
+      if (!rp.ok || !d?.data?.image_path) throw new Error(d?.error === 'IMAGE_TROP_LOURDE' ? 'Photo trop lourde.' : (d?.error || 'Échec de l\'envoi.'));
       setForm(fm => ({ ...fm, image_path: d.data.image_path, image_url: d.data.image_url }));
-      setInfo('✅ Photo ajoutée — pense à « Enregistrer » le cadeau.');
+      setInfo('✅ Photo ajoutée (optimisée) — pense à « Enregistrer » le cadeau.');
     } catch (er: any) { setErr(er.message || 'Échec de l\'envoi de la photo.'); }
     finally { setImgBusy(false); }
   }
