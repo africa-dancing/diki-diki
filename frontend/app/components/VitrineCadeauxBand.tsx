@@ -5,7 +5,7 @@
 // Les GRANDS LOTS sont affichés TOUTE L'ANNÉE (rappel du défi annuel).
 // Pilotée par l'interrupteur `cadeaux_vitrine_active` : si OFF, la bande disparaît.
 // Lecture seule, aucun montant affiché (teaser) — renvoie vers /cadeaux.
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import EchoIcon, { StatutEcho } from './EchoIcon';
 
@@ -36,6 +36,21 @@ export default function VitrineCadeauxBand() {
   const [locaux, setLocaux] = useState<Lot[]>([]);
   const [grands, setGrands] = useState<Grand[]>([]);
   const [apercu, setApercu] = useState<{ url: string; libelle: string } | null>(null);
+  const maskRef = useRef<HTMLDivElement>(null); /*DKDK_PERF*/
+  const [animer, setAnimer] = useState(false);
+  // Le defilement ne demarre QUE lorsque la bande entre reellement dans l'ecran.
+  // Au 1er chargement (surtout le hero visible) elle reste immobile -> page jugee
+  // "visuellement stable" plus vite -> meilleur Speed Index mobile. Aucun changement a l'usage.
+  useEffect(() => {
+    const el = maskRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === 'undefined') { setAnimer(true); return; }
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) { setAnimer(true); io.disconnect(); }
+    }, { threshold: 0.35 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [loading, active]);
 
   useEffect(() => {
     fetch(`${API}/vitrine`, { cache: 'no-store' })
@@ -129,14 +144,15 @@ export default function VitrineCadeauxBand() {
           -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
           mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
         .dkdk-vcb-track { display: flex; gap: 12px; width: max-content; padding: 4px 16px 12px;
-          animation: dkdkVcbScroll var(--dkdk-vcb-dur,40s) linear infinite; }
-        .dkdk-vcb-mask:hover .dkdk-vcb-track { animation-play-state: paused; }
+          animation: dkdkVcbScroll var(--dkdk-vcb-dur,40s) linear infinite; animation-play-state: paused; }
+        .dkdk-vcb-track.dkdk-anim { animation-play-state: running; }
+        .dkdk-vcb-mask:hover .dkdk-vcb-track.dkdk-anim { animation-play-state: paused; }
         @keyframes dkdkVcbScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         @media (prefers-reduced-motion: reduce) { .dkdk-vcb-track { animation: none; } .dkdk-vcb-mask { overflow-x: auto; } }
       `}</style>
 
-      <div className="dkdk-vcb-mask" style={{ minHeight: 232 }}>
-        <div className="dkdk-vcb-track" style={{ ['--dkdk-vcb-dur' as any]: `${duree}s` }}>
+      <div className="dkdk-vcb-mask" style={{ minHeight: 232 }} ref={maskRef}>
+        <div className={`dkdk-vcb-track${animer ? ' dkdk-anim' : ''}`} style={{ ['--dkdk-vcb-dur' as any]: `${duree}s` }}>
           {piste.map((c, i) => carte(c, i < cartes.length ? 'a' : 'b', i === 0))}
         </div>
       </div>
