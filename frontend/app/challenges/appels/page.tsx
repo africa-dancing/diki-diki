@@ -322,7 +322,7 @@ export default function MurDesAppelsPage() {
           <div style={{ flex: 1 }}>
             <b style={{ fontWeight: 700, fontSize: 15 }}>Lance ton propre appel</b>
             <span style={{ display: 'block', fontSize: 12.5, color: 'var(--ink-soft)' }}>
-              Choisis ta discipline, tes morceaux par étape, et invite l&apos;Afrique.
+              Choisis ta discipline, tes morceaux par étape, et invite tes adversaires au défi.
             </span>
           </div>
           <Link href="/challenges/creer" style={{
