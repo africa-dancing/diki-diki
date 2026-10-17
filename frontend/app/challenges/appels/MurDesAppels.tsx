@@ -1,0 +1,887 @@
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import Navbar from '../../components/Navbar';
+import EcouterPage from '../../components/EcouterPage';
+import VitrineCadeauxBand from '../../components/VitrineCadeauxBand'; /*DKDK_VITRINE_BAND*/
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
+
+const SOLID = 'linear-gradient(135deg,#FF6B00,#FFD700)';
+const ON_ACCENT = '#150c00';
+const HERO = 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))';
+const OR = 'var(--or)';
+
+// Constantes par format (max_participants) : objectif à réunir / étape,
+// nombre de champions, partage du podium, prime de participation.
+interface FormatCfg { objectif: number; champions: number; podium: string; prime: string; }
+const FORMATS: Record<number, FormatCfg> = {
+  2:  { objectif: 2500000,  champions: 1, podium: '100 %',              prime: '20 %' },
+  4:  { objectif: 4000000,  champions: 2, podium: '65 % / 35 %',        prime: '20 %' },
+  6:  { objectif: 5000000,  champions: 3, podium: '60 % / 25 % / 15 %', prime: '20 %' },
+  8:  { objectif: 7000000,  champions: 3, podium: '60 % / 25 % / 15 %', prime: '20 %' },
+  12: { objectif: 9000000,  champions: 3, podium: '60 % / 25 % / 15 %', prime: '20 %' },
+  16: { objectif: 15000000, champions: 3, podium: '60 % / 25 % / 15 %', prime: '20 %' },
+};
+function cfgFor(n: number): FormatCfg {
+  return FORMATS[n] ?? { objectif: 0, champions: 1, podium: '100 %', prime: '20 %' };
+}
+
+interface Etape {
+  round_number: number;
+  libelle: string;
+  track_titre: string | null;
+  track_artiste: string | null;
+  ref_url?: string | null;
+}
+interface Appel {
+  id: string;
+  title: string | null;
+  discipline: string | null;
+  modele: string | null;
+  niveau?: number;
+  objectif_info?: any;
+  max_participants: number;
+  appel_deadline: string | null;
+  createur_nom: string | null;
+  createur_pays: string | null;
+  officiel?: boolean;
+  acceptes: number;
+  en_revision: number;
+  en_attente: number;
+  etapes: Etape[];
+}
+interface Aggregates {
+  appels_ouverts: number;
+  places_a_saisir: number;
+  candidats_engages: number;
+  disciplines: number;
+}
+
+function fmt(n: number): string {
+  return (n ?? 0).toLocaleString('fr-FR');
+}
+
+// Initiales à partir d'un nom (2 lettres max).
+function initials(source: string | null | undefined): string {
+  const s = (source ?? '').trim();
+  if (!s) return '?';
+  const parts = s.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+// Badge compte à rebours à partir de la deadline ISO.
+function countdown(deadline: string | null): string {
+  if (!deadline) return 'Appel ouvert';
+  const end = new Date(deadline).getTime();
+  if (isNaN(end)) return 'Appel ouvert';
+  const diff = end - Date.now();
+  if (diff <= 0) return 'Appel clos';
+  const h = Math.floor(diff / 3600000);
+  if (h < 24) return `Ferme dans ${Math.max(1, h)} h`;
+  const j = Math.round(h / 24);
+  return `Ferme dans ${j} j`;
+}
+
+/*DKDK_DISC_EMOJI — emoji selon la discipline, pour la reperer d'un coup d'oeil*/
+function discEmoji(d?: string | null): string {
+  const s = (d || '').toLowerCase();
+  if (/(danse|dance)/.test(s)) return '💃';
+  if (/(chant|voix|acap|a cappella)/.test(s)) return '🎤';
+  if (/(humour|com[eé]|comedy|rire|stand)/.test(s)) return '😂';
+  if (/(instrument|guitare|piano|percussion|kora|balafon)/.test(s)) return '🎸';
+  if (/(po[eé]sie|slam)/.test(s)) return '✍️';
+  if (/(conte|storytelling)/.test(s)) return '📖';
+  if (/(taekwondo|karat|judo|lutte|martia|art martial|boxe|combat|kung|jiu)/.test(s)) return '🥋';
+  if (/(foot|football|sport|athl)/.test(s)) return '⚽';
+  return '🌟';
+}
+
+/*DKDK_CONTEXTE_IMPOSE — l'intitule du panneau s'adapte a la discipline : sport -> epreuves, musique/danse -> morceaux, autre artistique -> consignes*/
+function contexteImpose(d?: string | null): string {
+  const x = (d || '').toLowerCase();
+  if (/(taekwondo|karat|judo|lutte|martia|art martial|boxe|combat|kung|jiu|foot|football|sport|athl|basket|hand|volley|tennis|course|nage|natation)/.test(x)) return 'Les \u00e9preuves impos\u00e9es';
+  if (/(danse|dance|chant|voix|acap|a cappella|instrument|guitare|piano|percussion|kora|balafon|musiq)/.test(x)) return 'Les morceaux impos\u00e9s';
+  if (/(humour|com[e\u00e9]|comedy|rire|stand|po[e\u00e9]sie|slam|conte|storytelling|th[e\u00e9][a\u00e2]tre)/.test(x)) return 'Les consignes impos\u00e9es';
+  return 'Les morceaux impos\u00e9s';
+}
+
+/*DKDK_CONTEXTE_COULEUR — code couleur du panneau selon la discipline : sport=bleu, autre artistique=magenta, musique=dore (defaut)*/
+function contexteCouleur(d?: string | null): { head: string; badgeBg: string; badgeInk: string } {
+  const x = (d || '').toLowerCase();
+  if (/(taekwondo|karat|judo|lutte|martia|art martial|boxe|combat|kung|jiu|foot|football|sport|athl|basket|hand|volley|tennis|course|nage|natation)/.test(x))
+    return { head: '#7fd6ff', badgeBg: 'linear-gradient(135deg,#2f9de0,#38d3ef)', badgeInk: '#012' };
+  if (/(humour|com[e\u00e9]|comedy|rire|stand|po[e\u00e9]sie|slam|conte|storytelling|th[e\u00e9][a\u00e2]tre)/.test(x))
+    return { head: '#f7c1ff', badgeBg: 'linear-gradient(135deg,#b06ab3,#f107a3)', badgeInk: '#fff' };
+  return { head: 'var(--ink-soft)', badgeBg: SOLID, badgeInk: ON_ACCENT };
+}
+
+/*DKDK_REF_URL — lien YouTube -> URL d'integration (lecteur sur place)*/
+function ytEmbed(url?: string | null): string | null {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+}
+
+export default function MurDesAppels({ initialData }: { initialData?: { appels: Appel[]; aggregates: Aggregates | null } | null }) {
+  const [appels, setAppels]         = useState<Appel[]>(initialData?.appels ?? []);
+  const [aggregates, setAggregates] = useState<Aggregates | null>(initialData?.aggregates ?? null);
+  const [loading, setLoading]       = useState(initialData == null);
+  const [error, setError]           = useState(false);
+  const [connecte, setConnecte]     = useState(false);  /*DKDK_GUIDE*/
+
+  /*DKDK_GUIDE_MORPH — animation du guide (PC) + bulles de ligne*/
+  const slotRef = useRef<HTMLDivElement | null>(null);
+  const guideRef = useRef<HTMLDivElement | null>(null);
+  const naturalH = useRef<number>(0);
+  const morphedRef = useRef(false);
+  const [guideMorph, setGuideMorph] = useState(false);
+  const [rowBubble, setRowBubble] = useState<{ title: string; body: React.ReactNode; top: number } | null>(null);
+
+  function ouvrirGuideMorph() {
+    if (typeof window === 'undefined' || window.innerWidth < 1024) return;
+    const slot = slotRef.current, g = guideRef.current;
+    if (!slot || !g) return;
+    morphedRef.current = true;
+    naturalH.current = g.offsetHeight;
+    slot.style.height = naturalH.current + 'px';
+    requestAnimationFrame(() => { setGuideMorph(true); if (slotRef.current) slotRef.current.style.height = '0px'; });
+  }
+  function fermerGuideMorph() {
+    if (!morphedRef.current) return;
+    morphedRef.current = false;
+    setGuideMorph(false);
+    const slot = slotRef.current;
+    if (slot) {
+      slot.style.height = (naturalH.current || 0) + 'px';
+      setTimeout(() => { if (slotRef.current) slotRef.current.style.height = ''; }, 440);
+    }
+  }
+  function bulleLigne(e: React.MouseEvent, title: string, body: React.ReactNode) {
+    if (morphedRef.current) return;
+    setRowBubble({ title, body, top: Math.max(120, (e.currentTarget as HTMLElement).getBoundingClientRect().top) });
+  }
+
+  useEffect(() => {
+    if (initialData != null) return; /*DKDK_SSR — deja rempli cote serveur, pas de re-fetch*/
+    fetch(`${API}/brackets/appels`)
+      .then(r => (r.ok ? r.json() : Promise.reject()))
+      .then(d => {
+        setAppels(d?.data?.appels ?? []);
+        setAggregates(d?.data?.aggregates ?? null);
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {  /*DKDK_GUIDE — savoir si l'arrivant est connecte, pour l'orienter*/
+    try { setConnecte(!!localStorage.getItem('dkdk_token')); } catch { /* ignore */ }
+  }, []);
+
+  /*DKDK_GUIDE — « Ton guide Diki-Diki » : accueil chaleureux et contextuel
+    pour orienter tout arrivant sur le Mur des appels. Aucun montant promis. */
+  function guideContent(): { msg: React.ReactNode; tip?: string } {
+    if (loading) return { msg: <>Un instant… je rassemble les appels ouverts de l&apos;Arène. 🧭</> };
+    if (appels.length === 0) return {
+      msg: <>Akwaba ! 🧭 L&apos;Arène attend son prochain créateur. Choisis ta discipline, fixe tes morceaux <b>étape par étape</b>, et lance ton appel — puis invite tout le continent à te rejoindre.</>,
+      tip: 'Pas encore de vidéo ? Tu peux d’abord en déposer une, la faire valider, puis rejoindre un appel.',
+    };
+    if (connecte) return {
+      msg: <>Akwaba ! 🧭 Voici les <b>appels ouverts</b>. Ouvre celui qui t&apos;inspire pour voir les morceaux imposés, puis <b>rejoins-le</b> avec ta vidéo approuvée. Envie de mener la danse ? Lance ton propre appel.</>,
+    };
+    return {
+      msg: <>Akwaba ! 🧭 Voici les <b>appels ouverts</b>. Ouvre celui qui t&apos;inspire pour découvrir les morceaux, étape par étape. Pour <b>rejoindre</b> avec ta vidéo, connecte-toi — c&apos;est rapide.</>,
+    };
+  }
+
+  return (
+    <div style={{
+      minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)',
+      fontFamily: 'DM Sans, sans-serif', paddingBottom: 80,
+    }}>
+      <Navbar />
+      <EcouterPage />
+
+      {/* HERO — halo magenta collé à la barre + panneau compact (aligné sur /challenges) */}
+      <div style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)', paddingTop: 8 }}>
+        <div className="dkdk-appels-main" style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 4px' }}>
+          <section style={{
+            background: HERO, border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '20px',
+            textAlign: 'center', color: '#fff', boxShadow: '0 8px 40px rgba(225,29,143,0.35)',
+          }}>
+            <span style={{
+              display: 'inline-block', background: SOLID, color: ON_ACCENT,
+              fontWeight: 800, fontSize: 11, letterSpacing: '0.16em',
+              textTransform: 'uppercase', padding: '5px 12px', borderRadius: 6,
+            }}>🔥 L&apos;Arène ouvre bientôt</span>
+            <h1 style={{
+              fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, lineHeight: 1.1,
+              margin: '12px 0 8px', color: '#fff',
+            }}>Le Mur des appels</h1>
+            <p style={{
+              color: 'rgba(255,255,255,0.9)', fontSize: 13, maxWidth: 620,
+              margin: '0 auto', lineHeight: 1.5,
+            }}>
+              Un artiste lance son challenge et fixe les morceaux, étape par étape. À toi d&apos;accepter le défi pour que le challenge commence… ou d&apos;en créer le tien librement.
+            </p>
+            <p style={{ color: '#ffeef0', fontSize: 13, maxWidth: 620, margin: '10px auto 0', lineHeight: 1.5 }}>
+              Danse, Chant, Musique, Humour, Poésie, Conte, Football, Basket, Les Arts Martiaux… Envoie ta vidéo, le public te soutient par ses votes, et la cagnotte récompense les meilleurs.
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 16 }}>
+              <Link href="/submit" style={{ background: SOLID, color: '#000', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 15, padding: '12px 20px', borderRadius: 12, textDecoration: 'none' }}>🎬 Je dépose ma vidéo</Link>
+              <Link href="/faq" style={{ background: 'rgba(0,0,0,0.28)', color: '#fff', fontWeight: 700, fontSize: 14, padding: '12px 18px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.35)', textDecoration: 'none' }}>Comment ça marche ?</Link>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <VitrineCadeauxBand /> {/*DKDK_VITRINE_BAND — bande defilante des cadeaux du mois + grands lots toute l'annee*/}
+
+      <div className="dkdk-appels-main" style={{ maxWidth: 720, margin: '0 auto', padding: '0 16px' }}>
+
+        <div onMouseLeave={fermerGuideMorph}>{/*DKDK_GUIDE_ZONE — zone stable : evite le clignotement au survol du guide*/}
+        {/*DKDK_GUIDE_PANEL — guide contextuel « Ton guide Diki-Diki » (miroir de /submit)*/}
+        {(() => {
+          const g = guideContent();
+          return (
+            <>
+              <style>{`
+                @keyframes dkdkGuideGlow {
+                  0%,100% { box-shadow: 0 0 0 0 rgba(255,170,0,0); border-color: rgba(255,170,0,0.28); }
+                  50%     { box-shadow: 0 0 16px 1px rgba(255,170,0,0.30); border-color: rgba(255,170,0,0.65); }
+                }
+                @keyframes dkdkGuidePop {
+                  0%,100% { transform: translateY(0) scale(1) rotate(0deg); }
+                  30%     { transform: translateY(-4px) scale(1.16) rotate(-8deg); }
+                  60%     { transform: translateY(-1px) scale(1.08) rotate(8deg); }
+                }
+                .dkdk-guide-glow { animation: dkdkGuideGlow 2.6s ease-in-out infinite; }
+                .dkdk-guide-icon { display: inline-block; transform-origin: 50% 60%; animation: dkdkGuidePop 2.4s ease-in-out infinite; }
+                @media (prefers-reduced-motion: reduce) {
+                  .dkdk-guide-glow, .dkdk-guide-icon { animation: none !important; }
+                }
+              `}</style>
+              <div ref={slotRef} style={{ transition: 'height .38s cubic-bezier(.2,.7,.2,1)' }}>
+              <div ref={guideRef} onMouseEnter={ouvrirGuideMorph} className={guideMorph ? 'dkdk-guide-glow dkdk-guide-morph' : 'dkdk-guide-glow'} style={{ background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.28)', borderRadius: 16, padding: '14px 16px', margin: '18px 0 4px', transition: 'width .4s cubic-bezier(.2,.7,.2,1), height .4s cubic-bezier(.2,.7,.2,1), border-radius .4s, box-shadow .3s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
+                  <span className="dkdk-guide-icon" style={{ fontSize: 22, lineHeight: 1 }}>🧭</span>
+                  <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: OR }}>Ton guide Diki-Diki</span>
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>{g.msg}</div>
+                {g.tip ? (
+                  <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginTop: 8, paddingLeft: 10, borderLeft: '2px solid rgba(255,170,0,0.35)' }}>{g.tip}</div>
+                ) : null}
+                <div style={{ fontSize: 11, color: 'var(--ink-dim)', lineHeight: 1.5, marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+                  💰 <b>Aucun montant garanti</b> — tout dépend du soutien du public. Les votes forment une cagnotte partagée entre les gagnants.
+                </div>
+              </div>
+              </div>
+            </>
+          );
+        })()}
+
+        {/* AGRÉGATS */}
+        {aggregates && (
+          <div
+            onMouseEnter={(e) => aggregates && bulleLigne(e, '📊 En un coup d’œil', <><b>{aggregates.appels_ouverts}</b> appels ouverts<br/><b>{aggregates.places_a_saisir}</b> places à saisir<br/><b>{aggregates.candidats_engages}</b> candidat(s) engagé(s)<br/><b>{aggregates.disciplines}</b> disciplines</>)}
+            onMouseLeave={() => setRowBubble(null)}
+            style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10,
+            margin: '18px 0',
+          }}>
+            <StatBox value={aggregates.appels_ouverts} label="appels ouverts" />
+            <StatBox value={aggregates.places_a_saisir} label="places à saisir" highlight />
+            <StatBox value={aggregates.candidats_engages} label="candidats engagés" />
+            <StatBox value={aggregates.disciplines} label="disciplines" />
+          </div>
+        )}
+
+        {/* COMMENT ÇA MARCHE */}
+        <div
+          onMouseEnter={(e) => bulleLigne(e, '🧭 Comment ça marche', <><b>1 · Le créateur</b> — fixe les morceaux et publie.<br/><b>2 · Toi</b> — tu acceptes ou tu demandes une révision.<br/><b>3 · Tous d’accord</b> — le challenge démarre.</>)}
+          onMouseLeave={() => setRowBubble(null)}
+          style={{
+          display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10,
+          margin: '20px 0 10px',
+        }}>
+          <HowStep n="1 · Le créateur" text="fixe les morceaux de chaque étape et publie son appel." />
+          <HowStep n="2 · Toi" text="tu cliques Accepter, ou tu demandes une révision d'une étape." />
+          <HowStep n="3 · Tous d'accord" text="une seule décision par étape, et le challenge démarre." />
+        </div>
+
+        {/* LANCE TON PROPRE APPEL */}
+        <div
+          onMouseEnter={(e) => bulleLigne(e, '🚀 Lance ton propre appel', <>Tu as une idée de défi ? Lance ton propre appel :<br/>Choisis ta discipline, tes morceaux, et invite les courageux du continent et de la diaspora au défi.</>)}
+          onMouseLeave={() => setRowBubble(null)}
+          style={{
+          display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0 26px',
+          background: 'linear-gradient(180deg,rgba(255,170,0,0.12),rgba(255,107,0,0.04))',
+          border: '1px dashed rgba(255,140,0,0.5)', borderRadius: 14, padding: '14px 16px',
+        }}>
+          <span style={{ fontWeight: 800, fontSize: 22, color: 'var(--or)', lineHeight: 1 }}>＋</span>
+          <div style={{ flex: 1 }}>
+            <b style={{ fontWeight: 700, fontSize: 15 }}>Lance ton propre appel</b>
+            <span style={{ display: 'block', fontSize: 12.5, color: 'var(--ink-soft)' }}>
+              Choisis ta discipline, tes morceaux par étape, et invite tes adversaires au défi.
+            </span>
+          </div>
+          <Link href="/challenges/creer" style={{
+            textDecoration: 'none', background: SOLID, color: ON_ACCENT,
+            fontWeight: 700, borderRadius: 10, fontSize: 13.5,
+            padding: '10px 16px', whiteSpace: 'nowrap',
+          }}>Créer</Link>
+        </div>
+        </div>{/*DKDK_GUIDE_ZONE fin*/}
+
+        {/* LABEL SECTION */}
+        <div style={{
+          fontWeight: 700, fontSize: 12, letterSpacing: '0.18em',
+          textTransform: 'uppercase', color: 'var(--or)',
+          margin: '8px 4px 16px', display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span>Appels ouverts</span>
+          <span style={{ flex: 1, height: 1, background: 'var(--line)' }} />
+        </div>
+
+        {/* ÉTATS */}
+        {loading && (
+          <p style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: '30px 0' }}>
+            Chargement…
+          </p>
+        )}
+
+        {!loading && error && (
+          <p style={{ color: 'var(--ink-dim)', textAlign: 'center', padding: '24px 0', fontSize: 13.5 }}>
+            Impossible de charger les appels pour le moment. Réessaie un peu plus tard.
+          </p>
+        )}
+
+        {!loading && !error && appels.length === 0 && (
+          <EmptyState />
+        )}
+
+        {!loading && !error && appels.length > 0 && (
+          <div className="dkdk-cards">
+            {appels.map(a => <AppelCard key={a.id} appel={a} />)}
+          </div>
+        )}
+
+        <footer style={{
+          margin: '26px auto 0', color: 'var(--ink-dim)', fontSize: 12,
+          textAlign: 'center', lineHeight: 1.6,
+        }}>
+          Les montants affichés sont des <b style={{ color: 'var(--ink-soft)' }}>objectifs à réunir</b> en votes,
+          jamais des gains promis. Ton gain dépend du soutien du public.
+        </footer>
+
+      </div>
+
+      {rowBubble && (
+        <div className="dkdk-row-bubble" style={{ position: 'fixed', top: rowBubble.top, right: 28, width: 300, zIndex: 60, transition: 'top .18s ease', background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.5)', borderRadius: 16, padding: '14px 16px', boxShadow: '0 14px 34px -10px rgba(0,0,0,0.6), 0 0 18px -4px rgba(255,170,0,0.4)', pointerEvents: 'none' }}>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 13, color: 'var(--or)', marginBottom: 8 }}>{rowBubble.title}</div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.6 }}>{rowBubble.body}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Sous-composants ---------- */
+
+function StatBox({ value, label, highlight }: { value: number; label: string; highlight?: boolean }) {
+  return (
+    <div style={{
+      background: highlight ? 'linear-gradient(180deg,rgba(255,170,0,0.14),rgba(255,107,0,0.05))' : 'var(--surface)',
+      border: highlight ? '1px solid rgba(255,140,0,0.45)' : '1px solid var(--line)',
+      borderRadius: 12, padding: '13px 8px', textAlign: 'center',
+    }}>
+      <div style={{
+        fontWeight: 800, fontSize: highlight ? 24 : 22,
+        color: highlight ? 'var(--or)' : 'var(--ink)', lineHeight: 1.1,
+      }}>{fmt(value)}</div>
+      <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 4, lineHeight: 1.3 }}>{label}</div>
+    </div>
+  );
+}
+
+function HowStep({ n, text }: { n: string; text: string }) {
+  return (
+    <div style={{
+      background: 'var(--surface)', border: '1px solid var(--line)',
+      borderRadius: 12, padding: '13px 12px',
+    }}>
+      <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--or)', letterSpacing: '0.05em' }}>{n}</div>
+      <p style={{ margin: '6px 0 0', fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45 }}>{text}</p>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div style={{
+      background: 'var(--surface)', border: '1px dashed var(--line-strong)',
+      borderRadius: 16, padding: '40px 24px', textAlign: 'center',
+    }}>
+      <div style={{ fontSize: 34, marginBottom: 10 }}>📣</div>
+      <h2 style={{ fontWeight: 800, fontSize: 20, margin: '0 0 8px', color: 'var(--ink)' }}>
+        Aucun appel ouvert pour le moment
+      </h2>
+      <p style={{ color: 'var(--ink-soft)', fontSize: 14, maxWidth: '42ch', margin: '0 auto 20px', lineHeight: 1.5 }}>
+        L&apos;Arène attend son prochain créateur. Sois le premier à lancer un appel,
+        fixe tes morceaux et invite le continent à te rejoindre.
+      </p>
+      <Link href="/challenges/creer" style={{
+        display: 'inline-block', textDecoration: 'none', background: SOLID,
+        color: ON_ACCENT, fontWeight: 700, borderRadius: 10, fontSize: 14,
+        padding: '12px 22px',
+      }}>Créer un challenge</Link>
+    </div>
+  );
+}
+
+function AppelCard({ appel }: { appel: Appel }) {
+  const [player, setPlayer] = useState<number | null>(null); /*DKDK_REF_URL — etape dont le lecteur est ouvert*/
+  const [face, setFace]     = useState<'recto' | 'verso'>('recto'); /*DKDK_FLIP — panneau a double face*/
+  const [connecte, setConnecte]     = useState(false);
+  const [videos, setVideos]         = useState<{ id: string; title: string; status: string }[]>([]);
+  const [videoId, setVideoId]       = useState('');
+  const [loadedVids, setLoadedVids] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg]   = useState('');
+  const [ok, setOk]     = useState('');
+
+  const cfg     = cfgFor(appel.max_participants);
+  const oi        = appel.objectif_info;
+  const isBloc    = (appel.modele || 'bloc') !== 'parcours';
+  const etObj     = (i: number): number | null => (oi && Array.isArray(oi.etapes) && oi.etapes[i]) ? oi.etapes[i].objectif : null;
+  const totalObj  = oi ? (isBloc ? (oi.objectif ?? null) : (oi.enveloppe ?? null)) : null;
+  const officiel = !!appel.officiel;
+  const nom     = officiel ? 'Création' : (appel.createur_nom || 'Créateur');
+  const ava     = officiel ? 'DKM' : initials(appel.createur_nom || appel.title || 'Créateur');
+  const disc    = appel.discipline || 'talent';
+  const cx      = contexteCouleur(appel.discipline); /*DKDK_CONTEXTE_COULEUR*/
+  const chant   = /(chant|voix|acap|a cappella)/.test(disc.toLowerCase()); /*DKDK_FLIP — reprise sans paroles pour le chant*/
+  const nEtapes = appel.etapes?.length ?? 0;
+  const cd    = countdown(appel.appel_deadline);
+  const open  = cd !== 'Appel clos';
+  const placesRestantes = Math.max(0, appel.max_participants - appel.acceptes);
+  const pct   = appel.max_participants > 0
+    ? Math.min(100, Math.round((appel.acceptes / appel.max_participants) * 100))
+    : 0;
+
+  /*DKDK_FLIP — styles de la 2e face (identiques a la page detail)*/
+  const vcard: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 16, padding: '16px 18px', marginBottom: 14 };
+  const vh: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: 'var(--or)', marginBottom: 12 };
+  const fmtDate = (sIn?: string | null): string | null => {
+    if (!sIn) return null;
+    try { return new Date(sIn).toLocaleString('fr-FR', { day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' }); }
+    catch { return sIn; }
+  };
+
+  /*DKDK_FLIP — bascule vers la 2e face + chargement paresseux des videos approuvees*/
+  function ouvrirVerso() {
+    setFace('verso');
+    if (loadedVids) return;
+    setLoadedVids(true);
+    try {
+      const t = localStorage.getItem('dkdk_token');
+      setConnecte(!!t);
+      if (t) {
+        fetch(`${API}/videos/my`, { headers: { Authorization: `Bearer ${t}` } })
+          .then(r => r.json())
+          .then(d => {
+            const ap = ((d?.videos ?? []) as any[]).filter(v => v.status === 'approved');
+            setVideos(ap as { id: string; title: string; status: string }[]);
+            if (ap[0]) setVideoId(ap[0].id);
+          })
+          .catch(() => {});
+      }
+    } catch { /* ignore */ }
+  }
+
+  /*DKDK_FLIP — rejoindre l'appel sans quitter le mur (meme logique que la page detail)*/
+  async function rejoindre(paiement_confirme = false) {
+    setMsg(''); setOk('');
+    let t: string | null = null;
+    try { t = localStorage.getItem('dkdk_token'); } catch { t = null; }
+    if (!t) { window.location.href = '/auth/login'; return; }
+    if (!videoId) { setMsg('Choisis une vidéo approuvée (ou fais-en approuver une d’abord).'); return; }
+    setBusy(true);
+    try {
+      const r = await fetch(`${API}/brackets/${appel.id}/accepter`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
+        body: JSON.stringify({ video_id: videoId, paiement_confirme }),
+      });
+      const j = await r.json();
+      if (!r.ok || !j.success) {
+        const e = String(j?.error || '');
+        if (e.startsWith('PAIEMENT_REQUIS:')) {
+          const montant = e.split(':')[1];
+          if (confirm(`Cette vidéo est déjà engagée dans un autre challenge. L’inscrire ici coûte ${montant} F. Continuer ?`)) {
+            setBusy(false); return rejoindre(true);
+          }
+          setMsg('Inscription annulée.');
+        } else { setMsg(e || 'Impossible de rejoindre.'); }
+      } else {
+        setOk('✅ Tu as rejoint l’appel ! Quand toutes les places seront prises, le challenge démarre.');
+      }
+    } catch { setMsg('Erreur réseau.'); }
+    setBusy(false);
+  }
+
+  return (
+    <article style={{
+      background: 'linear-gradient(180deg,var(--surface2),var(--surface))',
+      border: open ? '1px solid rgba(255,150,0,0.4)' : '1px solid var(--line)',
+      borderRadius: 16, padding: 20, marginBottom: 0, display: 'flex', flexDirection: 'column', height: '100%',
+      position: 'relative', overflow: 'hidden', perspective: '1400px',
+      boxShadow: open ? '0 0 0 1px rgba(255,150,0,0.15),0 10px 26px -16px rgba(237,28,36,0.45)' : 'none', /*DKDK_CARD_SHADOW — halo reduit : ne deborde plus sur les cartes voisines*/
+    }}>
+      {open && (
+        <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: SOLID, zIndex: 2 }} />
+      )}
+
+      <div key={face} className="dkdk-flipface" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+        {face === 'recto' ? (
+          /* ============================ RECTO ============================ */
+          <div
+            role="button" tabIndex={0}
+            onClick={ouvrirVerso}
+            onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ouvrirVerso(); } }}
+            aria-label="Toucher pour rejoindre cet appel"
+            style={{ display: 'flex', flexDirection: 'column', flex: 1, cursor: 'pointer' }}
+          >
+            {/* Bandeau DISCIPLINE */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '8px 12px', borderRadius: 12, background: 'rgba(255,170,0,0.10)', border: '1px solid rgba(255,170,0,0.30)' }}>
+              <span style={{ fontSize: 26, lineHeight: 1 }}>{discEmoji(disc)}</span>
+              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 19, color: 'var(--or)', textTransform: 'capitalize', lineHeight: 1.1 }}>{disc}</span>
+              <span style={{ marginLeft: 'auto', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-dim)' }}>{isBloc ? 'Bloc groupé' : 'Parcours'}</span>
+            </div>
+
+            {/* Ligne créateur */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: '50%', flex: 'none',
+                display: 'grid', placeItems: 'center', fontWeight: 800,
+                fontSize: officiel ? 13 : 16,
+                color: officiel ? ON_ACCENT : 'var(--ink)',
+                background: officiel ? SOLID : 'var(--surface2)',
+                border: officiel ? 'none' : '1px solid var(--line-strong)',
+              }}>{ava}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                  <b style={{ fontWeight: 700, fontSize: 16 }}>{nom}</b>
+                  {officiel && (
+                    <span style={{
+                      fontSize: 9.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
+                      color: ON_ACCENT, background: SOLID, borderRadius: 6, padding: '2px 7px',
+                    }}>Officiel</span>
+                  )}
+                </div>
+                <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+                  {officiel
+                    ? 'Publication officielle · Diki-Diki'
+                    : `Créateur${appel.createur_pays ? ` · ${appel.createur_pays}` : ''}`}
+                </div>
+              </div>
+              <span style={{
+                fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+                color: open ? 'var(--or)' : 'var(--ink-dim)',
+                border: `1px solid ${open ? 'rgba(255,170,0,0.4)' : 'var(--line)'}`,
+                background: open ? 'rgba(255,170,0,0.12)' : 'var(--surface)',
+                borderRadius: 999, padding: '4px 10px', whiteSpace: 'nowrap',
+              }}>{cd}</span>
+            </div>
+
+            {/* Phrase d'invite */}
+            <p style={{ fontSize: 15.5, lineHeight: 1.5, margin: '16px 0 4px' }}>
+              <span style={{ fontSize: 20, verticalAlign: -2 }}>🎧</span>{' '}
+              {officiel
+                ? <>Défi <b>officiel Diki-Diki</b> — challenge de <b>{disc}</b>. Rejoins l&apos;Arène !</>
+                : <>Je suis <b>{nom}</b>, et je t&apos;invite dans mon challenge de <b>{disc}</b>.</>}
+            </p>
+
+            {/* Chips */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '14px 0' }}>
+              <Chip>Format <b style={{ color: 'var(--or)' }}>C{appel.max_participants}</b></Chip>
+              <Chip><b style={{ color: 'var(--or)' }}>{appel.max_participants}</b> candidats</Chip>
+              <Chip><b style={{ color: 'var(--or)' }}>{nEtapes}</b> {isBloc ? 'vidéo' : 'étape'}{nEtapes > 1 ? 's' : ''}</Chip>
+              <Chip>🏆 <b style={{ color: 'var(--green)' }}>{cfg.champions}</b> gagnant{cfg.champions > 1 ? 's' : ''}</Chip>
+              <Chip><b style={{ color: 'var(--red)' }}>{appel.max_participants - cfg.champions}</b> éliminé{(appel.max_participants - cfg.champions) > 1 ? 's' : ''}</Chip>
+              {appel.modele && <Chip>Modèle <b style={{ color: 'var(--or)' }}>{appel.modele === 'parcours' ? 'Parcours d’étapes' : 'Bloc groupé'}</b></Chip>}
+            </div>
+
+            {/* Morceaux imposés par étape */}
+            {nEtapes > 0 && (
+              <div style={{ margin: '16px 0', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{
+                  fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em',
+                  textTransform: 'uppercase', color: cx.head,
+                  padding: '10px 14px', background: 'var(--surface)', borderBottom: '1px solid var(--line)',
+                }}>{contexteImpose(appel.discipline)}, par {isBloc ? 'vidéo' : 'étape'}</div>
+                {appel.etapes.map((e, i) => (
+                  <div key={e.round_number ?? i} style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
+                    borderBottom: i < appel.etapes.length - 1 ? '1px solid var(--line)' : 'none',
+                  }}>
+                    <span style={{
+                      fontWeight: 800, fontSize: 12, color: cx.badgeInk, background: cx.badgeBg,
+                      borderRadius: 7, padding: '5px 8px', whiteSpace: 'nowrap',
+                    }}>{isBloc ? 'Vidéo' : 'Étape'} {e.round_number ?? i + 1}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: 14.5 }}>
+                        {e.track_titre || e.libelle}
+                      </div>
+                      {(e.track_artiste || (e.track_titre && e.libelle)) && (
+                        <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+                          {e.track_artiste || e.libelle}
+                        </div>
+                      )}
+                      {ytEmbed(e.ref_url) ? (() => {
+                        const key = e.round_number ?? i;
+                        const pOpen = player === key;
+                        return (
+                          <div style={{ marginTop: 6 }} onClick={(ev) => ev.stopPropagation()}>
+                            <button onClick={(ev) => { ev.stopPropagation(); setPlayer(pOpen ? null : key); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 11.5, color: 'var(--or)', fontWeight: 700 }}>
+                              {pOpen ? '▾ Fermer le lecteur' : '▶ Écouter la version de référence'}
+                            </button>
+                            {pOpen ? (
+                              <div style={{ position: 'relative', width: '100%', maxWidth: 360, aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)', marginTop: 6 }}>
+                                <iframe src={ytEmbed(e.ref_url) as string} title={`Référence ${key}`} loading="lazy"
+                                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
+                                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })() : null}
+                    </div>
+                    {!isBloc && (
+                      <div style={{ textAlign: 'right', flex: 'none' }}>
+                        <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--or)', lineHeight: 1.1 }}>{etObj(i) != null ? fmt(etObj(i)!) + ' F' : '—'}</div>
+                        <div style={{ fontSize: 10, color: 'var(--ink-dim)', letterSpacing: '.04em', textTransform: 'uppercase' }}>objectif</div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {/* Cumul des objectifs (indicatif) */}
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '11px 14px', background: 'var(--surface)', borderTop: '1px solid var(--line-strong)',
+                }}>
+                  <span style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600 }}>
+                    {isBloc ? 'Objectif à collecter' : `Enveloppe totale · ${nEtapes} étape${nEtapes > 1 ? 's' : ''}`}
+                  </span>
+                  <b style={{ fontSize: 14.5, color: 'var(--ink)' }}>{totalObj != null ? fmt(totalObj) + ' F' : 'à définir'}</b>
+                </div>
+              </div>
+            )}
+
+            {/* Bloc argent (garde-fou) */}
+            <div style={{
+              display: 'flex', gap: 12, alignItems: 'flex-start',
+              background: 'var(--surface)', border: '1px solid var(--line)',
+              borderRadius: 12, padding: '13px 14px', margin: '14px 0',
+              fontSize: 13, lineHeight: 1.55, color: 'var(--ink-soft)',
+            }}>
+              <span style={{ fontSize: 17, lineHeight: 1.2 }}>💰</span>
+              <div>
+                <b style={{ color: 'var(--ink)' }}>{isBloc ? 'Objectif à collecter' : 'Enveloppe à réunir'} : {totalObj != null ? fmt(totalObj) + ' F' : 'à définir'}</b> en votes.
+                À la fin, la cagnotte (moins la commission) est partagée entre les{' '}
+                <b style={{ color: 'var(--ink)' }}>{cfg.champions} champion{cfg.champions > 1 ? 's' : ''} — {cfg.podium}</b> —,
+                et les éliminés reçoivent une prime. Ton gain dépend du soutien du public.
+              </div>
+            </div>
+
+            {/* Places */}
+            <div style={{ margin: '16px 0 6px' }}>
+              <div style={{
+                fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em',
+                textTransform: 'uppercase', color: 'var(--ink-soft)',
+                marginBottom: 8, display: 'flex', justifyContent: 'space-between',
+              }}>
+                <span>Les places</span>
+                <span style={{ color: 'var(--ink-dim)' }}>
+                  {appel.acceptes} acceptée{appel.acceptes > 1 ? 's' : ''} · {appel.max_participants} attendues
+                </span>
+              </div>
+              <div style={{ height: 6, borderRadius: 999, background: 'var(--surface2)', overflow: 'hidden' }}>
+                <span style={{ display: 'block', height: '100%', width: `${pct}%`, background: SOLID, borderRadius: 999 }} />
+              </div>
+            </div>
+
+            {/* Appel a l'action -> bascule (aucune navigation) */}
+            <div style={{ marginTop: 'auto' }}>
+              <div style={{
+                textAlign: 'center',
+                background: SOLID, color: ON_ACCENT, fontWeight: 700, fontSize: 14,
+                borderRadius: 10, padding: 14,
+              }}>Rejoindre / Voir l&apos;appel</div>
+              <div style={{ textAlign: 'center', fontSize: 11.5, color: 'var(--ink-dim)', marginTop: 8 }}>
+                👆 Touche le panneau — la suite s&apos;ouvre ici même, sans changer de page.
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* ============================ VERSO (= page detail conservee + Reprise) ============================ */
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <button onClick={() => setFace('recto')} className="dkdk-retour-glow" style={{
+              alignSelf: 'flex-start', background: 'none', border: '1px solid rgba(46,213,115,0.55)',
+              color: 'var(--ink-soft)', fontSize: 12.5, fontWeight: 600, borderRadius: 999,
+              padding: '6px 12px', cursor: 'pointer', marginBottom: 12,
+            }}><span className="dkdk-retour-led" aria-hidden="true" />← Retour</button>
+
+            {/* En-tete (identique detail) */}
+            <div style={vcard}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--or)', textTransform: 'capitalize' }}>{disc}</span>
+                {officiel && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: ON_ACCENT, background: SOLID, borderRadius: 999, padding: '2px 10px' }}>Appel officiel Diki-Diki</span>
+                )}
+              </div>
+              <h2 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20, margin: '0 0 10px' }}>{appel.title || `Challenge de ${disc}`}</h2>
+              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12.5, color: 'var(--ink-soft)' }}>
+                <span><b style={{ color: 'var(--ink)' }}>{placesRestantes}</b> place(s) restante(s) sur {appel.max_participants}</span>
+                <span>{isBloc ? 'Bloc groupé' : 'Parcours d’étapes'}</span>
+                {appel.appel_deadline && <span>Clôture : {fmtDate(appel.appel_deadline)}</span>}
+              </div>
+            </div>
+
+            {/* Ce qu'il faut presenter (identique detail — lecteurs affiches) */}
+            {nEtapes > 0 && (
+              <div style={vcard}>
+                <div style={vh}>Ce qu’il faut présenter</div>
+                {appel.etapes.slice().sort((a, b) => (a.round_number || 0) - (b.round_number || 0)).map((e, i) => (
+                  <div key={e.round_number ?? i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--or)', minWidth: 58 }}>{isBloc ? 'Vidéo' : 'Étape'} {e.round_number ?? i + 1}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, color: 'var(--ink)' }}>
+                        {e.libelle || 'Libre'}
+                        {e.track_titre ? <span style={{ color: 'var(--ink-soft)' }}> — {e.track_titre}{e.track_artiste ? ' · ' + e.track_artiste : ''}</span> : null}
+                      </div>
+                      {ytEmbed(e.ref_url) ? (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ fontSize: 11, color: 'var(--or)', fontWeight: 700, marginBottom: 4 }}>▶ Version de référence — écoute-la pour bien t&apos;y conformer</div>
+                          <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)' }}>
+                            <iframe src={ytEmbed(e.ref_url) as string} title={`Référence ${e.round_number ?? i}`} loading="lazy"
+                              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen
+                              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Objectif a collecter (identique detail) */}
+            {appel.objectif_info && (
+              <div style={vcard}>
+                <div style={vh}>Objectif à collecter</div>
+                {appel.objectif_info.modele === 'parcours' ? (
+                  <div>
+                    {(appel.objectif_info.etapes || []).map((e: any) => (
+                      <div key={e.etape} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
+                        <span style={{ color: 'var(--ink-soft)' }}>Étape {e.etape}{e.classement ? ' · classement' : ''}</span>
+                        <b style={{ color: e.objectif ? 'var(--ink)' : 'var(--ink-dim)' }}>{e.objectif ? fmt(e.objectif) + ' F' : '—'}</b>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, paddingTop: 8 }}>
+                      <span style={{ color: 'var(--or)', fontWeight: 700 }}>Enveloppe totale</span>
+                      <b style={{ color: 'var(--or)' }}>{fmt(appel.objectif_info.enveloppe || 0) + ' F'}</b>
+                    </div>
+                  </div>
+                ) : appel.objectif_info.objectif ? (
+                  <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24, color: 'var(--ink)' }}>{fmt(appel.objectif_info.objectif) + ' F'}</div>
+                ) : (
+                  <div style={{ fontSize: 13, color: 'var(--ink-dim)' }}>À définir</div>
+                )}
+                <div style={{ fontSize: 11, color: 'var(--ink-dim)', marginTop: 10, lineHeight: 1.5 }}>
+                  Seuil à réunir en votes pour fermer {appel.objectif_info.modele === 'parcours' ? 'chaque étape' : 'le challenge'} — ce n’est pas un gain.
+                </div>
+              </div>
+            )}
+
+            {/* Reprise sans paroles — AJOUT, discipline chant uniquement */}
+            {chant && (
+              <div style={{ ...vcard, border: '1px solid rgba(255,170,0,0.30)', background: 'rgba(255,170,0,0.05)' }}>
+                <div style={vh}>🎤 Ta reprise, sans les paroles</div>
+                <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 10px' }}>
+                  Chante sur la musique d&apos;une chanson, sans la voix d&apos;origine. Obtiens l&apos;instrumental (le « karaoké ») en 3 étapes, gratuitement, même depuis ton téléphone.
+                </p>
+                <ol style={{ margin: '0 0 10px', paddingLeft: 18, fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.6 }}>
+                  <li><b>Prépare ta chanson</b> — le fichier MP3, ou son lien.</li>
+                  <li><b>Passe-la dans un outil gratuit</b> — l&apos;IA sépare la voix de l&apos;instrumental.</li>
+                  <li><b>Télécharge l&apos;instrumental</b> — lance-le et chante par-dessus en te filmant.</li>
+                </ol>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                  <a href="https://moises.ai" target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--or)', background: 'rgba(255,170,0,0.10)', border: '1px solid rgba(255,170,0,0.30)', padding: '5px 10px', borderRadius: 999, textDecoration: 'none' }}>🎵 Moises</a>
+                  <a href="https://vocalremover.org" target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--or)', background: 'rgba(255,170,0,0.10)', border: '1px solid rgba(255,170,0,0.30)', padding: '5px 10px', borderRadius: 999, textDecoration: 'none' }}>🎚️ vocalremover.org</a>
+                  <a href="https://www.lalal.ai" target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--or)', background: 'rgba(255,170,0,0.10)', border: '1px solid rgba(255,170,0,0.30)', padding: '5px 10px', borderRadius: 999, textDecoration: 'none' }}>✨ LALAL.AI</a>
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.55, marginBottom: 10 }}>
+                  Astuces : écoute au casque et filme dans un endroit calme ; trop haut ou trop bas ? Moises change la tonalité et le tempo.
+                </div>
+                <Link href="/reprise" style={{ fontSize: 12, fontWeight: 700, color: 'var(--or)', textDecoration: 'none' }}>Voir le guide complet →</Link>
+              </div>
+            )}
+
+            {/* Rappel argent honnete (identique detail) */}
+            <div style={{ ...vcard, background: 'rgba(255,170,0,0.06)', border: '1px solid rgba(255,170,0,0.25)' }}>
+              <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+                💰 <b>Aucun montant garanti</b> — tout dépend du soutien du public. Les votes forment une cagnotte partagée entre les gagnants ; chaque éliminé reçoit une prime de participation.
+              </div>
+            </div>
+
+            {/* Rejoindre cet appel (identique detail — action inline) */}
+            <div style={{ ...vcard, marginBottom: 0, marginTop: 'auto' }}>
+              <div style={vh}>Rejoindre cet appel</div>
+              {!connecte ? (
+                <Link href="/auth/login" style={{ display: 'inline-block', background: SOLID, color: ON_ACCENT, fontWeight: 800, fontFamily: 'Syne, sans-serif', borderRadius: 12, padding: '12px 18px', textDecoration: 'none' }}>Se connecter pour rejoindre</Link>
+              ) : videos.length === 0 ? (
+                <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+                  Tu n&apos;as pas encore de vidéo approuvée. <Link href="/submit" style={{ color: 'var(--or)' }}>Dépose une vidéo</Link>, fais-la valider, puis reviens rejoindre l&apos;appel.
+                </div>
+              ) : (
+                <>
+                  <label style={{ display: 'block', fontSize: 12, color: 'var(--ink-soft)', marginBottom: 6 }}>Ta vidéo (approuvée)</label>
+                  <select value={videoId} onChange={e => setVideoId(e.target.value)}
+                    style={{ width: '100%', background: 'var(--surface)', border: '1px solid var(--line-strong)', borderRadius: 10, padding: '10px 12px', color: 'var(--ink)', fontSize: 14, marginBottom: 12 }}>
+                    {videos.map(v => <option key={v.id} value={v.id} style={{ background: 'var(--bg-soft)' }}>{v.title || v.id.slice(0, 8)}</option>)}
+                  </select>
+                  <button onClick={() => rejoindre(false)} disabled={busy}
+                    style={{ width: '100%', background: SOLID, color: ON_ACCENT, fontWeight: 800, fontFamily: 'Syne, sans-serif', border: 'none', borderRadius: 12, padding: '13px', fontSize: 15, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.7 : 1 }}>
+                    {busy ? 'En cours…' : 'Rejoindre l’appel'}
+                  </button>
+                  {isBloc && (
+                    <div style={{ fontSize: 11, color: 'var(--ink-dim)', marginTop: 8 }}>
+                      Astuce : pour un bloc à plusieurs vidéos, tu ajouteras les suivantes depuis ton compte après avoir rejoint.
+                    </div>
+                  )}
+                </>
+              )}
+              {msg && <div style={{ color: 'var(--red, #ff6b6b)', fontSize: 13, marginTop: 12 }}>{msg}</div>}
+              {ok && <div style={{ color: 'var(--green, #4ade80)', fontSize: 13, marginTop: 12 }}>{ok}</div>}
+              <div style={{ marginTop: 12 }}>
+                <Link href={`/challenges/appels/${appel.id}`} style={{ fontSize: 12, color: 'var(--ink-dim)', textDecoration: 'none' }}>Ouvrir la page complète ↗</Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return (
+    <span style={{
+      fontSize: 12, fontWeight: 600, color: 'var(--ink)',
+      background: 'var(--surface2)', border: '1px solid var(--line)',
+      borderRadius: 999, padding: '6px 11px',
+    }}>{children}</span>
+  );
+}
