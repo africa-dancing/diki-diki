@@ -102,8 +102,8 @@ export default function MediathequePage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
       <Navbar />
-      <div style={{ padding: '16px 24px 32px', minHeight: 64, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)' }} />
-      <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px' }}>
+      <div style={{ padding: '4px 24px 0', minHeight: 0, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)' }} />
+      <div style={{ maxWidth: 700, margin: '0 auto', padding: '8px 16px 24px' }}>
 
         <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '20px', marginBottom: 20, textAlign: 'center' }}>
           <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.75rem,3vw,1.9rem)', lineHeight: 1.1, whiteSpace: 'nowrap', marginBottom: 6, background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Médiathèque <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Diki-Diki</span></h1>
