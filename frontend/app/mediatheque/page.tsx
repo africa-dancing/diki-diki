@@ -102,7 +102,7 @@ export default function MediathequePage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
       <Navbar />
-      <div style={{ padding: '4px 24px 0', minHeight: 0, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)' }} />
+      <div style={{ padding: '6px 24px 0', minHeight: 34, background: 'radial-gradient(ellipse 80% 60% at 50% -10%,hsl(339, 98%, 49%) 0%,transparent 70%)' }} />
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '8px 16px 24px' }}>
 
         <div style={{ background: 'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))', border: '1px solid rgb(10,0,0)', borderRadius: 16, padding: '20px', marginBottom: 20, textAlign: 'center' }}>
