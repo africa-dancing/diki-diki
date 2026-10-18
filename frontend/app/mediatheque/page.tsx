@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
+import RadioPlayer, { RadioTrack } from '../components/RadioPlayer';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/v1';
 const OR = '#FFAA00';
@@ -21,6 +22,13 @@ function ytEmbed(url?: string | null): string | null {
   return m ? `https://www.youtube.com/embed/${m[1]}` : null;
 }
 
+/*DKDK_RADIO — identifiant YouTube (11 car.) pour le lecteur continu*/
+function ytId(url?: string | null): string | null {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
 function fmtDuree(s?: number) {
   if (!s) return '';
   const m = Math.floor(s / 60); const sec = s % 60;
@@ -31,6 +39,7 @@ export default function MediathequePage() {
   const [musiques, setMusiques] = useState<Musique[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtre, setFiltre] = useState('Tous');
+  const [source, setSource] = useState<'catalogue' | 'challenges'>('catalogue'); /*DKDK_RADIO*/
   const [openId, setOpenId] = useState<string | null>(null); /*DKDK_REF_URL — morceau dont le lecteur est ouvert*/
   const [hover, setHover] = useState<{ id: string; titre: string; danse?: string; top: number } | null>(null); /*DKDK_TRACK_BUBBLE — bulle flottante (survol PC + toucher mobile)*/
   const router = useRouter();
@@ -59,12 +68,36 @@ export default function MediathequePage() {
 
   useEffect(() => {
     setLoading(true);
+    if (source === 'challenges') {
+      /*DKDK_RADIO — morceaux imposés des challenges : on aplatit les étapes des appels (track + ref_url YouTube)*/
+      fetch(`${API}/brackets/appels`, { cache: 'no-store' })
+        .then(r => r.json())
+        .then((d: any) => {
+          const appels: any[] = d?.data?.appels ?? [];
+          const vus = new Set<string>();
+          const liste: Musique[] = [];
+          appels.forEach(a => (a.etapes ?? []).forEach((e: any) => {
+            const yid = ytId(e?.ref_url);
+            if (!yid || vus.has(yid)) return;
+            vus.add(yid);
+            liste.push({ id: `ch-${a.id}-${e.round_number}`, titre: e.track_titre || e.libelle || 'Morceau', artiste: e.track_artiste || '', ref_url: e.ref_url, danse: a.discipline || undefined });
+          }));
+          setMusiques(liste); setLoading(false);
+        })
+        .catch(() => setLoading(false));
+      return;
+    }
     const url = filtre === 'Tous' ? `${API}/musiques` : `${API}/musiques?continent=${encodeURIComponent(filtre)}`;
     fetch(url)
       .then(r => r.json())
       .then((d: any) => { setMusiques(d.data ?? []); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [filtre]);
+  }, [filtre, source]);
+
+  const srcBtn = (on: boolean) => ({ flex: 1, padding: '10px', borderRadius: 12, fontSize: 13, fontWeight: 800, fontFamily: 'Syne,sans-serif', cursor: 'pointer', border: on ? `1px solid ${OR}` : '1px solid var(--line)', background: on ? OR : 'var(--surface)', color: on ? '#000' : 'var(--ink-soft)' });
+  const radioPlaylist: RadioTrack[] = musiques
+    .map((m): RadioTrack | null => { const yid = ytId(m.ref_url); return yid ? { id: m.id, titre: m.titre, artiste: m.artiste, ytId: yid, cover_url: m.cover_url } : null; })
+    .filter((t): t is RadioTrack => t !== null);
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
@@ -76,6 +109,13 @@ export default function MediathequePage() {
           <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 'clamp(0.75rem,3vw,1.9rem)', lineHeight: 1.1, whiteSpace: 'nowrap', marginBottom: 6, background: 'linear-gradient(135deg,#f0f0f0,#888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Médiathèque <span style={{ background: 'linear-gradient(90deg,#FF6B00,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Diki-Diki</span></h1>
           <div style={{ fontSize: 12, color: '#fff', lineHeight: 1.6 }}>Découvre le répertoire musical du continent, et propose les tiens pour les challenges futurs.</div>
         </div>
+
+        {/* DKDK_RADIO — source + lecteur continu */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          <button onClick={() => setSource('catalogue')} style={srcBtn(source === 'catalogue')}>🎵 Tout le catalogue</button>
+          <button onClick={() => setSource('challenges')} style={srcBtn(source === 'challenges')}>🏆 Morceaux des challenges</button>
+        </div>
+        <RadioPlayer playlist={radioPlaylist} />
 
         {/* Bulle guide — appel a l'action */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.35)', borderRadius: 14, padding: '13px 15px', marginBottom: 14, boxShadow: '0 0 14px -4px rgba(255,170,0,0.35)' }}>
@@ -90,11 +130,13 @@ export default function MediathequePage() {
           + Ajouter un morceau
         </button>
 
+        {source === 'catalogue' && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
           {CONTINENTS.map(c => (
             <button key={c} onClick={() => setFiltre(c)} style={{ padding: '8px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: filtre === c ? `1px solid ${OR}` : '1px solid var(--line)', background: filtre === c ? OR : 'var(--surface)', color: filtre === c ? '#000' : 'var(--ink-soft)' }}>{c}</button>
           ))}
         </div>
+        )}
 
         {loading && <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--ink-dim)' }}>Chargement...</div>}
 
