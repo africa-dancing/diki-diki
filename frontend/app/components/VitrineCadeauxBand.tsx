@@ -111,7 +111,7 @@ export default function VitrineCadeauxBand() {
       >
         <div style={{ width: '100%', height: 110, background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {img
-            ? <img src={img} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" {...(eager ? { fetchPriority: 'high' } : {}) as any} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ? <img src={img} alt="" loading="eager" decoding="async" {...(eager ? { fetchPriority: 'high' } : {}) as any} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <span style={{ fontSize: 34, opacity: 0.8 }}>{c.annuel ? '🏆' : '🎁'}</span>}
         </div>
         <div style={{ padding: '9px 10px 11px' }}>
