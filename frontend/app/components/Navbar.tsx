@@ -252,6 +252,7 @@ export default function Navbar() {
                 { href: '/cadeaux',           label: 'Cadeaux à gagner' },
                 { href: '/challenges/appels', label: 'Mur des appels' },
                 { href: '/mediatheque',       label: 'Médiathèque' },
+                { href: '/echanges',          label: "Espace d'échanges" },
                 { href: '/challenges',        label: 'Challenge' },
                 { href: '/submit',            label: 'Ajouter une vidéo', hide: !token },
                 { href: '/compte',            label: 'Compte', hide: !token },

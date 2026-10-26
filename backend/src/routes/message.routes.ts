@@ -40,6 +40,11 @@ async function blockedBetween(a: string, b: string): Promise<boolean> {
   return (data || []).length > 0;
 }
 
+async function hasOpenEchange(userId: string): Promise<boolean> {
+  const { data } = await supabase.from('echanges_posts').select('id').eq('auteur_id', userId).eq('statut', 'ouvert').limit(1);
+  return (data || []).length > 0;
+}
+
 // ─── Boite de reception : liste des conversations ───────────────────────
 messageRouter.get('/', requireAuth, async (req: any, res) => {
   try {
@@ -142,7 +147,8 @@ messageRouter.get('/thread/:userId', requireAuth, async (req: any, res) => {
     const otherIsCandidate = await isCandidate(other);
     const hasIncoming = (data || []).some((m: any) => m.sender_id === other);
     const blocked = await blockedBetween(me, other);
-    const canMessage = !blocked && ((ou as any)?.messages_enabled !== false) && (otherIsCandidate || hasIncoming);
+    const otherHasEchange = await hasOpenEchange(other);
+    const canMessage = !blocked && ((ou as any)?.messages_enabled !== false) && (otherIsCandidate || hasIncoming || otherHasEchange);
     return res.json({ success: true, other: { id: other, name: (ou as any)?.name || 'Utilisateur', username: (ou as any)?.username || null }, can_message: canMessage, blocked, data: data || [] });
   } catch { return res.status(500).json({ error: 'THREAD_FAILED' }); }
 });
@@ -168,7 +174,8 @@ messageRouter.post('/', requireAuth, async (req: any, res) => {
     const candidate = await isCandidate(recipient);
     if (!candidate) {
       const { data: inc } = await supabase.from('messages').select('id').eq('sender_id', recipient).eq('recipient_id', me).limit(1);
-      if (!((inc || []).length > 0)) return res.status(403).json({ error: 'NOT_CANDIDATE', message: 'Tu ne peux ecrire qu a un candidat.' });
+      const exposed = ((inc || []).length > 0) || await hasOpenEchange(recipient);
+      if (!exposed) return res.status(403).json({ error: 'NOT_CANDIDATE', message: 'Tu ne peux ecrire qu a un candidat ou a un inscrit qui a publie une annonce.' });
     }
 
     // anti-spam : max 20 NOUVEAUX destinataires / 24 h

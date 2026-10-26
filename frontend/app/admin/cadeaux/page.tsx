@@ -104,7 +104,7 @@ export default function AdminCadeauxPage() {
   async function _compresserImageCadeau(file: File): Promise<{ b64: string; mime: string }> {
     const dataUrl = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = rej; r.readAsDataURL(file); });
     const img = await new Promise<HTMLImageElement>((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('IMG')); im.src = dataUrl; });
-    const MAX = 1000;
+    const MAX = 640;
     let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
     if (w > MAX || h > MAX) { const sc = Math.min(MAX / w, MAX / h); w = Math.round(w * sc); h = Math.round(h * sc); }
     const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
