@@ -1,7 +1,7 @@
 'use client';
 /* DKDK_ECHANGES — Espace d'échanges entre inscrits : Mur d'entraide + Annuaire.
    Entête standard (Navbar + halo magenta + panneau, comme la Médiathèque).
-   Contact privé via la messagerie (/compte?tab=messagerie&to=ID). */
+   Réglages de visibilité / nom affiché : déplacés dans Compte → Confidentialité. */
 import { useEffect, useState, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 
@@ -36,8 +36,7 @@ export default function EchangesPage() {
   const [nDisc, setNDisc] = useState(''); const [nType, setNType] = useState<'solo' | 'groupe'>('solo'); const [nMsg, setNMsg] = useState('');
 
   const [ann, setAnn] = useState<Inscrit[]>([]);
-  const [q, setQ] = useState(''); const [visible, setVisible] = useState(true);
-  const [nomPublic, setNomPublic] = useState<'pseudo' | 'nom'>('pseudo');
+  const [q, setQ] = useState('');
 
   useEffect(() => { setTok(getToken()); setMe(myId()); }, []);
   const H = useCallback(() => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${getToken() || ''}` }), []);
@@ -51,7 +50,6 @@ export default function EchangesPage() {
   const loadAnn = useCallback(async () => {
     const p = new URLSearchParams(); if (q) p.set('q', q);
     try { const r = await fetch(`${API}/echanges/annuaire?${p.toString()}`, { headers: H(), cache: 'no-store' }); const j = await r.json(); setAnn(j.data || []); } catch { setAnn([]); }
-    try { const r2 = await fetch(`${API}/echanges/annuaire/me`, { headers: H(), cache: 'no-store' }); const j2 = await r2.json(); setVisible(j2.visible !== false); if (j2.nom_public) setNomPublic(j2.nom_public); } catch {}
   }, [q, H]);
 
   useEffect(() => { if (!tok) { setLoading(false); return; } setLoading(true); (tab === 'mur' ? loadMur() : loadAnn()).finally(() => setLoading(false)); /* eslint-disable-next-line */ }, [tab, tok]);
@@ -64,19 +62,6 @@ export default function EchangesPage() {
   }
   async function fermer(id: string) { try { await fetch(`${API}/echanges/${id}/close`, { method: 'POST', headers: H() }); } catch {} loadMur(); }
   async function signaler(id: string) { try { await fetch(`${API}/echanges/${id}/report`, { method: 'POST', headers: H(), body: JSON.stringify({ reason: 'Signalé depuis le mur' }) }); } catch {} flash("Merci, l'annonce a été signalée à la modération."); }
-
-  async function toggleVisible() {
-    const v = !visible; setVisible(v);
-    try { await fetch(`${API}/echanges/annuaire/me`, { method: 'PUT', headers: H(), body: JSON.stringify({ visible: v }) }); } catch {}
-    flash(v ? '✅ Tu apparais maintenant dans l’annuaire.' : "🙈 Tu n’apparais plus dans l’annuaire — les autres ne te voient pas.", 3500);
-    loadAnn();
-  }
-  async function changeNom(val: 'pseudo' | 'nom') {
-    setNomPublic(val);
-    try { await fetch(`${API}/echanges/annuaire/me`, { method: 'PUT', headers: H(), body: JSON.stringify({ nom_public: val }) }); } catch {}
-    flash(val === 'nom' ? 'Nom affiché : ton nom réel.' : 'Nom affiché : ton nom de scène.', 2500);
-    loadAnn();
-  }
 
   const AV = (name: string, url: string | null, size: number) => url
     ? <img src={url} alt="" style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flex: `0 0 ${size}px` }} />
@@ -167,18 +152,8 @@ export default function EchangesPage() {
                   <input value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') loadAnn(); }} placeholder="Rechercher un pseudo…" style={{ ...selStyle, flex: 1, minWidth: 150 }} />
                   <button onClick={loadAnn} style={{ ...selStyle, cursor: 'pointer' }}>🔍</button>
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 16, justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600 }}>
-                    Mon nom affiché :
-                    <select value={nomPublic} onChange={e => changeNom(e.target.value as 'pseudo' | 'nom')} style={selStyle}>
-                      <option value="pseudo">Nom de scène</option>
-                      <option value="nom">Nom réel</option>
-                    </select>
-                  </label>
-                  <button onClick={toggleVisible} title="M'afficher ou me masquer dans l'annuaire" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 12px', cursor: 'pointer', color: 'var(--ink-soft)', fontSize: 12.5, fontWeight: 600 }}>
-                    👁️ Je m’affiche
-                    <span style={{ width: 38, height: 21, borderRadius: 999, background: visible ? 'linear-gradient(90deg,#FF6B00,#FFD700)' : 'var(--line)', position: 'relative', transition: 'background .2s' }}><span style={{ position: 'absolute', top: 2, left: visible ? 19 : 2, width: 17, height: 17, borderRadius: '50%', background: '#fff', transition: 'left .2s' }} /></span>
-                  </button>
+                <div style={{ marginBottom: 16, fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5 }}>
+                  🔒 Tu choisis d’apparaître ou non dans l’annuaire, et ton nom affiché, depuis <a href="/compte?tab=settings" style={{ color: OR, fontWeight: 700, textDecoration: 'none' }}>Compte → Confidentialité</a>.
                 </div>
 
                 {loading ? <div style={{ textAlign: 'center', color: 'var(--muted)', padding: 40 }}>Chargement…</div>

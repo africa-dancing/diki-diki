@@ -105,6 +105,29 @@ function ConfidentialiteSection({earnings}:{earnings:number}) {
   );
 }
 
+function EchangesReglagesSection() {
+  const [visible,setVisible]=useState(true);
+  const [nomPublic,setNomPublic]=useState<'pseudo'|'nom'>('pseudo');
+  const [saved,setSaved]=useState('');
+  useEffect(()=>{const t=getToken();if(!t)return;fetch(`${API}/echanges/annuaire/me`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.ok?r.json():null).then(d=>{if(d){setVisible(d.visible!==false);if(d.nom_public)setNomPublic(d.nom_public);}}).catch(()=>{});},[]);
+  const put=async(body:any)=>{const t=getToken();if(!t)return;try{await fetch(`${API}/echanges/annuaire/me`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${t}`},body:JSON.stringify(body)});setSaved('\u2713 Enregistr\u00e9');setTimeout(()=>setSaved(''),2500);}catch{}};
+  return (
+    <div>
+      <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:12}}>
+        <PrivacyRow icon="\ud83d\udcc7" label="Appara\u00eetre dans l'annuaire" desc="Les autres inscrits peuvent te trouver dans l'Espace d'\u00e9changes" on={visible} onToggle={()=>{const v=!visible;setVisible(v);put({visible:v});}}/>
+      </div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,padding:'12px 14px',background:'var(--surface2)',border:'1px solid var(--line)',borderRadius:12}}>
+        <div style={{minWidth:0}}><div style={{fontSize:14,fontWeight:700,color:'var(--ink)'}}>\ud83d\udc64 Nom affich\u00e9</div><div style={{fontSize:11,color:'var(--ink-soft)'}}>Le nom montr\u00e9 dans l'annuaire et sur tes annonces</div></div>
+        <select value={nomPublic} onChange={e=>{const val=e.target.value as 'pseudo'|'nom';setNomPublic(val);put({nom_public:val});}} style={{background:'var(--surface)',border:'1px solid var(--line)',color:'var(--ink)',borderRadius:10,padding:'9px 12px',fontSize:13,fontWeight:600,flexShrink:0}}>
+          <option value="pseudo">Nom de sc\u00e8ne</option>
+          <option value="nom">Nom r\u00e9el</option>
+        </select>
+      </div>
+      {saved&&<div style={{textAlign:'right',marginTop:10,fontSize:12,color:'#4ade80',fontWeight:600}}>{saved}</div>}
+    </div>
+  );
+}
+
 function SuivreBtn({active,onToggle,size='sm'}:{active:boolean;onToggle:()=>void;size?:'sm'|'md'}) {
   return <button onClick={onToggle} style={{background:'#fff',border:'none',cursor:'pointer',padding:'3px 8px',borderRadius:20,display:'inline-flex',alignItems:'center',gap:'3px'}}><span style={{fontSize:size==='md'?'11px':'10px',fontWeight:600,color:active?'#FF0000':'#000',userSelect:'none'as const}}>{active?'Voté':'Voter'}</span><span style={{fontSize:size==='md'?'20px':'17px',lineHeight:1,color:active?'#FF0000':'#000'}}>{active?'★':'☆'}</span></button>;
 }
@@ -376,6 +399,7 @@ export default function ComptePage() {
           <div>
             <div style={{background:'linear-gradient(135deg,rgba(126,3,128,0.52),rgba(237,7,15))',borderRadius:18,padding:'22px 20px',marginBottom:18,textAlign:'center'}}><div style={{fontSize:38,marginBottom:8}}>⚙️</div><div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:20,color:'#fff',marginBottom:6}}>Paramètres</div><div style={{fontSize:13,color:'rgba(255,255,255,0.85)',lineHeight:1.6}}>Gère ta confidentialité et ton compte</div></div>
             <div style={card}><div style={{fontSize:15,fontWeight:700,color:'var(--ink)',marginBottom:16,fontFamily:'Syne,sans-serif'}}>🔒 Confidentialité</div><ConfidentialiteSection earnings={totalEarned}/></div>
+            <div style={{...card,marginTop:12}}><div style={{fontSize:15,fontWeight:700,color:'var(--ink)',marginBottom:16,fontFamily:'Syne,sans-serif'}}>🤝 Espace d'échanges</div><EchangesReglagesSection/></div>
             <div style={{...card,marginTop:12}}><div style={{fontSize:15,fontWeight:700,color:'var(--ink)',marginBottom:12,fontFamily:'Syne,sans-serif'}}>⚙️ Compte</div><button onClick={handleLogout} style={{background:'#e10600',border:'none',borderRadius:50,padding:'11px 22px',fontSize:13,fontWeight:800,color:'#fff',cursor:'pointer',fontFamily:'DM Sans,sans-serif',boxShadow:'0 2px 8px rgba(225,6,0,0.35)'}}>🚪 Se déconnecter</button></div>
           </div>
         )}
