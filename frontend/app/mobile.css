@@ -378,3 +378,6 @@ html[data-star="off"] .dkdk-logo-star{ animation:none; }
 .dkdk-contact-box .dkdk-contact-list{margin-top:0;margin-bottom:0}
 .dkdk-contact-box-h{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:.04em;color:var(--ink);margin:0 0 16px;display:flex;align-items:center;gap:8px}
 .dkdk-contact-box-h .dot{width:8px;height:8px;border-radius:50%;background:#e11d8f;display:inline-block;flex:none}
+
+/* DKDK_SELECT — lisibilité des menus déroulants (liste d'options) dans les deux thèmes */
+select option { background: var(--bg-soft, #131019); color: var(--ink, #f3eee4); }
