@@ -105,7 +105,7 @@ export default function EchangesPage() {
               <>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 16 }}>
                   <select value={fDisc} onChange={e => setFDisc(e.target.value)} style={selStyle}><option value="">Toutes disciplines</option>{DISCIPLINES.map(d => <option key={d} value={d}>{d}</option>)}</select>
-                  <select value={fType} onChange={e => setFType(e.target.value)} style={selStyle}><option value="">Solo &amp; Groupe</option><option value="solo">Solo</option><option value="groupe">Groupe</option></select>
+                  <select value={fType} onChange={e => setFType(e.target.value)} style={selStyle}><option value="">Type de Formation</option><option value="solo">Solo</option><option value="groupe">Groupe</option></select>
                   <button onClick={() => setShowForm(s => !s)} style={{ marginLeft: 'auto', background: 'linear-gradient(135deg,#FF6B00,#FFD700)', color: '#1a0b00', border: 'none', borderRadius: 11, padding: '11px 18px', fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>➕ Publier une annonce</button>
                 </div>
 
