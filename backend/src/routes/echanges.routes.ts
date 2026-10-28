@@ -10,8 +10,8 @@ const echangesRouter = Router();
 const MSG_MAX = 300;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TYPES = ['solo', 'groupe'];
+const STAFF = ['admin', 'moderateur']; // exclus de l'annuaire public
 
-// Détection de sollicitation hors plateforme : on MARQUE (flag) sans bloquer.
 const SENSITIVE: RegExp[] = [
   /\b(mtn|moov|celtiis|flooz|momo|mobile\s*money)\b/i,
   /\bvote[s]?\s*(contre|pour)\s*vote[s]?\b/i,
@@ -21,10 +21,15 @@ const SENSITIVE: RegExp[] = [
 ];
 function scan(t: string): string | null { for (const re of SENSITIVE) if (re.test(t)) return re.source.slice(0, 60); return null; }
 
-async function namesByIds(ids: string[]): Promise<Record<string, any>> {
+// Nom à afficher selon la préférence de la personne.
+function displayName(u: any): string {
+  if (!u) return 'Inscrit';
+  return u.nom_public === 'nom' ? (u.name || u.username || 'Inscrit') : (u.username || u.name || 'Inscrit');
+}
+async function usersByIds(ids: string[]): Promise<Record<string, any>> {
   const map: Record<string, any> = {};
   if (!ids.length) return map;
-  const { data } = await supabase.from('users').select('id, name, username, avatar_url').in('id', ids);
+  const { data } = await supabase.from('users').select('id, name, username, avatar_url, role, nom_public').in('id', ids);
   for (const u of (data || []) as any[]) map[u.id] = u;
   return map;
 }
@@ -48,10 +53,10 @@ echangesRouter.get('/', requireAuth, async (req: any, res) => {
     if (type && TYPES.includes(type)) q = q.eq('type', type);
     const { data } = await q;
     const posts = (data || []) as any[];
-    const auteurs = await namesByIds([...new Set(posts.map(p => p.auteur_id))]);
+    const auteurs = await usersByIds([...new Set(posts.map(p => p.auteur_id))]);
     const list = posts.map(p => ({
       ...p,
-      auteur_nom: auteurs[p.auteur_id]?.username || auteurs[p.auteur_id]?.name || 'Inscrit',
+      auteur_nom: displayName(auteurs[p.auteur_id]),
       auteur_avatar: auteurs[p.auteur_id]?.avatar_url || null,
     }));
     return res.json({ success: true, data: list });
@@ -101,38 +106,43 @@ echangesRouter.post('/:id/report', requireAuth, async (req: any, res) => {
   } catch { return res.status(500).json({ error: 'REPORT_FAILED' }); }
 });
 
-// ─── ANNUAIRE : liste des inscrits visibles ─────────────────────────────
+// ─── ANNUAIRE : liste des inscrits visibles (hors staff) ────────────────
 echangesRouter.get('/annuaire', requireAuth, async (req: any, res) => {
   try {
     const me = req.user?.userId;
     const search = req.query.q ? String(req.query.q).trim() : '';
-    let q = supabase.from('users').select('id, name, username, avatar_url').eq('annuaire_visible', true).limit(200);
+    let q = supabase.from('users').select('id, name, username, avatar_url, role, nom_public').eq('annuaire_visible', true).limit(300);
     if (search) q = q.or(`name.ilike.%${search}%,username.ilike.%${search}%`);
     const { data } = await q;
-    const users = (data || []) as any[];
-    const cands = await candidateSet(users.map(u => u.id));
-    const list = users.filter(u => u.id !== me).map(u => ({
-      id: u.id, pseudo: u.username || u.name || 'Inscrit', avatar: u.avatar_url || null, candidat: cands.has(u.id),
+    const users = (data || []).filter((u: any) => u.id !== me && !STAFF.includes(u.role));
+    const cands = await candidateSet(users.map((u: any) => u.id));
+    const list = users.slice(0, 200).map((u: any) => ({
+      id: u.id, pseudo: displayName(u), avatar: u.avatar_url || null, candidat: cands.has(u.id),
     }));
     return res.json({ success: true, data: list });
   } catch { return res.status(500).json({ error: 'ANNUAIRE_FAILED' }); }
 });
 
-// ─── ANNUAIRE : mon réglage de visibilité ───────────────────────────────
+// ─── ANNUAIRE : mes réglages (visibilité + nom affiché) ─────────────────
 echangesRouter.get('/annuaire/me', requireAuth, async (req: any, res) => {
   try {
     const me = req.user?.userId;
-    const { data } = await supabase.from('users').select('annuaire_visible').eq('id', me).limit(1).single();
-    return res.json({ success: true, visible: (data as any)?.annuaire_visible !== false });
-  } catch { return res.json({ success: true, visible: true }); }
+    const { data } = await supabase.from('users').select('annuaire_visible, nom_public').eq('id', me).limit(1).single();
+    return res.json({ success: true, visible: (data as any)?.annuaire_visible !== false, nom_public: (data as any)?.nom_public || 'pseudo' });
+  } catch { return res.json({ success: true, visible: true, nom_public: 'pseudo' }); }
 });
 echangesRouter.put('/annuaire/me', requireAuth, async (req: any, res) => {
   try {
     const me = req.user?.userId;
-    const visible = !!(req.body || {}).visible;
-    const { error } = await supabase.from('users').update({ annuaire_visible: visible }).eq('id', me);
+    const b = req.body || {};
+    const patch: any = {};
+    if (typeof b.visible === 'boolean') patch.annuaire_visible = b.visible;
+    if (b.nom_public === 'pseudo' || b.nom_public === 'nom') patch.nom_public = b.nom_public;
+    if (!Object.keys(patch).length) return res.status(400).json({ error: 'NOTHING' });
+    const { error } = await supabase.from('users').update(patch).eq('id', me);
     if (error) throw error;
-    return res.json({ success: true, visible });
+    const { data } = await supabase.from('users').select('annuaire_visible, nom_public').eq('id', me).limit(1).single();
+    return res.json({ success: true, visible: (data as any)?.annuaire_visible !== false, nom_public: (data as any)?.nom_public || 'pseudo' });
   } catch { return res.status(500).json({ error: 'SETTING_FAILED' }); }
 });
 
@@ -142,8 +152,8 @@ echangesRouter.get('/admin/reported', requireAuth, requireAdmin, async (_req: an
     const { data } = await supabase.from('echanges_posts').select('*')
       .or('reported.eq.true,flagged.eq.true').order('created_at', { ascending: false }).limit(200);
     const posts = (data || []) as any[];
-    const auteurs = await namesByIds([...new Set(posts.map(p => p.auteur_id))]);
-    return res.json({ success: true, data: posts.map(p => ({ ...p, auteur_nom: auteurs[p.auteur_id]?.name || 'Inscrit' })) });
+    const auteurs = await usersByIds([...new Set(posts.map(p => p.auteur_id))]);
+    return res.json({ success: true, data: posts.map(p => ({ ...p, auteur_nom: displayName(auteurs[p.auteur_id]) })) });
   } catch { return res.status(500).json({ error: 'ADMIN_FAILED' }); }
 });
 
