@@ -68,7 +68,7 @@ export default function EchangesPage() {
     : <div style={{ width: size, height: size, borderRadius: '50%', flex: `0 0 ${size}px`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: size * 0.42, color: '#1a0b00', background: 'linear-gradient(135deg,#FF6B00,#FFD700)' }}>{initiale(name)}</div>;
 
   const chip = (bg: string, col: string, bd: string): React.CSSProperties => ({ fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999, background: bg, color: col, border: `1px solid ${bd}` });
-  const selStyle: React.CSSProperties = { background: 'var(--surface2)', border: '1px solid var(--line)', color: 'var(--ink)', borderRadius: 10, padding: '9px 12px', fontSize: 13, fontWeight: 600 };
+  const selStyle: React.CSSProperties = { boxSizing: 'border-box', maxWidth: '100%', background: 'var(--surface2)', border: '1px solid var(--line)', color: 'var(--ink)', borderRadius: 10, padding: '9px 12px', fontSize: 13, fontWeight: 600 };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'DM Sans,sans-serif', paddingBottom: 80 }}>
@@ -110,12 +110,12 @@ export default function EchangesPage() {
                 </div>
 
                 {showForm && (
-                  <div style={{ background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.35)', borderRadius: 14, padding: 16, marginBottom: 16 }}>
+                  <div style={{ boxSizing: 'border-box', background: 'var(--surface)', border: '1px solid rgba(255,170,0,0.35)', borderRadius: 14, padding: 16, marginBottom: 16 }}>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
                       <select value={nDisc} onChange={e => setNDisc(e.target.value)} style={selStyle}><option value="">Discipline…</option>{DISCIPLINES.map(d => <option key={d} value={d}>{d}</option>)}</select>
                       <select value={nType} onChange={e => setNType(e.target.value as 'solo' | 'groupe')} style={selStyle}><option value="solo">Solo</option><option value="groupe">Groupe</option></select>
                     </div>
-                    <textarea value={nMsg} onChange={e => setNMsg(e.target.value.slice(0, 300))} placeholder="Ex. : Je cherche 3 danseurs pour lancer un challenge Ndombolo cette semaine…" rows={3} style={{ width: '100%', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--ink)', fontFamily: 'DM Sans,sans-serif', fontSize: 14, padding: '10px 12px', resize: 'vertical' }} />
+                    <textarea value={nMsg} onChange={e => setNMsg(e.target.value.slice(0, 300))} placeholder="Ex. : Je cherche 3 danseurs pour lancer un challenge Ndombolo cette semaine…" rows={3} style={{ width: '100%', boxSizing: 'border-box', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--ink)', fontFamily: 'DM Sans,sans-serif', fontSize: 14, padding: '10px 12px', resize: 'vertical' }} />
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
                       <span style={{ fontSize: 12, color: 'var(--muted)' }}>{nMsg.length}/300</span>
                       <button onClick={publier} disabled={!nMsg.trim()} style={{ marginLeft: 'auto', background: nMsg.trim() ? 'linear-gradient(135deg,#FF6B00,#FFD700)' : 'var(--surface2)', color: nMsg.trim() ? '#1a0b00' : 'var(--muted)', border: 'none', borderRadius: 10, padding: '10px 18px', fontWeight: 800, fontFamily: 'Syne,sans-serif', fontSize: 14, cursor: nMsg.trim() ? 'pointer' : 'default' }}>Publier</button>
