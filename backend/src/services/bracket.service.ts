@@ -36,8 +36,8 @@ function totalRoundsFor(N: number): number {
 
 // Nombre de laureats (payes) selon le nombre de candidats.
 export function nbLaureats(N: number): number {
-  if (N < 4) return 1;
-  if (N <= 8) return 2;
+  // Revision cahier 16/09 : seul le C2 a 1 gagnant ; tous les autres formats en ont 3.
+  if (N <= 2) return 1;
   return 3;
 }
 
